@@ -38,7 +38,7 @@ npm -v
 
 
 
-
+npm hash : M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G   HATI GHAD LMODPASS AYGA NLKONT INO GHID HIYD "M" D "G" GH LBYA DLA FIN
 
 
 
