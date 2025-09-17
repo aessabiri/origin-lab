@@ -801,6 +801,7 @@ const App = () => {
               }}
               className={`absolute cursor-grab rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleSizeClass} ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''}`}
               onClick={(e) => handleParticleClick(e, particle.id)}
+              onDoubleClick={() => handleShowInfo(particle.type)}
               onMouseEnter={() => updateParticleScale(particle.id, 1.2)}
               onMouseLeave={() => updateParticleScale(particle.id, 1)}
             >
