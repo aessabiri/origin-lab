@@ -3,6 +3,7 @@ import { useSprings, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
 import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP } from './constants/particles.js';
+import InfoPanel from './components/InfoPanel.jsx';
 import PeriodicTable from './components/PeriodicTable.jsx';
 
 // --- Recipe Data (Inlined) ---
@@ -296,6 +297,8 @@ const getInitialState = (key, defaultValue) => {
 const App = () => {
   const [particles, setParticles] = useState(() => getInitialState('particle-lab-particles', []));
 
+  const [infoPanelType, setInfoPanelType] = useState(null);
+  const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0, visible: false });
   const [currentGoalIndex, setCurrentGoalIndex] = useState(getInitialGoalIndex);
   const [isPeriodicTableVisible, setIsPeriodicTableVisible] = useState(false);
   const [selectedParticleIds, setSelectedParticleIds] = useState(new Set());
@@ -350,6 +353,56 @@ const App = () => {
     from: ({ args: [index] }) => [springs[index].x.get(), springs[index].y.get()],
     filterTaps: true,
     pointer: { touch: true },
+  });
+
+  const canvasBind = useDrag(({ active, event, initial, movement: [mx, my], tap, memo }) => {
+    // If it's a simple tap on the canvas, clear selection.
+    if (tap) {
+      if (event.target === canvasRef.current) {
+        setSelectedParticleIds(new Set());
+      }
+      return;
+    }
+
+    // On the first event of the drag, check if it started on the canvas background.
+    // If not, memoize `false` to ignore the rest of this drag gesture.
+    if (memo === undefined) {
+      memo = event.target === canvasRef.current;
+    }
+    if (!memo) return; // Ignore drag if it didn't start on the canvas.
+
+    const [x, y] = initial;
+    const box = {
+      x: Math.min(x, x + mx),
+      y: Math.min(y, y + my),
+      width: Math.abs(mx),
+      height: Math.abs(my),
+      visible: active,
+    };
+    setSelectionBox(box);
+
+    if (!active) { // on drag end
+      const selectedIds = new Set();
+      particles.forEach(p => {
+        const particleSize = COMPOUND_PARTICLE_TYPES.has(p.type) ? 96 : 64;
+        const pBox = { x1: p.x, y1: p.y, x2: p.x + particleSize, y2: p.y + particleSize };
+        const sBox = { x1: box.x, y1: box.y, x2: box.x + box.width, y2: box.y + box.height };
+
+        // Check for overlap
+        if (pBox.x1 < sBox.x2 && pBox.x2 > sBox.x1 && pBox.y1 < sBox.y2 && pBox.y2 > sBox.y1) {
+          selectedIds.add(p.id);
+        }
+      });
+      setSelectedParticleIds(selectedIds);
+    }
+    return memo;
+  }, {
+    transform: ([x, y]) => {
+      if (!canvasRef.current) return [x, y];
+      const bounds = canvasRef.current.getBoundingClientRect();
+      return [x - bounds.left, y - bounds.top];
+    },
+    eventOptions: { passive: false },
   });
 
   const handleDrop = useCallback((e) => {
@@ -579,6 +632,9 @@ const App = () => {
     });
   }, []);
 
+  const handleShowInfo = useCallback((type) => setInfoPanelType(type), []);
+  const handleCloseInfo = useCallback(() => setInfoPanelType(null), []);
+
   useEffect(() => {
     api.start(i => {
       // If this particle is being dragged, let the gesture handler control it.
@@ -646,11 +702,11 @@ const App = () => {
     `}</style>
     <div className="flex flex-col md:flex-row h-screen font-inter bg-gray-900 text-white p-4 gap-4">
       <div
+        {...canvasBind()}
         ref={canvasRef}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        onClick={() => setSelectedParticleIds(new Set())}
-        className="relative flex-1 bg-gray-800 border-4 border-dashed border-gray-700 rounded-2xl shadow-xl overflow-hidden"
+        className="relative flex-1 bg-gray-800 border-4 border-dashed border-gray-700 rounded-2xl shadow-xl overflow-hidden touch-none"
       >
         <div className="absolute top-4 left-4 flex items-center gap-8">
           <h1 className="text-3xl font-bold text-white">Particle Lab</h1>
@@ -658,17 +714,17 @@ const App = () => {
             <button
               onClick={handleAssemble}
               disabled={!selectionInfo.canAssemble}
-              className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 disabled:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-green-500 to-green-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
             >Assemble</button>
             <button
               onClick={handleDisassemble}
               disabled={!selectionInfo.canDisassemble}
-              className="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 disabled:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-yellow-400 to-yellow-600 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
             >Disassemble</button>
             <button
               onClick={handleRevertToElementary}
               disabled={!selectionInfo.canRevert}
-              className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 disabled:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-red-500 to-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
             >Revert to Elementary</button>
           </div>
         </div>
@@ -691,20 +747,35 @@ const App = () => {
           <p className="text-sm font-semibold text-white">{message}</p>
         </div>
 
+        {selectionBox.visible && (
+          <div
+            className="absolute bg-blue-500/20 border-2 border-blue-400 pointer-events-none"
+            style={{
+              left: selectionBox.x,
+              top: selectionBox.y,
+              width: selectionBox.width,
+              height: selectionBox.height,
+            }}
+          />
+        )}
+
         {!isPeriodicTableVisible && (
           <button
             onClick={() => setIsPeriodicTableVisible(true)}
-            className="absolute bottom-4 right-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition-colors z-10"
+            className="absolute bottom-4 right-4 px-4 py-2 text-white font-semibold rounded-lg shadow-xl bg-gradient-to-br from-blue-500 to-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 z-10"
           >
             Show Periodic Table
           </button>
         )}
+
+        <InfoPanel particleType={infoPanelType} onClose={handleCloseInfo} />
 
         <PeriodicTable
           isVisible={isPeriodicTableVisible}
           onClose={() => setIsPeriodicTableVisible(false)}
           discoveredParticles={[...secondaryParticles, ...discoveredAtoms]}
           onDragStart={handleDragStart}
+          onParticleClick={handleShowInfo}
         />
 
         {springs.map((props, i) => {
@@ -779,7 +850,7 @@ const App = () => {
 
         <button
           onClick={handleReset}
-          className="w-full mt-auto pt-4 text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-bold transition-colors"
+          className="w-full mt-auto text-center px-4 py-3 text-white font-bold rounded-lg shadow-xl bg-gradient-to-br from-indigo-500 to-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800"
         >
           Reset Lab
         </button>

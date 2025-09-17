@@ -9,7 +9,7 @@ import {
 import { PARTICLE_NAMES, PARTICLE_COLORS } from '../constants/particles.js';
 import ParticleIcon from './ParticleIcon.jsx';
 
-const PeriodicTable = ({ discoveredParticles, onDragStart, isVisible, onClose }) => {
+const PeriodicTable = ({ discoveredParticles, onDragStart, isVisible, onClose, onParticleClick }) => {
   if (!isVisible) return null;
 
   const discoveredSet = new Set(discoveredParticles.map(p => p.type));
@@ -34,7 +34,8 @@ const PeriodicTable = ({ discoveredParticles, onDragStart, isVisible, onClose })
         key={type}
         draggable={isDiscovered}
         onDragStart={(e) => isDiscovered && onDragStart(e, particle)}
-        className={`relative w-16 h-16 rounded-md flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? PARTICLE_COLORS[type] : 'bg-gray-700'} ${isDiscovered ? 'cursor-grab hover:scale-105' : 'cursor-default'}`}
+        onClick={() => isDiscovered && onParticleClick(type)}
+        className={`relative w-16 h-16 rounded-md flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? PARTICLE_COLORS[type] : 'bg-gray-700'} ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300' : 'cursor-default'}`}
       >
         <div className={`absolute inset-0 flex flex-col items-center justify-center p-1 transition-all duration-300 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`} style={{ fontSize: '0.75rem' }}>
           <span className="font-bold">{atomicNumber}</span>
@@ -59,7 +60,8 @@ const PeriodicTable = ({ discoveredParticles, onDragStart, isVisible, onClose })
         key={type}
         draggable={isDiscovered}
         onDragStart={(e) => isDiscovered && onDragStart(e, particle)}
-        className={`relative w-20 h-20 rounded-lg flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? PARTICLE_COLORS[type] : 'bg-gray-700'} ${isDiscovered ? 'cursor-grab hover:scale-105' : 'cursor-default'}`}
+        onClick={() => isDiscovered && onParticleClick(type)}
+        className={`relative w-20 h-20 rounded-lg flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? PARTICLE_COLORS[type] : 'bg-gray-700'} ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300' : 'cursor-default'}`}
       >
         <div className={`w-full h-full transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`}>
           <ParticleIcon type={type} color={PARTICLE_COLORS[type]} isCompound />
