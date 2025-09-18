@@ -24,6 +24,15 @@ These are composite particles made from quarks or quark-antiquark pairs.
     *   1 x Down
     *   1 x Anti-Up
 
+*   **Lambda (Λ) Baryon**
+    *   1 x Up
+    *   1 x Down
+    *   1 x Strange
+
+*   **J/ψ Meson**
+    *   1 x Charm
+    *   1 x Anti-Charm
+
 ---
 
 ## 2. Interactions & Decays

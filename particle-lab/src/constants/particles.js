@@ -52,6 +52,9 @@ export const PARTICLE_TYPES = {
   CARBON_MONOXIDE: 'carbon-monoxide',
   HYDROGEN_SULFIDE: 'hydrogen-sulfide',
   HYDROGEN_PEROXIDE: 'hydrogen-peroxide',
+  ANTI_CHARM_QUARK: 'anti-charm-quark',
+  LAMBDA_BARYON: 'lambda-baryon',
+  J_PSI_MESON: 'j-psi-meson',
 };
 
 export const PARTICLE_COLORS = {
@@ -105,6 +108,9 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.CARBON_MONOXIDE]: 'bg-gray-600',
   [PARTICLE_TYPES.HYDROGEN_SULFIDE]: 'bg-lime-300',
   [PARTICLE_TYPES.HYDROGEN_PEROXIDE]: 'bg-sky-200',
+  [PARTICLE_TYPES.ANTI_CHARM_QUARK]: 'bg-purple-700',
+  [PARTICLE_TYPES.LAMBDA_BARYON]: 'bg-green-700',
+  [PARTICLE_TYPES.J_PSI_MESON]: 'bg-violet-700',
 };
 
 export const PARTICLE_NAMES = {
@@ -158,6 +164,9 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.CARBON_MONOXIDE]: 'Carbon Monoxide',
   [PARTICLE_TYPES.HYDROGEN_SULFIDE]: 'H₂S',
   [PARTICLE_TYPES.HYDROGEN_PEROXIDE]: 'H₂O₂',
+  [PARTICLE_TYPES.ANTI_CHARM_QUARK]: 'Anti-Charm',
+  [PARTICLE_TYPES.LAMBDA_BARYON]: 'Lambda (Λ)',
+  [PARTICLE_TYPES.J_PSI_MESON]: 'J/ψ Meson',
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -211,4 +220,7 @@ export const PARTICLE_COLOR_MAP = {
   'cyan-200': '#a5f3fc',
   'lime-300': '#bef264',
   'sky-200': '#bae6fd',
+  'purple-700': '#7e22ce',
+  'green-700': '#15803d',
+  'violet-700': '#6d28d9',
 };

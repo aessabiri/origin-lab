@@ -222,6 +222,15 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
+    case PARTICLE_TYPES.ANTI_CHARM_QUARK:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('grad-anti-charm', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#grad-anti-charm)" />
+          <path d="M50,25 C30,25 30,45 50,45 C70,45 70,25 50,25 M50,55 C30,55 30,75 50,75 C70,75 70,55 50,55" fill="white" transform="rotate(180 50 50)" />
+        </svg>
+      );
+
     case PARTICLE_TYPES.ELECTRON_NEUTRINO:
       return (
         <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" strokeWidth="4">
@@ -329,6 +338,26 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
             <ellipse cx="50" cy="50" rx="45" ry="25" stroke={hexColor} strokeWidth="4" fill="none" opacity="0.9" filter="url(#glow-excited-e)" />
             <circle cx="50" cy="50" r="12" fill="url(#grad-excited-e)" filter="url(#glow-excited-e)" />
           </g>
+        </svg>
+      );
+
+    case PARTICLE_TYPES.LAMBDA_BARYON:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('lambda-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#lambda-grad)" />
+          <circle cx="50" cy="38" r="10" fill={PARTICLE_COLOR_MAP['yellow-400']} />
+          <circle cx="35" cy="62" r="10" fill={PARTICLE_COLOR_MAP['indigo-400']} />
+          <circle cx="65" cy="62" r="10" fill={PARTICLE_COLOR_MAP['green-500']} />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.J_PSI_MESON:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('jpsi-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#jpsi-grad)" />
+          <MesonComposition quarkColor={PARTICLE_COLOR_MAP['purple-500']} antiquarkColor={PARTICLE_COLOR_MAP['purple-700']} />
         </svg>
       );
 

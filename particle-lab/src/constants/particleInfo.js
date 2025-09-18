@@ -17,6 +17,22 @@ export const PARTICLE_INFO = {
     spin: '1/2',
     description: 'Along with the up quark, it is a primary constituent of protons and neutrons.'
   },
+  [PARTICLE_TYPES.CHARM_QUARK]: {
+    name: 'Charm Quark',
+    category: 'Quark (Fermion)',
+    mass: '1.27 GeV/c²',
+    charge: '+2/3 e',
+    spin: '1/2',
+    description: 'A heavier type of quark. Particles containing charm quarks are called "charmed" particles. The J/ψ meson is a famous example.'
+  },
+  [PARTICLE_TYPES.STRANGE_QUARK]: {
+    name: 'Strange Quark',
+    category: 'Quark (Fermion)',
+    mass: '95 MeV/c²',
+    charge: '-1/3 e',
+    spin: '1/2',
+    description: 'A third type of quark. Particles containing it are called "strange" particles because they had unexpectedly long lifetimes when first discovered. The Lambda baryon is a strange particle.'
+  },
   [PARTICLE_TYPES.ELECTRON]: {
     name: 'Electron',
     category: 'Lepton (Fermion)',
@@ -56,6 +72,14 @@ export const PARTICLE_INFO = {
     charge: '+1/3 e',
     spin: '1/2',
     description: 'The antimatter counterpart of the down quark. It combines with quarks to form exotic particles like mesons.'
+  },
+  [PARTICLE_TYPES.ANTI_CHARM_QUARK]: {
+    name: 'Anti-Charm Quark',
+    category: 'Antiquark (Fermion)',
+    mass: '1.27 GeV/c²',
+    charge: '-2/3 e',
+    spin: '1/2',
+    description: 'The antimatter counterpart of the charm quark. A charm and anti-charm quark pair can bind together to form "charmonium" states like the J/ψ meson.'
   },
   [PARTICLE_TYPES.PHOTON]: {
     name: 'Photon',
@@ -99,6 +123,24 @@ export const PARTICLE_INFO = {
     spin: '0',
     composition: '1 Up Quark, 1 Anti-Down Quark',
     description: 'A type of meson, composed of a quark and an antiquark. Pions are the lightest mesons and play an important role in explaining the strong nuclear force at low energies.'
+  },
+  [PARTICLE_TYPES.LAMBDA_BARYON]: {
+    name: 'Lambda (Λ) Baryon',
+    category: 'Baryon (Hadron)',
+    mass: '1115.7 MeV/c²',
+    charge: '0 e',
+    spin: '1/2',
+    composition: '1 Up, 1 Down, 1 Strange Quark',
+    description: 'An uncharged, strange baryon that is slightly more massive than a proton or neutron. It was one of the first "strange" particles to be discovered.'
+  },
+  [PARTICLE_TYPES.J_PSI_MESON]: {
+    name: 'J/ψ Meson',
+    category: 'Meson (Quarkonium)',
+    mass: '3096.9 MeV/c²',
+    charge: '0 e',
+    spin: '1',
+    composition: '1 Charm, 1 Anti-Charm Quark',
+    description: 'A flavorless meson whose discovery in 1974, known as the "November Revolution," proved the existence of the charm quark and helped solidify the Standard Model.'
   },
   [PARTICLE_TYPES.W_BOSON]: {
     name: 'W Boson',

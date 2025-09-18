@@ -64,6 +64,23 @@ const RECIPES = [
       [PARTICLE_TYPES.ANTI_UP_QUARK]: 1,
     },
   },
+  {
+    type: PARTICLE_TYPES.LAMBDA_BARYON,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.UP_QUARK]: 1,
+      [PARTICLE_TYPES.DOWN_QUARK]: 1,
+      [PARTICLE_TYPES.STRANGE_QUARK]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.J_PSI_MESON,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.CHARM_QUARK]: 1,
+      [PARTICLE_TYPES.ANTI_CHARM_QUARK]: 1,
+    },
+  },
   // Atoms
   {
     type: PARTICLE_TYPES.HYDROGEN,
@@ -338,6 +355,7 @@ const elementaryParticleGroups = {
   'Anti-Quarks': [
     { id: 'anti-up-1', type: PARTICLE_TYPES.ANTI_UP_QUARK },
     { id: 'anti-down-1', type: PARTICLE_TYPES.ANTI_DOWN_QUARK },
+    { id: 'anti-charm-1', type: PARTICLE_TYPES.ANTI_CHARM_QUARK },
   ],
   Leptons: [
     { id: 'electron-1', type: PARTICLE_TYPES.ELECTRON },
@@ -375,6 +393,8 @@ const GOALS = [
   { name: 'Synthesize an Ammonia Molecule', type: PARTICLE_TYPES.AMMONIA },
   { name: 'Synthesize Carbon Dioxide', type: PARTICLE_TYPES.CARBON_DIOXIDE },
   { name: 'Synthesize Salt (NaCl)', type: PARTICLE_TYPES.SODIUM_CHLORIDE },
+  { name: 'Synthesize a Lambda Baryon', type: PARTICLE_TYPES.LAMBDA_BARYON },
+  { name: 'Synthesize a J/ψ Meson', type: PARTICLE_TYPES.J_PSI_MESON },
 ];
 
 const getInitialGoalIndex = () => {
