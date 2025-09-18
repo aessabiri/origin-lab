@@ -40,6 +40,18 @@ export const PARTICLE_TYPES = {
   ANTI_DOWN_QUARK: 'anti-down-quark',
   PION_PLUS: 'pion-plus',
   PION_MINUS: 'pion-minus',
+  WATER: 'water',
+  METHANE: 'methane',
+  AMMONIA: 'ammonia',
+  EXCITED_ELECTRON: 'excited-electron',
+  ELECTRON_ANTINEUTRINO: 'electron-antineutrino',
+  DECAYING_NEUTRON: 'decaying-neutron',
+  CARBON_DIOXIDE: 'carbon-dioxide',
+  SODIUM_CHLORIDE: 'sodium-chloride',
+  HYDROCHLORIC_ACID: 'hydrochloric-acid',
+  CARBON_MONOXIDE: 'carbon-monoxide',
+  HYDROGEN_SULFIDE: 'hydrogen-sulfide',
+  HYDROGEN_PEROXIDE: 'hydrogen-peroxide',
 };
 
 export const PARTICLE_COLORS = {
@@ -81,6 +93,18 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.ANTI_DOWN_QUARK]: 'bg-indigo-600',
   [PARTICLE_TYPES.PION_PLUS]: 'bg-rose-400',
   [PARTICLE_TYPES.PION_MINUS]: 'bg-rose-600',
+  [PARTICLE_TYPES.WATER]: 'bg-sky-400',
+  [PARTICLE_TYPES.METHANE]: 'bg-cyan-600',
+  [PARTICLE_TYPES.AMMONIA]: 'bg-slate-300',
+  [PARTICLE_TYPES.EXCITED_ELECTRON]: 'bg-blue-400',
+  [PARTICLE_TYPES.ELECTRON_ANTINEUTRINO]: 'bg-gray-500',
+  [PARTICLE_TYPES.DECAYING_NEUTRON]: 'bg-pink-400',
+  [PARTICLE_TYPES.CARBON_DIOXIDE]: 'bg-gray-400',
+  [PARTICLE_TYPES.SODIUM_CHLORIDE]: 'bg-gray-200',
+  [PARTICLE_TYPES.HYDROCHLORIC_ACID]: 'bg-cyan-200',
+  [PARTICLE_TYPES.CARBON_MONOXIDE]: 'bg-gray-600',
+  [PARTICLE_TYPES.HYDROGEN_SULFIDE]: 'bg-lime-300',
+  [PARTICLE_TYPES.HYDROGEN_PEROXIDE]: 'bg-sky-200',
 };
 
 export const PARTICLE_NAMES = {
@@ -122,6 +146,18 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.ANTI_DOWN_QUARK]: 'Anti-Down',
   [PARTICLE_TYPES.PION_PLUS]: 'Pion+',
   [PARTICLE_TYPES.PION_MINUS]: 'Pion-',
+  [PARTICLE_TYPES.WATER]: 'Water',
+  [PARTICLE_TYPES.METHANE]: 'Methane',
+  [PARTICLE_TYPES.AMMONIA]: 'Ammonia',
+  [PARTICLE_TYPES.EXCITED_ELECTRON]: 'Excited e⁻',
+  [PARTICLE_TYPES.ELECTRON_ANTINEUTRINO]: 'e-Antineutrino',
+  [PARTICLE_TYPES.DECAYING_NEUTRON]: 'Decaying Neutron',
+  [PARTICLE_TYPES.CARBON_DIOXIDE]: 'Carbon Dioxide',
+  [PARTICLE_TYPES.SODIUM_CHLORIDE]: 'Salt (NaCl)',
+  [PARTICLE_TYPES.HYDROCHLORIC_ACID]: 'HCl',
+  [PARTICLE_TYPES.CARBON_MONOXIDE]: 'Carbon Monoxide',
+  [PARTICLE_TYPES.HYDROGEN_SULFIDE]: 'H₂S',
+  [PARTICLE_TYPES.HYDROGEN_PEROXIDE]: 'H₂O₂',
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -163,4 +199,16 @@ export const PARTICLE_COLOR_MAP = {
   'indigo-600': '#4f46e5',
   'rose-400': '#fb7185',
   'rose-600': '#e11d48',
+  'orange-700': '#c2410c',
+  'gray-600': '#4b5563',
+  'sky-400': '#38bdf8',
+  'cyan-600': '#0891b2',
+  'slate-300': '#cbd5e1',
+  'blue-400': '#60a5fa',
+  'gray-500': '#6b7280',
+  'pink-400': '#f472b6',
+  'gray-200': '#e5e7eb',
+  'cyan-200': '#a5f3fc',
+  'lime-300': '#bef264',
+  'sky-200': '#bae6fd',
 };

@@ -11,6 +11,7 @@ import PeriodicTable from './components/PeriodicTable.jsx';
 const PARTICLE_CATEGORIES = {
   SECONDARY: 'secondary',
   ATOM: 'atom',
+  MOLECULE: 'molecule',
 };
 
 const RECIPES = [
@@ -29,6 +30,22 @@ const RECIPES = [
     ingredients: {
       [PARTICLE_TYPES.UP_QUARK]: 1,
       [PARTICLE_TYPES.DOWN_QUARK]: 2,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.DECAYING_NEUTRON,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.NEUTRON]: 1,
+      [PARTICLE_TYPES.W_BOSON]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.EXCITED_ELECTRON,
+    category: PARTICLE_CATEGORIES.SECONDARY, // Technically not, but fits for game logic
+    ingredients: {
+      [PARTICLE_TYPES.ELECTRON]: 1,
+      [PARTICLE_TYPES.PHOTON]: 1,
     },
   },
   {
@@ -227,6 +244,79 @@ const RECIPES = [
       [PARTICLE_TYPES.ELECTRON]: 18,
     },
   },
+  // Molecules
+  {
+    type: PARTICLE_TYPES.WATER,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.HYDROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.METHANE,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 4,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.AMMONIA,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 3,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.CARBON_DIOXIDE,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.SODIUM_CHLORIDE,
+    category: PARTICLE_CATEGORIES.MOLECULE, // Ionic compound, but fits game logic
+    ingredients: {
+      [PARTICLE_TYPES.SODIUM]: 1,
+      [PARTICLE_TYPES.CHLORINE]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.HYDROCHLORIC_ACID,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.HYDROGEN]: 1,
+      [PARTICLE_TYPES.CHLORINE]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.CARBON_MONOXIDE,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.HYDROGEN_SULFIDE,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.HYDROGEN]: 2,
+      [PARTICLE_TYPES.SULFUR]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.HYDROGEN_PEROXIDE,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.HYDROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+  },
 ];
 
 // Create a map for quick lookup of a particle's composition for deconstruction.
@@ -253,6 +343,9 @@ const elementaryParticleGroups = {
     { id: 'electron-1', type: PARTICLE_TYPES.ELECTRON },
     { id: 'electron-neutrino-1', type: PARTICLE_TYPES.ELECTRON_NEUTRINO },
   ],
+  'Anti-Leptons': [
+    { id: 'e-antineutrino-1', type: PARTICLE_TYPES.ELECTRON_ANTINEUTRINO },
+  ],
   Bosons: [
     { id: 'photon-1', type: PARTICLE_TYPES.PHOTON },
     { id: 'gluon-1', type: PARTICLE_TYPES.GLUON },
@@ -275,6 +368,13 @@ const GOALS = [
   { name: 'Form a Sodium Atom', type: PARTICLE_TYPES.SODIUM },
   { name: 'Form a Silicon Atom', type: PARTICLE_TYPES.SILICON },
   { name: 'Form an Argon Atom', type: PARTICLE_TYPES.ARGON },
+  { name: 'Induce Neutron Decay', type: PARTICLE_TYPES.DECAYING_NEUTRON },
+  { name: 'Create an Excited Electron', type: PARTICLE_TYPES.EXCITED_ELECTRON },
+  { name: 'Synthesize a Water Molecule', type: PARTICLE_TYPES.WATER },
+  { name: 'Synthesize a Methane Molecule', type: PARTICLE_TYPES.METHANE },
+  { name: 'Synthesize an Ammonia Molecule', type: PARTICLE_TYPES.AMMONIA },
+  { name: 'Synthesize Carbon Dioxide', type: PARTICLE_TYPES.CARBON_DIOXIDE },
+  { name: 'Synthesize Salt (NaCl)', type: PARTICLE_TYPES.SODIUM_CHLORIDE },
 ];
 
 const getInitialGoalIndex = () => {
@@ -297,6 +397,8 @@ const getInitialState = (key, defaultValue) => {
 const App = () => {
   const [particles, setParticles] = useState(() => getInitialState('particle-lab-particles', []));
 
+  const [visualEffects, setVisualEffects] = useState([]);
+  const [isHintVisible, setIsHintVisible] = useState(false);
   const [infoPanelType, setInfoPanelType] = useState(null);
   const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0, visible: false });
   const [currentGoalIndex, setCurrentGoalIndex] = useState(getInitialGoalIndex);
@@ -306,6 +408,7 @@ const App = () => {
 
   const [secondaryParticles, setSecondaryParticles] = useState(() => getInitialState('particle-lab-secondary', []));
   const [discoveredAtoms, setDiscoveredAtoms] = useState(() => getInitialState('particle-lab-atoms', []));
+  const [discoveredMolecules, setDiscoveredMolecules] = useState(() => getInitialState('particle-lab-molecules', []));
 
   const canvasRef = useRef(null);
   const [message, setMessage] = useState('');
@@ -524,6 +627,16 @@ const App = () => {
         if (!prev.some(p => p.type === assemblyRecipe.type)) return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
         return prev;
       });
+    } else if (assemblyRecipe.category === PARTICLE_CATEGORIES.MOLECULE) {
+      setDiscoveredMolecules(prev => {
+        if (!prev.some(p => p.type === assemblyRecipe.type)) return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
+        return prev;
+      });
+    } else if (assemblyRecipe.category === PARTICLE_CATEGORIES.MOLECULE) {
+      setDiscoveredMolecules(prev => {
+        if (!prev.some(p => p.type === assemblyRecipe.type)) return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
+        return prev;
+      });
     }
 
     setParticles(prev => {
@@ -549,7 +662,7 @@ const App = () => {
     showMessage(`${PARTICLE_NAMES[assemblyRecipe.type]} formed!`);
     }
     setSelectedParticleIds(new Set());
-  }, [selectionInfo, showMessage]);
+  }, [selectionInfo, showMessage, currentGoalIndex]);
 
   const handleDisassemble = useCallback(() => {
     if (!selectionInfo.canDisassemble) return;
@@ -601,15 +714,32 @@ const App = () => {
     setSelectedParticleIds(new Set());
   }, [selectionInfo, getElementaryComposition, showMessage]);
 
+  const handleRemoveSelected = useCallback(() => {
+    if (selectedParticleIds.size === 0) return;
+    const count = selectedParticleIds.size;
+    setParticles(prev => prev.filter(p => !selectedParticleIds.has(p.id)));
+    setSelectedParticleIds(new Set());
+    showMessage(`${count} particle(s) removed.`);
+  }, [selectedParticleIds, showMessage]);
+
+  const handleEmptyCanvas = useCallback(() => {
+    if (particles.length === 0) return;
+    setParticles([]);
+    setSelectedParticleIds(new Set());
+    showMessage('Canvas cleared.');
+  }, [particles.length, showMessage]);
+
   const handleReset = useCallback(() => {
     setParticles([]);
     setSecondaryParticles([]);
     setDiscoveredAtoms([]);
+    setDiscoveredMolecules([]);
 
     localStorage.removeItem('particle-lab-particles');
     localStorage.removeItem('particle-lab-secondary');
     localStorage.removeItem('particle-lab-atoms');
     localStorage.removeItem('particle-lab-goal-index');
+    localStorage.removeItem('particle-lab-molecules');
 
     showMessage('Lab has been reset!');
   }, [showMessage]);
@@ -635,6 +765,77 @@ const App = () => {
   const handleShowInfo = useCallback((type) => setInfoPanelType(type), []);
   const handleCloseInfo = useCallback(() => setInfoPanelType(null), []);
 
+  const triggerRadiationBurst = useCallback((x, y) => {
+    const newEffects = Array.from({ length: 7 }).map((_, i) => ({
+      id: `fx-${i}-${Date.now()}`,
+      x: x + 48, // center of particle
+      y: y + 48,
+    }));
+    setVisualEffects(prev => [...prev, ...newEffects]);
+    newEffects.forEach(fx => {
+      setTimeout(() => {
+        setVisualEffects(prev => prev.filter(effect => effect.id !== fx.id));
+      }, 700); // Animation duration
+    });
+  }, []);
+
+  const decayTimeouts = useRef([]);
+  useEffect(() => {
+    // Clear previous timeouts on each render to avoid memory leaks
+    decayTimeouts.current.forEach(clearTimeout);
+    decayTimeouts.current = [];
+
+    particles.forEach(p => {
+      if (p.type === PARTICLE_TYPES.EXCITED_ELECTRON) {
+        const timeoutId = setTimeout(() => {
+          setParticles(prev => {
+            const particleToDecay = prev.find(part => part.id === p.id);
+            if (!particleToDecay) return prev;
+
+            const otherParticles = prev.filter(part => part.id !== p.id);
+            const newElectron = { ...particleToDecay, type: PARTICLE_TYPES.ELECTRON, id: `electron-${Date.now()}` };
+            const newPhoton = {
+              id: `photon-${Date.now()}`,
+              type: PARTICLE_TYPES.PHOTON,
+              x: particleToDecay.x + 50,
+              y: particleToDecay.y - 50,
+              scale: 1,
+            };
+            return [...otherParticles, newElectron, newPhoton];
+          });
+          triggerRadiationBurst(p.x, p.y);
+          showMessage('Excited Electron decayed!');
+        }, 3000); // 3-second lifetime
+        decayTimeouts.current.push(timeoutId);
+      }
+    });
+
+    return () => decayTimeouts.current.forEach(clearTimeout);
+  }, [particles, showMessage, triggerRadiationBurst]);
+
+  useEffect(() => {
+    particles.forEach(p => {
+      if (p.type === PARTICLE_TYPES.DECAYING_NEUTRON) {
+        const timeoutId = setTimeout(() => {
+          setParticles(prev => {
+            const particleToDecay = prev.find(part => part.id === p.id);
+            if (!particleToDecay) return prev;
+
+            const otherParticles = prev.filter(part => part.id !== p.id);
+            const newProton = { ...particleToDecay, type: PARTICLE_TYPES.PROTON, id: `proton-${Date.now()}` };
+            const newElectron = { id: `electron-${Date.now()}`, type: PARTICLE_TYPES.ELECTRON, x: particleToDecay.x + 50, y: particleToDecay.y + 50, scale: 1 };
+            const newAntiNeutrino = { id: `e-antineutrino-${Date.now()}`, type: PARTICLE_TYPES.ELECTRON_ANTINEUTRINO, x: particleToDecay.x - 50, y: particleToDecay.y - 50, scale: 1 };
+
+            return [...otherParticles, newProton, newElectron, newAntiNeutrino];
+          });
+          triggerRadiationBurst(p.x, p.y);
+          showMessage('Beta Decay! Neutron became a Proton.');
+        }, 4000); // 4-second lifetime
+        decayTimeouts.current.push(timeoutId);
+      }
+    });
+  }, [particles, showMessage, triggerRadiationBurst]);
+
   useEffect(() => {
     api.start(i => {
       // If this particle is being dragged, let the gesture handler control it.
@@ -656,10 +857,11 @@ const App = () => {
       localStorage.setItem('particle-lab-particles', JSON.stringify(particles));
       localStorage.setItem('particle-lab-secondary', JSON.stringify(secondaryParticles));
       localStorage.setItem('particle-lab-atoms', JSON.stringify(discoveredAtoms));
+      localStorage.setItem('particle-lab-molecules', JSON.stringify(discoveredMolecules));
     } catch (error) {
       console.error('Error writing to localStorage:', error);
     }
-  }, [particles, secondaryParticles, discoveredAtoms]);
+  }, [particles, secondaryParticles, discoveredAtoms, discoveredMolecules]);
 
   useEffect(() => {
     localStorage.setItem('particle-lab-goal-index', currentGoalIndex.toString());
@@ -672,6 +874,24 @@ const App = () => {
       @keyframes float {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-8px); }
+      }
+      @keyframes shake {
+        0%, 100% { transform: translate(0, 0) rotate(0); }
+        25% { transform: translate(2px, -1px) rotate(1deg); }
+        50% { transform: translate(-2px, 1px) rotate(-1deg); }
+        75% { transform: translate(1px, 2px) rotate(0.5deg); }
+      }
+      @keyframes jiggle {
+        0%, 100% { transform: translate(0, 0) rotate(0); }
+        10% { transform: translate(-1px, -2px) rotate(-2deg); }
+        20% { transform: translate(-3px, 0px) rotate(3deg); }
+        30% { transform: translate(3px, 2px) rotate(0deg); }
+        40% { transform: translate(1px, -1px) rotate(2deg); }
+        50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        60% { transform: translate(-3px, 1px) rotate(0deg); }
+        70% { transform: translate(3px, 1px) rotate(-2deg); }
+        80% { transform: translate(-1px, -1px) rotate(3deg); }
+        90% { transform: translate(1px, 2px) rotate(0deg); }
       }
       @keyframes pulse-glow {
         0%, 100% { box-shadow: 0 0 20px -5px var(--glow-color), inset 0 0 10px -5px var(--glow-color); }
@@ -699,6 +919,23 @@ const App = () => {
       .particle-palette-item:hover .icon-container {
         transform: rotateY(25deg) rotateX(10deg) scale3d(1.1, 1.1, 1.1);
       }
+      @keyframes fade-out-and-disperse {
+        from {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 1;
+        }
+        to {
+          transform: translate(calc(-50% + (var(--i) - 0.5) * 120px), calc(-50% + (var(--j) - 0.5) * 120px)) scale(0);
+          opacity: 0;
+        }
+      }
+      .radiation-particle {
+        position: absolute;
+        width: 8px; height: 8px;
+        background: radial-gradient(circle, #fff, #60a5fa);
+        border-radius: 50%; box-shadow: 0 0 10px #60a5fa; pointer-events: none;
+        animation: fade-out-and-disperse 0.7s ease-out forwards;
+      }
     `}</style>
     <div className="flex flex-col md:flex-row h-screen font-inter bg-gray-900 text-white p-4 gap-4">
       <div
@@ -708,43 +945,107 @@ const App = () => {
         onDragOver={handleDragOver}
         className="relative flex-1 bg-gray-800 border-4 border-dashed border-gray-700 rounded-2xl shadow-xl overflow-hidden touch-none"
       >
-        <div className="absolute top-4 left-4 flex items-center gap-8">
-          <h1 className="text-3xl font-bold text-white">Particle Lab</h1>
-          <div className="flex gap-2">
-            <button
-              onClick={handleAssemble}
-              disabled={!selectionInfo.canAssemble}
-              className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-green-500 to-green-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-            >Assemble</button>
-            <button
-              onClick={handleDisassemble}
-              disabled={!selectionInfo.canDisassemble}
-              className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-yellow-400 to-yellow-600 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-            >Disassemble</button>
-            <button
-              onClick={handleRevertToElementary}
-              disabled={!selectionInfo.canRevert}
-              className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-red-500 to-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-            >Revert to Elementary</button>
-          </div>
-        </div>
+        <div className="absolute top-4 left-4 flex flex-col items-start gap-4">
+          <div className="flex items-center gap-8">
+            <h1 className="text-3xl font-bold text-white">Particle Lab</h1>
+            <div className="flex items-center flex-wrap gap-2 bg-gray-900/50 p-2 rounded-xl border border-gray-700">
+              {/* Transformation Group */}
+              <button
+                onClick={handleAssemble}
+                disabled={!selectionInfo.canAssemble}
+                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-green-500 to-green-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                Assemble</button>
+              <button
+                onClick={handleDisassemble}
+                disabled={!selectionInfo.canDisassemble}
+                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-yellow-500 to-yellow-600 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 4a1 1 0 00-2 0v2a1 1 0 002 0V4zm11 1a1 1 0 100-2h-2a1 1 0 100 2h2zm-4 0a1 1 0 100-2h-2a1 1 0 100 2h2zM9 9a1 1 0 100-2H7a1 1 0 100 2h2zm4-1a1 1 0 10-2 0v2a1 1 0 102 0V8z" clipRule="evenodd" /></svg>
+                Disassemble</button>
+              <button
+                onClick={handleRevertToElementary}
+                disabled={!selectionInfo.canRevert}
+                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-red-500 to-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                Revert</button>
 
-        {currentGoalIndex < GOALS.length && (
-          <div className="absolute top-20 left-4 bg-gray-900/70 backdrop-blur-sm p-3 rounded-lg border border-gray-600 shadow-lg">
-            <p className="text-sm text-gray-400 font-semibold">Current Goal:</p>
-            <p className="text-lg text-amber-300 font-bold">{GOALS[currentGoalIndex].name}</p>
+              {/* Separator */}
+              <div className="h-6 w-px bg-gray-600 mx-2"></div>
+
+              {/* Deletion Group */}
+              <button
+                onClick={handleRemoveSelected}
+                disabled={selectedParticleIds.size === 0}
+                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-orange-500 to-orange-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                Remove</button>
+              <button
+                onClick={handleEmptyCanvas}
+                disabled={particles.length === 0}
+                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-gray-600 to-gray-800 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                Empty Canvas</button>
+            </div>
           </div>
-        )}
-        {currentGoalIndex >= GOALS.length && (
-          <div className="absolute top-20 left-4 bg-green-900/70 backdrop-blur-sm p-3 rounded-lg border border-green-600 shadow-lg">
-            <p className="text-lg text-green-300 font-bold">All goals completed! Sandbox mode unlocked.</p>
-          </div>
-        )}
+          {currentGoalIndex < GOALS.length && (
+            <div className="bg-gray-900/70 backdrop-blur-sm p-3 rounded-lg border border-gray-600 shadow-lg">
+              <p className="text-sm text-gray-400 font-semibold">Current Goal:</p>
+              <p className="text-lg text-amber-300 font-bold">{GOALS[currentGoalIndex].name}</p>
+            </div>
+          )}
+          {currentGoalIndex >= GOALS.length && (
+            <div className="bg-green-900/70 backdrop-blur-sm p-3 rounded-lg border border-green-600 shadow-lg">
+              <p className="text-lg text-green-300 font-bold">All goals completed! Sandbox mode unlocked.</p>
+            </div>
+          )}
+        </div>
         <div
           className="absolute top-4 right-4 z-10 p-2 bg-gray-700 rounded-lg shadow-md transition-opacity duration-300"
           style={{ opacity: message ? 1 : 0 }}
         >
           <p className="text-sm font-semibold text-white">{message}</p>
+        </div>
+
+        {visualEffects.map(fx => (
+          <div
+            key={fx.id}
+            className="radiation-particle"
+            style={{
+              left: fx.x,
+              top: fx.y,
+              '--i': Math.random(),
+              '--j': Math.random(),
+            }}
+          />
+        ))}
+
+        <div className="absolute bottom-4 left-4 z-10">
+          {isHintVisible && currentGoalIndex < GOALS.length && (() => {
+            const currentGoal = GOALS[currentGoalIndex];
+            const hintRecipe = RECIPES.find(r => r.type === currentGoal.type);
+            if (!hintRecipe) return null;
+
+            return (
+              <div className="absolute bottom-full mb-2 w-64 bg-gray-900/80 backdrop-blur-md p-4 rounded-lg shadow-xl border border-gray-700">
+                <h4 className="font-bold text-amber-300 mb-2">Recipe for {PARTICLE_NAMES[currentGoal.type]}</h4>
+                <ul>
+                  {Object.entries(hintRecipe.ingredients).map(([type, count]) => (
+                    <li key={type} className="flex justify-between text-gray-300">
+                      <span>{PARTICLE_NAMES[type]}</span>
+                      <span className="font-mono font-bold">x {count}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })()}
+          <button
+            onClick={() => setIsHintVisible(prev => !prev)}
+            className="p-3 text-yellow-300 bg-gray-700 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-400"
+            aria-label="Show hint"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+          </button>
         </div>
 
         {selectionBox.visible && (
@@ -848,6 +1149,31 @@ const App = () => {
             </div>
           </div>
         ))}
+
+        <div className="mb-6">
+          <h3 className="text-lg font-bold text-amber-300 mb-3 text-center border-b-2 border-gray-700 pb-2">Discovered Molecules</h3>
+          <div className="flex flex-wrap justify-center gap-4 min-h-[96px]">
+            {discoveredMolecules.length > 0 ? (
+              discoveredMolecules.map((p) => (
+                <div
+                  key={p.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, p)}
+                  className="particle-palette-item cursor-grab group flex flex-col items-center"
+                >
+                  <div className="icon-container relative flex items-center justify-center w-20 h-20">
+                    <div className="w-full h-full">
+                      <ParticleIcon type={p.type} color={PARTICLE_COLORS[p.type]} isCompound />
+                    </div>
+                  </div>
+                  <p className="text-center text-sm font-semibold mt-1 text-gray-300 group-hover:text-white transition-colors">{PARTICLE_NAMES[p.type]}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400 text-center w-full my-auto text-sm">Combine atoms to form molecules.</p>
+            )}
+          </div>
+        </div>
 
         <button
           onClick={handleReset}

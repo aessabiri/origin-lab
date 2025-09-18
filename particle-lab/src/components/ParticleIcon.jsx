@@ -1,5 +1,5 @@
 import React from 'react';
-import { PARTICLE_TYPES, PARTICLE_COLOR_MAP } from '../constants/particles.js';
+import { PARTICLE_TYPES, PARTICLE_COLOR_MAP, PARTICLE_COLORS, PARTICLE_NAMES } from '../constants/particles.js';
 
 /*
   ParticleIcon renders the various SVG icons for each particle type.
@@ -15,9 +15,9 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
   const hexColor = PARTICLE_COLOR_MAP[token] || '#9ca3af';
 
   // radial gradient helper
-  const radialGradient = (id, c) => (
+  const radialGradient = (id, c, opacity = 0.8) => (
     <radialGradient id={id} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-      <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
+      <stop offset="0%" stopColor="#ffffff" stopOpacity={opacity} />
       <stop offset="100%" stopColor={c} />
     </radialGradient>
   );
@@ -229,6 +229,13 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
+    case PARTICLE_TYPES.ELECTRON_ANTINEUTRINO:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" strokeWidth="4">
+          <path d="M 10 50 C 30 80, 70 80, 90 50 S 70 20, 10 50" stroke={hexColor} />
+        </svg>
+      );
+
     // Bosons
     case PARTICLE_TYPES.PHOTON:
       return (
@@ -291,6 +298,14 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
+    case PARTICLE_TYPES.DECAYING_NEUTRON:
+       return (
+        <svg viewBox="0 0 100 100" className="w-full h-full" style={{ animation: 'jiggle 0.2s linear infinite' }}>
+          <defs>{radialGradient('neutron-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#neutron-grad)" />
+          <QuarkComposition up={1} down={2} />
+        </svg>
+      );
     case PARTICLE_TYPES.PION_PLUS:
       return (
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -300,12 +315,129 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
+    case PARTICLE_TYPES.EXCITED_ELECTRON:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>
+            {radialGradient('grad-excited-e', hexColor)}
+            <filter id="glow-excited-e">
+              <feGaussianBlur stdDeviation="5" result="coloredBlur" />
+              <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+          <g style={{ animation: 'jiggle 0.3s linear infinite' }}>
+            <ellipse cx="50" cy="50" rx="45" ry="25" stroke={hexColor} strokeWidth="4" fill="none" opacity="0.9" filter="url(#glow-excited-e)" />
+            <circle cx="50" cy="50" r="12" fill="url(#grad-excited-e)" filter="url(#glow-excited-e)" />
+          </g>
+        </svg>
+      );
+
+    case PARTICLE_TYPES.CARBON_DIOXIDE:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('co2-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#co2-grad)" opacity="0.4" />
+          <circle cx="50" cy="50" r="15" fill={PARTICLE_COLOR_MAP['gray-800']} />
+          <circle cx="20" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+          <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.SODIUM_CHLORIDE:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('nacl-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#nacl-grad)" opacity="0.4" />
+          <rect x="25" y="25" width="50" height="50" fill="none" stroke="white" strokeWidth="3" />
+          <circle cx="35" cy="35" r="8" fill={PARTICLE_COLOR_MAP['violet-500']} />
+          <circle cx="65" cy="35" r="8" fill={PARTICLE_COLOR_MAP['green-400']} />
+          <circle cx="35" cy="65" r="8" fill={PARTICLE_COLOR_MAP['green-400']} />
+          <circle cx="65" cy="65" r="8" fill={PARTICLE_COLOR_MAP['violet-500']} />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.HYDROCHLORIC_ACID:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('hcl-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#hcl-grad)" opacity="0.4" />
+          <circle cx="35" cy="50" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
+          <circle cx="65" cy="50" r="20" fill={PARTICLE_COLOR_MAP['green-400']} />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.CARBON_MONOXIDE:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('co-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#co-grad)" opacity="0.4" />
+          <circle cx="38" cy="50" r="18" fill={PARTICLE_COLOR_MAP['gray-800']} />
+          <circle cx="68" cy="50" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.HYDROGEN_SULFIDE:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('h2s-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#h2s-grad)" opacity="0.4" />
+          <circle cx="50" cy="40" r="22" fill={PARTICLE_COLOR_MAP['yellow-500']} />
+          <circle cx="30" cy="70" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
+          <circle cx="70" cy="70" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.HYDROGEN_PEROXIDE:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('h2o2-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#h2o2-grad)" opacity="0.4" />
+          <circle cx="40" cy="45" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+          <circle cx="60" cy="55" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+          <circle cx="25" cy="60" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
+          <circle cx="75" cy="40" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
+        </svg>
+      );
+
     case PARTICLE_TYPES.PION_MINUS:
       return (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('pion-minus-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#pion-minus-grad)" />
           <MesonComposition quarkColor={PARTICLE_COLOR_MAP['indigo-400']} antiquarkColor={PARTICLE_COLOR_MAP['yellow-600']} />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.WATER:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('water-grad', hexColor, 0.5)}</defs>
+          <path d="M50 10 C 20 40, 20 70, 50 90 C 80 70, 80 40, 50 10 Z" fill="url(#water-grad)" />
+          <path d="M40 30 C 45 20, 55 20, 60 30" stroke="white" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.7" />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.METHANE:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('methane-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#methane-grad)" opacity="0.4" />
+          <circle cx="50" cy="50" r="18" fill={PARTICLE_COLOR_MAP['gray-800']} />
+          <circle cx="50" cy="20" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
+          <circle cx="25" cy="65" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
+          <circle cx="75" cy="65" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
+        </svg>
+      );
+
+    case PARTICLE_TYPES.AMMONIA:
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('ammonia-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#ammonia-grad)" opacity="0.4" />
+          <circle cx="50" cy="40" r="20" fill={PARTICLE_COLOR_MAP['sky-500']} />
+          <circle cx="30" cy="70" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
+          <circle cx="70" cy="70" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
+          <circle cx="50" cy="75" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
         </svg>
       );
 
