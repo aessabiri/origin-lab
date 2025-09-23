@@ -3,434 +3,48 @@ import { useSprings, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
 import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP } from './constants/particles.js';
+import { COMPOUND_PARTICLE_TYPES } from './recipes.js';
+import { GOALS, elementaryParticleGroups } from './gameData.js';
 import InfoPanel from './components/InfoPanel.jsx';
 import PeriodicTable from './components/PeriodicTable.jsx';
+import ActionToolbar from './components/ActionToolbar.jsx';
+import { usePersistentState } from './hooks/usePersistentState.js';
+import { useParticleActions } from './hooks/useParticleActions.js';
+import { useSelection } from './hooks/useSelection.js';
+import { useDecay } from './hooks/useDecay.js';
 
-// --- Recipe Data (Inlined) ---
-
-const PARTICLE_CATEGORIES = {
-  SECONDARY: 'secondary',
-  ATOM: 'atom',
-  MOLECULE: 'molecule',
-};
-
-const RECIPES = [
-  // Hadrons
-  {
-    type: PARTICLE_TYPES.PROTON,
-    category: PARTICLE_CATEGORIES.SECONDARY,
-    ingredients: {
-      [PARTICLE_TYPES.UP_QUARK]: 2,
-      [PARTICLE_TYPES.DOWN_QUARK]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.NEUTRON,
-    category: PARTICLE_CATEGORIES.SECONDARY,
-    ingredients: {
-      [PARTICLE_TYPES.UP_QUARK]: 1,
-      [PARTICLE_TYPES.DOWN_QUARK]: 2,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.DECAYING_NEUTRON,
-    category: PARTICLE_CATEGORIES.SECONDARY,
-    ingredients: {
-      [PARTICLE_TYPES.NEUTRON]: 1,
-      [PARTICLE_TYPES.W_BOSON]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.EXCITED_ELECTRON,
-    category: PARTICLE_CATEGORIES.SECONDARY, // Technically not, but fits for game logic
-    ingredients: {
-      [PARTICLE_TYPES.ELECTRON]: 1,
-      [PARTICLE_TYPES.PHOTON]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.PION_PLUS,
-    category: PARTICLE_CATEGORIES.SECONDARY,
-    ingredients: {
-      [PARTICLE_TYPES.UP_QUARK]: 1,
-      [PARTICLE_TYPES.ANTI_DOWN_QUARK]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.PION_MINUS,
-    category: PARTICLE_CATEGORIES.SECONDARY,
-    ingredients: {
-      [PARTICLE_TYPES.DOWN_QUARK]: 1,
-      [PARTICLE_TYPES.ANTI_UP_QUARK]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.LAMBDA_BARYON,
-    category: PARTICLE_CATEGORIES.SECONDARY,
-    ingredients: {
-      [PARTICLE_TYPES.UP_QUARK]: 1,
-      [PARTICLE_TYPES.DOWN_QUARK]: 1,
-      [PARTICLE_TYPES.STRANGE_QUARK]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.J_PSI_MESON,
-    category: PARTICLE_CATEGORIES.SECONDARY,
-    ingredients: {
-      [PARTICLE_TYPES.CHARM_QUARK]: 1,
-      [PARTICLE_TYPES.ANTI_CHARM_QUARK]: 1,
-    },
-  },
-  // Atoms
-  {
-    type: PARTICLE_TYPES.HYDROGEN,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 1,
-      [PARTICLE_TYPES.ELECTRON]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.DEUTERIUM,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 1,
-      [PARTICLE_TYPES.NEUTRON]: 1,
-      [PARTICLE_TYPES.ELECTRON]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.TRITIUM,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 1,
-      [PARTICLE_TYPES.NEUTRON]: 2,
-      [PARTICLE_TYPES.ELECTRON]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.HELIUM,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 2,
-      [PARTICLE_TYPES.NEUTRON]: 2,
-      [PARTICLE_TYPES.ELECTRON]: 2,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.LITHIUM,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 3,
-      [PARTICLE_TYPES.NEUTRON]: 4,
-      [PARTICLE_TYPES.ELECTRON]: 3,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.BERYLLIUM,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 4,
-      [PARTICLE_TYPES.NEUTRON]: 5,
-      [PARTICLE_TYPES.ELECTRON]: 4,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.BORON,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 5,
-      [PARTICLE_TYPES.NEUTRON]: 6,
-      [PARTICLE_TYPES.ELECTRON]: 5,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.CARBON,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 6,
-      [PARTICLE_TYPES.NEUTRON]: 6,
-      [PARTICLE_TYPES.ELECTRON]: 6,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.NITROGEN,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 7,
-      [PARTICLE_TYPES.NEUTRON]: 7,
-      [PARTICLE_TYPES.ELECTRON]: 7,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.OXYGEN,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 8,
-      [PARTICLE_TYPES.NEUTRON]: 8,
-      [PARTICLE_TYPES.ELECTRON]: 8,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.FLUORINE,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 9,
-      [PARTICLE_TYPES.NEUTRON]: 10,
-      [PARTICLE_TYPES.ELECTRON]: 9,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.NEON,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 10,
-      [PARTICLE_TYPES.NEUTRON]: 10,
-      [PARTICLE_TYPES.ELECTRON]: 10,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.SODIUM,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 11,
-      [PARTICLE_TYPES.NEUTRON]: 12,
-      [PARTICLE_TYPES.ELECTRON]: 11,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.MAGNESIUM,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 12,
-      [PARTICLE_TYPES.NEUTRON]: 12,
-      [PARTICLE_TYPES.ELECTRON]: 12,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.ALUMINIUM,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 13,
-      [PARTICLE_TYPES.NEUTRON]: 14,
-      [PARTICLE_TYPES.ELECTRON]: 13,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.SILICON,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 14,
-      [PARTICLE_TYPES.NEUTRON]: 14,
-      [PARTICLE_TYPES.ELECTRON]: 14,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.PHOSPHORUS,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 15,
-      [PARTICLE_TYPES.NEUTRON]: 16,
-      [PARTICLE_TYPES.ELECTRON]: 15,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.SULFUR,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 16,
-      [PARTICLE_TYPES.NEUTRON]: 16,
-      [PARTICLE_TYPES.ELECTRON]: 16,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.CHLORINE,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 17,
-      [PARTICLE_TYPES.NEUTRON]: 18,
-      [PARTICLE_TYPES.ELECTRON]: 17,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.ARGON,
-    category: PARTICLE_CATEGORIES.ATOM,
-    ingredients: {
-      [PARTICLE_TYPES.PROTON]: 18,
-      [PARTICLE_TYPES.NEUTRON]: 22,
-      [PARTICLE_TYPES.ELECTRON]: 18,
-    },
-  },
-  // Molecules
-  {
-    type: PARTICLE_TYPES.WATER,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.HYDROGEN]: 2,
-      [PARTICLE_TYPES.OXYGEN]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.METHANE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.CARBON]: 1,
-      [PARTICLE_TYPES.HYDROGEN]: 4,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.AMMONIA,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.NITROGEN]: 1,
-      [PARTICLE_TYPES.HYDROGEN]: 3,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.CARBON_DIOXIDE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.CARBON]: 1,
-      [PARTICLE_TYPES.OXYGEN]: 2,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.SODIUM_CHLORIDE,
-    category: PARTICLE_CATEGORIES.MOLECULE, // Ionic compound, but fits game logic
-    ingredients: {
-      [PARTICLE_TYPES.SODIUM]: 1,
-      [PARTICLE_TYPES.CHLORINE]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.HYDROCHLORIC_ACID,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.HYDROGEN]: 1,
-      [PARTICLE_TYPES.CHLORINE]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.CARBON_MONOXIDE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.CARBON]: 1,
-      [PARTICLE_TYPES.OXYGEN]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.HYDROGEN_SULFIDE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.HYDROGEN]: 2,
-      [PARTICLE_TYPES.SULFUR]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.HYDROGEN_PEROXIDE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.HYDROGEN]: 2,
-      [PARTICLE_TYPES.OXYGEN]: 2,
-    },
-  },
-];
-
-// Create a map for quick lookup of a particle's composition for deconstruction.
-const COMPOSITION_MAP = new Map(
-  RECIPES.map(recipe => [recipe.type, recipe.ingredients])
-);
-
-// --- End of Inlined Data ---
-
-const elementaryParticleGroups = {
-  Quarks: [
-    { id: 'up-1', type: PARTICLE_TYPES.UP_QUARK },
-    { id: 'down-1', type: PARTICLE_TYPES.DOWN_QUARK },
-    { id: 'charm-1', type: PARTICLE_TYPES.CHARM_QUARK },
-    { id: 'strange-1', type: PARTICLE_TYPES.STRANGE_QUARK },
-    { id: 'top-1', type: PARTICLE_TYPES.TOP_QUARK },
-    { id: 'bottom-1', type: PARTICLE_TYPES.BOTTOM_QUARK },
-  ],
-  'Anti-Quarks': [
-    { id: 'anti-up-1', type: PARTICLE_TYPES.ANTI_UP_QUARK },
-    { id: 'anti-down-1', type: PARTICLE_TYPES.ANTI_DOWN_QUARK },
-    { id: 'anti-charm-1', type: PARTICLE_TYPES.ANTI_CHARM_QUARK },
-  ],
-  Leptons: [
-    { id: 'electron-1', type: PARTICLE_TYPES.ELECTRON },
-    { id: 'electron-neutrino-1', type: PARTICLE_TYPES.ELECTRON_NEUTRINO },
-  ],
-  'Anti-Leptons': [
-    { id: 'e-antineutrino-1', type: PARTICLE_TYPES.ELECTRON_ANTINEUTRINO },
-  ],
-  Bosons: [
-    { id: 'photon-1', type: PARTICLE_TYPES.PHOTON },
-    { id: 'gluon-1', type: PARTICLE_TYPES.GLUON },
-    { id: 'w-boson-1', type: PARTICLE_TYPES.W_BOSON },
-    { id: 'z-boson-1', type: PARTICLE_TYPES.Z_BOSON },
-  ]
-};
-
-const GOALS = [
-  { name: 'Synthesize a Proton', type: PARTICLE_TYPES.PROTON },
-  { name: 'Synthesize a Neutron', type: PARTICLE_TYPES.NEUTRON },
-  { name: 'Synthesize a Pion+', type: PARTICLE_TYPES.PION_PLUS },
-  { name: 'Form a Hydrogen Atom', type: PARTICLE_TYPES.HYDROGEN },
-  { name: 'Form a Deuterium Atom', type: PARTICLE_TYPES.DEUTERIUM },
-  { name: 'Form a Helium Atom', type: PARTICLE_TYPES.HELIUM },
-  { name: 'Form a Carbon Atom', type: PARTICLE_TYPES.CARBON },
-  { name: 'Form a Nitrogen Atom', type: PARTICLE_TYPES.NITROGEN },
-  { name: 'Form an Oxygen Atom', type: PARTICLE_TYPES.OXYGEN },
-  { name: 'Form a Neon Atom', type: PARTICLE_TYPES.NEON },
-  { name: 'Form a Sodium Atom', type: PARTICLE_TYPES.SODIUM },
-  { name: 'Form a Silicon Atom', type: PARTICLE_TYPES.SILICON },
-  { name: 'Form an Argon Atom', type: PARTICLE_TYPES.ARGON },
-  { name: 'Induce Neutron Decay', type: PARTICLE_TYPES.DECAYING_NEUTRON },
-  { name: 'Create an Excited Electron', type: PARTICLE_TYPES.EXCITED_ELECTRON },
-  { name: 'Synthesize a Water Molecule', type: PARTICLE_TYPES.WATER },
-  { name: 'Synthesize a Methane Molecule', type: PARTICLE_TYPES.METHANE },
-  { name: 'Synthesize an Ammonia Molecule', type: PARTICLE_TYPES.AMMONIA },
-  { name: 'Synthesize Carbon Dioxide', type: PARTICLE_TYPES.CARBON_DIOXIDE },
-  { name: 'Synthesize Salt (NaCl)', type: PARTICLE_TYPES.SODIUM_CHLORIDE },
-  { name: 'Synthesize a Lambda Baryon', type: PARTICLE_TYPES.LAMBDA_BARYON },
-  { name: 'Synthesize a J/ψ Meson', type: PARTICLE_TYPES.J_PSI_MESON },
-];
-
-const getInitialGoalIndex = () => {
-  const savedIndex = localStorage.getItem('particle-lab-goal-index');
-  return savedIndex ? parseInt(savedIndex, 10) : 0;
-};
-
-const COMPOUND_PARTICLE_TYPES = new Set(RECIPES.map(r => r.type));
-
-const getInitialState = (key, defaultValue) => {
-  try {
-    const savedItem = localStorage.getItem(key);
-    return savedItem ? JSON.parse(savedItem) : defaultValue;
-  } catch (error) {
-    console.error(`Error reading from localStorage for key "${key}":`, error);
-    return defaultValue;
-  }
+const LOCAL_STORAGE_KEYS = {
+  PARTICLES: 'particle-lab-particles',
+  SECONDARY: 'particle-lab-secondary',
+  ATOMS: 'particle-lab-atoms',
+  MOLECULES: 'particle-lab-molecules',
+  GOAL_INDEX: 'particle-lab-goal-index',
 };
 
 const App = () => {
-  const [particles, setParticles] = useState(() => getInitialState('particle-lab-particles', []));
+  const [particles, setParticles] = usePersistentState(LOCAL_STORAGE_KEYS.PARTICLES, []);
 
   const [visualEffects, setVisualEffects] = useState([]);
   const [isHintVisible, setIsHintVisible] = useState(false);
   const [infoPanelType, setInfoPanelType] = useState(null);
-  const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0, visible: false });
-  const [currentGoalIndex, setCurrentGoalIndex] = useState(getInitialGoalIndex);
-  const [isPeriodicTableVisible, setIsPeriodicTableVisible] = useState(false);
-  const [selectedParticleIds, setSelectedParticleIds] = useState(new Set());
+  const [currentGoalIndex, setCurrentGoalIndex] = usePersistentState(LOCAL_STORAGE_KEYS.GOAL_INDEX, 0);
   const draggedIndexRef = useRef(null);
 
-  const [secondaryParticles, setSecondaryParticles] = useState(() => getInitialState('particle-lab-secondary', []));
-  const [discoveredAtoms, setDiscoveredAtoms] = useState(() => getInitialState('particle-lab-atoms', []));
-  const [discoveredMolecules, setDiscoveredMolecules] = useState(() => getInitialState('particle-lab-molecules', []));
+  const [secondaryParticles, setSecondaryParticles] = usePersistentState(LOCAL_STORAGE_KEYS.SECONDARY, []);
+  const [discoveredAtoms, setDiscoveredAtoms] = usePersistentState(LOCAL_STORAGE_KEYS.ATOMS, []);
+  const [discoveredMolecules, setDiscoveredMolecules] = usePersistentState(LOCAL_STORAGE_KEYS.MOLECULES, []);
 
   const canvasRef = useRef(null);
+
+  const [isPeriodicTableVisible, setIsPeriodicTableVisible] = useState(false);
+  const {
+    selectedParticleIds,
+    setSelectedParticleIds,
+    selectionBox,
+    canvasBind,
+    handleParticleClick,
+    selectionInfo,
+  } = useSelection({ particles, canvasRef });
   const [message, setMessage] = useState('');
 
   const showMessage = useCallback((text) => {
@@ -448,7 +62,7 @@ const App = () => {
     x: particles[i]?.x ?? 0,
     y: particles[i]?.y ?? 0,
     scale: particles[i]?.scale ?? 1,
-  }), [particles.length]);
+  }), [particles]);
 
   // Drag binding (use-gesture)
   const bind = useDrag(({ args: [index], active, offset: [ox, oy], tap }) => {
@@ -476,56 +90,6 @@ const App = () => {
     from: ({ args: [index] }) => [springs[index].x.get(), springs[index].y.get()],
     filterTaps: true,
     pointer: { touch: true },
-  });
-
-  const canvasBind = useDrag(({ active, event, initial, movement: [mx, my], tap, memo }) => {
-    // If it's a simple tap on the canvas, clear selection.
-    if (tap) {
-      if (event.target === canvasRef.current) {
-        setSelectedParticleIds(new Set());
-      }
-      return;
-    }
-
-    // On the first event of the drag, check if it started on the canvas background.
-    // If not, memoize `false` to ignore the rest of this drag gesture.
-    if (memo === undefined) {
-      memo = event.target === canvasRef.current;
-    }
-    if (!memo) return; // Ignore drag if it didn't start on the canvas.
-
-    const [x, y] = initial;
-    const box = {
-      x: Math.min(x, x + mx),
-      y: Math.min(y, y + my),
-      width: Math.abs(mx),
-      height: Math.abs(my),
-      visible: active,
-    };
-    setSelectionBox(box);
-
-    if (!active) { // on drag end
-      const selectedIds = new Set();
-      particles.forEach(p => {
-        const particleSize = COMPOUND_PARTICLE_TYPES.has(p.type) ? 96 : 64;
-        const pBox = { x1: p.x, y1: p.y, x2: p.x + particleSize, y2: p.y + particleSize };
-        const sBox = { x1: box.x, y1: box.y, x2: box.x + box.width, y2: box.y + box.height };
-
-        // Check for overlap
-        if (pBox.x1 < sBox.x2 && pBox.x2 > sBox.x1 && pBox.y1 < sBox.y2 && pBox.y2 > sBox.y1) {
-          selectedIds.add(p.id);
-        }
-      });
-      setSelectedParticleIds(selectedIds);
-    }
-    return memo;
-  }, {
-    transform: ([x, y]) => {
-      if (!canvasRef.current) return [x, y];
-      const bounds = canvasRef.current.getBoundingClientRect();
-      return [x - bounds.left, y - bounds.top];
-    },
-    eventOptions: { passive: false },
   });
 
   const handleDrop = useCallback((e) => {
@@ -558,181 +122,22 @@ const App = () => {
     showMessage(`Dragging ${PARTICLE_NAMES[particle.type]}`);
   }, [showMessage]);
 
-  const disassembleParticle = useCallback((particleId, particleIndex) => {
-    const particle = particles[particleIndex];
-    if (!particle) return;
-
-    // Use the particle's own composition if it exists (from a previous combination),
-    // otherwise, look up its recipe for deconstruction.
-    const ingredients = particle.composition || COMPOSITION_MAP.get(particle.type);
-    if (!ingredients) return;
-
-    // The stored composition is an array, but a recipe is an object.
-    // Standardize to an array of particle types.
-    const compositionArray = Array.isArray(ingredients)
-      ? ingredients
-      : Object.entries(ingredients).flatMap(([type, count]) => Array(count).fill({ type }));
-
-    if (compositionArray.length === 0) return;
-
-    setParticles(prev => {
-      const next = prev.filter(x => x.id !== particleId);
-      const newComps = compositionArray.map((c, i) => ({
-        id: `${c.type}-${Date.now()}-${i}`,
-        type: c.type,
-        x: particle.x + Math.cos(i * (2 * Math.PI / compositionArray.length)) * 40,
-        y: particle.y + Math.sin(i * (2 * Math.PI / compositionArray.length)) * 40,
-        scale: 1,
-        composition: c.composition,
-      }));
-      return [...next, ...newComps];
-    });
-    showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
-  }, [particles, showMessage]);
-
-  const selectionInfo = useMemo(() => {
-    const selectedParticles = particles.filter(p => selectedParticleIds.has(p.id));
-
-    // Disassemble/Revert logic
-    const canDisassemble = selectedParticles.length === 1 && COMPOUND_PARTICLE_TYPES.has(selectedParticles[0].type);
-    const canRevert = canDisassemble; // Same condition
-
-    // Assemble logic
-    let assemblyRecipe = null;
-    if (selectedParticles.length > 0 && !canDisassemble) {
-      const composition = {};
-      selectedParticles.forEach(p => {
-        composition[p.type] = (composition[p.type] || 0) + 1;
-      });
-
-      for (const recipe of RECIPES) {
-        const recipeKeys = Object.keys(recipe.ingredients);
-        const compositionKeys = Object.keys(composition);
-
-        if (recipeKeys.length !== compositionKeys.length) continue;
-
-        const isExactMatch = recipeKeys.every(
-          type => (composition[type] || 0) === recipe.ingredients[type]
-        );
-
-        if (isExactMatch) {
-          assemblyRecipe = recipe;
-          break;
-        }
-      }
-    }
-
-    return {
-      canAssemble: !!assemblyRecipe,
-      canDisassemble,
-      canRevert,
-      assemblyRecipe,
-      selectedParticles,
-    };
-  }, [selectedParticleIds, particles]);
-
-  const handleAssemble = useCallback(() => {
-    if (!selectionInfo.canAssemble) return;
-
-    const { assemblyRecipe, selectedParticles } = selectionInfo;
-    const combinedIds = new Set(selectedParticles.map(p => p.id));
-
-    if (assemblyRecipe.category === PARTICLE_CATEGORIES.SECONDARY) {
-      setSecondaryParticles(prev => {
-        if (!prev.some(p => p.type === assemblyRecipe.type)) return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
-        return prev;
-      });
-    } else if (assemblyRecipe.category === PARTICLE_CATEGORIES.ATOM) {
-      setDiscoveredAtoms(prev => {
-        if (!prev.some(p => p.type === assemblyRecipe.type)) return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
-        return prev;
-      });
-    } else if (assemblyRecipe.category === PARTICLE_CATEGORIES.MOLECULE) {
-      setDiscoveredMolecules(prev => {
-        if (!prev.some(p => p.type === assemblyRecipe.type)) return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
-        return prev;
-      });
-    } else if (assemblyRecipe.category === PARTICLE_CATEGORIES.MOLECULE) {
-      setDiscoveredMolecules(prev => {
-        if (!prev.some(p => p.type === assemblyRecipe.type)) return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
-        return prev;
-      });
-    }
-
-    setParticles(prev => {
-      const next = prev.filter(p => !combinedIds.has(p.id));
-      const centerX = selectedParticles.reduce((s, p) => s + p.x, 0) / selectedParticles.length;
-      const centerY = selectedParticles.reduce((s, p) => s + p.y, 0) / selectedParticles.length;
-      next.push({
-        id: `compound-${Date.now()}`,
-        type: assemblyRecipe.type,
-        x: centerX,
-        y: centerY,
-        scale: 1,
-        composition: selectedParticles.map(p => ({ type: p.type, composition: p.composition })),
-      });
-      return next;
-    });
-
-    // Check if the new particle completes the current goal
-    if (currentGoalIndex < GOALS.length && assemblyRecipe.type === GOALS[currentGoalIndex].type) {
-      showMessage(`Goal Complete: ${GOALS[currentGoalIndex].name}!`);
-      setCurrentGoalIndex(prev => prev + 1);
-    } else {
-    showMessage(`${PARTICLE_NAMES[assemblyRecipe.type]} formed!`);
-    }
-    setSelectedParticleIds(new Set());
-  }, [selectionInfo, showMessage, currentGoalIndex]);
-
-  const handleDisassemble = useCallback(() => {
-    if (!selectionInfo.canDisassemble) return;
-    const particle = selectionInfo.selectedParticles[0];
-    const particleIndex = particles.findIndex(p => p.id === particle.id);
-    if (particleIndex !== -1) {
-      disassembleParticle(particle.id, particleIndex);
-    }
-    setSelectedParticleIds(new Set());
-  }, [selectionInfo, particles, disassembleParticle]);
-
-  const getElementaryComposition = useCallback((particleType) => {
-    const elementaryParticles = [];
-    const recurse = (type) => {
-      const ingredients = COMPOSITION_MAP.get(type);
-      if (!ingredients) {
-        elementaryParticles.push({ type });
-        return;
-      }
-      Object.entries(ingredients).forEach(([ingredientType, count]) => {
-        for (let i = 0; i < count; i++) {
-          recurse(ingredientType);
-        }
-      });
-    };
-    recurse(particleType);
-    return elementaryParticles;
-  }, []);
-
-  const handleRevertToElementary = useCallback(() => {
-    if (!selectionInfo.canRevert) return;
-    const particle = selectionInfo.selectedParticles[0];
-
-    const elementaryConstituents = getElementaryComposition(particle.type);
-
-    setParticles(prev => {
-      const next = prev.filter(p => p.id !== particle.id);
-      const newComps = elementaryConstituents.map((c, i) => ({
-        id: `${c.type}-${Date.now()}-${i}`,
-        type: c.type,
-        x: particle.x + Math.cos(i * (2 * Math.PI / elementaryConstituents.length)) * 60,
-        y: particle.y + Math.sin(i * (2 * Math.PI / elementaryConstituents.length)) * 60,
-        scale: 1,
-      }));
-      return [...next, ...newComps];
-    });
-
-    showMessage(`Reverted ${PARTICLE_NAMES[particle.type]} to elementary particles!`);
-    setSelectedParticleIds(new Set());
-  }, [selectionInfo, getElementaryComposition, showMessage]);
+  const {
+    handleAssemble,
+    handleDisassemble,
+    handleRevertToElementary,
+  } = useParticleActions({
+    particles,
+    setParticles,
+    selectionInfo,
+    setSecondaryParticles,
+    setDiscoveredAtoms,
+    setDiscoveredMolecules,
+    currentGoalIndex,
+    setCurrentGoalIndex,
+    showMessage,
+    setSelectedParticleIds,
+  });
 
   const handleRemoveSelected = useCallback(() => {
     if (selectedParticleIds.size === 0) return;
@@ -754,33 +159,10 @@ const App = () => {
     setSecondaryParticles([]);
     setDiscoveredAtoms([]);
     setDiscoveredMolecules([]);
-
-    localStorage.removeItem('particle-lab-particles');
-    localStorage.removeItem('particle-lab-secondary');
-    localStorage.removeItem('particle-lab-atoms');
-    localStorage.removeItem('particle-lab-goal-index');
-    localStorage.removeItem('particle-lab-molecules');
+    setCurrentGoalIndex(0);
 
     showMessage('Lab has been reset!');
-  }, [showMessage]);
-
-  const handleParticleClick = useCallback((e, particleId) => {
-    e.stopPropagation();
-    setSelectedParticleIds(prev => {
-      const newSelection = new Set(prev);
-      if (e.ctrlKey || e.metaKey) { // metaKey for Command on Mac
-        if (newSelection.has(particleId)) {
-          newSelection.delete(particleId);
-        } else {
-          newSelection.add(particleId);
-        }
-      } else {
-        newSelection.clear();
-        newSelection.add(particleId);
-      }
-      return newSelection;
-    });
-  }, []);
+  }, [setParticles, setSecondaryParticles, setDiscoveredAtoms, setDiscoveredMolecules, setCurrentGoalIndex, showMessage]);
 
   const handleShowInfo = useCallback((type) => setInfoPanelType(type), []);
   const handleCloseInfo = useCallback(() => setInfoPanelType(null), []);
@@ -799,62 +181,12 @@ const App = () => {
     });
   }, []);
 
-  const decayTimeouts = useRef([]);
-  useEffect(() => {
-    // Clear previous timeouts on each render to avoid memory leaks
-    decayTimeouts.current.forEach(clearTimeout);
-    decayTimeouts.current = [];
-
-    particles.forEach(p => {
-      if (p.type === PARTICLE_TYPES.EXCITED_ELECTRON) {
-        const timeoutId = setTimeout(() => {
-          setParticles(prev => {
-            const particleToDecay = prev.find(part => part.id === p.id);
-            if (!particleToDecay) return prev;
-
-            const otherParticles = prev.filter(part => part.id !== p.id);
-            const newElectron = { ...particleToDecay, type: PARTICLE_TYPES.ELECTRON, id: `electron-${Date.now()}` };
-            const newPhoton = {
-              id: `photon-${Date.now()}`,
-              type: PARTICLE_TYPES.PHOTON,
-              x: particleToDecay.x + 50,
-              y: particleToDecay.y - 50,
-              scale: 1,
-            };
-            return [...otherParticles, newElectron, newPhoton];
-          });
-          triggerRadiationBurst(p.x, p.y);
-          showMessage('Excited Electron decayed!');
-        }, 3000); // 3-second lifetime
-        decayTimeouts.current.push(timeoutId);
-      }
-    });
-
-    return () => decayTimeouts.current.forEach(clearTimeout);
-  }, [particles, showMessage, triggerRadiationBurst]);
-
-  useEffect(() => {
-    particles.forEach(p => {
-      if (p.type === PARTICLE_TYPES.DECAYING_NEUTRON) {
-        const timeoutId = setTimeout(() => {
-          setParticles(prev => {
-            const particleToDecay = prev.find(part => part.id === p.id);
-            if (!particleToDecay) return prev;
-
-            const otherParticles = prev.filter(part => part.id !== p.id);
-            const newProton = { ...particleToDecay, type: PARTICLE_TYPES.PROTON, id: `proton-${Date.now()}` };
-            const newElectron = { id: `electron-${Date.now()}`, type: PARTICLE_TYPES.ELECTRON, x: particleToDecay.x + 50, y: particleToDecay.y + 50, scale: 1 };
-            const newAntiNeutrino = { id: `e-antineutrino-${Date.now()}`, type: PARTICLE_TYPES.ELECTRON_ANTINEUTRINO, x: particleToDecay.x - 50, y: particleToDecay.y - 50, scale: 1 };
-
-            return [...otherParticles, newProton, newElectron, newAntiNeutrino];
-          });
-          triggerRadiationBurst(p.x, p.y);
-          showMessage('Beta Decay! Neutron became a Proton.');
-        }, 4000); // 4-second lifetime
-        decayTimeouts.current.push(timeoutId);
-      }
-    });
-  }, [particles, showMessage, triggerRadiationBurst]);
+  useDecay(
+    particles,
+    setParticles,
+    showMessage,
+    triggerRadiationBurst
+  );
 
   useEffect(() => {
     api.start(i => {
@@ -871,22 +203,6 @@ const App = () => {
       };
     });
   }, [particles, api]); // Note: draggedIndexRef is intentionally not in the dependency array
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('particle-lab-particles', JSON.stringify(particles));
-      localStorage.setItem('particle-lab-secondary', JSON.stringify(secondaryParticles));
-      localStorage.setItem('particle-lab-atoms', JSON.stringify(discoveredAtoms));
-      localStorage.setItem('particle-lab-molecules', JSON.stringify(discoveredMolecules));
-    } catch (error) {
-      console.error('Error writing to localStorage:', error);
-    }
-  }, [particles, secondaryParticles, discoveredAtoms, discoveredMolecules]);
-
-  useEffect(() => {
-    localStorage.setItem('particle-lab-goal-index', currentGoalIndex.toString());
-  }, [currentGoalIndex]);
-
 
   return (
     <>
@@ -968,44 +284,18 @@ const App = () => {
         <div className="absolute top-4 left-4 flex flex-col items-start gap-4">
           <div className="flex items-center gap-8">
             <h1 className="text-3xl font-bold text-white">Particle Lab</h1>
-            <div className="flex items-center flex-wrap gap-2 bg-gray-900/50 p-2 rounded-xl border border-gray-700">
-              {/* Transformation Group */}
-              <button
-                onClick={handleAssemble}
-                disabled={!selectionInfo.canAssemble}
-                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-green-500 to-green-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                Assemble</button>
-              <button
-                onClick={handleDisassemble}
-                disabled={!selectionInfo.canDisassemble}
-                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-yellow-500 to-yellow-600 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 4a1 1 0 00-2 0v2a1 1 0 002 0V4zm11 1a1 1 0 100-2h-2a1 1 0 100 2h2zm-4 0a1 1 0 100-2h-2a1 1 0 100 2h2zM9 9a1 1 0 100-2H7a1 1 0 100 2h2zm4-1a1 1 0 10-2 0v2a1 1 0 102 0V8z" clipRule="evenodd" /></svg>
-                Disassemble</button>
-              <button
-                onClick={handleRevertToElementary}
-                disabled={!selectionInfo.canRevert}
-                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-red-500 to-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                Revert</button>
-
-              {/* Separator */}
-              <div className="h-6 w-px bg-gray-600 mx-2"></div>
-
-              {/* Deletion Group */}
-              <button
-                onClick={handleRemoveSelected}
-                disabled={selectedParticleIds.size === 0}
-                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-orange-500 to-orange-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                Remove</button>
-              <button
-                onClick={handleEmptyCanvas}
-                disabled={particles.length === 0}
-                className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-gray-600 to-gray-800 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-              ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                Empty Canvas</button>
-            </div>
+            <ActionToolbar
+              onAssemble={handleAssemble}
+              onDisassemble={handleDisassemble}
+              onRevert={handleRevertToElementary}
+              onRemoveSelected={handleRemoveSelected}
+              onEmptyCanvas={handleEmptyCanvas}
+              canAssemble={selectionInfo.canAssemble}
+              canDisassemble={selectionInfo.canDisassemble}
+              canRevert={selectionInfo.canRevert}
+              canRemove={selectedParticleIds.size > 0}
+              canEmpty={particles.length > 0}
+            />
           </div>
           {currentGoalIndex < GOALS.length && (
             <div className="bg-gray-900/70 backdrop-blur-sm p-3 rounded-lg border border-gray-600 shadow-lg">

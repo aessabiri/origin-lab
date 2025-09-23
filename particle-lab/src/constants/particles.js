@@ -55,6 +55,10 @@ export const PARTICLE_TYPES = {
   ANTI_CHARM_QUARK: 'anti-charm-quark',
   LAMBDA_BARYON: 'lambda-baryon',
   J_PSI_MESON: 'j-psi-meson',
+  OZONE: 'ozone',
+  NITROUS_OXIDE: 'nitrous-oxide',
+  SILICON_DIOXIDE: 'silicon-dioxide',
+  HYDROGEN_FLUORIDE: 'hydrogen-fluoride',
 };
 
 export const PARTICLE_COLORS = {
@@ -111,6 +115,10 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.ANTI_CHARM_QUARK]: 'bg-purple-700',
   [PARTICLE_TYPES.LAMBDA_BARYON]: 'bg-green-700',
   [PARTICLE_TYPES.J_PSI_MESON]: 'bg-violet-700',
+  [PARTICLE_TYPES.OZONE]: 'bg-sky-300',
+  [PARTICLE_TYPES.NITROUS_OXIDE]: 'bg-indigo-300',
+  [PARTICLE_TYPES.SILICON_DIOXIDE]: 'bg-stone-300',
+  [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: 'bg-emerald-300',
 };
 
 export const PARTICLE_NAMES = {
@@ -167,6 +175,10 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.ANTI_CHARM_QUARK]: 'Anti-Charm',
   [PARTICLE_TYPES.LAMBDA_BARYON]: 'Lambda (Λ)',
   [PARTICLE_TYPES.J_PSI_MESON]: 'J/ψ Meson',
+  [PARTICLE_TYPES.OZONE]: 'Ozone',
+  [PARTICLE_TYPES.NITROUS_OXIDE]: 'Nitrous Oxide',
+  [PARTICLE_TYPES.SILICON_DIOXIDE]: 'Silica (SiO₂)',
+  [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: 'HF',
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -223,4 +235,8 @@ export const PARTICLE_COLOR_MAP = {
   'purple-700': '#7e22ce',
   'green-700': '#15803d',
   'violet-700': '#6d28d9',
+  'sky-300': '#7dd3fc',
+  'indigo-300': '#a5b4fc',
+  'stone-300': '#d6d3d1',
+  'emerald-300': '#6ee7b7',
 };

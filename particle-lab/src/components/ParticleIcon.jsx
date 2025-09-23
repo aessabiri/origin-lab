@@ -1,28 +1,16 @@
 import React from 'react';
-import { PARTICLE_TYPES, PARTICLE_COLOR_MAP, PARTICLE_COLORS, PARTICLE_NAMES } from '../constants/particles.js';
+import { PARTICLE_TYPES, PARTICLE_COLOR_MAP } from '../constants/particles.js';
 
-/*
-  ParticleIcon renders the various SVG icons for each particle type.
-  This file is a direct extraction of the SVG-switch from your original file.
-  It expects:
-    - type: one of the PARTICLE_TYPES values
-    - color: the Tailwind class string (e.g. 'bg-yellow-400') used to pick a hex color
-    - isCompound: boolean (not required for rendering but accepted)
-*/
+// --- Helper Components & Functions ---
 
-const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
-  const token = color.replace('bg-', '');
-  const hexColor = PARTICLE_COLOR_MAP[token] || '#9ca3af';
-
-  // radial gradient helper
-  const radialGradient = (id, c, opacity = 0.8) => (
+const radialGradient = (id, c, opacity = 0.8) => (
     <radialGradient id={id} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
       <stop offset="0%" stopColor="#ffffff" stopOpacity={opacity} />
       <stop offset="100%" stopColor={c} />
     </radialGradient>
   );
 
-  const QuarkComposition = ({ up = 0, down = 0 }) => {
+const QuarkComposition = ({ up = 0, down = 0 }) => {
     const upColor = PARTICLE_COLOR_MAP['yellow-400'];
     const downColor = PARTICLE_COLOR_MAP['indigo-400'];
     const total = up + down;
@@ -50,7 +38,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
     );
   };
 
-  const Nucleus = ({ protonCount = 0, neutronCount = 0 }) => {
+const Nucleus = ({ protonCount = 0, neutronCount = 0 }) => {
     const protonColor = PARTICLE_COLOR_MAP['red-500'];
     const neutronColor = PARTICLE_COLOR_MAP['pink-500'];
     const total = protonCount + neutronCount;
@@ -86,7 +74,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
     );
   };
 
-  const ElectronShells = ({ electronCount = 0, hexColor }) => {
+const ElectronShells = ({ electronCount = 0, hexColor }) => {
     if (electronCount === 0) return null;
     const electronColor = PARTICLE_COLOR_MAP['blue-600'];
     const shells = [];
@@ -107,7 +95,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
     ));
   };
 
-  const MesonComposition = ({ quarkColor, antiquarkColor }) => {
+const MesonComposition = ({ quarkColor, antiquarkColor }) => {
     return (
       <g>
         <circle cx="35" cy="50" r="15" fill={quarkColor} stroke="#000" strokeOpacity="0.2" strokeWidth="1" />
@@ -117,10 +105,9 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
     );
   };
 
-  switch (type) {
-    // Quarks
-    case PARTICLE_TYPES.UP_QUARK:
-      return (
+// --- Individual Particle Icon Components ---
+
+const UpQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>
             {radialGradient('grad1', hexColor)}
@@ -137,8 +124,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.DOWN_QUARK:
-      return (
+const DownQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('grad2', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#grad2)" />
@@ -146,8 +132,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.CHARM_QUARK:
-      return (
+const CharmQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('grad3', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#grad3)" />
@@ -155,8 +140,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.STRANGE_QUARK:
-      return (
+const StrangeQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('grad4', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#grad4)" />
@@ -164,8 +148,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.TOP_QUARK:
-      return (
+const TopQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('grad5', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#grad5)" />
@@ -173,8 +156,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.BOTTOM_QUARK:
-      return (
+const BottomQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('grad6', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#grad6)" />
@@ -182,8 +164,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.ANTI_UP_QUARK:
-      return (
+const AntiUpQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>
             {radialGradient('grad-anti-up', hexColor)}
@@ -200,8 +181,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.ANTI_DOWN_QUARK:
-      return (
+const AntiDownQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('grad-anti-down', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#grad-anti-down)" />
@@ -209,9 +189,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    // Leptons
-    case PARTICLE_TYPES.ELECTRON:
-      return (
+const ElectronIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('grad7', hexColor)}</defs>
           <g style={{ animation: 'spin 4s linear infinite' }}>
@@ -222,8 +200,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.ANTI_CHARM_QUARK:
-      return (
+const AntiCharmQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('grad-anti-charm', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#grad-anti-charm)" />
@@ -231,23 +208,19 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.ELECTRON_NEUTRINO:
-      return (
+const ElectronNeutrinoIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" strokeWidth="4">
           <path d="M 10 50 C 30 20, 70 20, 90 50 S 70 80, 10 50" stroke={hexColor} />
         </svg>
       );
 
-    case PARTICLE_TYPES.ELECTRON_ANTINEUTRINO:
-      return (
+const ElectronAntineutrinoIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" strokeWidth="4">
           <path d="M 10 50 C 30 80, 70 80, 90 50 S 70 20, 10 50" stroke={hexColor} />
         </svg>
       );
 
-    // Bosons
-    case PARTICLE_TYPES.PHOTON:
-      return (
+const PhotonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('photon-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="25" fill="url(#photon-grad)" />
@@ -266,31 +239,26 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.GLUON:
-      return (
+const GluonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
           <path d="M 20 50 C 20 30, 30 30, 30 50 S 40 70, 40 50 S 50 30, 50 50 S 60 70, 60 50 S 70 30, 70 50 S 80 70, 80 50"
             stroke={hexColor} strokeWidth="6" strokeLinecap="round" />
         </svg>
       );
 
-    case PARTICLE_TYPES.W_BOSON:
-      return (
+const WBosonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <path d="M50,10 L90,50 L50,90 L10,50 Z" fill={hexColor} />
         </svg>
       );
 
-    case PARTICLE_TYPES.Z_BOSON:
-      return (
+const ZBosonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <path d="M50,10 L90,50 L50,90 L10,50 Z" fill={hexColor} />
         </svg>
       );
 
-    // Compounds & atoms simplified visuals
-    case PARTICLE_TYPES.PROTON:
-      return (
+const ProtonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('proton-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#proton-grad)" />
@@ -298,8 +266,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.NEUTRON:
-      return (
+const NeutronIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('neutron-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#neutron-grad)" />
@@ -307,16 +274,14 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.DECAYING_NEUTRON:
-       return (
+const DecayingNeutronIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full" style={{ animation: 'jiggle 0.2s linear infinite' }}>
           <defs>{radialGradient('neutron-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#neutron-grad)" />
           <QuarkComposition up={1} down={2} />
         </svg>
       );
-    case PARTICLE_TYPES.PION_PLUS:
-      return (
+const PionPlusIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('pion-plus-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#pion-plus-grad)" />
@@ -324,8 +289,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.EXCITED_ELECTRON:
-      return (
+const ExcitedElectronIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>
             {radialGradient('grad-excited-e', hexColor)}
@@ -341,8 +305,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.LAMBDA_BARYON:
-      return (
+const LambdaBaryonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('lambda-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#lambda-grad)" />
@@ -352,8 +315,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.J_PSI_MESON:
-      return (
+const JPsiMesonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('jpsi-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#jpsi-grad)" />
@@ -361,8 +323,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.CARBON_DIOXIDE:
-      return (
+const CarbonDioxideIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('co2-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#co2-grad)" opacity="0.4" />
@@ -372,8 +333,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.SODIUM_CHLORIDE:
-      return (
+const SodiumChlorideIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('nacl-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#nacl-grad)" opacity="0.4" />
@@ -385,8 +345,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.HYDROCHLORIC_ACID:
-      return (
+const HydrochloricAcidIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('hcl-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#hcl-grad)" opacity="0.4" />
@@ -395,8 +354,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.CARBON_MONOXIDE:
-      return (
+const CarbonMonoxideIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('co-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#co-grad)" opacity="0.4" />
@@ -405,8 +363,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.HYDROGEN_SULFIDE:
-      return (
+const HydrogenSulfideIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('h2s-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#h2s-grad)" opacity="0.4" />
@@ -416,8 +373,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.HYDROGEN_PEROXIDE:
-      return (
+const HydrogenPeroxideIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('h2o2-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#h2o2-grad)" opacity="0.4" />
@@ -428,8 +384,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.PION_MINUS:
-      return (
+const PionMinusIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('pion-minus-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#pion-minus-grad)" />
@@ -437,8 +392,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.WATER:
-      return (
+const WaterIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('water-grad', hexColor, 0.5)}</defs>
           <path d="M50 10 C 20 40, 20 70, 50 90 C 80 70, 80 40, 50 10 Z" fill="url(#water-grad)" />
@@ -446,8 +400,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.METHANE:
-      return (
+const MethaneIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('methane-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#methane-grad)" opacity="0.4" />
@@ -458,8 +411,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.AMMONIA:
-      return (
+const AmmoniaIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('ammonia-grad', hexColor)}</defs>
           <circle cx="50" cy="50" r="45" fill="url(#ammonia-grad)" opacity="0.4" />
@@ -470,141 +422,226 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
         </svg>
       );
 
-    case PARTICLE_TYPES.HYDROGEN:
-      return (
+const OzoneIcon = ({ hexColor }) => (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('ozone-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#ozone-grad)" opacity="0.4" />
+          <circle cx="50" cy="35" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+          <circle cx="30" cy="65" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+          <circle cx="70" cy="65" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+        </svg>
+      );
+
+const NitrousOxideIcon = ({ hexColor }) => (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('n2o-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#n2o-grad)" opacity="0.4" />
+          <circle cx="30" cy="50" r="15" fill={PARTICLE_COLOR_MAP['sky-500']} />
+          <circle cx="55" cy="50" r="15" fill={PARTICLE_COLOR_MAP['sky-500']} />
+          <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+        </svg>
+      );
+
+const SiliconDioxideIcon = ({ hexColor }) => (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('sio2-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#sio2-grad)" opacity="0.4" />
+          <circle cx="50" cy="50" r="18" fill={PARTICLE_COLOR_MAP['stone-500']} />
+          <circle cx="20" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+          <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+        </svg>
+      );
+
+const HydrogenFluorideIcon = ({ hexColor }) => (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>{radialGradient('hf-grad', hexColor)}</defs>
+          <circle cx="50" cy="50" r="45" fill="url(#hf-grad)" opacity="0.4" />
+          <circle cx="35" cy="50" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
+          <circle cx="65" cy="50" r="20" fill={PARTICLE_COLOR_MAP['emerald-500']} />
+        </svg>
+      );
+
+const HydrogenIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={1} hexColor={hexColor} />
           <Nucleus protonCount={1} neutronCount={0} />
         </svg>
       );
 
-    case PARTICLE_TYPES.DEUTERIUM:
-      return (
+const DeuteriumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={1} hexColor={hexColor} />
           <Nucleus protonCount={1} neutronCount={1} />
         </svg>
       );
 
-    case PARTICLE_TYPES.TRITIUM:
-      return (
+const TritiumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={1} hexColor={hexColor} />
           <Nucleus protonCount={1} neutronCount={2} />
         </svg>
       );
 
-    case PARTICLE_TYPES.HELIUM:
-      return (
+const HeliumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={2} hexColor={hexColor} />
           <Nucleus protonCount={2} neutronCount={2} />
         </svg>
       );
 
-    case PARTICLE_TYPES.LITHIUM:
-      return (
+const LithiumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={3} hexColor={hexColor} />
           <Nucleus protonCount={3} neutronCount={4} />
         </svg>
       );
-    case PARTICLE_TYPES.BERYLLIUM:
-      return (
+const BerylliumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={4} hexColor={hexColor} />
           <Nucleus protonCount={4} neutronCount={5} />
         </svg>
       );
-    case PARTICLE_TYPES.BORON:
-      return (
+const BoronIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={5} hexColor={hexColor} />
           <Nucleus protonCount={5} neutronCount={6} />
         </svg>
       );
-    case PARTICLE_TYPES.CARBON:
-      return (
+const CarbonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={6} hexColor={hexColor} />
           <Nucleus protonCount={6} neutronCount={6} />
         </svg>
       );
-    case PARTICLE_TYPES.NITROGEN:
-      return (
+const NitrogenIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={7} hexColor={hexColor} />
           <Nucleus protonCount={7} neutronCount={7} />
         </svg>
       );
-    case PARTICLE_TYPES.OXYGEN:
-      return (
+const OxygenIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={8} hexColor={hexColor} />
           <Nucleus protonCount={8} neutronCount={8} />
         </svg>
       );
-    case PARTICLE_TYPES.FLUORINE:
-      return (
+const FluorineIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={9} hexColor={hexColor} />
           <Nucleus protonCount={9} neutronCount={10} />
         </svg>
       );
-    case PARTICLE_TYPES.NEON:
-      return (
+const NeonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={10} hexColor={hexColor} />
           <Nucleus protonCount={10} neutronCount={10} />
         </svg>
       );
-    case PARTICLE_TYPES.SODIUM:
-      return (
+const SodiumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={11} hexColor={hexColor} />
           <Nucleus protonCount={11} neutronCount={12} />
         </svg>
       );
-    case PARTICLE_TYPES.MAGNESIUM:
-      return (
+const MagnesiumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={12} hexColor={hexColor} />
           <Nucleus protonCount={12} neutronCount={12} />
         </svg>
       );
-    case PARTICLE_TYPES.ALUMINIUM:
-      return (
+const AluminiumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={13} hexColor={hexColor} />
           <Nucleus protonCount={13} neutronCount={14} />
         </svg>
       );
-    case PARTICLE_TYPES.SILICON:
-      return (
+const SiliconIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={14} hexColor={hexColor} />
           <Nucleus protonCount={14} neutronCount={14} />
         </svg>
       );
-    case PARTICLE_TYPES.PHOSPHORUS:
-    case PARTICLE_TYPES.SULFUR:
-    case PARTICLE_TYPES.CHLORINE:
-    case PARTICLE_TYPES.ARGON:
-      // A generic fallback for the rest of the new atoms
-      return (
+
+const GenericAtomIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={18} hexColor={hexColor} />
           <Nucleus protonCount={18} neutronCount={22} />
         </svg>
       );
 
-    default:
-      return (
+const DefaultIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <circle cx="50" cy="50" r="45" fill={hexColor} />
         </svg>
       );
-  }
+
+const PARTICLE_ICON_MAP = {
+  [PARTICLE_TYPES.UP_QUARK]: UpQuarkIcon,
+  [PARTICLE_TYPES.DOWN_QUARK]: DownQuarkIcon,
+  [PARTICLE_TYPES.CHARM_QUARK]: CharmQuarkIcon,
+  [PARTICLE_TYPES.STRANGE_QUARK]: StrangeQuarkIcon,
+  [PARTICLE_TYPES.TOP_QUARK]: TopQuarkIcon,
+  [PARTICLE_TYPES.BOTTOM_QUARK]: BottomQuarkIcon,
+  [PARTICLE_TYPES.ANTI_UP_QUARK]: AntiUpQuarkIcon,
+  [PARTICLE_TYPES.ANTI_DOWN_QUARK]: AntiDownQuarkIcon,
+  [PARTICLE_TYPES.ELECTRON]: ElectronIcon,
+  [PARTICLE_TYPES.ANTI_CHARM_QUARK]: AntiCharmQuarkIcon,
+  [PARTICLE_TYPES.ELECTRON_NEUTRINO]: ElectronNeutrinoIcon,
+  [PARTICLE_TYPES.ELECTRON_ANTINEUTRINO]: ElectronAntineutrinoIcon,
+  [PARTICLE_TYPES.PHOTON]: PhotonIcon,
+  [PARTICLE_TYPES.GLUON]: GluonIcon,
+  [PARTICLE_TYPES.W_BOSON]: WBosonIcon,
+  [PARTICLE_TYPES.Z_BOSON]: ZBosonIcon,
+  [PARTICLE_TYPES.PROTON]: ProtonIcon,
+  [PARTICLE_TYPES.NEUTRON]: NeutronIcon,
+  [PARTICLE_TYPES.DECAYING_NEUTRON]: DecayingNeutronIcon,
+  [PARTICLE_TYPES.PION_PLUS]: PionPlusIcon,
+  [PARTICLE_TYPES.EXCITED_ELECTRON]: ExcitedElectronIcon,
+  [PARTICLE_TYPES.LAMBDA_BARYON]: LambdaBaryonIcon,
+  [PARTICLE_TYPES.J_PSI_MESON]: JPsiMesonIcon,
+  [PARTICLE_TYPES.CARBON_DIOXIDE]: CarbonDioxideIcon,
+  [PARTICLE_TYPES.SODIUM_CHLORIDE]: SodiumChlorideIcon,
+  [PARTICLE_TYPES.HYDROCHLORIC_ACID]: HydrochloricAcidIcon,
+  [PARTICLE_TYPES.CARBON_MONOXIDE]: CarbonMonoxideIcon,
+  [PARTICLE_TYPES.HYDROGEN_SULFIDE]: HydrogenSulfideIcon,
+  [PARTICLE_TYPES.HYDROGEN_PEROXIDE]: HydrogenPeroxideIcon,
+  [PARTICLE_TYPES.PION_MINUS]: PionMinusIcon,
+  [PARTICLE_TYPES.WATER]: WaterIcon,
+  [PARTICLE_TYPES.METHANE]: MethaneIcon,
+  [PARTICLE_TYPES.AMMONIA]: AmmoniaIcon,
+  [PARTICLE_TYPES.OZONE]: OzoneIcon,
+  [PARTICLE_TYPES.NITROUS_OXIDE]: NitrousOxideIcon,
+  [PARTICLE_TYPES.SILICON_DIOXIDE]: SiliconDioxideIcon,
+  [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: HydrogenFluorideIcon,
+  [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
+  [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,
+  [PARTICLE_TYPES.TRITIUM]: TritiumIcon,
+  [PARTICLE_TYPES.HELIUM]: HeliumIcon,
+  [PARTICLE_TYPES.LITHIUM]: LithiumIcon,
+  [PARTICLE_TYPES.BERYLLIUM]: BerylliumIcon,
+  [PARTICLE_TYPES.BORON]: BoronIcon,
+  [PARTICLE_TYPES.CARBON]: CarbonIcon,
+  [PARTICLE_TYPES.NITROGEN]: NitrogenIcon,
+  [PARTICLE_TYPES.OXYGEN]: OxygenIcon,
+  [PARTICLE_TYPES.FLUORINE]: FluorineIcon,
+  [PARTICLE_TYPES.NEON]: NeonIcon,
+  [PARTICLE_TYPES.SODIUM]: SodiumIcon,
+  [PARTICLE_TYPES.MAGNESIUM]: MagnesiumIcon,
+  [PARTICLE_TYPES.ALUMINIUM]: AluminiumIcon,
+  [PARTICLE_TYPES.SILICON]: SiliconIcon,
+  [PARTICLE_TYPES.PHOSPHORUS]: GenericAtomIcon,
+  [PARTICLE_TYPES.SULFUR]: GenericAtomIcon,
+  [PARTICLE_TYPES.CHLORINE]: GenericAtomIcon,
+  [PARTICLE_TYPES.ARGON]: GenericAtomIcon,
+};
+
+const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
+  const token = color.replace('bg-', '');
+  const hexColor = PARTICLE_COLOR_MAP[token] || '#9ca3af';
+
+  const IconComponent = PARTICLE_ICON_MAP[type] || DefaultIcon;
+
+  return <IconComponent hexColor={hexColor} isCompound={isCompound} />;
 };
 
 export default ParticleIcon;

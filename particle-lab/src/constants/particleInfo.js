@@ -346,4 +346,36 @@ export const PARTICLE_INFO = {
     composition: '2 Hydrogen, 2 Oxygen',
     description: 'A simple peroxide, it is a colorless liquid, slightly more viscous than water. It is used as an oxidizer, bleaching agent, and antiseptic.'
   },
+  [PARTICLE_TYPES.OZONE]: {
+    name: 'Ozone',
+    category: 'Molecule',
+    mass: '48.00 u',
+    charge: '0 e',
+    composition: '3 Oxygen',
+    description: 'An inorganic molecule with the chemical formula O₃. It is a pale blue gas with a distinctively pungent smell. It is an allotrope of oxygen that is much less stable than the diatomic allotrope O₂. In the stratosphere, it protects Earth from harmful UV radiation.'
+  },
+  [PARTICLE_TYPES.NITROUS_OXIDE]: {
+    name: 'Nitrous Oxide',
+    category: 'Molecule',
+    mass: '44.013 u',
+    charge: '0 e',
+    composition: '2 Nitrogen, 1 Oxygen',
+    description: 'Commonly known as laughing gas, it is a chemical compound, an oxide of nitrogen with the formula N₂O. At room temperature, it is a colorless non-flammable gas, with a slight metallic scent and taste.'
+  },
+  [PARTICLE_TYPES.SILICON_DIOXIDE]: {
+    name: 'Silicon Dioxide (Silica)',
+    category: 'Molecule',
+    mass: '60.08 u',
+    charge: '0 e',
+    composition: '1 Silicon, 2 Oxygen',
+    description: 'Also known as silica, it is an oxide of silicon with the chemical formula SiO₂. It is most commonly found in nature as quartz and in various living organisms. It is a principal component of most sand in the world.'
+  },
+  [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: {
+    name: 'Hydrogen Fluoride',
+    category: 'Molecule / Acid',
+    mass: '20.01 u',
+    charge: '0 e',
+    composition: '1 Hydrogen, 1 Fluorine',
+    description: 'A chemical compound with the chemical formula HF. This colorless gas or liquid is the principal industrial source of fluorine, often as an aqueous solution called hydrofluoric acid. It is an extremely dangerous and corrosive substance.'
+  },
 };
