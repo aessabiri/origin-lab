@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { PARTICLE_CATEGORIES, COMPOSITION_MAP, RECIPES } from '../recipes.js';
 import { MOLECULE_RECIPES } from '../components/moleculeRecipes.js';
+import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
 import { GOALS } from '../gameData.js';
 import { PARTICLE_NAMES } from '../constants/particles.js';
 
@@ -24,6 +25,7 @@ export const useParticleActions = ({
 
     // Check if it's a molecule from moleculeRecipes
     const moleculeRecipe = MOLECULE_RECIPES.find(r => r.type === particle.type);
+    const polypeptideRecipe = POLYPEPTIDE_RECIPES.find(r => r.type === particle.type);
     if (moleculeRecipe) {
       const newAtoms = [];
 
@@ -44,6 +46,25 @@ export const useParticleActions = ({
       setParticles(prev => [...prev.filter(p => p.id !== particleId), ...newAtoms]);
       // Since we are breaking a molecule down into its constituent atoms,
       // it's safest and most correct to clear all existing bonds from the canvas.
+      setBonds([]);
+      showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
+      return;
+    }
+
+    if (polypeptideRecipe) {
+      const newMolecules = [];
+      Object.entries(polypeptideRecipe.molecules).forEach(([moleculeType, count]) => {
+        for (let i = 0; i < count; i++) {
+          newMolecules.push({
+            id: `${moleculeType}-${Date.now()}-${i}`,
+            type: moleculeType,
+            x: particle.x + (Math.random() - 0.5) * 100,
+            y: particle.y + (Math.random() - 0.5) * 100,
+            scale: 1,
+          });
+        }
+      });
+      setParticles(prev => [...prev.filter(p => p.id !== particleId), ...newMolecules]);
       setBonds([]);
       showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
       return;
@@ -94,11 +115,11 @@ export const useParticleActions = ({
   const handleAssemble = useCallback(() => {
     if (!selectionInfo.canAssemble) return;
 
-    const { assemblyRecipe, selectedParticles, isMoleculeAssembly } = selectionInfo;
+    const { assemblyRecipe, selectedParticles, isMoleculeAssembly, isPolypeptideAssembly } = selectionInfo;
     const combinedIds = new Set(selectedParticles.map(p => p.id));
 
-    // Handle molecule assembly (don't remove particles)
-    if (isMoleculeAssembly) {
+    // Handle molecule and polypeptide assembly
+    if (isMoleculeAssembly || isPolypeptideAssembly) {
       setDiscoveredMolecules(prev => {
         if (prev.some(m => m.type === assemblyRecipe.type)) {
           return prev;

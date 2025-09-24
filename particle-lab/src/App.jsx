@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useSprings, animated } from '@react-spring/web';
-import { useDrag } from '@use-gesture/react';
+import { useDrag, useGesture } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
 import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP } from './constants/particles.js';
 import { COMPOUND_PARTICLE_TYPES, MOLECULE_PARTICLE_TYPES } from './recipes.js';
@@ -157,6 +157,23 @@ const App = () => {
     showMessage(`Created a ${bondType} bond!`);
   }, [selectedParticleIds, setBonds, showMessage, setSelectedParticleIds]);
 
+  const handleAddPeptideBond = useCallback(() => {
+    if (selectedParticleIds.size !== 2) return;
+
+    const [particleA_id, particleB_id] = Array.from(selectedParticleIds);
+
+    const newBond = {
+      id: `bond-${Date.now()}`,
+      type: 'peptide', // Special type for peptide bonds
+      particleA_id,
+      particleB_id,
+    };
+
+    setBonds(prev => [...prev, newBond]);
+    setSelectedParticleIds(new Set());
+    showMessage('Peptide bond formed!');
+  }, [selectedParticleIds, setBonds, showMessage, setSelectedParticleIds]);
+
   const handleBreakBonds = useCallback(() => {
     if (selectedParticleIds.size === 0) return;
 
@@ -206,6 +223,14 @@ const App = () => {
     );
   }, [bonds, selectedParticleIds]);
 
+  const canAddPeptideBond = useMemo(() => {
+    if (selectedParticleIds.size !== 2) return false;
+    const selected = particles.filter(p => selectedParticleIds.has(p.id));
+    // Check if both selected particles are amino acids (e.g., Glycine)
+    // This can be expanded later with a Set of amino acid types.
+    return selected.every(p => p.type === PARTICLE_TYPES.GLYCINE);
+  }, [particles, selectedParticleIds]);
+  
   const assemblableParticleIds = useMemo(() => {
     const assemblableIds = new Set();
     if (particles.length === 0) {
@@ -397,11 +422,13 @@ const App = () => {
               onBreakBonds={handleBreakBonds}
               onAddSingleBond={() => handleAddBond('single')}
               onAddDoubleBond={() => handleAddBond('double')}
+              onAddPeptideBond={handleAddPeptideBond}
               canAssemble={selectionInfo.canAssemble}
               canDisassemble={selectionInfo.canDisassemble}
               canRevert={selectionInfo.canRevert}
               canBreakBonds={canBreakBonds}
-              canAddBond={selectedParticleIds.size === 2}
+              canAddBond={selectedParticleIds.size === 2 && !selectionInfo.isMoleculeAssembly && !canAddPeptideBond}
+              canAddPeptideBond={canAddPeptideBond}
               canRemove={selectedParticleIds.size > 0}
               canEmpty={particles.length > 0}
             />

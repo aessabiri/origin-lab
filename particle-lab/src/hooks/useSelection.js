@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { RECIPES, COMPOUND_PARTICLE_TYPES, MOLECULE_PARTICLE_TYPES } from '../recipes.js';
 import { MOLECULE_RECIPES } from '../components/moleculeRecipes.js';
+import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
 
 export const useSelection = ({ particles, bonds, canvasRef }) => {
   const [selectedParticleIds, setSelectedParticleIds] = useState(new Set());
@@ -82,6 +83,14 @@ export const useSelection = ({ particles, bonds, canvasRef }) => {
 
     let assemblyRecipe = null;
     let isMoleculeAssembly = false;
+    let isPolypeptideAssembly = false;
+
+    const checkCounts = (recipeObj, countObj) => {
+      const recipeKeys = Object.keys(recipeObj);
+      const countKeys = Object.keys(countObj);
+      if (recipeKeys.length !== countKeys.length) return false;
+      return recipeKeys.every(key => recipeObj[key] === (countObj[key] || 0));
+    };
 
     if (selectedParticles.length > 0 && !canDisassemble) {
       // First, check for simple particle recipes
@@ -95,24 +104,30 @@ export const useSelection = ({ particles, bonds, canvasRef }) => {
         if (isExactMatch) { assemblyRecipe = recipe; break; }
       }
 
-      // If no simple recipe, check for molecule recipes
-      if (!assemblyRecipe && bonds && bonds.length > 0) {
+      if (!assemblyRecipe && bonds?.length > 0) {
         const selectedBonds = bonds.filter(bond =>
           selectedParticleIds.has(bond.particleA_id) && selectedParticleIds.has(bond.particleB_id)
         );
 
+        // Check for polypeptide recipes (molecules + peptide bonds)
+        const peptideBondCount = selectedBonds.filter(b => b.type === 'peptide').length;
+        if (peptideBondCount > 0) {
+          for (const polyRecipe of POLYPEPTIDE_RECIPES) {
+            const moleculesMatch = checkCounts(polyRecipe.molecules, ingredientCounts);
+            const peptideBondsMatch = polyRecipe.peptideBonds === peptideBondCount;
+            if (moleculesMatch && peptideBondsMatch) {
+              assemblyRecipe = polyRecipe;
+              isPolypeptideAssembly = true;
+              break;
+            }
+          }
+        }
+
+        // If no polypeptide recipe, check for molecule recipes (atoms + covalent bonds)
+        if (!assemblyRecipe) {
         const bondCounts = selectedBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), { single: 0, double: 0 });
 
         for (const moleculeRecipe of MOLECULE_RECIPES) {
-          const checkCounts = (recipeObj, countObj) => {
-            const recipeKeys = Object.keys(recipeObj);
-            const countKeys = Object.keys(countObj);
-            if (recipeKeys.length !== countKeys.length) return false;
-            // Check that all keys in recipe have matching counts in the user's structure.
-            // This is robust against key order.
-            return recipeKeys.every(key => recipeObj[key] === (countObj[key] || 0));
-          };
-
           const atomsMatch = checkCounts(moleculeRecipe.atoms, ingredientCounts);
           const bondsMatch = checkCounts(moleculeRecipe.bonds, bondCounts);
 
@@ -123,9 +138,10 @@ export const useSelection = ({ particles, bonds, canvasRef }) => {
           }
         }
       }
+      }
     }
 
-    return { canAssemble: !!assemblyRecipe, canDisassemble, canRevert, assemblyRecipe, selectedParticles, isMoleculeAssembly };
+    return { canAssemble: !!assemblyRecipe, canDisassemble, canRevert, assemblyRecipe, selectedParticles, isMoleculeAssembly, isPolypeptideAssembly };
   }, [selectedParticleIds, particles, bonds]);
 
   return { selectedParticleIds, setSelectedParticleIds, selectionBox, canvasBind, handleParticleClick, selectionInfo };

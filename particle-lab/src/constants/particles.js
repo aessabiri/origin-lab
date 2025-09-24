@@ -61,6 +61,7 @@ export const PARTICLE_TYPES = {
   HYDROGEN_FLUORIDE: 'hydrogen-fluoride',
   GLYCINE: 'glycine',
   AYOUB: 'ayoub',
+  GLYCYLGLYCINE: 'glycylglycine',
 };
 
 export const PARTICLE_COLORS = {
@@ -123,6 +124,7 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: 'bg-emerald-300',
   [PARTICLE_TYPES.GLYCINE]: 'bg-purple-600',
   [PARTICLE_TYPES.AYOUB]: 'bg-teal-600',
+  [PARTICLE_TYPES.GLYCYLGLYCINE]: 'bg-fuchsia-700',
 };
 
 export const PARTICLE_NAMES = {
@@ -185,6 +187,7 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: 'HF',
   [PARTICLE_TYPES.GLYCINE]: 'Glycine',
   [PARTICLE_TYPES.AYOUB]: 'Ayoub',
+  [PARTICLE_TYPES.GLYCYLGLYCINE]: 'Glycylglycine',
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -247,4 +250,5 @@ export const PARTICLE_COLOR_MAP = {
   'emerald-300': '#6ee7b7',
   'purple-600': '#9333ea',
   'teal-600': '#0d9488',
+  'fuchsia-700': '#a21caf',
 };

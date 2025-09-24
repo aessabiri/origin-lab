@@ -562,19 +562,30 @@ const SiliconIcon = ({ hexColor }) => (
         </svg>
       );
 
-const GlycineIcon = ({ hexColor }) => (
+const GlycineIcon = () => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="glycine-gradient" x1="25" y1="25" x2="75" y2="75" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#a855f7"/>
-        <stop offset="1" stopColor="#7c3aed"/>
-      </linearGradient>
-    </defs>
-    {/* A block shape to represent a "building block" */}
-    <rect x="25" y="25" width="50" height="50" rx="12" fill="url(#glycine-gradient)"/>
-    {/* A stylized 'G' that evokes the N-C-C backbone */}
-    <path d="M60 40H50V47H55C57.7614 47 60 49.2386 60 52V60" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M40 60V40H50" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Bonds */}
+    <path d="M25 50 L 50 50 L 75 50 M75 50 L 90 65 M75 50 L 75 35" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
+    <path d="M75 35 L 75 25" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
+    {/* Atoms (C, N, O) */}
+    <circle cx="25" cy="50" r="12" fill="#60a5fa" stroke="#3b82f6" strokeWidth="2"/>
+    <circle cx="50" cy="50" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
+    <circle cx="75" cy="50" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
+    <circle cx="75" cy="20" r="12" fill="#f87171" stroke="#ef4444" strokeWidth="2"/>
+    <circle cx="95" cy="70" r="12" fill="#f87171" stroke="#ef4444" strokeWidth="2"/>
+    {/* Atom Labels */}
+    <text x="25" y="55" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">N</text>
+    <text x="50" y="55" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">C</text>
+    <text x="75" y="55" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">C</text>
+  </svg>
+);
+
+const GlycylglycineIcon = () => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Two stylized Glycine blocks connected by a peptide bond */}
+    <rect x="10" y="35" width="40" height="30" rx="8" fill="#a855f7" stroke="#7c3aed" strokeWidth="2"/>
+    <rect x="50" y="35" width="40" height="30" rx="8" fill="#a855f7" stroke="#7c3aed" strokeWidth="2"/>
+    <path d="M30 50 L 70 50" stroke="white" strokeWidth="4" strokeDasharray="6 4" strokeLinecap="round"/>
   </svg>
 );
 
@@ -638,6 +649,7 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.SILICON_DIOXIDE]: SiliconDioxideIcon,
   [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: HydrogenFluorideIcon,
   [PARTICLE_TYPES.GLYCINE]: GlycineIcon,
+  [PARTICLE_TYPES.GLYCYLGLYCINE]: GlycylglycineIcon,
   'ayoub': AyoubIcon, // Directly using the string for the test molecule
   [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
   [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,
