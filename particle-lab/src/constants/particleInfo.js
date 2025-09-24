@@ -1,4 +1,4 @@
-import { PARTICLE_TYPES } from './particles.js';
+import { PARTICLE_TYPES } from '../constants/particles.js';
 
 export const PARTICLE_INFO = {
   [PARTICLE_TYPES.UP_QUARK]: {

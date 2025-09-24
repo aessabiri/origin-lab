@@ -6,6 +6,7 @@ import { PARTICLE_NAMES } from '../constants/particles.js';
 
 export const useParticleActions = ({
   particles,
+  bonds,
   setParticles,
   selectionInfo,
   setSecondaryParticles,
@@ -15,10 +16,38 @@ export const useParticleActions = ({
   setCurrentGoalIndex,
   showMessage,
   setSelectedParticleIds,
+  setBonds,
 }) => {
   const disassembleParticle = useCallback((particleId, particleIndex) => {
     const particle = particles[particleIndex];
     if (!particle) return;
+
+    // Check if it's a molecule from moleculeRecipes
+    const moleculeRecipe = MOLECULE_RECIPES.find(r => r.type === particle.type);
+    if (moleculeRecipe) {
+      const newAtoms = [];
+
+      // Create the new atoms
+      Object.entries(moleculeRecipe.atoms).forEach(([atomType, count]) => {
+        for (let i = 0; i < count; i++) {
+          const newAtom = {
+            id: `${atomType}-${Date.now()}-${i}`,
+            type: atomType,
+            x: particle.x + (Math.random() - 0.5) * 100,
+            y: particle.y + (Math.random() - 0.5) * 100,
+            scale: 1,
+          };
+          newAtoms.push(newAtom);
+        }
+      });
+
+      setParticles(prev => [...prev.filter(p => p.id !== particleId), ...newAtoms]);
+      // Since we are breaking a molecule down into its constituent atoms,
+      // it's safest and most correct to clear all existing bonds from the canvas.
+      setBonds([]);
+      showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
+      return;
+    }
 
     const ingredients = particle.composition || COMPOSITION_MAP.get(particle.type);
     if (!ingredients) return;
@@ -76,6 +105,21 @@ export const useParticleActions = ({
         }
         return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
       });
+
+      // Transformation logic
+      const centerX = selectedParticles.reduce((sum, p) => sum + p.x, 0) / selectedParticles.length;
+      const centerY = selectedParticles.reduce((sum, p) => sum + p.y, 0) / selectedParticles.length;
+
+      const newMolecule = {
+        id: `${assemblyRecipe.type}-${Date.now()}`,
+        type: assemblyRecipe.type,
+        x: centerX,
+        y: centerY,
+        scale: 1,
+      };
+
+      setParticles(prev => [...prev.filter(p => !combinedIds.has(p.id)), newMolecule]);
+      setBonds(prev => prev.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
 
       if (currentGoalIndex < GOALS.length && assemblyRecipe.type === GOALS[currentGoalIndex].type) {
         showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);

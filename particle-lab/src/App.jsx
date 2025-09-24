@@ -3,7 +3,7 @@ import { useSprings, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
 import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP } from './constants/particles.js';
-import { COMPOUND_PARTICLE_TYPES } from './recipes.js';
+import { COMPOUND_PARTICLE_TYPES, MOLECULE_PARTICLE_TYPES } from './recipes.js';
 import { GOALS, elementaryParticleGroups } from './gameData.js';
 import InfoPanel from './components/InfoPanel.jsx';
 import PeriodicTable from './components/PeriodicTable.jsx';
@@ -128,6 +128,7 @@ const App = () => {
   } = useParticleActions({
     particles,
     bonds, // Pass bonds to the hook
+    setBonds,
     setParticles,
     selectionInfo,
     setSecondaryParticles,
@@ -536,7 +537,7 @@ const App = () => {
           if (!particle) return null;
 
           const isSelected = selectedParticleIds.has(particle.id);
-          const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type);
+          const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type) || MOLECULE_PARTICLE_TYPES.has(particle.type);
           const isAssemblable = assemblableParticleIds.has(particle.id);
 
           const isQuark = particle.type?.endsWith?.('quark');

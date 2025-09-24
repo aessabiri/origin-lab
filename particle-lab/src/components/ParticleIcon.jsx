@@ -562,6 +562,30 @@ const SiliconIcon = ({ hexColor }) => (
         </svg>
       );
 
+const GlycineIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="glycine-gradient" x1="25" y1="25" x2="75" y2="75" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#a855f7"/>
+        <stop offset="1" stopColor="#7c3aed"/>
+      </linearGradient>
+    </defs>
+    {/* A block shape to represent a "building block" */}
+    <rect x="25" y="25" width="50" height="50" rx="12" fill="url(#glycine-gradient)"/>
+    {/* A stylized 'G' that evokes the N-C-C backbone */}
+    <path d="M60 40H50V47H55C57.7614 47 60 49.2386 60 52V60" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M40 60V40H50" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const AyoubIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>{radialGradient('ayoub-grad', hexColor)}</defs>
+    <circle cx="50" cy="50" r="45" fill="url(#ayoub-grad)" />
+    <path d="M30 70 L50 30 L70 70 M38 55 H62" stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const GenericAtomIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={18} hexColor={hexColor} />
@@ -613,6 +637,8 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.NITROUS_OXIDE]: NitrousOxideIcon,
   [PARTICLE_TYPES.SILICON_DIOXIDE]: SiliconDioxideIcon,
   [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: HydrogenFluorideIcon,
+  [PARTICLE_TYPES.GLYCINE]: GlycineIcon,
+  'ayoub': AyoubIcon, // Directly using the string for the test molecule
   [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
   [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,
   [PARTICLE_TYPES.TRITIUM]: TritiumIcon,

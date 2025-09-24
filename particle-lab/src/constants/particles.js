@@ -59,6 +59,8 @@ export const PARTICLE_TYPES = {
   NITROUS_OXIDE: 'nitrous-oxide',
   SILICON_DIOXIDE: 'silicon-dioxide',
   HYDROGEN_FLUORIDE: 'hydrogen-fluoride',
+  GLYCINE: 'glycine',
+  AYOUB: 'ayoub',
 };
 
 export const PARTICLE_COLORS = {
@@ -119,6 +121,8 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.NITROUS_OXIDE]: 'bg-indigo-300',
   [PARTICLE_TYPES.SILICON_DIOXIDE]: 'bg-stone-300',
   [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: 'bg-emerald-300',
+  [PARTICLE_TYPES.GLYCINE]: 'bg-purple-600',
+  [PARTICLE_TYPES.AYOUB]: 'bg-teal-600',
 };
 
 export const PARTICLE_NAMES = {
@@ -179,6 +183,8 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.NITROUS_OXIDE]: 'Nitrous Oxide',
   [PARTICLE_TYPES.SILICON_DIOXIDE]: 'Silica (SiO₂)',
   [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: 'HF',
+  [PARTICLE_TYPES.GLYCINE]: 'Glycine',
+  [PARTICLE_TYPES.AYOUB]: 'Ayoub',
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -239,4 +245,6 @@ export const PARTICLE_COLOR_MAP = {
   'indigo-300': '#a5b4fc',
   'stone-300': '#d6d3d1',
   'emerald-300': '#6ee7b7',
+  'purple-600': '#9333ea',
+  'teal-600': '#0d9488',
 };

@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { RECIPES, COMPOUND_PARTICLE_TYPES } from '../recipes.js';
+import { RECIPES, COMPOUND_PARTICLE_TYPES, MOLECULE_PARTICLE_TYPES } from '../recipes.js';
 import { MOLECULE_RECIPES } from '../components/moleculeRecipes.js';
 
 export const useSelection = ({ particles, bonds, canvasRef }) => {
@@ -77,7 +77,7 @@ export const useSelection = ({ particles, bonds, canvasRef }) => {
 
   const selectionInfo = useMemo(() => {
     const selectedParticles = particles.filter(p => selectedParticleIds.has(p.id));
-    const canDisassemble = selectedParticles.length === 1 && COMPOUND_PARTICLE_TYPES.has(selectedParticles[0].type);
+    const canDisassemble = selectedParticles.length === 1 && (COMPOUND_PARTICLE_TYPES.has(selectedParticles[0].type) || MOLECULE_PARTICLE_TYPES.has(selectedParticles[0].type));
     const canRevert = canDisassemble; // Same condition
 
     let assemblyRecipe = null;
