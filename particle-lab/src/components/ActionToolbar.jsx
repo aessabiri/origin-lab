@@ -6,11 +6,16 @@ const ActionToolbar = ({
   onRevert,
   onRemoveSelected,
   onEmptyCanvas,
+  onBreakBonds,
+  onAddSingleBond,
+  onAddDoubleBond,
   canAssemble,
   canDisassemble,
   canRevert,
   canRemove,
   canEmpty,
+  canBreakBonds,
+  canAddBond,
 }) => {
   return (
     <div className="flex items-center flex-wrap gap-2 bg-gray-900/50 p-2 rounded-xl border border-gray-700">
@@ -33,6 +38,35 @@ const ActionToolbar = ({
         className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-red-500 to-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
       ><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
         Revert</button>
+
+      {/* Separator */}
+      <div className="h-6 w-px bg-gray-600 mx-2"></div>
+
+      {/* Bonding Group */}
+      <button
+        onClick={onAddSingleBond}
+        disabled={!canAddBond}
+        title="Create a single bond between two selected particles"
+        className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-sky-500 to-sky-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+      >
+        Single Bond
+      </button>
+      <button
+        onClick={onAddDoubleBond}
+        disabled={!canAddBond}
+        title="Create a double bond between two selected particles"
+        className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-sky-500 to-sky-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+      >
+        Double Bond
+      </button>
+      <button
+        onClick={onBreakBonds}
+        disabled={!canBreakBonds}
+        title="Break all bonds connected to the selected particle(s)"
+        className="flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-gradient-to-br from-purple-500 to-purple-700 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+      >
+        Break Bonds
+      </button>
 
       {/* Separator */}
       <div className="h-6 w-px bg-gray-600 mx-2"></div>

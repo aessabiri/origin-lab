@@ -11,6 +11,7 @@ import ActionToolbar from './components/ActionToolbar.jsx';
 import { usePersistentState } from './hooks/usePersistentState.js';
 import { useParticleActions } from './hooks/useParticleActions.js';
 import { useSelection } from './hooks/useSelection.js';
+import { MOLECULE_RECIPES } from './components/moleculeRecipes.js';
 import { useDecay } from './hooks/useDecay.js';
 
 const LOCAL_STORAGE_KEYS = {
@@ -18,11 +19,13 @@ const LOCAL_STORAGE_KEYS = {
   SECONDARY: 'particle-lab-secondary',
   ATOMS: 'particle-lab-atoms',
   MOLECULES: 'particle-lab-molecules',
+  BONDS: 'particle-lab-bonds',
   GOAL_INDEX: 'particle-lab-goal-index',
 };
 
 const App = () => {
   const [particles, setParticles] = usePersistentState(LOCAL_STORAGE_KEYS.PARTICLES, []);
+  const [bonds, setBonds] = usePersistentState(LOCAL_STORAGE_KEYS.BONDS, []);
 
   const [visualEffects, setVisualEffects] = useState([]);
   const [isHintVisible, setIsHintVisible] = useState(false);
@@ -51,10 +54,6 @@ const App = () => {
     setMessage(text);
     const timer = setTimeout(() => setMessage(''), 3000);
     return () => clearTimeout(timer);
-  }, []);
-
-  const updateParticleScale = useCallback((id, newScale) => {
-    setParticles(prev => prev.map(p => p.id === id ? { ...p, scale: newScale } : p));
   }, []);
 
   // safe initialization: if particles is empty, use safe defaults
@@ -128,6 +127,7 @@ const App = () => {
     handleRevertToElementary,
   } = useParticleActions({
     particles,
+    bonds, // Pass bonds to the hook
     setParticles,
     selectionInfo,
     setSecondaryParticles,
@@ -139,6 +139,33 @@ const App = () => {
     setSelectedParticleIds,
   });
 
+  const handleAddBond = useCallback((bondType) => {
+    if (selectedParticleIds.size !== 2) return;
+
+    const [particleA_id, particleB_id] = Array.from(selectedParticleIds);
+
+    const newBond = {
+      id: `bond-${Date.now()}`,
+      type: bondType, // 'single' or 'double'
+      particleA_id,
+      particleB_id,
+    };
+
+    setBonds(prev => [...prev, newBond]);
+    setSelectedParticleIds(new Set()); // Deselect particles after creating bond
+    showMessage(`Created a ${bondType} bond!`);
+  }, [selectedParticleIds, setBonds, showMessage, setSelectedParticleIds]);
+
+  const handleBreakBonds = useCallback(() => {
+    if (selectedParticleIds.size === 0) return;
+
+    setBonds(prevBonds => prevBonds.filter(bond =>
+      !selectedParticleIds.has(bond.particleA_id) && !selectedParticleIds.has(bond.particleB_id)
+    ));
+
+    showMessage('Bonds broken.');
+  }, [selectedParticleIds, setBonds, showMessage]);
+
   const handleRemoveSelected = useCallback(() => {
     if (selectedParticleIds.size === 0) return;
     const count = selectedParticleIds.size;
@@ -146,7 +173,12 @@ const App = () => {
     setSelectedParticleIds(new Set());
     showMessage(`${count} particle(s) removed.`);
   }, [selectedParticleIds, showMessage]);
-
+  
+  // When removing particles, also remove any bonds connected to them
+  const handleRemoveSelectedWithBonds = useCallback(() => {
+    setBonds(prevBonds => prevBonds.filter(bond => !selectedParticleIds.has(bond.particleA_id) && !selectedParticleIds.has(bond.particleB_id)));
+    handleRemoveSelected();
+  }, [handleRemoveSelected, selectedParticleIds, setBonds]);
   const handleEmptyCanvas = useCallback(() => {
     if (particles.length === 0) return;
     setParticles([]);
@@ -159,10 +191,68 @@ const App = () => {
     setSecondaryParticles([]);
     setDiscoveredAtoms([]);
     setDiscoveredMolecules([]);
+    setBonds([]);
     setCurrentGoalIndex(0);
 
     showMessage('Lab has been reset!');
   }, [setParticles, setSecondaryParticles, setDiscoveredAtoms, setDiscoveredMolecules, setCurrentGoalIndex, showMessage]);
+
+  const canBreakBonds = useMemo(() => {
+    if (selectedParticleIds.size === 0) return false;
+    const selectedIds = Array.from(selectedParticleIds);
+    return bonds.some(bond =>
+      selectedIds.includes(bond.particleA_id) || selectedIds.includes(bond.particleB_id)
+    );
+  }, [bonds, selectedParticleIds]);
+
+  const assemblableParticleIds = useMemo(() => {
+    const adj = new Map();
+    particles.forEach(p => adj.set(p.id, []));
+    bonds.forEach(b => {
+      adj.get(b.particleA_id)?.push(b.particleA_id);
+      adj.get(b.particleB_id)?.push(b.particleA_id);
+    });
+
+    const visited = new Set();
+    const assemblableIds = new Set();
+
+    for (const particle of particles) {
+      if (!visited.has(particle.id)) {
+        const group = new Set();
+        const q = [particle.id];
+        visited.add(particle.id);
+
+        while (q.length > 0) {
+          const u = q.shift();
+          group.add(u);
+          adj.get(u)?.forEach(v => {
+            if (!visited.has(v)) {
+              visited.add(v);
+              q.push(v);
+            }
+          });
+        }
+
+        const groupParticles = particles.filter(p => group.has(p.id));
+        const groupBonds = bonds.filter(b => group.has(b.particleA_id) && group.has(b.particleB_id));
+
+        const atomCounts = groupParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
+        const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), { single: 0, double: 0 });
+
+        const recipeMatch = MOLECULE_RECIPES.find(r => {
+          const atomsMatch = JSON.stringify(r.atoms) === JSON.stringify(atomCounts);
+          const bondsMatch = JSON.stringify(r.bonds) === JSON.stringify(bondCounts);
+          return atomsMatch && bondsMatch;
+        });
+
+        if (recipeMatch) {
+          group.forEach(id => assemblableIds.add(id));
+        }
+      }
+    }
+
+    return assemblableIds;
+  }, [particles, bonds]);
 
   const handleShowInfo = useCallback((type) => setInfoPanelType(type), []);
   const handleCloseInfo = useCallback(() => setInfoPanelType(null), []);
@@ -288,11 +378,16 @@ const App = () => {
               onAssemble={handleAssemble}
               onDisassemble={handleDisassemble}
               onRevert={handleRevertToElementary}
-              onRemoveSelected={handleRemoveSelected}
+              onRemoveSelected={handleRemoveSelectedWithBonds}
               onEmptyCanvas={handleEmptyCanvas}
+              onBreakBonds={handleBreakBonds}
+              onAddSingleBond={() => handleAddBond('single')}
+              onAddDoubleBond={() => handleAddBond('double')}
               canAssemble={selectionInfo.canAssemble}
               canDisassemble={selectionInfo.canDisassemble}
               canRevert={selectionInfo.canRevert}
+              canBreakBonds={canBreakBonds}
+              canAddBond={selectedParticleIds.size === 2}
               canRemove={selectedParticleIds.size > 0}
               canEmpty={particles.length > 0}
             />
@@ -328,6 +423,40 @@ const App = () => {
             }}
           />
         ))}
+
+        {/* --- Bond Rendering Layer (SVG) --- */}
+        <animated.svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+          {bonds.map(bond => {
+            const particleAIndex = particles.findIndex(p => p.id === bond.particleA_id);
+            const particleBIndex = particles.findIndex(p => p.id === bond.particleB_id);
+
+            if (particleAIndex === -1 || particleBIndex === -1) {
+              return null; // A particle was deleted, don't render the bond
+            }
+
+            const particleA = particles[particleAIndex];
+            const particleB = particles[particleBIndex];
+
+            const springA = springs[particleAIndex];
+            const springB = springs[particleBIndex];
+
+            const centerOffsetA = COMPOUND_PARTICLE_TYPES.has(particleA.type) ? 48 : 32;
+            const centerOffsetB = COMPOUND_PARTICLE_TYPES.has(particleB.type) ? 48 : 32;
+
+            return (
+              <animated.line
+                key={bond.id}
+                x1={springA.x.to(x => x + centerOffsetA)}
+                y1={springA.y.to(y => y + centerOffsetA)}
+                x2={springB.x.to(x => x + centerOffsetB)}
+                y2={springB.y.to(y => y + centerOffsetB)}
+                stroke="white"
+                strokeWidth={bond.type === 'double' ? 6 : 3}
+                strokeLinecap="round"
+              />
+            );
+          })}
+        </animated.svg>
 
         <div className="absolute bottom-4 left-4 z-10">
           {isHintVisible && currentGoalIndex < GOALS.length && (() => {
@@ -395,10 +524,11 @@ const App = () => {
 
           const isSelected = selectedParticleIds.has(particle.id);
           const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type);
+          const isAssemblable = assemblableParticleIds.has(particle.id);
 
           const isQuark = particle.type?.endsWith?.('quark');
           const particleSizeClass = isCompound ? 'w-24 h-24 text-xl' : 'w-16 h-16 text-sm';
-          const particleColorClass = PARTICLE_COLORS[particle.type] || 'bg-gray-400';
+          const particleColorClass = PARTICLE_COLORS[particle.type] || 'bg-gray-500';
 
           return (
             <animated.div
@@ -408,13 +538,14 @@ const App = () => {
                 x: props.x,
                 y: props.y,
                 scale: props.scale,
+                zIndex: isSelected ? 10 : 1,
                 touchAction: 'none'
               }}
-              className={`absolute cursor-grab rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleSizeClass} ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''}`}
+              className={`absolute cursor-grab rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleSizeClass} ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
               onClick={(e) => handleParticleClick(e, particle.id)}
               onDoubleClick={() => handleShowInfo(particle.type)}
-              onMouseEnter={() => updateParticleScale(particle.id, 1.2)}
-              onMouseLeave={() => updateParticleScale(particle.id, 1)}
+              onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}
+              onMouseLeave={() => api.start(j => (j === i ? { scale: 1 } : {}))}
             >
               <div className="flex flex-col items-center justify-center w-full h-full">
                 <div className="w-full h-full">
