@@ -3,7 +3,7 @@ import { useSprings, animated } from '@react-spring/web';
 import { useDrag, useGesture } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
 import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP } from './constants/particles.js';
-import { COMPOUND_PARTICLE_TYPES, MOLECULE_PARTICLE_TYPES } from './recipes.js';
+import { COMPOUND_PARTICLE_TYPES } from './recipes.js';
 import { GOALS, elementaryParticleGroups } from './gameData.js';
 import InfoPanel from './components/InfoPanel.jsx';
 import PeriodicTable from './components/PeriodicTable.jsx';
@@ -12,6 +12,7 @@ import { usePersistentState } from './hooks/usePersistentState.js';
 import { useParticleActions } from './hooks/useParticleActions.js';
 import { useSelection } from './hooks/useSelection.js';
 import { MOLECULE_RECIPES } from './components/moleculeRecipes.js';
+import { RECIPES } from './recipes.js';
 import { useDecay } from './hooks/useDecay.js';
 
 const LOCAL_STORAGE_KEYS = {
@@ -22,6 +23,10 @@ const LOCAL_STORAGE_KEYS = {
   BONDS: 'particle-lab-bonds',
   GOAL_INDEX: 'particle-lab-goal-index',
 };
+
+const MOLECULE_PARTICLE_TYPES = new Set(
+  MOLECULE_RECIPES.map(r => r.type)
+);
 
 const App = () => {
   const [particles, setParticles] = usePersistentState(LOCAL_STORAGE_KEYS.PARTICLES, []);
@@ -226,9 +231,8 @@ const App = () => {
   const canAddPeptideBond = useMemo(() => {
     if (selectedParticleIds.size !== 2) return false;
     const selected = particles.filter(p => selectedParticleIds.has(p.id));
-    // Check if both selected particles are amino acids (e.g., Glycine)
-    // This can be expanded later with a Set of amino acid types.
-    return selected.every(p => p.type === PARTICLE_TYPES.GLYCINE);
+    const aminoAcidTypes = new Set([PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.ALANINE]);
+    return selected.every(p => aminoAcidTypes.has(p.type));
   }, [particles, selectedParticleIds]);
   
   const assemblableParticleIds = useMemo(() => {
@@ -272,12 +276,13 @@ const App = () => {
 
         const recipeMatch = MOLECULE_RECIPES.find(r => {
           const checkCounts = (recipeObj, countObj) => {
+            // A robust check that ensures both objects have the same keys and values.
             const recipeKeys = Object.keys(recipeObj);
             const countKeys = Object.keys(countObj);
-            if (recipeKeys.length !== countKeys.length) return false;
-            // Check that all keys in recipe have matching counts in the user's structure.
-            // This is robust against key order.
-            return recipeKeys.every(key => recipeObj[key] === (countObj[key] || 0));
+
+            const allKeys = new Set([...recipeKeys, ...countKeys]);
+
+            return Array.from(allKeys).every(key => (r.atoms[key] || 0) === (atomCounts[key] || 0));
           };
 
           const atomsMatch = checkCounts(r.atoms, atomCounts);
@@ -502,14 +507,18 @@ const App = () => {
         <div className="absolute bottom-4 left-4 z-10">
           {isHintVisible && currentGoalIndex < GOALS.length && (() => {
             const currentGoal = GOALS[currentGoalIndex];
-            const hintRecipe = RECIPES.find(r => r.type === currentGoal.type);
+            // Search both simple recipes and molecule recipes for the hint
+            let hintRecipe = RECIPES.find(r => r.type === currentGoal.type);
+            if (!hintRecipe) {
+              hintRecipe = MOLECULE_RECIPES.find(r => r.type === currentGoal.type);
+            }
             if (!hintRecipe) return null;
 
             return (
               <div className="absolute bottom-full mb-2 w-64 bg-gray-900/80 backdrop-blur-md p-4 rounded-lg shadow-xl border border-gray-700">
                 <h4 className="font-bold text-amber-300 mb-2">Recipe for {PARTICLE_NAMES[currentGoal.type]}</h4>
                 <ul>
-                  {Object.entries(hintRecipe.ingredients).map(([type, count]) => (
+                  {Object.entries(hintRecipe.ingredients || hintRecipe.atoms).map(([type, count]) => (
                     <li key={type} className="flex justify-between text-gray-300">
                       <span>{PARTICLE_NAMES[type]}</span>
                       <span className="font-mono font-bold">x {count}</span>
@@ -568,7 +577,7 @@ const App = () => {
           const isAssemblable = assemblableParticleIds.has(particle.id);
 
           // Define which particles should have a transparent background
-          const structuralIconTypes = new Set([PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE]);
+          const structuralIconTypes = new Set([PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE, PARTICLE_TYPES.ALANINE, PARTICLE_TYPES.GLYCYL_ALANINE]);
           const hasStructuralIcon = structuralIconTypes.has(particle.type);
 
           const isQuark = particle.type?.endsWith?.('quark');

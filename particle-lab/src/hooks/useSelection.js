@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { RECIPES, COMPOUND_PARTICLE_TYPES, MOLECULE_PARTICLE_TYPES } from '../recipes.js';
+import { RECIPES, COMPOUND_PARTICLE_TYPES } from '../recipes.js';
 import { MOLECULE_RECIPES } from '../components/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
 
-export const useSelection = ({ particles, bonds, canvasRef }) => {
+export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TYPES }) => {
   const [selectedParticleIds, setSelectedParticleIds] = useState(new Set());
   const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0, visible: false });
 
@@ -78,7 +78,7 @@ export const useSelection = ({ particles, bonds, canvasRef }) => {
 
   const selectionInfo = useMemo(() => {
     const selectedParticles = particles.filter(p => selectedParticleIds.has(p.id));
-    const canDisassemble = selectedParticles.length === 1 && (COMPOUND_PARTICLE_TYPES.has(selectedParticles[0].type) || MOLECULE_PARTICLE_TYPES.has(selectedParticles[0].type));
+    const canDisassemble = selectedParticles.length === 1 && (COMPOUND_PARTICLE_TYPES.has(selectedParticles[0].type) || (MOLECULE_PARTICLE_TYPES && MOLECULE_PARTICLE_TYPES.has(selectedParticles[0].type)));
     const canRevert = canDisassemble; // Same condition
 
     let assemblyRecipe = null;
@@ -86,10 +86,13 @@ export const useSelection = ({ particles, bonds, canvasRef }) => {
     let isPolypeptideAssembly = false;
 
     const checkCounts = (recipeObj, countObj) => {
+      // A robust check that ensures both objects have the same keys and values.
       const recipeKeys = Object.keys(recipeObj);
       const countKeys = Object.keys(countObj);
-      if (recipeKeys.length !== countKeys.length) return false;
-      return recipeKeys.every(key => recipeObj[key] === (countObj[key] || 0));
+
+      const allKeys = new Set([...recipeKeys, ...countKeys]);
+
+      return Array.from(allKeys).every(key => (recipeObj[key] || 0) === (countObj[key] || 0));
     };
 
     if (selectedParticles.length > 0 && !canDisassemble) {
@@ -142,7 +145,7 @@ export const useSelection = ({ particles, bonds, canvasRef }) => {
     }
 
     return { canAssemble: !!assemblyRecipe, canDisassemble, canRevert, assemblyRecipe, selectedParticles, isMoleculeAssembly, isPolypeptideAssembly };
-  }, [selectedParticleIds, particles, bonds]);
+  }, [selectedParticleIds, particles, bonds, MOLECULE_PARTICLE_TYPES]);
 
   return { selectedParticleIds, setSelectedParticleIds, selectionBox, canvasBind, handleParticleClick, selectionInfo };
 };

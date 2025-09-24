@@ -1,5 +1,4 @@
 import { PARTICLE_TYPES } from './constants/particles.js';
-import { MOLECULE_RECIPES } from './components/moleculeRecipes.js';
 
 export const PARTICLE_CATEGORIES = {
   SECONDARY: 'secondary',
@@ -367,8 +366,4 @@ export const COMPOSITION_MAP = new Map(
 
 export const COMPOUND_PARTICLE_TYPES = new Set(
   RECIPES.map(r => r.type)
-);
-
-export const MOLECULE_PARTICLE_TYPES = new Set(
-  MOLECULE_RECIPES.map(r => r.type)
 );

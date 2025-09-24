@@ -39,4 +39,18 @@ export const MOLECULE_RECIPES = [
       'double': 1,
     },
   },
+  {
+    name: 'Alanine',
+    type: 'alanine',
+    atoms: {
+      'carbon': 3,
+      'oxygen': 2,
+      'nitrogen': 1,
+      'hydrogen': 7,
+    },
+    bonds: {
+      'single': 10,
+      'double': 1,
+    },
+  },
 ];

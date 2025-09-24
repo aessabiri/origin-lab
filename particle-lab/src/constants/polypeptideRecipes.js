@@ -11,4 +11,13 @@ export const POLYPEPTIDE_RECIPES = [
     // And the bonds are peptide bonds
     peptideBonds: 1,
   },
+  {
+    name: 'Glycyl-Alanine',
+    type: PARTICLE_TYPES.GLYCYL_ALANINE,
+    molecules: {
+      [PARTICLE_TYPES.GLYCINE]: 1,
+      [PARTICLE_TYPES.ALANINE]: 1,
+    },
+    peptideBonds: 1,
+  },
 ];

@@ -598,6 +598,30 @@ const GlycylglycineIcon = () => (
 </svg>
 );
 
+const AlanineIcon = () => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Bonds */}
+    <path d="M25 50 L 50 50 L 75 50 M50 50 L 50 75" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
+    <path d="M75 50 L 90 65 M75 50 L 75 35" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
+    <path d="M75 35 L 75 25" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
+    {/* Atoms (C, N, O) */}
+    <circle cx="25" cy="50" r="12" fill="#60a5fa" stroke="#3b82f6" strokeWidth="2"/>
+    <circle cx="50" cy="50" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
+    <circle cx="50" cy="80" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
+    <circle cx="75" cy="50" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
+    <circle cx="75" cy="20" r="12" fill="#f87171" stroke="#ef4444" strokeWidth="2"/>
+    <circle cx="95" cy="70" r="12" fill="#f87171" stroke="#ef4444" strokeWidth="2"/>
+  </svg>
+);
+
+const GlycylAlanineIcon = () => (
+  <svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="35" width="40" height="30" rx="8" fill="#a855f7" stroke="#7c3aed" strokeWidth="2" />
+    <rect x="70" y="35" width="40" height="30" rx="8" fill="#16a34a" stroke="#15803d" strokeWidth="2" />
+    <path d="M50 50 L 70 50" stroke="#ec4899" strokeWidth="5" strokeDasharray="5 5" strokeLinecap="round"/>
+  </svg>
+);
+
 const AyoubIcon = ({ hexColor }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>{radialGradient('ayoub-grad', hexColor)}</defs>
@@ -659,6 +683,8 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: HydrogenFluorideIcon,
   [PARTICLE_TYPES.GLYCINE]: GlycineIcon,
   [PARTICLE_TYPES.GLYCYLGLYCINE]: GlycylglycineIcon,
+  [PARTICLE_TYPES.ALANINE]: AlanineIcon,
+  [PARTICLE_TYPES.GLYCYL_ALANINE]: GlycylAlanineIcon,
   'ayoub': AyoubIcon, // Directly using the string for the test molecule
   [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
   [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,

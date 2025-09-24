@@ -62,6 +62,8 @@ export const PARTICLE_TYPES = {
   GLYCINE: 'glycine',
   AYOUB: 'ayoub',
   GLYCYLGLYCINE: 'glycylglycine',
+  ALANINE: 'alanine',
+  GLYCYL_ALANINE: 'glycyl-alanine',
 };
 
 export const PARTICLE_COLORS = {
@@ -125,6 +127,8 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.GLYCINE]: 'bg-purple-600',
   [PARTICLE_TYPES.AYOUB]: 'bg-teal-600',
   [PARTICLE_TYPES.GLYCYLGLYCINE]: 'bg-fuchsia-700',
+  [PARTICLE_TYPES.ALANINE]: 'bg-green-600',
+  [PARTICLE_TYPES.GLYCYL_ALANINE]: 'bg-rose-700',
 };
 
 export const PARTICLE_NAMES = {
@@ -188,6 +192,8 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.GLYCINE]: 'Glycine',
   [PARTICLE_TYPES.AYOUB]: 'Ayoub',
   [PARTICLE_TYPES.GLYCYLGLYCINE]: 'Glycylglycine',
+  [PARTICLE_TYPES.ALANINE]: 'Alanine',
+  [PARTICLE_TYPES.GLYCYL_ALANINE]: 'Glycyl-Alanine',
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -251,4 +257,6 @@ export const PARTICLE_COLOR_MAP = {
   'purple-600': '#9333ea',
   'teal-600': '#0d9488',
   'fuchsia-700': '#a21caf',
+  'green-600': '#16a34a',
+  'rose-700': '#be123c',
 };
