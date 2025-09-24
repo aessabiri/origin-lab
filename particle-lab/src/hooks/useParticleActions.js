@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { PARTICLE_CATEGORIES, COMPOSITION_MAP } from '../recipes.js';
+import { PARTICLE_CATEGORIES, COMPOSITION_MAP, RECIPES } from '../recipes.js';
+import { MOLECULE_RECIPES } from '../components/moleculeRecipes.js';
 import { GOALS } from '../gameData.js';
 import { PARTICLE_NAMES } from '../constants/particles.js';
 
@@ -64,8 +65,28 @@ export const useParticleActions = ({
   const handleAssemble = useCallback(() => {
     if (!selectionInfo.canAssemble) return;
 
-    const { assemblyRecipe, selectedParticles } = selectionInfo;
+    const { assemblyRecipe, selectedParticles, isMoleculeAssembly } = selectionInfo;
     const combinedIds = new Set(selectedParticles.map(p => p.id));
+
+    // Handle molecule assembly (don't remove particles)
+    if (isMoleculeAssembly) {
+      setDiscoveredMolecules(prev => {
+        if (prev.some(m => m.type === assemblyRecipe.type)) {
+          return prev;
+        }
+        return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
+      });
+
+      if (currentGoalIndex < GOALS.length && assemblyRecipe.type === GOALS[currentGoalIndex].type) {
+        showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);
+        setCurrentGoalIndex(prev => prev + 1);
+      } else {
+        showMessage(`Success! You've created ${assemblyRecipe.name}.`);
+      }
+
+      setSelectedParticleIds(new Set());
+      return;
+    }
 
     const discoveryUpdaterMap = {
       [PARTICLE_CATEGORIES.SECONDARY]: setSecondaryParticles,

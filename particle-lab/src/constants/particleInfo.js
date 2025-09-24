@@ -378,4 +378,12 @@ export const PARTICLE_INFO = {
     composition: '1 Hydrogen, 1 Fluorine',
     description: 'A chemical compound with the chemical formula HF. This colorless gas or liquid is the principal industrial source of fluorine, often as an aqueous solution called hydrofluoric acid. It is an extremely dangerous and corrosive substance.'
   },
+  [PARTICLE_TYPES.GLYCINE]: {
+    name: 'Glycine',
+    category: 'Amino Acid',
+    mass: '75.07 g/mol',
+    charge: '0 e',
+    composition: '2 Carbon, 5 Hydrogen, 1 Nitrogen, 2 Oxygen',
+    description: 'The simplest amino acid, acting as a fundamental building block for proteins. In the central nervous system, it also functions as an inhibitory neurotransmitter.'
+  },
 };

@@ -47,7 +47,7 @@ const App = () => {
     canvasBind,
     handleParticleClick,
     selectionInfo,
-  } = useSelection({ particles, canvasRef });
+  } = useSelection({ particles, bonds, canvasRef });
   const [message, setMessage] = useState('');
 
   const showMessage = useCallback((text) => {
@@ -206,42 +206,56 @@ const App = () => {
   }, [bonds, selectedParticleIds]);
 
   const assemblableParticleIds = useMemo(() => {
+    const assemblableIds = new Set();
+    if (particles.length === 0) {
+      return assemblableIds;
+    }
+
+    // 1. Build an adjacency list for all particles connected by bonds.
     const adj = new Map();
     particles.forEach(p => adj.set(p.id, []));
     bonds.forEach(b => {
-      adj.get(b.particleA_id)?.push(b.particleA_id);
+      adj.get(b.particleA_id)?.push(b.particleB_id);
       adj.get(b.particleB_id)?.push(b.particleA_id);
     });
 
+    // 2. Find all connected groups of particles (molecules).
     const visited = new Set();
-    const assemblableIds = new Set();
-
     for (const particle of particles) {
       if (!visited.has(particle.id)) {
         const group = new Set();
-        const q = [particle.id];
+        const queue = [particle.id];
         visited.add(particle.id);
 
-        while (q.length > 0) {
-          const u = q.shift();
+        while (queue.length > 0) {
+          const u = queue.shift();
           group.add(u);
           adj.get(u)?.forEach(v => {
             if (!visited.has(v)) {
               visited.add(v);
-              q.push(v);
+              queue.push(v);
             }
           });
         }
 
+        // 3. For each group, check if it matches a molecule recipe.
         const groupParticles = particles.filter(p => group.has(p.id));
         const groupBonds = bonds.filter(b => group.has(b.particleA_id) && group.has(b.particleB_id));
-
         const atomCounts = groupParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
         const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), { single: 0, double: 0 });
 
         const recipeMatch = MOLECULE_RECIPES.find(r => {
-          const atomsMatch = JSON.stringify(r.atoms) === JSON.stringify(atomCounts);
-          const bondsMatch = JSON.stringify(r.bonds) === JSON.stringify(bondCounts);
+          const checkCounts = (recipeObj, countObj) => {
+            const recipeKeys = Object.keys(recipeObj);
+            const countKeys = Object.keys(countObj);
+            if (recipeKeys.length !== countKeys.length) return false;
+            // Check that all keys in recipe have matching counts in the user's structure.
+            // This is robust against key order.
+            return recipeKeys.every(key => recipeObj[key] === (countObj[key] || 0));
+          };
+
+          const atomsMatch = checkCounts(r.atoms, atomCounts);
+          const bondsMatch = checkCounts(r.bonds, bondCounts);
           return atomsMatch && bondsMatch;
         });
 
@@ -250,7 +264,6 @@ const App = () => {
         }
       }
     }
-
     return assemblableIds;
   }, [particles, bonds]);
 

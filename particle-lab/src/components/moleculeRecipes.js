@@ -21,7 +21,21 @@ export const MOLECULE_RECIPES = [
       'hydrogen': 5,
     },
     bonds: {
-      'single': 9,
+      'single': 8,
+      'double': 1,
+    },
+  },
+  {
+    name: 'Ayoub',
+    type: 'ayoub',
+    atoms: {
+      'nitrogen': 1,
+      'oxygen': 1,
+      'carbon': 1,
+      'hydrogen': 2,
+    },
+    bonds: {
+      'single': 3,
       'double': 1,
     },
   },
