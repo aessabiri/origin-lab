@@ -581,12 +581,21 @@ const GlycineIcon = () => (
 );
 
 const GlycylglycineIcon = () => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Two stylized Glycine blocks connected by a peptide bond */}
-    <rect x="10" y="35" width="40" height="30" rx="8" fill="#a855f7" stroke="#7c3aed" strokeWidth="2"/>
-    <rect x="50" y="35" width="40" height="30" rx="8" fill="#a855f7" stroke="#7c3aed" strokeWidth="2"/>
-    <path d="M30 50 L 70 50" stroke="white" strokeWidth="4" strokeDasharray="6 4" strokeLinecap="round"/>
-  </svg>
+<svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  {/* Bonds for first Glycine unit */}
+  <path d="M10 50 L 30 50 L 50 50" stroke="#a8a29e" strokeWidth="4" strokeLinecap="round"/>
+  {/* Bonds for second Glycine unit */}
+  <path d="M70 50 L 90 50 L 110 50" stroke="#a8a29e" strokeWidth="4" strokeLinecap="round"/>
+  {/* Peptide bond */}
+  <path d="M50 50 L 70 50" stroke="#ec4899" strokeWidth="5" strokeDasharray="5 5" strokeLinecap="round"/>
+  {/* Atom representations */}
+  <circle cx="10" cy="50" r="10" fill="#60a5fa" stroke="#3b82f6" strokeWidth="2"><title>Nitrogen</title></circle>
+  <circle cx="30" cy="50" r="10" fill="#4b5563" stroke="#1f2937" strokeWidth="2"><title>Alpha Carbon</title></circle>
+  <circle cx="50" cy="50" r="10" fill="#4b5563" stroke="#1f2937" strokeWidth="2"><title>Carboxyl Carbon</title></circle>
+  <circle cx="70" cy="50" r="10" fill="#60a5fa" stroke="#3b82f6" strokeWidth="2"><title>Nitrogen</title></circle>
+  <circle cx="90" cy="50" r="10" fill="#4b5563" stroke="#1f2937" strokeWidth="2"><title>Alpha Carbon</title></circle>
+  <circle cx="110" cy="50" r="10" fill="#4b5563" stroke="#1f2937" strokeWidth="2"><title>Carboxyl Carbon</title></circle>
+</svg>
 );
 
 const AyoubIcon = ({ hexColor }) => (

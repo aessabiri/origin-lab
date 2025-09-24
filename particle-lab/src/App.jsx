@@ -567,9 +567,14 @@ const App = () => {
           const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type) || MOLECULE_PARTICLE_TYPES.has(particle.type);
           const isAssemblable = assemblableParticleIds.has(particle.id);
 
+          // Define which particles should have a transparent background
+          const structuralIconTypes = new Set([PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE]);
+          const hasStructuralIcon = structuralIconTypes.has(particle.type);
+
           const isQuark = particle.type?.endsWith?.('quark');
           const particleSizeClass = isCompound ? 'w-24 h-24 text-xl' : 'w-16 h-16 text-sm';
-          const particleColorClass = PARTICLE_COLORS[particle.type] || 'bg-gray-500';
+          // Only apply a background color if it's not a structural icon
+          const particleColorClass = hasStructuralIcon ? '' : (PARTICLE_COLORS[particle.type] || 'bg-gray-500');
 
           return (
             <animated.div
@@ -582,7 +587,7 @@ const App = () => {
                 zIndex: isSelected ? 10 : 1,
                 touchAction: 'none'
               }}
-              className={`absolute cursor-grab rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleSizeClass} ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
+              className={`absolute cursor-grab ${hasStructuralIcon ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleSizeClass} ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
               onClick={(e) => handleParticleClick(e, particle.id)}
               onDoubleClick={() => handleShowInfo(particle.type)}
               onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}
