@@ -272,17 +272,14 @@ const App = () => {
         const groupParticles = particles.filter(p => group.has(p.id));
         const groupBonds = bonds.filter(b => group.has(b.particleA_id) && group.has(b.particleB_id));
         const atomCounts = groupParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
-        const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), { single: 0, double: 0 });
+        const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
 
         const recipeMatch = MOLECULE_RECIPES.find(r => {
           const checkCounts = (recipeObj, countObj) => {
-            // A robust check that ensures both objects have the same keys and values.
-            const recipeKeys = Object.keys(recipeObj);
-            const countKeys = Object.keys(countObj);
-
+            const recipeKeys = Object.keys(recipeObj || {});
+            const countKeys = Object.keys(countObj || {});
             const allKeys = new Set([...recipeKeys, ...countKeys]);
-
-            return Array.from(allKeys).every(key => (r.atoms[key] || 0) === (atomCounts[key] || 0));
+            return Array.from(allKeys).every(key => (recipeObj[key] || 0) === (countObj[key] || 0));
           };
 
           const atomsMatch = checkCounts(r.atoms, atomCounts);
@@ -563,7 +560,7 @@ const App = () => {
         <PeriodicTable
           isVisible={isPeriodicTableVisible}
           onClose={() => setIsPeriodicTableVisible(false)}
-          discoveredParticles={[...secondaryParticles, ...discoveredAtoms]}
+          discoveredParticles={useMemo(() => [...secondaryParticles, ...discoveredAtoms], [secondaryParticles, discoveredAtoms])}
           onDragStart={handleDragStart}
           onParticleClick={handleShowInfo}
         />

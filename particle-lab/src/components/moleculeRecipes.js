@@ -49,7 +49,7 @@ export const MOLECULE_RECIPES = [
       'hydrogen': 7,
     },
     bonds: {
-      'single': 10,
+      'single': 11,
       'double': 1,
     },
   },

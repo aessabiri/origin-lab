@@ -86,12 +86,9 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
     let isPolypeptideAssembly = false;
 
     const checkCounts = (recipeObj, countObj) => {
-      // A robust check that ensures both objects have the same keys and values.
-      const recipeKeys = Object.keys(recipeObj);
-      const countKeys = Object.keys(countObj);
-
+      const recipeKeys = Object.keys(recipeObj || {});
+      const countKeys = Object.keys(countObj || {});
       const allKeys = new Set([...recipeKeys, ...countKeys]);
-
       return Array.from(allKeys).every(key => (recipeObj[key] || 0) === (countObj[key] || 0));
     };
 
@@ -100,10 +97,7 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
       const ingredientCounts = selectedParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
 
       for (const recipe of RECIPES) {
-        const recipeKeys = Object.keys(recipe.ingredients);
-        const compositionKeys = Object.keys(ingredientCounts);
-        if (recipeKeys.length !== compositionKeys.length) continue;
-        const isExactMatch = recipeKeys.every(type => (ingredientCounts[type] || 0) === recipe.ingredients[type]);
+        const isExactMatch = checkCounts(recipe.ingredients, ingredientCounts);
         if (isExactMatch) { assemblyRecipe = recipe; break; }
       }
 
@@ -117,8 +111,8 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
         if (peptideBondCount > 0) {
           for (const polyRecipe of POLYPEPTIDE_RECIPES) {
             const moleculesMatch = checkCounts(polyRecipe.molecules, ingredientCounts);
-            const peptideBondsMatch = polyRecipe.peptideBonds === peptideBondCount;
-            if (moleculesMatch && peptideBondsMatch) {
+            const peptideBondsMatch = (polyRecipe.peptideBonds || 0) === peptideBondCount;
+            if (moleculesMatch && peptideBondsMatch && selectedBonds.length === peptideBondCount) {
               assemblyRecipe = polyRecipe;
               isPolypeptideAssembly = true;
               break;
@@ -128,7 +122,7 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
 
         // If no polypeptide recipe, check for molecule recipes (atoms + covalent bonds)
         if (!assemblyRecipe) {
-        const bondCounts = selectedBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), { single: 0, double: 0 });
+        const bondCounts = selectedBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
 
         for (const moleculeRecipe of MOLECULE_RECIPES) {
           const atomsMatch = checkCounts(moleculeRecipe.atoms, ingredientCounts);
