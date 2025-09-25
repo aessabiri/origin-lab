@@ -1,4 +1,5 @@
 import { PARTICLE_TYPES } from './constants/particles.js';
+import { MOLECULE_RECIPES } from './components/moleculeRecipes.js';
 
 export const PARTICLE_CATEGORIES = {
   SECONDARY: 'secondary',
@@ -364,6 +365,14 @@ export const COMPOSITION_MAP = new Map(
   RECIPES.map(recipe => [recipe.type, recipe.ingredients])
 );
 
+export const FULL_COMPOSITION_MAP = new Map([
+  ...RECIPES.map(recipe => [recipe.type, recipe.ingredients]),
+  ...MOLECULE_RECIPES.map(recipe => [recipe.type, recipe.atoms])
+]);
+
 export const COMPOUND_PARTICLE_TYPES = new Set(
-  RECIPES.map(r => r.type)
+  [
+    ...RECIPES.map(r => r.type),
+    ...MOLECULE_RECIPES.map(r => r.type)
+  ]
 );

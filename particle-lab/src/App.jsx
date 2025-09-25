@@ -37,6 +37,7 @@ const App = () => {
   const [infoPanelType, setInfoPanelType] = useState(null);
   const [currentGoalIndex, setCurrentGoalIndex] = usePersistentState(LOCAL_STORAGE_KEYS.GOAL_INDEX, 0);
   const draggedIndexRef = useRef(null);
+  const [isPaletteVisible, setIsPaletteVisible] = useState(true);
 
   const [secondaryParticles, setSecondaryParticles] = usePersistentState(LOCAL_STORAGE_KEYS.SECONDARY, []);
   const [discoveredAtoms, setDiscoveredAtoms] = usePersistentState(LOCAL_STORAGE_KEYS.ATOMS, []);
@@ -412,6 +413,21 @@ const App = () => {
         onDragOver={handleDragOver}
         className="relative flex-1 bg-gray-800 border-4 border-dashed border-gray-700 rounded-2xl shadow-xl overflow-hidden touch-none"
       >
+        <button
+          onClick={() => setIsPaletteVisible(prev => !prev)}
+          className="absolute top-1/2 -translate-y-1/2 right-0 z-20 bg-gray-700/50 hover:bg-gray-600/70 p-3 rounded-l-lg transition-all"
+          aria-label={isPaletteVisible ? 'Hide palette' : 'Show palette'}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            {isPaletteVisible ? (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            )}
+          </svg>
+        </button>
+
+
         <div className="absolute top-4 left-4 flex flex-col items-start gap-4">
           <div className="flex items-center gap-8">
             <h1 className="text-3xl font-bold text-white">Particle Lab</h1>
@@ -612,7 +628,11 @@ const App = () => {
         })}
       </div>
 
-      <div className="flex flex-col w-full md:w-80 bg-gray-800 rounded-2xl p-4 shadow-xl overflow-y-auto">
+      <div className={`flex flex-col bg-gray-800 rounded-2xl shadow-xl overflow-y-auto transition-all duration-300 ease-in-out
+        ${isPaletteVisible ? 'w-full md:w-80 p-4' : 'w-0 p-0'}
+      `}>
+        <div className={`min-w-[18rem] md:min-w-0 ${!isPaletteVisible ? 'hidden' : ''}`}>
+
         {Object.entries(elementaryParticleGroups).map(([groupName, particles]) => (
           <div key={groupName} className="mb-6">
             <h3 className="text-lg font-bold text-amber-300 mb-3 text-center border-b-2 border-gray-700 pb-2">{groupName}</h3>
@@ -674,6 +694,7 @@ const App = () => {
         >
           Reset Lab
         </button>
+        </div>
       </div>
     </div>
     </>
