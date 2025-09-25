@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useSprings, animated } from '@react-spring/web';
 import { useDrag, useGesture } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
-import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP, ALL_PARTICLE_TYPES_IN_ORDER } from './constants/particles.js';
+import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP, CODEX_PARTICLES_BY_CATEGORY } from './constants/particles.js';
 import { COMPOUND_PARTICLE_TYPES } from './recipes.js';
 import { GOALS, elementaryParticleGroups } from './gameData.js';
 import InfoPanel from './components/InfoPanel.jsx';
@@ -54,7 +54,7 @@ const App = () => {
     return [...elementary, ...secondaryParticles, ...discoveredAtoms, ...discoveredMolecules];
   }, [secondaryParticles, discoveredAtoms, discoveredMolecules]);
 
-  const allPossibleParticles = useMemo(() => ALL_PARTICLE_TYPES_IN_ORDER.map(type => ({ type })), []);
+  const allPossibleParticles = useMemo(() => CODEX_PARTICLES_BY_CATEGORY, []);
 
   const {
     selectedParticleIds,
@@ -588,8 +588,9 @@ const App = () => {
       </button>
 
 
-
-        <InfoPanel particleType={infoPanelType} onClose={handleCloseInfo} />
+        <div className="relative z-60">
+          <InfoPanel particleType={infoPanelType} onClose={handleCloseInfo} />
+        </div>
 
         <PeriodicTable
           isVisible={isPeriodicTableVisible}
@@ -602,7 +603,7 @@ const App = () => {
         <Codex
           isVisible={isCodexVisible}
           onClose={() => setIsCodexVisible(false)}
-          allParticles={allPossibleParticles}
+          particleCategories={allPossibleParticles}
           discoveredParticles={allDiscoveredParticles}
           onParticleClick={handleShowInfo}
         />
