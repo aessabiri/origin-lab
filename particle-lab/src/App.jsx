@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useSprings, animated } from '@react-spring/web';
 import { useDrag, useGesture } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
-import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP } from './constants/particles.js';
+import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP, ALL_PARTICLE_TYPES_IN_ORDER } from './constants/particles.js';
 import { COMPOUND_PARTICLE_TYPES } from './recipes.js';
 import { GOALS, elementaryParticleGroups } from './gameData.js';
 import InfoPanel from './components/InfoPanel.jsx';
 import PeriodicTable from './components/PeriodicTable.jsx';
 import ActionToolbar from './components/ActionToolbar.jsx';
+import Codex from './components/Codex.jsx';
 import { usePersistentState } from './hooks/usePersistentState.js';
 import { useParticleActions } from './hooks/useParticleActions.js';
 import { useSelection } from './hooks/useSelection.js';
@@ -38,6 +39,7 @@ const App = () => {
   const [currentGoalIndex, setCurrentGoalIndex] = usePersistentState(LOCAL_STORAGE_KEYS.GOAL_INDEX, 0);
   const draggedIndexRef = useRef(null);
   const [isPaletteVisible, setIsPaletteVisible] = useState(true);
+  const [isCodexVisible, setIsCodexVisible] = useState(false);
 
   const [secondaryParticles, setSecondaryParticles] = usePersistentState(LOCAL_STORAGE_KEYS.SECONDARY, []);
   const [discoveredAtoms, setDiscoveredAtoms] = usePersistentState(LOCAL_STORAGE_KEYS.ATOMS, []);
@@ -46,6 +48,14 @@ const App = () => {
   const canvasRef = useRef(null);
 
   const [isPeriodicTableVisible, setIsPeriodicTableVisible] = useState(false);
+
+  const allDiscoveredParticles = useMemo(() => {
+    const elementary = Object.values(elementaryParticleGroups).flat().map(p => ({ type: p.type }));
+    return [...elementary, ...secondaryParticles, ...discoveredAtoms, ...discoveredMolecules];
+  }, [secondaryParticles, discoveredAtoms, discoveredMolecules]);
+
+  const allPossibleParticles = useMemo(() => ALL_PARTICLE_TYPES_IN_ORDER.map(type => ({ type })), []);
+
   const {
     selectedParticleIds,
     setSelectedParticleIds,
@@ -570,6 +580,14 @@ const App = () => {
             Show Periodic Table
           </button>
         )}
+      <button
+        onClick={() => setIsCodexVisible(true)}
+        className="absolute bottom-16 right-4 px-4 py-2 text-white font-semibold rounded-lg shadow-xl bg-gradient-to-br from-amber-500 to-amber-700 transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-amber-500 z-10"
+      >
+        Show Codex
+      </button>
+
+
 
         <InfoPanel particleType={infoPanelType} onClose={handleCloseInfo} />
 
@@ -578,6 +596,14 @@ const App = () => {
           onClose={() => setIsPeriodicTableVisible(false)}
           discoveredParticles={useMemo(() => [...secondaryParticles, ...discoveredAtoms], [secondaryParticles, discoveredAtoms])}
           onDragStart={handleDragStart}
+          onParticleClick={handleShowInfo}
+        />
+
+        <Codex
+          isVisible={isCodexVisible}
+          onClose={() => setIsCodexVisible(false)}
+          allParticles={allPossibleParticles}
+          discoveredParticles={allDiscoveredParticles}
           onParticleClick={handleShowInfo}
         />
 
