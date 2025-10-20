@@ -191,15 +191,27 @@ const AntiDownQuarkIcon = ({ hexColor }) => (
       );
 
 const ElectronIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('grad7', hexColor)}</defs>
-          <g style={{ animation: 'spin 4s linear infinite' }}>
-            <ellipse cx="50" cy="50" rx="40" ry="20" stroke={hexColor} strokeWidth="4" fill="none" opacity="0.7" />
-            <circle cx="90" cy="50" r="8" fill={PARTICLE_COLOR_MAP['blue-600']} />
-          </g>
-          <circle cx="50" cy="50" r="10" fill="url(#grad7)" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>
+      <filter id="cloud-blur">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
+      </filter>
+      <radialGradient id="electron-glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor={hexColor} stopOpacity="0.8" />
+        <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    {/* The probability cloud */}
+    <circle cx="50" cy="50" r="30" fill="url(#electron-glow)" filter="url(#cloud-blur)" style={{ animation: 'electron-cloud 6s infinite ease-in-out' }} />
+    
+    {/* The point particle */}
+    <g style={{ animation: 'electron-path 6s infinite ease-in-out' }}>
+      <circle cx="50" cy="50" r="6" fill="white" style={{ animation: 'electron-particle 6s infinite ease-in-out' }}>
+        <title>Electron</title>
+      </circle>
+    </g>
+  </svg>
+);
 
 const AntiCharmQuarkIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -395,8 +407,13 @@ const PionMinusIcon = ({ hexColor }) => (
 
 const WaterIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('water-grad', hexColor, 0.5)}</defs>
-          <path d="M50 10 C 20 40, 20 70, 50 90 C 80 70, 80 40, 50 10 Z" fill="url(#water-grad)" />
+          <defs>
+            <linearGradient id="water-grad-linear" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#a5f3fc" />
+              <stop offset="100%" stopColor={hexColor} />
+            </linearGradient>
+          </defs>
+          <path d="M50 10 C 20 40, 20 70, 50 90 C 80 70, 80 40, 50 10 Z" fill="url(#water-grad-linear)" />
           <path d="M40 30 C 45 20, 55 20, 60 30" stroke="white" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.7" />
         </svg>
       );
@@ -496,6 +513,7 @@ const LithiumIcon = ({ hexColor }) => (
           <Nucleus protonCount={3} neutronCount={4} />
         </svg>
       );
+
 const BerylliumIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={4} hexColor={hexColor} />

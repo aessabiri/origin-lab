@@ -424,6 +424,23 @@ const App = () => {
           opacity: 0;
         }
       }
+      }
+      @keyframes electron-cloud {
+        0%, 100% { opacity: 0.6; transform: scale(1.1); }
+        50% { opacity: 0.2; transform: scale(1); }
+      }
+      @keyframes electron-particle {
+        0%, 20% { opacity: 0; }
+        50% { opacity: 1; }
+        80%, 100% { opacity: 0; }
+      }
+      @keyframes electron-path {
+        0%, 100% { transform: translate(0, 0); }
+        25% { transform: translate(25px, -15px); }
+        50% { transform: translate(-20px, 20px); }
+        75% { transform: translate(10px, 5px); }
+        }
+      }
       .radiation-particle {
         position: absolute;
         width: 8px; height: 8px;
@@ -685,7 +702,7 @@ const App = () => {
           const isAssemblable = assemblableParticleIds.has(particle.id);
 
           // Define which particles should have a transparent background
-          const structuralIconTypes = new Set([PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE, PARTICLE_TYPES.ALANINE, PARTICLE_TYPES.GLYCYL_ALANINE]);
+          const structuralIconTypes = new Set([PARTICLE_TYPES.WATER, PARTICLE_TYPES.ELECTRON, PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE, PARTICLE_TYPES.ALANINE, PARTICLE_TYPES.GLYCYL_ALANINE]);
           const hasStructuralIcon = structuralIconTypes.has(particle.type);
 
           const isQuark = particle.type?.endsWith?.('quark');
