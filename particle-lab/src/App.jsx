@@ -23,6 +23,7 @@ const LOCAL_STORAGE_KEYS = {
   MOLECULES: 'particle-lab-molecules',
   BONDS: 'particle-lab-bonds',
   GOAL_INDEX: 'particle-lab-goal-index',
+  UI_SCALE: 'particle-lab-ui-scale',
 };
 
 const MOLECULE_PARTICLE_TYPES = new Set(
@@ -44,6 +45,9 @@ const App = () => {
   const [secondaryParticles, setSecondaryParticles] = usePersistentState(LOCAL_STORAGE_KEYS.SECONDARY, []);
   const [discoveredAtoms, setDiscoveredAtoms] = usePersistentState(LOCAL_STORAGE_KEYS.ATOMS, []);
   const [discoveredMolecules, setDiscoveredMolecules] = usePersistentState(LOCAL_STORAGE_KEYS.MOLECULES, []);
+  const [uiScale, setUiScale] = usePersistentState(LOCAL_STORAGE_KEYS.UI_SCALE, 1);
+  const [isActionMenuVisible, setIsActionMenuVisible] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
   const canvasRef = useRef(null);
 
@@ -439,14 +443,12 @@ const App = () => {
 
 
         <div className="absolute top-4 left-4 flex flex-col items-start gap-4">
-          <div className="flex items-center gap-8">
-            <h1 className="text-3xl font-bold text-white">Particle Lab</h1>
+          <div className="flex items-center">
             <ActionToolbar
               onAssemble={handleAssemble}
               onDisassemble={handleDisassemble}
               onRevert={handleRevertToElementary}
               onRemoveSelected={handleRemoveSelectedWithBonds}
-              onEmptyCanvas={handleEmptyCanvas}
               onBreakBonds={handleBreakBonds}
               onAddSingleBond={() => handleAddBond('single')}
               onAddDoubleBond={() => handleAddBond('double')}
@@ -458,7 +460,6 @@ const App = () => {
               canAddBond={selectedParticleIds.size === 2 && !selectionInfo.isMoleculeAssembly && !canAddPeptideBond}
               canAddPeptideBond={canAddPeptideBond}
               canRemove={selectedParticleIds.size > 0}
-              canEmpty={particles.length > 0}
             />
           </div>
           {currentGoalIndex < GOALS.length && (
@@ -509,8 +510,11 @@ const App = () => {
             const springA = springs[particleAIndex];
             const springB = springs[particleBIndex];
 
-            const centerOffsetA = COMPOUND_PARTICLE_TYPES.has(particleA.type) ? 48 : 32;
-            const centerOffsetB = COMPOUND_PARTICLE_TYPES.has(particleB.type) ? 48 : 32;
+            const sizeA = (COMPOUND_PARTICLE_TYPES.has(particleA.type) || MOLECULE_PARTICLE_TYPES.has(particleA.type) ? 96 : 64) * uiScale;
+            const sizeB = (COMPOUND_PARTICLE_TYPES.has(particleB.type) || MOLECULE_PARTICLE_TYPES.has(particleB.type) ? 96 : 64) * uiScale;
+
+            const centerOffsetA = sizeA / 2;
+            const centerOffsetB = sizeB / 2;
 
             return (
               <animated.line
@@ -526,6 +530,39 @@ const App = () => {
             );
           })}
         </animated.svg>
+
+        {isSettingsVisible && (
+          <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center" onClick={() => setIsSettingsVisible(false)}>
+            <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-80" onClick={e => e.stopPropagation()}>
+              <h3 className="text-xl font-bold text-center mb-4">Settings</h3>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">UI Scale</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setUiScale(s => Math.max(0.5, s - 0.1))}
+                    className="w-10 h-10 flex items-center justify-center text-2xl font-bold bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
+                  >
+                    -
+                  </button>
+                  <span className="w-16 text-center font-mono text-lg">{(uiScale * 100).toFixed(0)}%</span>
+                  <button
+                    onClick={() => setUiScale(s => Math.min(1.5, s + 0.1))}
+                    className="w-10 h-10 flex items-center justify-center text-2xl font-bold bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsSettingsVisible(false)}
+                className="w-full mt-6 text-center px-4 py-2 text-white font-bold rounded-lg shadow-lg bg-blue-600 hover:bg-blue-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
 
         <div className="absolute bottom-4 left-4 z-10">
           {isHintVisible && currentGoalIndex < GOALS.length && (() => {
@@ -551,13 +588,45 @@ const App = () => {
               </div>
             );
           })()}
-          <button
-            onClick={() => setIsHintVisible(prev => !prev)}
-            className="p-3 text-yellow-300 bg-gray-700 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-400"
-            aria-label="Show hint"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-          </button>
+          {isActionMenuVisible && (
+            <div className="absolute bottom-full mb-2 flex flex-col gap-2 w-48">
+              <button onClick={() => { setIsCodexVisible(true); setIsActionMenuVisible(false); }} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Particle Codex</button>
+              <button onClick={() => { setIsPeriodicTableVisible(true); setIsActionMenuVisible(false); }} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Periodic Table</button>
+              <button onClick={() => { setIsSettingsVisible(true); setIsActionMenuVisible(false); }} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Settings</button>
+              <button
+                onClick={() => { handleRemoveSelectedWithBonds(); setIsActionMenuVisible(false); }}
+                disabled={selectedParticleIds.size === 0}
+                className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-orange-700 hover:bg-orange-600 transition-colors disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed"
+              >
+                Remove Selected
+              </button>
+              <button
+                onClick={() => { handleEmptyCanvas(); setIsActionMenuVisible(false); }}
+                disabled={particles.length === 0}
+                className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-red-800 hover:bg-red-700 transition-colors disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed"
+              >
+                Empty Canvas
+              </button>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsHintVisible(prev => !prev)}
+              className="p-3 text-yellow-300 bg-gray-700 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-400"
+              aria-label="Show hint"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            </button>
+            <button
+              onClick={() => setIsActionMenuVisible(prev => !prev)}
+              className="p-3 text-blue-300 bg-gray-700 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-400"
+              aria-label="Show actions"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {selectionBox.visible && (
@@ -571,22 +640,6 @@ const App = () => {
             }}
           />
         )}
-
-        {!isPeriodicTableVisible && (
-          <button
-            onClick={() => setIsPeriodicTableVisible(true)}
-            className="absolute bottom-4 right-4 px-4 py-2 text-white font-semibold rounded-lg shadow-xl bg-gradient-to-br from-blue-500 to-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 z-10"
-          >
-            Show Periodic Table
-          </button>
-        )}
-      <button
-        onClick={() => setIsCodexVisible(true)}
-        className="absolute bottom-16 right-4 px-4 py-2 text-white font-semibold rounded-lg shadow-xl bg-gradient-to-br from-amber-500 to-amber-700 transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-amber-500 z-10"
-      >
-        Show Codex
-      </button>
-
 
         <div className="relative z-60">
           <InfoPanel particleType={infoPanelType} onClose={handleCloseInfo} />
@@ -621,7 +674,7 @@ const App = () => {
           const hasStructuralIcon = structuralIconTypes.has(particle.type);
 
           const isQuark = particle.type?.endsWith?.('quark');
-          const particleSizeClass = isCompound ? 'w-24 h-24 text-xl' : 'w-16 h-16 text-sm';
+          const baseSize = isCompound ? 96 : 64; // w-24 or w-16
           // Only apply a background color if it's not a structural icon
           const particleColorClass = hasStructuralIcon ? '' : (PARTICLE_COLORS[particle.type] || 'bg-gray-500');
 
@@ -634,9 +687,11 @@ const App = () => {
                 y: props.y,
                 scale: props.scale,
                 zIndex: isSelected ? 10 : 1,
-                touchAction: 'none'
+                touchAction: 'none',
+                width: `${baseSize * uiScale}px`,
+                height: `${baseSize * uiScale}px`,
               }}
-              className={`absolute cursor-grab ${hasStructuralIcon ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleSizeClass} ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
+              className={`absolute cursor-grab ${hasStructuralIcon ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
               onClick={(e) => handleParticleClick(e, particle.id)}
               onDoubleClick={() => handleShowInfo(particle.type)}
               onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}
@@ -646,7 +701,7 @@ const App = () => {
                 <div className="w-full h-full">
                   <ParticleIcon type={particle.type} color={particleColorClass} isCompound={isCompound} />
                 </div>
-                <span className="text-white text-center p-1 absolute bottom-2">
+                <span className="text-white text-center p-1 absolute -bottom-6 text-sm">
                   {PARTICLE_NAMES[particle.type]}
                 </span>
               </div>
@@ -671,7 +726,10 @@ const App = () => {
                   onDragStart={(e) => handleDragStart(e, p)}
                   className="particle-palette-item cursor-grab group flex flex-col items-center"
                 >
-                  <div className="icon-container relative flex items-center justify-center w-20 h-20">
+                  <div
+                    className="icon-container relative flex items-center justify-center"
+                    style={{ width: `${80 * uiScale}px`, height: `${80 * uiScale}px` }}
+                  >
                     <div
                       className="absolute inset-0 rounded-full"
                       style={{
@@ -701,7 +759,10 @@ const App = () => {
                   onDragStart={(e) => handleDragStart(e, p)}
                   className="particle-palette-item cursor-grab group flex flex-col items-center"
                 >
-                  <div className="icon-container relative flex items-center justify-center w-20 h-20">
+                  <div
+                    className="icon-container relative flex items-center justify-center"
+                    style={{ width: `${80 * uiScale}px`, height: `${80 * uiScale}px` }}
+                  >
                     <div className="w-full h-full">
                       <ParticleIcon type={p.type} color={PARTICLE_COLORS[p.type]} isCompound />
                     </div>
