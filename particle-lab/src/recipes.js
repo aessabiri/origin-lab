@@ -254,6 +254,168 @@ export const RECIPES = [
       [PARTICLE_TYPES.ELECTRON]: 18,
     },
   },
+  {
+    type: PARTICLE_TYPES.POTASSIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 19,
+      [PARTICLE_TYPES.NEUTRON]: 20,
+      [PARTICLE_TYPES.ELECTRON]: 19,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.CALCIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 20,
+      [PARTICLE_TYPES.NEUTRON]: 20,
+      [PARTICLE_TYPES.ELECTRON]: 20,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.SCANDIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 21,
+      [PARTICLE_TYPES.NEUTRON]: 24,
+      [PARTICLE_TYPES.ELECTRON]: 21,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.TITANIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 22,
+      [PARTICLE_TYPES.NEUTRON]: 26,
+      [PARTICLE_TYPES.ELECTRON]: 22,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.VANADIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 23,
+      [PARTICLE_TYPES.NEUTRON]: 28,
+      [PARTICLE_TYPES.ELECTRON]: 23,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.CHROMIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 24,
+      [PARTICLE_TYPES.NEUTRON]: 28,
+      [PARTICLE_TYPES.ELECTRON]: 24,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.MANGANESE,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 25,
+      [PARTICLE_TYPES.NEUTRON]: 30,
+      [PARTICLE_TYPES.ELECTRON]: 25,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.IRON,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 26,
+      [PARTICLE_TYPES.NEUTRON]: 30,
+      [PARTICLE_TYPES.ELECTRON]: 26,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.COBALT,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 27,
+      [PARTICLE_TYPES.NEUTRON]: 32,
+      [PARTICLE_TYPES.ELECTRON]: 27,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.NICKEL,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 28,
+      [PARTICLE_TYPES.NEUTRON]: 31,
+      [PARTICLE_TYPES.ELECTRON]: 28,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.COPPER,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 29,
+      [PARTICLE_TYPES.NEUTRON]: 34,
+      [PARTICLE_TYPES.ELECTRON]: 29,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.ZINC,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 30,
+      [PARTICLE_TYPES.NEUTRON]: 35,
+      [PARTICLE_TYPES.ELECTRON]: 30,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.GALLIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 31,
+      [PARTICLE_TYPES.NEUTRON]: 39,
+      [PARTICLE_TYPES.ELECTRON]: 31,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.GERMANIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 32,
+      [PARTICLE_TYPES.NEUTRON]: 41,
+      [PARTICLE_TYPES.ELECTRON]: 32,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.ARSENIC,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 33,
+      [PARTICLE_TYPES.NEUTRON]: 42,
+      [PARTICLE_TYPES.ELECTRON]: 33,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.SELENIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 34,
+      [PARTICLE_TYPES.NEUTRON]: 45,
+      [PARTICLE_TYPES.ELECTRON]: 34,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.BROMINE,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 35,
+      [PARTICLE_TYPES.NEUTRON]: 45,
+      [PARTICLE_TYPES.ELECTRON]: 35,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.KRYPTON,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 36,
+      [PARTICLE_TYPES.NEUTRON]: 48,
+      [PARTICLE_TYPES.ELECTRON]: 36,
+    },
+  },
   // Molecules
   {
     type: PARTICLE_TYPES.WATER,
@@ -348,14 +510,6 @@ export const RECIPES = [
     ingredients: {
       [PARTICLE_TYPES.SILICON]: 1,
       [PARTICLE_TYPES.OXYGEN]: 2,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.HYDROGEN_FLUORIDE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.HYDROGEN]: 1,
-      [PARTICLE_TYPES.FLUORINE]: 1,
     },
   },
 ];

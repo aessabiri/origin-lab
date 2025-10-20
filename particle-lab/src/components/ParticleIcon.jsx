@@ -1,5 +1,5 @@
 import React from 'react';
-import { PARTICLE_TYPES, PARTICLE_COLOR_MAP } from '../constants/particles.js';
+import { PARTICLE_TYPES, PARTICLE_COLOR_MAP, PARTICLE_COLORS } from '../constants/particles.js';
 
 // --- Helper Components & Functions ---
 
@@ -81,6 +81,7 @@ const ElectronShells = ({ electronCount = 0, hexColor }) => {
     if (electronCount > 0) shells.push({ radius: 25, count: Math.min(electronCount, 2) });
     if (electronCount > 2) shells.push({ radius: 40, count: Math.min(electronCount - 2, 8) });
     if (electronCount > 10) shells.push({ radius: 55, count: Math.min(electronCount - 10, 8) });
+    if (electronCount > 18) shells.push({ radius: 70, count: Math.min(electronCount - 18, 18) });
 
     return shells.map((shell, shellIndex) => (
       <g key={shellIndex}>
@@ -561,66 +562,188 @@ const SiliconIcon = ({ hexColor }) => (
           <Nucleus protonCount={14} neutronCount={14} />
         </svg>
       );
-
-const GlycineIcon = () => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Bonds */}
-    <path d="M25 50 L 50 50 L 75 50 M75 50 L 90 65 M75 50 L 75 35" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
-    <path d="M75 35 L 75 25" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
-    {/* Atoms (C, N, O) */}
-    <circle cx="25" cy="50" r="12" fill="#60a5fa" stroke="#3b82f6" strokeWidth="2"/>
-    <circle cx="50" cy="50" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
-    <circle cx="75" cy="50" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
-    <circle cx="75" cy="20" r="12" fill="#f87171" stroke="#ef4444" strokeWidth="2"/>
-    <circle cx="95" cy="70" r="12" fill="#f87171" stroke="#ef4444" strokeWidth="2"/>
-    {/* Atom Labels */}
-    <text x="25" y="55" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">N</text>
-    <text x="50" y="55" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">C</text>
-    <text x="75" y="55" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">C</text>
+const PhosphorusIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={15} hexColor={hexColor} />
+    <Nucleus protonCount={15} neutronCount={16} />
+  </svg>
+);
+const SulfurIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={16} hexColor={hexColor} />
+    <Nucleus protonCount={16} neutronCount={16} />
+  </svg>
+);
+const ChlorineIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={17} hexColor={hexColor} />
+    <Nucleus protonCount={17} neutronCount={18} />
+  </svg>
+);
+const ArgonIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={18} hexColor={hexColor} />
+    <Nucleus protonCount={18} neutronCount={22} />
+  </svg>
+);
+const PotassiumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={19} hexColor={hexColor} />
+    <Nucleus protonCount={19} neutronCount={20} />
+  </svg>
+);
+const CalciumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={20} hexColor={hexColor} />
+    <Nucleus protonCount={20} neutronCount={20} />
+  </svg>
+);
+const ScandiumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={21} hexColor={hexColor} />
+    <Nucleus protonCount={21} neutronCount={24} />
+  </svg>
+);
+const TitaniumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={22} hexColor={hexColor} />
+    <Nucleus protonCount={22} neutronCount={26} />
+  </svg>
+);
+const VanadiumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={23} hexColor={hexColor} />
+    <Nucleus protonCount={23} neutronCount={28} />
+  </svg>
+);
+const ChromiumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={24} hexColor={hexColor} />
+    <Nucleus protonCount={24} neutronCount={28} />
+  </svg>
+);
+const ManganeseIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={25} hexColor={hexColor} />
+    <Nucleus protonCount={25} neutronCount={30} />
+  </svg>
+);
+const IronIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={26} hexColor={hexColor} />
+    <Nucleus protonCount={26} neutronCount={30} />
+  </svg>
+);
+const CobaltIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={27} hexColor={hexColor} />
+    <Nucleus protonCount={27} neutronCount={32} />
+  </svg>
+);
+const NickelIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={28} hexColor={hexColor} />
+    <Nucleus protonCount={28} neutronCount={31} />
+  </svg>
+);
+const CopperIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={29} hexColor={hexColor} />
+    <Nucleus protonCount={29} neutronCount={34} />
+  </svg>
+);
+const ZincIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={30} hexColor={hexColor} />
+    <Nucleus protonCount={30} neutronCount={35} />
+  </svg>
+);
+const GalliumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={31} hexColor={hexColor} />
+    <Nucleus protonCount={31} neutronCount={39} />
+  </svg>
+);
+const GermaniumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={32} hexColor={hexColor} />
+    <Nucleus protonCount={32} neutronCount={41} />
+  </svg>
+);
+const ArsenicIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={33} hexColor={hexColor} />
+    <Nucleus protonCount={33} neutronCount={42} />
+  </svg>
+);
+const SeleniumIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={34} hexColor={hexColor} />
+    <Nucleus protonCount={34} neutronCount={45} />
+  </svg>
+);
+const BromineIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={35} hexColor={hexColor} />
+    <Nucleus protonCount={35} neutronCount={45} />
+  </svg>
+);
+const KryptonIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <ElectronShells electronCount={36} hexColor={hexColor} />
+    <Nucleus protonCount={36} neutronCount={48} />
   </svg>
 );
 
-const GlycylglycineIcon = () => (
-<svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  {/* Bonds for first Glycine unit */}
-  <path d="M10 50 L 30 50 L 50 50" stroke="#a8a29e" strokeWidth="4" strokeLinecap="round"/>
-  {/* Bonds for second Glycine unit */}
-  <path d="M70 50 L 90 50 L 110 50" stroke="#a8a29e" strokeWidth="4" strokeLinecap="round"/>
-  {/* Peptide bond */}
-  <path d="M50 50 L 70 50" stroke="#ec4899" strokeWidth="5" strokeDasharray="5 5" strokeLinecap="round"/>
-  {/* Atom representations */}
-  <circle cx="10" cy="50" r="10" fill="#60a5fa" stroke="#3b82f6" strokeWidth="2"><title>Nitrogen</title></circle>
-  <circle cx="30" cy="50" r="10" fill="#4b5563" stroke="#1f2937" strokeWidth="2"><title>Alpha Carbon</title></circle>
-  <circle cx="50" cy="50" r="10" fill="#4b5563" stroke="#1f2937" strokeWidth="2"><title>Carboxyl Carbon</title></circle>
-  <circle cx="70" cy="50" r="10" fill="#60a5fa" stroke="#3b82f6" strokeWidth="2"><title>Nitrogen</title></circle>
-  <circle cx="90" cy="50" r="10" fill="#4b5563" stroke="#1f2937" strokeWidth="2"><title>Alpha Carbon</title></circle>
-  <circle cx="110" cy="50" r="10" fill="#4b5563" stroke="#1f2937" strokeWidth="2"><title>Carboxyl Carbon</title></circle>
-</svg>
-);
-
-const AlanineIcon = () => (
+const AminoAcidIcon = ({ hexColor, rGroup, name }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Bonds */}
-    <path d="M25 50 L 50 50 L 75 50 M50 50 L 50 75" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
-    <path d="M75 50 L 90 65 M75 50 L 75 35" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
-    <path d="M75 35 L 75 25" stroke="#a8a29e" strokeWidth="5" strokeLinecap="round"/>
-    {/* Atoms (C, N, O) */}
-    <circle cx="25" cy="50" r="12" fill="#60a5fa" stroke="#3b82f6" strokeWidth="2"/>
-    <circle cx="50" cy="50" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
-    <circle cx="50" cy="80" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
-    <circle cx="75" cy="50" r="12" fill="#4b5563" stroke="#1f2937" strokeWidth="2"/>
-    <circle cx="75" cy="20" r="12" fill="#f87171" stroke="#ef4444" strokeWidth="2"/>
-    <circle cx="95" cy="70" r="12" fill="#f87171" stroke="#ef4444" strokeWidth="2"/>
+    <defs>{radialGradient('amino-acid-grad', hexColor, 0.4)}</defs>
+    <circle cx="50" cy="50" r="48" fill="url(#amino-acid-grad)" stroke={hexColor} strokeWidth="2" />
+
+    {/* Backbone */}
+    <circle cx="25" cy="50" r="10" fill={PARTICLE_COLOR_MAP['sky-500']} />
+    <text x="25" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">N</text>
+
+    <circle cx="50" cy="50" r="10" fill={PARTICLE_COLOR_MAP['gray-800']} />
+    <text x="50" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Cα</text>
+
+    <circle cx="75" cy="50" r="10" fill={PARTICLE_COLOR_MAP['gray-800']} />
+    <text x="75" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">C</text>
+
+    <line x1="35" y1="50" x2="40" y2="50" stroke="white" strokeWidth="2" />
+    <line x1="60" y1="50" x2="65" y2="50" stroke="white" strokeWidth="2" />
+
+    {/* R-Group */}
+    <line x1="50" y1="40" x2="50" y2="30" stroke="white" strokeWidth="2" />
+    <circle cx="50" cy="20" r="10" fill="#a8a29e" />
+    <text x="50" y="24" textAnchor="middle" fill="black" fontSize="12" fontWeight="bold">{rGroup}</text>
+
+    <text x="50" y="85" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">{name}</text>
   </svg>
 );
 
-const GlycylAlanineIcon = () => (
+const GlycineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="H" name="Glycine" />;
+const AlanineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="CH₃" name="Alanine" />;
+const ValineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="Val" name="Valine" />;
+const LeucineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="Leu" name="Leucine" />;
+const SerineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="Ser" name="Serine" />;
+
+const DipeptideIcon = ({ hexColor, name1, name2 }) => (
   <svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="10" y="35" width="40" height="30" rx="8" fill="#a855f7" stroke="#7c3aed" strokeWidth="2" />
-    <rect x="70" y="35" width="40" height="30" rx="8" fill="#16a34a" stroke="#15803d" strokeWidth="2" />
-    <path d="M50 50 L 70 50" stroke="#ec4899" strokeWidth="5" strokeDasharray="5 5" strokeLinecap="round"/>
+    <rect x="5" y="35" width="50" height="30" rx="8" fill={PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE]} stroke={PARTICLE_COLOR_MAP[PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE].replace('bg-','')] || '#fff'} strokeWidth="2" />
+    <text x="30" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">{name1}</text>
+
+    <rect x="65" y="35" width="50" height="30" rx="8" fill={PARTICLE_COLORS[PARTICLE_TYPES.ALANINE]} stroke={PARTICLE_COLOR_MAP[PARTICLE_COLORS[PARTICLE_TYPES.ALANINE].replace('bg-','')] || '#fff'} strokeWidth="2" />
+    <text x="90" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">{name2}</text>
+
+    {/* Peptide bond */}
+    <line x1="55" y1="50" x2="65" y2="50" stroke="#ec4899" strokeWidth="4" />
+    <line x1="55" y1="50" x2="65" y2="50" stroke="white" strokeWidth="2" strokeDasharray="2 2" />
   </svg>
 );
+
+const GlycylglycineIcon = ({ hexColor }) => <DipeptideIcon hexColor={hexColor} name1="Gly" name2="Gly" />;
+const GlycylAlanineIcon = ({ hexColor }) => <DipeptideIcon hexColor={hexColor} name1="Gly" name2="Ala" />;
 
 const AyoubIcon = ({ hexColor }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -673,18 +796,19 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.CARBON_MONOXIDE]: CarbonMonoxideIcon,
   [PARTICLE_TYPES.HYDROGEN_SULFIDE]: HydrogenSulfideIcon,
   [PARTICLE_TYPES.HYDROGEN_PEROXIDE]: HydrogenPeroxideIcon,
-  [PARTICLE_TYPES.PION_MINUS]: PionMinusIcon,
   [PARTICLE_TYPES.WATER]: WaterIcon,
   [PARTICLE_TYPES.METHANE]: MethaneIcon,
   [PARTICLE_TYPES.AMMONIA]: AmmoniaIcon,
   [PARTICLE_TYPES.OZONE]: OzoneIcon,
   [PARTICLE_TYPES.NITROUS_OXIDE]: NitrousOxideIcon,
   [PARTICLE_TYPES.SILICON_DIOXIDE]: SiliconDioxideIcon,
-  [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: HydrogenFluorideIcon,
   [PARTICLE_TYPES.GLYCINE]: GlycineIcon,
   [PARTICLE_TYPES.GLYCYLGLYCINE]: GlycylglycineIcon,
   [PARTICLE_TYPES.ALANINE]: AlanineIcon,
   [PARTICLE_TYPES.GLYCYL_ALANINE]: GlycylAlanineIcon,
+  [PARTICLE_TYPES.VALINE]: ValineIcon,
+  [PARTICLE_TYPES.LEUCINE]: LeucineIcon,
+  [PARTICLE_TYPES.SERINE]: SerineIcon,
   'ayoub': AyoubIcon, // Directly using the string for the test molecule
   [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
   [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,
@@ -702,10 +826,28 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.MAGNESIUM]: MagnesiumIcon,
   [PARTICLE_TYPES.ALUMINIUM]: AluminiumIcon,
   [PARTICLE_TYPES.SILICON]: SiliconIcon,
-  [PARTICLE_TYPES.PHOSPHORUS]: GenericAtomIcon,
-  [PARTICLE_TYPES.SULFUR]: GenericAtomIcon,
-  [PARTICLE_TYPES.CHLORINE]: GenericAtomIcon,
-  [PARTICLE_TYPES.ARGON]: GenericAtomIcon,
+  [PARTICLE_TYPES.PHOSPHORUS]: PhosphorusIcon,
+  [PARTICLE_TYPES.SULFUR]: SulfurIcon,
+  [PARTICLE_TYPES.CHLORINE]: ChlorineIcon,
+  [PARTICLE_TYPES.ARGON]: ArgonIcon,
+  [PARTICLE_TYPES.POTASSIUM]: PotassiumIcon,
+  [PARTICLE_TYPES.CALCIUM]: CalciumIcon,
+  [PARTICLE_TYPES.SCANDIUM]: ScandiumIcon,
+  [PARTICLE_TYPES.TITANIUM]: TitaniumIcon,
+  [PARTICLE_TYPES.VANADIUM]: VanadiumIcon,
+  [PARTICLE_TYPES.CHROMIUM]: ChromiumIcon,
+  [PARTICLE_TYPES.MANGANESE]: ManganeseIcon,
+  [PARTICLE_TYPES.IRON]: IronIcon,
+  [PARTICLE_TYPES.COBALT]: CobaltIcon,
+  [PARTICLE_TYPES.NICKEL]: NickelIcon,
+  [PARTICLE_TYPES.COPPER]: CopperIcon,
+  [PARTICLE_TYPES.ZINC]: ZincIcon,
+  [PARTICLE_TYPES.GALLIUM]: GalliumIcon,
+  [PARTICLE_TYPES.GERMANIUM]: GermaniumIcon,
+  [PARTICLE_TYPES.ARSENIC]: ArsenicIcon,
+  [PARTICLE_TYPES.SELENIUM]: SeleniumIcon,
+  [PARTICLE_TYPES.BROMINE]: BromineIcon,
+  [PARTICLE_TYPES.KRYPTON]: KryptonIcon,
 };
 
 const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {

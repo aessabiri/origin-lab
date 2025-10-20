@@ -247,7 +247,20 @@ const App = () => {
     if (selectedParticleIds.size !== 2) return false;
     const selected = particles.filter(p => selectedParticleIds.has(p.id));
     const aminoAcidTypes = new Set([PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.ALANINE]);
-    return selected.every(p => aminoAcidTypes.has(p.type));
+    // Check if both are amino acids
+    const areBothAminoAcids = selected.every(p => aminoAcidTypes.has(p.type));
+    if (areBothAminoAcids) return true;
+
+    // Check for Carboxyl group (-COOH) and Amino group (-NH2)
+    const hasCarboxyl = selected.some(p => p.type === PARTICLE_TYPES.FORMIC_ACID); // Simplified representation
+    const hasAmino = selected.some(p => p.type === PARTICLE_TYPES.AMMONIA); // Simplified representation
+
+    // A more robust check would be to inspect the structure of selected molecules.
+    // For now, we can allow forming a peptide bond between a simplified "acid" and "amine".
+    // This is a placeholder for a more complex structural check.
+    // Let's assume for now we are only bonding pre-defined amino acids.
+    return areBothAminoAcids;
+
   }, [particles, selectedParticleIds]);
   
   const assemblableParticleIds = useMemo(() => {
@@ -607,6 +620,12 @@ const App = () => {
               >
                 Empty Canvas
               </button>
+              <button
+                onClick={() => { handleReset(); setIsActionMenuVisible(false); }}
+                className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-indigo-800 hover:bg-indigo-700 transition-colors"
+              >
+                Reset Lab
+              </button>
             </div>
           )}
           <div className="flex gap-2">
@@ -640,10 +659,6 @@ const App = () => {
             }}
           />
         )}
-
-        <div className="relative z-60">
-          <InfoPanel particleType={infoPanelType} onClose={handleCloseInfo} />
-        </div>
 
         <PeriodicTable
           isVisible={isPeriodicTableVisible}
@@ -775,14 +790,11 @@ const App = () => {
             )}
           </div>
         </div>
-
-        <button
-          onClick={handleReset}
-          className="w-full mt-auto text-center px-4 py-3 text-white font-bold rounded-lg shadow-xl bg-gradient-to-br from-indigo-500 to-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800"
-        >
-          Reset Lab
-        </button>
         </div>
+      </div>
+      {/* InfoPanel is moved here to ensure it's on top of all other content */}
+      <div className="relative z-60">
+        <InfoPanel particleType={infoPanelType} onClose={handleCloseInfo} />
       </div>
     </div>
     </>
