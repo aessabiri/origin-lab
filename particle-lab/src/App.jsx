@@ -13,7 +13,7 @@ import { usePersistentState } from './hooks/usePersistentState.js';
 import { useParticleActions } from './hooks/useParticleActions.js';
 import { useSelection } from './hooks/useSelection.js';
 import { MOLECULE_RECIPES } from './components/moleculeRecipes.js';
-import { RECIPES } from './recipes.js';
+import { RECIPES, PARTICLE_CATEGORIES } from './recipes.js';
 import { useDecay } from './hooks/useDecay.js';
 
 const LOCAL_STORAGE_KEYS = {
@@ -24,6 +24,7 @@ const LOCAL_STORAGE_KEYS = {
   BONDS: 'particle-lab-bonds',
   GOAL_INDEX: 'particle-lab-goal-index',
   UI_SCALE: 'particle-lab-ui-scale',
+  TABLE_PINNED: 'particle-lab-table-pinned',
 };
 
 const MOLECULE_PARTICLE_TYPES = new Set(
@@ -48,15 +49,39 @@ const App = () => {
   const [uiScale, setUiScale] = usePersistentState(LOCAL_STORAGE_KEYS.UI_SCALE, 1);
   const [isActionMenuVisible, setIsActionMenuVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [isResetConfirmVisible, setIsResetConfirmVisible] = useState(false);
+  const [isPeriodicTablePinned, setIsPeriodicTablePinned] = usePersistentState(LOCAL_STORAGE_KEYS.TABLE_PINNED, false);
 
   const canvasRef = useRef(null);
 
   const [isPeriodicTableVisible, setIsPeriodicTableVisible] = useState(false);
 
+  const openExclusive = (setter, state) => {
+    const isOpen = state;
+    setIsHintVisible(false);
+    setIsActionMenuVisible(false);
+    setIsSettingsVisible(false);
+    setIsCodexVisible(false);
+
+    if (!isPeriodicTablePinned) {
+      setIsPeriodicTableVisible(false);
+    }
+
+    // If it was already open, clicking again should close it. Otherwise, open it.
+    setter(!isOpen);
+  };
+
+  // This is a simplified toggle for non-exclusive popups
+  const toggleExclusive = (state, setter) => {
+    state ? setter(false) : openExclusive(setter);
+  };
+
   const allDiscoveredParticles = useMemo(() => {
     const elementary = Object.values(elementaryParticleGroups).flat().map(p => ({ type: p.type }));
     return [...elementary, ...secondaryParticles, ...discoveredAtoms, ...discoveredMolecules];
   }, [secondaryParticles, discoveredAtoms, discoveredMolecules]);
+
+  const discoveredParticlesForPeriodicTable = useMemo(() => [...secondaryParticles, ...discoveredAtoms], [secondaryParticles, discoveredAtoms]);
 
   const allPossibleParticles = useMemo(() => CODEX_PARTICLES_BY_CATEGORY, []);
 
@@ -146,6 +171,7 @@ const App = () => {
     handleDisassemble,
     handleRevertToElementary,
   } = useParticleActions({
+    particles: particles,
     particles,
     bonds, // Pass bonds to the hook
     setBonds,
@@ -207,7 +233,7 @@ const App = () => {
   const handleRemoveSelected = useCallback(() => {
     if (selectedParticleIds.size === 0) return;
     const count = selectedParticleIds.size;
-    setParticles(prev => prev.filter(p => !selectedParticleIds.has(p.id)));
+    setParticles(prev => prev.filter(p => !selectedParticleIds.has(p.id)))
     setSelectedParticleIds(new Set());
     showMessage(`${count} particle(s) removed.`);
   }, [selectedParticleIds, showMessage]);
@@ -225,15 +251,19 @@ const App = () => {
   }, [particles.length, showMessage]);
 
   const handleReset = useCallback(() => {
+    setIsResetConfirmVisible(true);
+  }, []);
+
+  const executeReset = useCallback(() => {
     setParticles([]);
     setSecondaryParticles([]);
     setDiscoveredAtoms([]);
     setDiscoveredMolecules([]);
     setBonds([]);
     setCurrentGoalIndex(0);
-
     showMessage('Lab has been reset!');
-  }, [setParticles, setSecondaryParticles, setDiscoveredAtoms, setDiscoveredMolecules, setCurrentGoalIndex, showMessage]);
+    setIsResetConfirmVisible(false);
+  }, [setParticles, setSecondaryParticles, setDiscoveredAtoms, setDiscoveredMolecules, setBonds, setCurrentGoalIndex, showMessage]);
 
   const canBreakBonds = useMemo(() => {
     if (selectedParticleIds.size === 0) return false;
@@ -246,7 +276,13 @@ const App = () => {
   const canAddPeptideBond = useMemo(() => {
     if (selectedParticleIds.size !== 2) return false;
     const selected = particles.filter(p => selectedParticleIds.has(p.id));
-    const aminoAcidTypes = new Set([PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.ALANINE]);
+    const aminoAcidTypes = new Set([
+      PARTICLE_TYPES.GLYCINE,
+      PARTICLE_TYPES.ALANINE,
+      PARTICLE_TYPES.VALINE,
+      PARTICLE_TYPES.LEUCINE,
+      PARTICLE_TYPES.SERINE,
+    ]);
     // Check if both are amino acids
     const areBothAminoAcids = selected.every(p => aminoAcidTypes.has(p.type));
     if (areBothAminoAcids) return true;
@@ -612,6 +648,28 @@ const App = () => {
           </div>
         )}
 
+        {isResetConfirmVisible && (
+          <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center" onClick={() => setIsResetConfirmVisible(false)}>
+            <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-96" onClick={e => e.stopPropagation()}>
+              <h3 className="text-xl font-bold text-center mb-4 text-red-400">Confirm Reset</h3>
+              <p className="text-center text-gray-300 mb-6">Are you sure you want to reset the entire lab? All your discoveries and progress will be lost.</p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setIsResetConfirmVisible(false)}
+                  className="px-6 py-2 text-white font-bold rounded-lg shadow-lg bg-gray-600 hover:bg-gray-500 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={executeReset}
+                  className="px-6 py-2 text-white font-bold rounded-lg shadow-lg bg-red-700 hover:bg-red-600 transition-colors"
+                >
+                  Confirm Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="absolute bottom-4 left-4 z-10">
           {isHintVisible && currentGoalIndex < GOALS.length && (() => {
@@ -638,24 +696,11 @@ const App = () => {
             );
           })()}
           {isActionMenuVisible && (
-            <div className="absolute bottom-full mb-2 flex flex-col gap-2 w-48">
-              <button onClick={() => { setIsCodexVisible(true); setIsActionMenuVisible(false); }} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Particle Codex</button>
-              <button onClick={() => { setIsPeriodicTableVisible(true); setIsActionMenuVisible(false); }} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Periodic Table</button>
-              <button onClick={() => { setIsSettingsVisible(true); setIsActionMenuVisible(false); }} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Settings</button>
-              <button
-                onClick={() => { handleRemoveSelectedWithBonds(); setIsActionMenuVisible(false); }}
-                disabled={selectedParticleIds.size === 0}
-                className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-orange-700 hover:bg-orange-600 transition-colors disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed"
-              >
-                Remove Selected
-              </button>
-              <button
-                onClick={() => { handleEmptyCanvas(); setIsActionMenuVisible(false); }}
-                disabled={particles.length === 0}
-                className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-red-800 hover:bg-red-700 transition-colors disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed"
-              >
-                Empty Canvas
-              </button>
+            <div className="absolute bottom-full mb-2 flex flex-col gap-2 w-48" onClick={e => e.stopPropagation()}>
+              <button onClick={() => openExclusive(setIsCodexVisible, isCodexVisible)} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Particle Codex</button>
+              <button onClick={() => openExclusive(setIsPeriodicTableVisible, isPeriodicTableVisible)} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Periodic Table</button>
+              <button onClick={() => openExclusive(setIsSettingsVisible, isSettingsVisible)} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Settings</button>
+              <button onClick={() => { handleEmptyCanvas(); setIsActionMenuVisible(false); }} disabled={particles.length === 0} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-red-800 hover:bg-red-700 transition-colors disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed">Empty Canvas</button>
               <button
                 onClick={() => { handleReset(); setIsActionMenuVisible(false); }}
                 className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-indigo-800 hover:bg-indigo-700 transition-colors"
@@ -666,14 +711,14 @@ const App = () => {
           )}
           <div className="flex gap-2">
             <button
-              onClick={() => setIsHintVisible(prev => !prev)}
+              onClick={() => openExclusive(setIsHintVisible, isHintVisible)}
               className="p-3 text-yellow-300 bg-gray-700 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-400"
               aria-label="Show hint"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
             </button>
             <button
-              onClick={() => setIsActionMenuVisible(prev => !prev)}
+              onClick={() => openExclusive(setIsActionMenuVisible, isActionMenuVisible)}
               className="p-3 text-blue-300 bg-gray-700 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-400"
               aria-label="Show actions"
             >
@@ -696,13 +741,19 @@ const App = () => {
           />
         )}
 
-        <PeriodicTable
-          isVisible={isPeriodicTableVisible}
-          onClose={() => setIsPeriodicTableVisible(false)}
-          discoveredParticles={useMemo(() => [...secondaryParticles, ...discoveredAtoms], [secondaryParticles, discoveredAtoms])}
-          onDragStart={handleDragStart}
-          onParticleClick={handleShowInfo}
-        />
+        {isPeriodicTableVisible && (
+          <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center" onClick={() => !isPeriodicTablePinned && setIsPeriodicTableVisible(false)}>
+            <PeriodicTable
+              onClose={() => setIsPeriodicTableVisible(false)}
+              discoveredParticles={discoveredParticlesForPeriodicTable}
+              onDragStart={handleDragStart}
+              onParticleClick={handleShowInfo}
+              isPinned={isPeriodicTablePinned}
+              onPinToggle={() => setIsPeriodicTablePinned(p => !p)}
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
+        )}
 
         <Codex
           isVisible={isCodexVisible}
@@ -724,10 +775,22 @@ const App = () => {
           const structuralIconTypes = new Set([PARTICLE_TYPES.WATER, PARTICLE_TYPES.ELECTRON, PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE, PARTICLE_TYPES.ALANINE, PARTICLE_TYPES.GLYCYL_ALANINE]);
           const hasStructuralIcon = structuralIconTypes.has(particle.type);
 
-          const isQuark = particle.type?.endsWith?.('quark');
-          const baseSize = isCompound ? 96 : 64; // w-24 or w-16
+          const getBaseSize = (type) => {
+            if (type.endsWith('quark')) return 56; // Quarks (w-14)
+            const recipe = RECIPES.find(r => r.type === type);
+            if (recipe) {
+              if (recipe.category === PARTICLE_CATEGORIES.ATOM) return 80; // Atoms (w-20)
+              if (recipe.category === PARTICLE_CATEGORIES.SECONDARY) return 64; // Hadrons (w-16)
+            }
+            if (MOLECULE_PARTICLE_TYPES.has(type)) return 96; // Molecules (w-24)
+            // Amino Acids & Polypeptides
+            if (structuralIconTypes.has(type)) return 96;
+            return 64; // Default for elementary particles
+          };
+
+          const baseSize = getBaseSize(particle.type);
           // Only apply a background color if it's not a structural icon
-          const particleColorClass = hasStructuralIcon ? '' : (PARTICLE_COLORS[particle.type] || 'bg-gray-500');
+          const particleColorClass = hasStructuralIcon || particle.type.endsWith('quark') ? '' : (PARTICLE_COLORS[particle.type] || 'bg-gray-500');
 
           return (
             <animated.div
@@ -742,7 +805,7 @@ const App = () => {
                 width: `${baseSize * uiScale}px`,
                 height: `${baseSize * uiScale}px`,
               }}
-              className={`absolute cursor-grab ${hasStructuralIcon ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
+              className={`absolute cursor-grab ${hasStructuralIcon || particle.type.endsWith('quark') ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
               onClick={(e) => handleParticleClick(e, particle.id)}
               onDoubleClick={() => handleShowInfo(particle.type)}
               onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}

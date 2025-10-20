@@ -1,56 +1,69 @@
+import { PARTICLE_TYPES } from '../constants/particles.js';
+
 export const MOLECULE_RECIPES = [
   {
-    name: 'Water',
-    type: 'water',
+    type: PARTICLE_TYPES.GLYCINE,
     atoms: {
-      'oxygen': 1,
-      'hydrogen': 2,
+      [PARTICLE_TYPES.CARBON]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 5,
     },
     bonds: {
-      'single': 2,
-      'double': 0,
+      single: 7,
+      double: 1,
     },
   },
   {
-    name: 'Glycine',
-    type: 'glycine',
+    type: PARTICLE_TYPES.ALANINE,
     atoms: {
-      'carbon': 2,
-      'oxygen': 2,
-      'nitrogen': 1,
-      'hydrogen': 5,
+      [PARTICLE_TYPES.CARBON]: 3,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 7,
     },
     bonds: {
-      'single': 8,
-      'double': 1,
+      single: 10,
+      double: 1,
     },
   },
   {
-    name: 'Ayoub',
-    type: 'ayoub',
+    type: PARTICLE_TYPES.VALINE,
     atoms: {
-      'nitrogen': 1,
-      'oxygen': 1,
-      'carbon': 1,
-      'hydrogen': 2,
+      [PARTICLE_TYPES.CARBON]: 5,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 11,
     },
     bonds: {
-      'single': 3,
-      'double': 1,
+      single: 16,
+      double: 1,
     },
   },
   {
-    name: 'Alanine',
-    type: 'alanine',
+    type: PARTICLE_TYPES.LEUCINE,
     atoms: {
-      'carbon': 3,
-      'oxygen': 2,
-      'nitrogen': 1,
-      'hydrogen': 7,
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 13,
     },
     bonds: {
-      'single': 11,
-      'double': 1,
+      single: 19,
+      double: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.SERINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 3,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 7,
+    },
+    bonds: {
+      single: 11,
+      double: 1,
     },
   },
 ];

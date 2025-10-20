@@ -18,6 +18,7 @@ export const useParticleActions = ({
   showMessage,
   setSelectedParticleIds,
   setBonds,
+  particles: allParticles,
 }) => {
   const disassembleParticle = useCallback((particleId, particleIndex) => {
     const particle = particles[particleIndex];

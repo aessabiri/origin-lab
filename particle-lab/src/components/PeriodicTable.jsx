@@ -9,8 +9,8 @@ import {
 import { PARTICLE_NAMES, PARTICLE_COLORS } from '../constants/particles.js';
 import ParticleIcon from './ParticleIcon.jsx';
 
-const PeriodicTable = ({ discoveredParticles, onDragStart, isVisible, onClose, onParticleClick }) => {
-  if (!isVisible) return null;
+const PeriodicTable = ({ discoveredParticles, onDragStart, onClose, onParticleClick, isPinned, onPinToggle, ...props }) => {
+  // We don't check for isVisible here, as it's handled by the parent with conditional rendering
 
   const discoveredSet = new Set(discoveredParticles.map(p => p.type));
 
@@ -77,9 +77,20 @@ const PeriodicTable = ({ discoveredParticles, onDragStart, isVisible, onClose, o
   };
 
   return (
-    <div className="absolute bottom-4 right-4 bg-gray-900/80 backdrop-blur-md p-4 rounded-lg shadow-2xl border border-gray-700 z-20">
+    <div className="bg-gray-900/80 backdrop-blur-md p-4 rounded-lg shadow-2xl border border-gray-700" {...props}>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">Periodic Table</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-xl font-bold">Periodic Table</h3>
+          <button
+            onClick={onPinToggle}
+            title={isPinned ? 'Unpin Table' : 'Pin Table'}
+            className={`p-2 rounded-md transition-colors ${isPinned ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5.586l2.293-2.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L9 9.586V4a1 1 0 011-1zM3 14a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
         <button onClick={onClose} className="px-3 py-1 bg-red-600 rounded-md hover:bg-red-700 text-white font-bold">&times;</button>
       </div>
 
