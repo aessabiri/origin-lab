@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useSprings, animated } from '@react-spring/web';
 import { useDrag, useGesture } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
-import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP, CODEX_PARTICLES_BY_CATEGORY } from './constants/particles.js';
+import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP, CODEX_PARTICLES_BY_CATEGORY, PARTICLE_INFO } from './constants/particles.js';
 import { COMPOUND_PARTICLE_TYPES } from './recipes.js';
 import { GOALS, elementaryParticleGroups } from './gameData.js';
 import InfoPanel from './components/InfoPanel.jsx';
@@ -424,6 +424,25 @@ const App = () => {
           opacity: 0;
         }
       }
+      @keyframes qcd-color-cycle-1 {
+        0%, 100% { fill: #ef4444; } /* red */
+        33.3% { fill: #22c55e; } /* green */
+        66.6% { fill: #2563eb; } /* blue */
+      }
+      @keyframes qcd-color-cycle-2 {
+        0%, 100% { fill: #22c55e; } /* green */
+        33.3% { fill: #2563eb; } /* blue */
+        66.6% { fill: #ef4444; } /* red */
+      }
+      @keyframes qcd-color-cycle-3 {
+        0%, 100% { fill: #2563eb; } /* blue */
+        33.3% { fill: #ef4444; } /* red */
+        66.6% { fill: #22c55e; } /* green */
+      }
+      @keyframes gluon-pulse {
+        0%, 100% { stroke-opacity: 0.5; stroke-width: 2; }
+        50% { stroke-opacity: 1; stroke-width: 3; }
+      }
       }
       @keyframes electron-cloud {
         0%, 100% { opacity: 0.6; transform: scale(1.1); }
@@ -599,7 +618,7 @@ const App = () => {
             const currentGoal = GOALS[currentGoalIndex];
             // Search both simple recipes and molecule recipes for the hint
             let hintRecipe = RECIPES.find(r => r.type === currentGoal.type);
-            if (!hintRecipe) {
+            if (!hintRecipe) { 
               hintRecipe = MOLECULE_RECIPES.find(r => r.type === currentGoal.type);
             }
             if (!hintRecipe) return null;

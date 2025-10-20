@@ -10,29 +10,62 @@ const radialGradient = (id, c, opacity = 0.8) => (
     </radialGradient>
   );
 
-const QuarkComposition = ({ up = 0, down = 0 }) => {
-    const upColor = PARTICLE_COLOR_MAP['yellow-400'];
-    const downColor = PARTICLE_COLOR_MAP['indigo-400'];
+const QuarkComposition = ({ up = 0, down = 0, parentHexColor }) => {
+    const gluonColor = PARTICLE_COLOR_MAP['black'];
     const total = up + down;
     if (total === 0) return null;
 
     const particles = [];
-    for (let i = 0; i < up; i++) particles.push(upColor);
-    for (let i = 0; i < down; i++) particles.push(downColor);
+    if (total === 3) { // Baryons (like protons/neutrons) have one of each color.
+        const qcdAnimations = [
+            'qcd-color-cycle-1 3s linear infinite',
+            'qcd-color-cycle-2 3s linear infinite',
+            'qcd-color-cycle-3 3s linear infinite',
+        ];
+        let upQuarks = up;
+        for (let i = 0; i < 3; i++) {
+            particles.push({ animation: qcdAnimations[i], type: upQuarks-- > 0 ? 'u' : 'd' });
+        }
+    } else { // For other particles, use default colors.
+        const upColor = PARTICLE_COLOR_MAP['yellow-400'];
+        const downColor = PARTICLE_COLOR_MAP['indigo-400'];
+        for (let i = 0; i < up; i++) particles.push({ color: upColor, type: 'u' });
+        for (let i = 0; i < down; i++) particles.push({ color: downColor, type: 'd' });
+    }
 
     const positions = [
       [], // 0
       [[50, 50]], // 1
       [[45, 50], [55, 50]], // 2
-      [[50, 42], [43, 55], [57, 55]], // 3
+      [[50, 38], [35, 62], [65, 62]], // 3
     ];
 
     const particlePositions = positions[total] || [];
 
     return (
       <g>
-        {particles.map((fill, i) => (
-          <circle key={i} cx={particlePositions[i][0]} cy={particlePositions[i][1]} r="10" fill={fill} stroke="#000" strokeOpacity="0.2" strokeWidth="1" />
+        {/* Gluon field lines */}
+        <path
+          d={`M ${particlePositions[0][0]},${particlePositions[0][1]} Q 50,50 ${particlePositions[1][0]},${particlePositions[1][1]} T ${particlePositions[2][0]},${particlePositions[2][1]} T ${particlePositions[0][0]},${particlePositions[0][1]}`}
+          stroke={gluonColor}
+          strokeWidth="2"
+          fill="none"
+          strokeDasharray="2 4"
+          style={{ animation: 'jiggle 0.5s infinite, gluon-pulse 1.5s ease-in-out infinite' }}
+        />
+        {/* Quarks */}
+        {particles.map((p, i) => (
+          <g key={i} style={{ animation: 'jiggle 0.3s infinite', animationDelay: `${i * 0.1}s` }}>
+            <circle
+              cx={particlePositions[i][0]}
+              cy={particlePositions[i][1]}
+              r="10"
+              style={{ animation: p.animation }}
+              stroke="#fff" strokeOpacity="0.5" strokeWidth="1" />
+            <text x={particlePositions[i][0]} y={particlePositions[i][1]} dy=".35em" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">
+              {p.type}
+            </text>
+          </g>
         ))}
       </g>
     );
@@ -109,86 +142,76 @@ const MesonComposition = ({ quarkColor, antiquarkColor }) => {
 // --- Individual Particle Icon Components ---
 
 const UpQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>
-            {radialGradient('grad1', hexColor)}
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad1)" />
-          <polygon points="50,20 75,65 25,65" fill="white" filter="url(#glow)" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('quark-grad-up', hexColor, 0.4)}</defs>
+    <g style={{ animation: 'float 8s ease-in-out infinite' }}>
+      <path d="M50 20 L75 55 L25 55 Z" fill="url(#quark-grad-up)" stroke={hexColor} strokeWidth="2" />
+    </g>
+  </svg>
+);
 
 const DownQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('grad2', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad2)" />
-          <polygon points="25,35 75,35 50,80" fill="white" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('quark-grad-down', hexColor, 0.4)}</defs>
+    <g style={{ animation: 'float 8s ease-in-out infinite' }}>
+      <path d="M50 80 L75 45 L25 45 Z" fill="url(#quark-grad-down)" stroke={hexColor} strokeWidth="2" />
+    </g>
+  </svg>
+);
 
 const CharmQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('grad3', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad3)" />
-          <path d="M50,25 C70,25 70,45 50,45 C30,45 30,25 50,25 M50,55 C70,55 70,75 50,75 C30,75 30,55 50,55" fill="white" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('quark-grad-charm', hexColor, 0.4)}</defs>
+    <g style={{ animation: 'float 7s ease-in-out infinite' }}>
+      <path d="M30 25 L70 25 L70 75 L30 75 L50 50 Z" fill="url(#quark-grad-charm)" stroke={hexColor} strokeWidth="2" />
+    </g>
+  </svg>
+);
 
 const StrangeQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('grad4', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad4)" />
-          <path d="M35,30 C65,30 35,70 65,70" stroke="white" strokeWidth="8" fill="none" strokeLinecap="round" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('quark-grad-strange', hexColor, 0.4)}</defs>
+    <g style={{ animation: 'float 9s ease-in-out infinite' }}>
+      <path d="M40 20 L70 50 L40 80 L55 50 Z" fill="url(#quark-grad-strange)" stroke={hexColor} strokeWidth="2" />
+    </g>
+  </svg>
+);
 
 const TopQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('grad5', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad5)" />
-          <path d="M25,35 H75 M50,35 V75" stroke="white" strokeWidth="8" fill="none" strokeLinecap="round" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('quark-grad-top', hexColor, 0.4)}</defs>
+    <g style={{ animation: 'float 6s ease-in-out infinite' }}>
+      <path d="M50 20 L80 40 L50 60 L20 40 Z" fill="url(#quark-grad-top)" stroke={hexColor} strokeWidth="2" />
+      <path d="M50 60 L50 80" stroke={hexColor} strokeWidth="3" />
+    </g>
+  </svg>
+);
 
 const BottomQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('grad6', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad6)" />
-          <path d="M25,35 C25,65 75,65 75,35" stroke="white" strokeWidth="8" fill="none" strokeLinecap="round" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('quark-grad-bottom', hexColor, 0.4)}</defs>
+    <g style={{ animation: 'float 10s ease-in-out infinite' }}>
+      <path d="M50 80 L80 60 L50 40 L20 60 Z" fill="url(#quark-grad-bottom)" stroke={hexColor} strokeWidth="2" />
+      <path d="M50 40 L50 20" stroke={hexColor} strokeWidth="3" />
+    </g>
+  </svg>
+);
 
 const AntiUpQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>
-            {radialGradient('grad-anti-up', hexColor)}
-            <filter id="glow-anti-up">
-              <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad-anti-up)" />
-          <polygon points="50,80 75,35 25,35" fill="white" filter="url(#glow-anti-up)" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <g style={{ animation: 'float 8s ease-in-out infinite' }}>
+      <path d="M50 20 L75 55 L25 55 Z" fill="none" stroke={hexColor} strokeWidth="3" />
+    </g>
+  </svg>
+);
 
 const AntiDownQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('grad-anti-down', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad-anti-down)" />
-          <polygon points="25,65 75,65 50,20" fill="white" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <g style={{ animation: 'float 8s ease-in-out infinite' }}>
+      <path d="M50 80 L75 45 L25 45 Z" fill="none" stroke={hexColor} strokeWidth="3" />
+    </g>
+  </svg>
+);
 
 const ElectronIcon = ({ hexColor }) => (
   <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -214,12 +237,12 @@ const ElectronIcon = ({ hexColor }) => (
 );
 
 const AntiCharmQuarkIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('grad-anti-charm', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#grad-anti-charm)" />
-          <path d="M50,25 C30,25 30,45 50,45 C70,45 70,25 50,25 M50,55 C30,55 30,75 50,75 C70,75 70,55 50,55" fill="white" transform="rotate(180 50 50)" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <g style={{ animation: 'float 7s ease-in-out infinite' }}>
+      <path d="M30 25 L70 25 L70 75 L30 75 L50 50 Z" fill="none" stroke={hexColor} strokeWidth="3" />
+    </g>
+  </svg>
+);
 
 const ElectronNeutrinoIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" strokeWidth="4">
@@ -274,16 +297,16 @@ const ZBosonIcon = ({ hexColor }) => (
 const ProtonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('proton-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#proton-grad)" />
-          <QuarkComposition up={2} down={1} />
+          <circle cx="50" cy="50" r="45" fill="url(#proton-grad)" opacity="0.8" />
+          <QuarkComposition up={2} down={1} parentHexColor={hexColor} />
         </svg>
       );
 
 const NeutronIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>{radialGradient('neutron-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#neutron-grad)" />
-          <QuarkComposition up={1} down={2} />
+          <circle cx="50" cy="50" r="45" fill="url(#neutron-grad)" opacity="0.8" />
+          <QuarkComposition up={1} down={2} parentHexColor={hexColor} />
         </svg>
       );
 
