@@ -796,6 +796,110 @@ const AyoubIcon = ({ hexColor }) => (
   </svg>
 );
 
+const AdenineIcon = ({ hexColor }) => ( // Purine (double ring)
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <polygon points="30,30 70,30 85,50 70,70 30,70 15,50" fill={hexColor} stroke="white" strokeWidth="3" />
+    <polygon points="30,30 30,70 50,85 50,15" fill={hexColor} stroke="white" strokeWidth="3" />
+  </svg>
+);
+
+const GuanineIcon = ({ hexColor }) => ( // Purine (double ring)
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <polygon points="30,30 70,30 85,50 70,70 30,70 15,50" fill={hexColor} stroke="white" strokeWidth="3" />
+    <polygon points="30,30 30,70 50,85 50,15" fill={hexColor} stroke="white" strokeWidth="3" opacity="0.7" />
+  </svg>
+);
+
+const CytosineIcon = ({ hexColor }) => ( // Pyrimidine (single ring)
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <polygon points="30,20 70,20 85,50 70,80 30,80 15,50" fill={hexColor} stroke="white" strokeWidth="3" />
+  </svg>
+);
+
+const ThymineIcon = ({ hexColor }) => ( // Pyrimidine (single ring)
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <polygon points="30,20 70,20 85,50 70,80 30,80 15,50" fill={hexColor} stroke="white" strokeWidth="3" opacity="0.7" />
+  </svg>
+);
+
+const NitrogenGasIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('n2-grad', hexColor, 0.4)}</defs>
+    <circle cx="50" cy="50" r="45" fill="url(#n2-grad)" opacity="0.4" />
+    <circle cx="35" cy="50" r="15" fill={PARTICLE_COLOR_MAP['sky-500']} />
+    <circle cx="65" cy="50" r="15" fill={PARTICLE_COLOR_MAP['sky-500']} />
+  </svg>
+);
+
+const OxygenGasIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('o2-grad', hexColor, 0.4)}</defs>
+    <circle cx="50" cy="50" r="45" fill="url(#o2-grad)" opacity="0.4" />
+    <circle cx="35" cy="50" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+    <circle cx="65" cy="50" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
+
+const AceticAcidIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <polygon points="20,40 40,20 80,60 60,80" fill={hexColor} stroke="white" strokeWidth="3" />
+  </svg>
+);
+
+const EthanolIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('ethanol-grad', hexColor, 0.4)}</defs>
+    <circle cx="50" cy="50" r="45" fill="url(#ethanol-grad)" opacity="0.4" />
+    {/* C-C-O backbone */}
+    <circle cx="30" cy="50" r="12" fill={PARTICLE_COLOR_MAP['gray-800']} />
+    <circle cx="55" cy="50" r="12" fill={PARTICLE_COLOR_MAP['gray-800']} />
+    <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+    <line x1="42" y1="50" x2="43" y2="50" stroke="white" strokeWidth="2" />
+    <line x1="67" y1="50" x2="68" y2="50" stroke="white" strokeWidth="2" />
+  </svg>
+);
+
+const SulfuricAcidIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('h2so4-grad', hexColor, 0.4)}</defs>
+    <circle cx="50" cy="50" r="45" fill="url(#h2so4-grad)" opacity="0.4" />
+    <circle cx="50" cy="50" r="20" fill={PARTICLE_COLOR_MAP['yellow-500']} />
+    <circle cx="50" cy="20" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+    <circle cx="50" cy="80" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+    <circle cx="20" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+    <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
+
+const GlucoseIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <g transform="rotate(-30 50 50) scale(0.9)">
+      <polygon points="50,15 85,37.5 85,82.5 50,105 15,82.5 15,37.5" fill={hexColor} stroke="white" strokeWidth="3" />
+      <circle cx="50" cy="22" r="6" fill={PARTICLE_COLOR_MAP['red-600']} stroke="white" strokeWidth="1.5" />
+    </g>
+  </svg>
+);
+
+const DNAIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <path d="M30 10 C 70 30, 30 70, 70 90" stroke={PARTICLE_COLOR_MAP['blue-400']} strokeWidth="8" fill="none" strokeLinecap="round" />
+    <path d="M70 10 C 30 30, 70 70, 30 90" stroke={PARTICLE_COLOR_MAP['purple-600']} strokeWidth="8" fill="none" strokeLinecap="round" />
+  </svg>
+);
+
+const RNAIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <path d="M30 10 C 70 30, 30 70, 70 90" stroke={PARTICLE_COLOR_MAP['orange-500']} strokeWidth="8" fill="none" strokeLinecap="round" />
+  </svg>
+);
+
+const UracilIcon = ({ hexColor }) => ( // Pyrimidine (single ring)
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <polygon points="30,20 70,20 85,50 70,80 30,80 15,50" fill={hexColor} stroke="white" strokeWidth="3" />
+    <circle cx="70" cy="20" r="8" fill={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
+
 const GenericAtomIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ElectronShells electronCount={18} hexColor={hexColor} />
@@ -852,6 +956,19 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.VALINE]: ValineIcon,
   [PARTICLE_TYPES.LEUCINE]: LeucineIcon,
   [PARTICLE_TYPES.SERINE]: SerineIcon,
+  [PARTICLE_TYPES.ETHANOL]: EthanolIcon,
+  [PARTICLE_TYPES.SULFURIC_ACID]: SulfuricAcidIcon,
+  [PARTICLE_TYPES.GLUCOSE]: GlucoseIcon,
+  [PARTICLE_TYPES.ADENINE]: AdenineIcon,
+  [PARTICLE_TYPES.GUANINE]: GuanineIcon,
+  [PARTICLE_TYPES.CYTOSINE]: CytosineIcon,
+  [PARTICLE_TYPES.THYMINE]: ThymineIcon,
+  [PARTICLE_TYPES.NITROGEN_GAS]: NitrogenGasIcon,
+  [PARTICLE_TYPES.OXYGEN_GAS]: OxygenGasIcon,
+  [PARTICLE_TYPES.ACETIC_ACID]: AceticAcidIcon,
+  [PARTICLE_TYPES.URACIL]: UracilIcon,
+  [PARTICLE_TYPES.DNA]: DNAIcon,
+  [PARTICLE_TYPES.RNA]: RNAIcon,
   'ayoub': AyoubIcon, // Directly using the string for the test molecule
   [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
   [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,

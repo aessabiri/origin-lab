@@ -81,6 +81,19 @@ export const PARTICLE_TYPES = {
   GLYCYLGLYCINE: 'glycylglycine',
   ALANINE: 'alanine',
   GLYCYL_ALANINE: 'glycyl-alanine',
+  ETHANOL: 'ethanol',
+  SULFURIC_ACID: 'sulfuric-acid',
+  GLUCOSE: 'glucose',
+  ADENINE: 'adenine',
+  GUANINE: 'guanine',
+  CYTOSINE: 'cytosine',
+  THYMINE: 'thymine',
+  NITROGEN_GAS: 'nitrogen-gas',
+  OXYGEN_GAS: 'oxygen-gas',
+  ACETIC_ACID: 'acetic-acid',
+  URACIL: 'uracil',
+  DNA: 'dna',
+  RNA: 'rna',
 };
 
 export const PARTICLE_COLORS = {
@@ -166,6 +179,19 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.VALINE]: 'bg-orange-600',
   [PARTICLE_TYPES.LEUCINE]: 'bg-yellow-600',
   [PARTICLE_TYPES.SERINE]: 'bg-pink-600',
+  [PARTICLE_TYPES.ETHANOL]: 'bg-sky-300',
+  [PARTICLE_TYPES.SULFURIC_ACID]: 'bg-yellow-700',
+  [PARTICLE_TYPES.GLUCOSE]: 'bg-orange-400',
+  [PARTICLE_TYPES.ADENINE]: 'bg-blue-400',
+  [PARTICLE_TYPES.GUANINE]: 'bg-green-400',
+  [PARTICLE_TYPES.CYTOSINE]: 'bg-orange-500',
+  [PARTICLE_TYPES.THYMINE]: 'bg-red-400',
+  [PARTICLE_TYPES.NITROGEN_GAS]: 'bg-sky-700',
+  [PARTICLE_TYPES.OXYGEN_GAS]: 'bg-red-800',
+  [PARTICLE_TYPES.ACETIC_ACID]: 'bg-stone-400',
+  [PARTICLE_TYPES.URACIL]: 'bg-teal-400',
+  [PARTICLE_TYPES.DNA]: 'bg-gradient-to-br from-blue-500 to-purple-600',
+  [PARTICLE_TYPES.RNA]: 'bg-gradient-to-br from-orange-500 to-red-600',
 };
 
 export const PARTICLE_NAMES = {
@@ -251,6 +277,19 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.VALINE]: 'Valine',
   [PARTICLE_TYPES.LEUCINE]: 'Leucine',
   [PARTICLE_TYPES.SERINE]: 'Serine',
+  [PARTICLE_TYPES.ETHANOL]: 'Ethanol',
+  [PARTICLE_TYPES.SULFURIC_ACID]: 'Sulfuric Acid',
+  [PARTICLE_TYPES.GLUCOSE]: 'Glucose',
+  [PARTICLE_TYPES.ADENINE]: 'Adenine',
+  [PARTICLE_TYPES.GUANINE]: 'Guanine',
+  [PARTICLE_TYPES.CYTOSINE]: 'Cytosine',
+  [PARTICLE_TYPES.THYMINE]: 'Thymine',
+  [PARTICLE_TYPES.NITROGEN_GAS]: 'Nitrogen Gas',
+  [PARTICLE_TYPES.OXYGEN_GAS]: 'Oxygen Gas',
+  [PARTICLE_TYPES.ACETIC_ACID]: 'Acetic Acid',
+  [PARTICLE_TYPES.URACIL]: 'Uracil',
+  [PARTICLE_TYPES.DNA]: 'DNA',
+  [PARTICLE_TYPES.RNA]: 'RNA',
 };
 
 export const PARTICLE_INFO = {
@@ -319,6 +358,19 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.GLYCYLGLYCINE]: { name: 'Glycylglycine', category: 'Dipeptide', mass: '132.12 g/mol', charge: '0 e', composition: 'Two Glycine molecules', description: 'The simplest dipeptide, formed from two molecules of glycine joined by a peptide bond. It is a common intermediate in protein metabolism.' },
   [PARTICLE_TYPES.GLYCYL_ALANINE]: { name: 'Glycyl-Alanine', category: 'Dipeptide', mass: '146.14 g/mol', charge: '0 e', composition: 'Glycine + Alanine', description: 'A dipeptide formed from glycine and alanine. It serves as a building block for larger proteins and peptides.' },
   [PARTICLE_TYPES.AYOUB]: { name: 'Ayoub', category: 'Molecule', mass: '42.0 g/mol', charge: '0 e', composition: '1 Carbon, 1 Nitrogen, 1 Oxygen, 2 Hydrogen', description: 'A special molecule.' },
+  [PARTICLE_TYPES.ETHANOL]: { name: 'Ethanol', category: 'Molecule / Alcohol', mass: '46.07 g/mol', charge: '0 e', composition: '2 Carbon, 6 Hydrogen, 1 Oxygen', description: 'Also known as drinking alcohol, it is a volatile, flammable, colorless liquid with a slight characteristic odor. It is a psychoactive substance and is the principal type of alcohol found in alcoholic beverages.' },
+  [PARTICLE_TYPES.SULFURIC_ACID]: { name: 'Sulfuric Acid', category: 'Molecule / Acid', mass: '98.079 g/mol', charge: '0 e', composition: '2 Hydrogen, 1 Sulfur, 4 Oxygen', description: 'A highly corrosive mineral acid, also known as "oil of vitriol". It is a diprotic acid and has a wide range of applications including fertilizer manufacture, ore processing, and as a cleaning agent.' },
+  [PARTICLE_TYPES.GLUCOSE]: { name: 'Glucose', category: 'Molecule / Carbohydrate', mass: '180.156 g/mol', charge: '0 e', composition: '6 Carbon, 12 Hydrogen, 6 Oxygen', description: 'A simple sugar which is an important energy source in living organisms and is a component of many carbohydrates. It is produced by plants during photosynthesis.' },
+  [PARTICLE_TYPES.ADENINE]: { name: 'Adenine', category: 'Nucleobase (Purine)', mass: '135.13 g/mol', charge: '0 e', composition: '5 Carbon, 5 Hydrogen, 5 Nitrogen', description: 'A purine nucleobase, one of the four main bases found in DNA and RNA. In DNA, it pairs with thymine.' },
+  [PARTICLE_TYPES.GUANINE]: { name: 'Guanine', category: 'Nucleobase (Purine)', mass: '151.13 g/mol', charge: '0 e', composition: '5 Carbon, 5 Hydrogen, 5 Nitrogen, 1 Oxygen', description: 'A purine nucleobase, one of the four main bases found in DNA and RNA. In DNA, it pairs with cytosine.' },
+  [PARTICLE_TYPES.CYTOSINE]: { name: 'Cytosine', category: 'Nucleobase (Pyrimidine)', mass: '111.10 g/mol', charge: '0 e', composition: '4 Carbon, 5 Hydrogen, 3 Nitrogen, 1 Oxygen', description: 'A pyrimidine nucleobase, one of the four main bases found in DNA and RNA. In DNA, it pairs with guanine.' },
+  [PARTICLE_TYPES.THYMINE]: { name: 'Thymine', category: 'Nucleobase (Pyrimidine)', mass: '126.11 g/mol', charge: '0 e', composition: '5 Carbon, 6 Hydrogen, 2 Nitrogen, 2 Oxygen', description: 'A pyrimidine nucleobase found in DNA, where it pairs with adenine. In RNA, thymine is replaced by uracil.' },
+  [PARTICLE_TYPES.NITROGEN_GAS]: { name: 'Nitrogen Gas (N₂)', category: 'Diatomic Molecule', mass: '28.014 u', charge: '0 e', composition: '2 Nitrogen', description: 'A colorless, odorless gas that makes up about 78% of Earth\'s atmosphere. The strong triple bond between the two nitrogen atoms makes it relatively inert.' },
+  [PARTICLE_TYPES.OXYGEN_GAS]: { name: 'Oxygen Gas (O₂)', category: 'Diatomic Molecule', mass: '31.998 u', charge: '0 e', composition: '2 Oxygen', description: 'A highly reactive diatomic molecule that is essential for the respiration of most life on Earth. It makes up about 21% of the atmosphere.' },
+  [PARTICLE_TYPES.ACETIC_ACID]: { name: 'Acetic Acid (Vinegar)', category: 'Molecule / Carboxylic Acid', mass: '60.052 g/mol', charge: '0 e', composition: '2 Carbon, 4 Hydrogen, 2 Oxygen', description: 'The main component of vinegar, giving it its sour taste and pungent smell. It is a widely used chemical reagent and industrial chemical.' },
+  [PARTICLE_TYPES.URACIL]: { name: 'Uracil', category: 'Nucleobase (Pyrimidine)', mass: '112.08 g/mol', charge: '0 e', composition: '4 Carbon, 4 Hydrogen, 2 Nitrogen, 2 Oxygen', description: 'A pyrimidine nucleobase found in RNA, where it pairs with adenine. It takes the place of thymine in the genetic code.' },
+  [PARTICLE_TYPES.DNA]: { name: 'DNA (Deoxyribonucleic Acid)', category: 'Nucleic Acid', mass: 'Variable', charge: 'Negative', composition: 'Adenine, Guanine, Cytosine, Thymine + Sugar-Phosphate Backbone', description: 'A molecule composed of two polynucleotide chains that coil around each other to form a double helix carrying genetic instructions for the development, functioning, growth and reproduction of all known organisms and many viruses.' },
+  [PARTICLE_TYPES.RNA]: { name: 'RNA (Ribonucleic Acid)', category: 'Nucleic Acid', mass: 'Variable', charge: 'Negative', composition: 'Adenine, Guanine, Cytosine, Uracil + Sugar-Phosphate Backbone', description: 'A nucleic acid present in all living cells. Its principal role is to act as a messenger carrying instructions from DNA for controlling the synthesis of proteins, although in some viruses RNA rather than DNA carries the genetic information.' },
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -399,6 +451,8 @@ export const PARTICLE_COLOR_MAP = {
   'fuchsia-700': '#a21caf',
   'green-600': '#16a34a',
   'rose-700': '#be123c',
+  'yellow-700': '#a16207',
+  'teal-400': '#2dd4bf',
 };
 
 
@@ -479,6 +533,24 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
       PARTICLE_TYPES.CARBON_MONOXIDE,
       PARTICLE_TYPES.SODIUM_CHLORIDE,
       PARTICLE_TYPES.SILICON_DIOXIDE,
+      PARTICLE_TYPES.ETHANOL,
+      PARTICLE_TYPES.SULFURIC_ACID,
+      PARTICLE_TYPES.GLUCOSE,
+      PARTICLE_TYPES.ADENINE,
+      PARTICLE_TYPES.GUANINE,
+      PARTICLE_TYPES.CYTOSINE,
+      PARTICLE_TYPES.THYMINE,
+      PARTICLE_TYPES.NITROGEN_GAS,
+      PARTICLE_TYPES.OXYGEN_GAS,
+      PARTICLE_TYPES.ACETIC_ACID,
+      PARTICLE_TYPES.URACIL,
+    ]
+  },
+  {
+    name: 'Nucleic Acids',
+    particles: [
+      PARTICLE_TYPES.DNA,
+      PARTICLE_TYPES.RNA,
     ]
   },
   {
