@@ -2,17 +2,18 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useSprings, animated } from '@react-spring/web';
 import { useDrag, useGesture } from '@use-gesture/react';
 import ParticleIcon from './components/ParticleIcon.jsx';
-import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP, CODEX_PARTICLES_BY_CATEGORY, PARTICLE_INFO } from './constants/particles.js';
+import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_COLOR_MAP, CODEX_PARTICLES_BY_CATEGORY, PARTICLE_INFO, elementaryParticleGroups } from './constants/particles.js';
 import { COMPOUND_PARTICLE_TYPES } from './recipes.js';
-import { GOALS, elementaryParticleGroups } from './gameData.js';
 import InfoPanel from './components/InfoPanel.jsx';
 import PeriodicTable from './components/PeriodicTable.jsx';
 import ActionToolbar from './components/ActionToolbar.jsx';
+import ActionMenu from './components/ActionMenu.jsx';
 import Codex from './components/Codex.jsx';
 import { usePersistentState } from './hooks/usePersistentState.js';
 import { useParticleActions } from './hooks/useParticleActions.js';
 import { useSelection } from './hooks/useSelection.js';
 import { MOLECULE_RECIPES } from './components/moleculeRecipes.js';
+import { GOAL_PATHS } from './constants/goalPaths.js';
 import { RECIPES, PARTICLE_CATEGORIES } from './recipes.js';
 import { useDecay } from './hooks/useDecay.js';
 
@@ -25,6 +26,8 @@ const LOCAL_STORAGE_KEYS = {
   GOAL_INDEX: 'particle-lab-goal-index',
   UI_SCALE: 'particle-lab-ui-scale',
   TABLE_PINNED: 'particle-lab-table-pinned',
+  GOAL_PATH: 'particle-lab-goal-path',
+  SANDBOX_MODE: 'particle-lab-sandbox-mode',
 };
 
 const MOLECULE_PARTICLE_TYPES = new Set(
@@ -53,6 +56,9 @@ const App = () => {
   const [isPeriodicTablePinned, setIsPeriodicTablePinned] = usePersistentState(LOCAL_STORAGE_KEYS.TABLE_PINNED, false);
 
   const canvasRef = useRef(null);
+  const [goalPath, setGoalPath] = usePersistentState(LOCAL_STORAGE_KEYS.GOAL_PATH, 'medium');
+  const goals = useMemo(() => GOAL_PATHS[goalPath] || GOAL_PATHS.medium, [goalPath]);
+  const [isSandboxMode, setIsSandboxMode] = usePersistentState(LOCAL_STORAGE_KEYS.SANDBOX_MODE, false);
 
   const [isPeriodicTableVisible, setIsPeriodicTableVisible] = useState(false);
 
@@ -60,7 +66,7 @@ const App = () => {
     const isOpen = state;
     setIsHintVisible(false);
     setIsActionMenuVisible(false);
-    setIsSettingsVisible(false);
+    setIsSettingsVisible(false); // isRoadToDnaVisible is now internal to ActionMenu
     setIsCodexVisible(false);
 
     if (!isPeriodicTablePinned) {
@@ -77,11 +83,24 @@ const App = () => {
   };
 
   const allDiscoveredParticles = useMemo(() => {
-    const elementary = Object.values(elementaryParticleGroups).flat().map(p => ({ type: p.type }));
-    return [...elementary, ...secondaryParticles, ...discoveredAtoms, ...discoveredMolecules];
-  }, [secondaryParticles, discoveredAtoms, discoveredMolecules]);
+    if (isSandboxMode) {
+      return Object.keys(PARTICLE_INFO).map(type => ({ type }));
+    } else {
+      const elementary = Object.values(elementaryParticleGroups).flat().map(p => ({ type: p.type }));
+      return [...elementary, ...secondaryParticles, ...discoveredAtoms, ...discoveredMolecules];
+    }
+  }, [isSandboxMode, secondaryParticles, discoveredAtoms, discoveredMolecules]);
 
-  const discoveredParticlesForPeriodicTable = useMemo(() => [...secondaryParticles, ...discoveredAtoms], [secondaryParticles, discoveredAtoms]);
+  const discoveredParticlesForPeriodicTable = useMemo(() => {
+    if (isSandboxMode) {
+      // In sandbox mode, discover all atoms and secondary particles that can appear on the table.
+      return Object.values(PARTICLE_TYPES)
+        .filter(type => RECIPES.some(r => r.type === type && (r.category === PARTICLE_CATEGORIES.ATOM || r.category === PARTICLE_CATEGORIES.SECONDARY)))
+        .map(type => ({ type }));
+    } else {
+      return [...secondaryParticles, ...discoveredAtoms];
+    }
+  }, [isSandboxMode, secondaryParticles, discoveredAtoms]);
 
   const allPossibleParticles = useMemo(() => CODEX_PARTICLES_BY_CATEGORY, []);
 
@@ -171,7 +190,6 @@ const App = () => {
     handleDisassemble,
     handleRevertToElementary,
   } = useParticleActions({
-    particles: particles,
     particles,
     bonds, // Pass bonds to the hook
     setBonds,
@@ -264,6 +282,19 @@ const App = () => {
     showMessage('Lab has been reset!');
     setIsResetConfirmVisible(false);
   }, [setParticles, setSecondaryParticles, setDiscoveredAtoms, setDiscoveredMolecules, setBonds, setCurrentGoalIndex, showMessage]);
+
+  const handleSetGoalPath = useCallback((path) => {
+    setGoalPath(path);
+    setCurrentGoalIndex(0);
+    setIsSandboxMode(false); // Exit sandbox when a goal path is chosen
+    showMessage(`Goal path set to ${path}. Progress reset.`);
+  }, [setGoalPath, setCurrentGoalIndex, showMessage, setIsSandboxMode]);
+
+  const handleToggleSandbox = useCallback(() => {
+    const newSandboxState = !isSandboxMode;
+    setIsSandboxMode(newSandboxState);
+    showMessage(`Sandbox mode ${newSandboxState ? 'activated' : 'deactivated'}.`);
+  }, [isSandboxMode, setIsSandboxMode, showMessage]);
 
   const canBreakBonds = useMemo(() => {
     if (selectedParticleIds.size === 0) return false;
@@ -401,109 +432,6 @@ const App = () => {
 
   return (
     <>
-    <style>{`
-      @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
-      }
-      @keyframes shake {
-        0%, 100% { transform: translate(0, 0) rotate(0); }
-        25% { transform: translate(2px, -1px) rotate(1deg); }
-        50% { transform: translate(-2px, 1px) rotate(-1deg); }
-        75% { transform: translate(1px, 2px) rotate(0.5deg); }
-      }
-      @keyframes jiggle {
-        0%, 100% { transform: translate(0, 0) rotate(0); }
-        10% { transform: translate(-1px, -2px) rotate(-2deg); }
-        20% { transform: translate(-3px, 0px) rotate(3deg); }
-        30% { transform: translate(3px, 2px) rotate(0deg); }
-        40% { transform: translate(1px, -1px) rotate(2deg); }
-        50% { transform: translate(-1px, 2px) rotate(-1deg); }
-        60% { transform: translate(-3px, 1px) rotate(0deg); }
-        70% { transform: translate(3px, 1px) rotate(-2deg); }
-        80% { transform: translate(-1px, -1px) rotate(3deg); }
-        90% { transform: translate(1px, 2px) rotate(0deg); }
-      }
-      @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 20px -5px var(--glow-color), inset 0 0 10px -5px var(--glow-color); }
-        50% { box-shadow: 0 0 30px 0px var(--glow-color), inset 0 0 20px 0px var(--glow-color); }
-      }
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      @keyframes spring {
-        0%, 100% { transform: scale(1); }
-        20% { transform: scale(0.9, 1.1); }
-        40% { transform: scale(1.1, 0.9); }
-        60% { transform: scale(0.95, 1.05); }
-        80% { transform: scale(1.05, 0.95); }
-      }
-
-      .particle-palette-item {
-        perspective: 800px;
-      }
-      .particle-palette-item .icon-container {
-        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        transform-style: preserve-3d;
-      }
-      .particle-palette-item:hover .icon-container {
-        transform: rotateY(25deg) rotateX(10deg) scale3d(1.1, 1.1, 1.1);
-      }
-      @keyframes fade-out-and-disperse {
-        from {
-          transform: translate(-50%, -50%) scale(1);
-          opacity: 1;
-        }
-        to {
-          transform: translate(calc(-50% + (var(--i) - 0.5) * 120px), calc(-50% + (var(--j) - 0.5) * 120px)) scale(0);
-          opacity: 0;
-        }
-      }
-      @keyframes qcd-color-cycle-1 {
-        0%, 100% { fill: #ef4444; } /* red */
-        33.3% { fill: #22c55e; } /* green */
-        66.6% { fill: #2563eb; } /* blue */
-      }
-      @keyframes qcd-color-cycle-2 {
-        0%, 100% { fill: #22c55e; } /* green */
-        33.3% { fill: #2563eb; } /* blue */
-        66.6% { fill: #ef4444; } /* red */
-      }
-      @keyframes qcd-color-cycle-3 {
-        0%, 100% { fill: #2563eb; } /* blue */
-        33.3% { fill: #ef4444; } /* red */
-        66.6% { fill: #22c55e; } /* green */
-      }
-      @keyframes gluon-pulse {
-        0%, 100% { stroke-opacity: 0.5; stroke-width: 2; }
-        50% { stroke-opacity: 1; stroke-width: 3; }
-      }
-      }
-      @keyframes electron-cloud {
-        0%, 100% { opacity: 0.6; transform: scale(1.1); }
-        50% { opacity: 0.2; transform: scale(1); }
-      }
-      @keyframes electron-particle {
-        0%, 20% { opacity: 0; }
-        50% { opacity: 1; }
-        80%, 100% { opacity: 0; }
-      }
-      @keyframes electron-path {
-        0%, 100% { transform: translate(0, 0); }
-        25% { transform: translate(25px, -15px); }
-        50% { transform: translate(-20px, 20px); }
-        75% { transform: translate(10px, 5px); }
-        }
-      }
-      .radiation-particle {
-        position: absolute;
-        width: 8px; height: 8px;
-        background: radial-gradient(circle, #fff, #60a5fa);
-        border-radius: 50%; box-shadow: 0 0 10px #60a5fa; pointer-events: none;
-        animation: fade-out-and-disperse 0.7s ease-out forwards;
-      }
-    `}</style>
     <div className="flex flex-col md:flex-row h-screen font-inter bg-gray-900 text-white p-4 gap-4">
       <div
         {...canvasBind()}
@@ -547,16 +475,20 @@ const App = () => {
               canRemove={selectedParticleIds.size > 0}
             />
           </div>
-          {currentGoalIndex < GOALS.length && (
-            <div className="bg-gray-900/70 backdrop-blur-sm p-3 rounded-lg border border-gray-600 shadow-lg">
-              <p className="text-sm text-gray-400 font-semibold">Current Goal:</p>
-              <p className="text-lg text-amber-300 font-bold">{GOALS[currentGoalIndex].name}</p>
-            </div>
-          )}
-          {currentGoalIndex >= GOALS.length && (
-            <div className="bg-green-900/70 backdrop-blur-sm p-3 rounded-lg border border-green-600 shadow-lg">
-              <p className="text-lg text-green-300 font-bold">All goals completed! Sandbox mode unlocked.</p>
-            </div>
+          {!isSandboxMode && (
+            <>
+              {currentGoalIndex < goals.length && (
+                <div className="bg-gray-900/70 backdrop-blur-sm p-3 rounded-lg border border-gray-600 shadow-lg">
+                  <p className="text-sm text-gray-400 font-semibold">Current Goal:</p>
+                  <p className="text-lg text-amber-300 font-bold">{goals[currentGoalIndex].name}</p>
+                </div>
+              )}
+              {currentGoalIndex >= goals.length && (
+                <div className="bg-green-900/70 backdrop-blur-sm p-3 rounded-lg border border-green-600 shadow-lg">
+                  <p className="text-lg text-green-300 font-bold">All goals completed! Sandbox mode unlocked.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
         <div
@@ -672,8 +604,8 @@ const App = () => {
         )}
 
         <div className="absolute bottom-4 left-4 z-10">
-          {isHintVisible && currentGoalIndex < GOALS.length && (() => {
-            const currentGoal = GOALS[currentGoalIndex];
+          {isHintVisible && !isSandboxMode && currentGoalIndex < goals.length && (() => {
+            const currentGoal = goals[currentGoalIndex];
             // Search both simple recipes and molecule recipes for the hint
             let hintRecipe = RECIPES.find(r => r.type === currentGoal.type);
             if (!hintRecipe) { 
@@ -695,20 +627,19 @@ const App = () => {
               </div>
             );
           })()}
-          {isActionMenuVisible && (
-            <div className="absolute bottom-full mb-2 flex flex-col gap-2 w-48" onClick={e => e.stopPropagation()}>
-              <button onClick={() => openExclusive(setIsCodexVisible, isCodexVisible)} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Particle Codex</button>
-              <button onClick={() => openExclusive(setIsPeriodicTableVisible, isPeriodicTableVisible)} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Periodic Table</button>
-              <button onClick={() => openExclusive(setIsSettingsVisible, isSettingsVisible)} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Settings</button>
-              <button onClick={() => { handleEmptyCanvas(); setIsActionMenuVisible(false); }} disabled={particles.length === 0} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-red-800 hover:bg-red-700 transition-colors disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed">Empty Canvas</button>
-              <button
-                onClick={() => { handleReset(); setIsActionMenuVisible(false); }}
-                className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-indigo-800 hover:bg-indigo-700 transition-colors"
-              >
-                Reset Lab
-              </button>
-            </div>
-          )}
+          <ActionMenu
+            isVisible={isActionMenuVisible}
+            onClose={() => setIsActionMenuVisible(false)}
+            onSetGoalPath={handleSetGoalPath}
+            onOpenCodex={() => openExclusive(setIsCodexVisible, isCodexVisible)}
+            onOpenPeriodicTable={() => openExclusive(setIsPeriodicTableVisible, isPeriodicTableVisible)}
+            onOpenSettings={() => openExclusive(setIsSettingsVisible, isSettingsVisible)}
+            onEmptyCanvas={() => { handleEmptyCanvas(); setIsActionMenuVisible(false); }}
+            onReset={() => { handleReset(); setIsActionMenuVisible(false); }}
+            onToggleSandbox={handleToggleSandbox}
+            isSandbox={isSandboxMode}
+            hasParticles={particles.length > 0}
+          />
           <div className="flex gap-2">
             <button
               onClick={() => openExclusive(setIsHintVisible, isHintVisible)}
@@ -772,7 +703,7 @@ const App = () => {
           const isAssemblable = assemblableParticleIds.has(particle.id);
 
           // Define which particles should have a transparent background
-          const structuralIconTypes = new Set([PARTICLE_TYPES.WATER, PARTICLE_TYPES.ELECTRON, PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE, PARTICLE_TYPES.ALANINE, PARTICLE_TYPES.GLYCYL_ALANINE]);
+          const structuralIconTypes = new Set([PARTICLE_TYPES.WATER, PARTICLE_TYPES.ELECTRON, PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE, PARTICLE_TYPES.ALANINE, PARTICLE_TYPES.GLYCYL_ALANINE, PARTICLE_TYPES.SERINE]);
           const hasStructuralIcon = structuralIconTypes.has(particle.type);
 
           const getBaseSize = (type) => {
@@ -790,7 +721,8 @@ const App = () => {
 
           const baseSize = getBaseSize(particle.type);
           // Only apply a background color if it's not a structural icon
-          const particleColorClass = hasStructuralIcon || particle.type.endsWith('quark') ? '' : (PARTICLE_COLORS[particle.type] || 'bg-gray-500');
+          const isQuark = particle.type.endsWith('quark');
+          const particleColorClass = hasStructuralIcon || isQuark ? '' : (PARTICLE_COLORS[particle.type] || 'bg-gray-500');
 
           return (
             <animated.div
@@ -805,7 +737,7 @@ const App = () => {
                 width: `${baseSize * uiScale}px`,
                 height: `${baseSize * uiScale}px`,
               }}
-              className={`absolute cursor-grab ${hasStructuralIcon || particle.type.endsWith('quark') ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-4 ring-yellow-400' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
+              className={`absolute cursor-grab ${hasStructuralIcon || isQuark ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-2 ring-yellow-300' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
               onClick={(e) => handleParticleClick(e, particle.id)}
               onDoubleClick={() => handleShowInfo(particle.type)}
               onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}
@@ -813,7 +745,7 @@ const App = () => {
             >
               <div className="flex flex-col items-center justify-center w-full h-full">
                 <div className="w-full h-full">
-                  <ParticleIcon type={particle.type} color={particleColorClass} isCompound={isCompound} />
+                  <ParticleIcon type={particle.type} color={PARTICLE_COLORS[particle.type]} isCompound={isCompound} />
                 </div>
                 <span className="text-white text-center p-1 absolute -bottom-6 text-sm">
                   {PARTICLE_NAMES[particle.type]}
@@ -824,8 +756,8 @@ const App = () => {
         })}
       </div>
 
-      <div className={`flex flex-col bg-gray-800 rounded-2xl shadow-xl overflow-y-auto transition-all duration-300 ease-in-out
-        ${isPaletteVisible ? 'w-full md:w-80 p-4' : 'w-0 p-0'}
+      <div className={`flex flex-col bg-gradient-to-b from-gray-800 to-slate-900 rounded-2xl shadow-xl overflow-y-auto transition-all duration-300 ease-in-out
+        ${isPaletteVisible ? 'w-full md:w-80 p-4 border border-slate-700' : 'w-0 p-0 border-none'}
       `}>
         <div className={`min-w-[18rem] md:min-w-0 ${!isPaletteVisible ? 'hidden' : ''}`}>
 
@@ -845,13 +777,12 @@ const App = () => {
                     style={{ width: `${80 * uiScale}px`, height: `${80 * uiScale}px` }}
                   >
                     <div
-                      className="absolute inset-0 rounded-full"
+                      className={`absolute inset-0 rounded-full ${p.type.includes('boson') || p.type.includes('photon') ? 'animate-pulse-glow' : ''}`}
                       style={{
                         '--glow-color': PARTICLE_COLOR_MAP[PARTICLE_COLORS[p.type]?.replace('bg-', '')] || '#9ca3af',
-                        animation: `${p.type.includes('boson') || p.type.includes('photon') ? 'pulse-glow 2s infinite ease-in-out' : 'none'}`
                       }}
                     />
-                    <div className="w-full h-full" style={{ animation: `${p.type.includes('quark') ? 'float 4s infinite ease-in-out' : ''} ${p.type === PARTICLE_TYPES.GLUON ? 'spring 1s infinite linear' : ''}` }}>
+                    <div className={`w-full h-full ${p.type.includes('quark') ? 'animate-float' : ''} ${p.type === PARTICLE_TYPES.GLUON ? 'animate-spring' : ''}`}>
                       <ParticleIcon type={p.type} color={PARTICLE_COLORS[p.type]} />
                     </div>
                   </div>

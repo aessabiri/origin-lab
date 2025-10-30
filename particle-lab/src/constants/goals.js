@@ -1,33 +1,4 @@
-import { PARTICLE_TYPES } from './constants/particles.js';
-
-export const elementaryParticleGroups = {
-  Quarks: [
-    { id: 'up-1', type: PARTICLE_TYPES.UP_QUARK },
-    { id: 'down-1', type: PARTICLE_TYPES.DOWN_QUARK },
-    { id: 'charm-1', type: PARTICLE_TYPES.CHARM_QUARK },
-    { id: 'strange-1', type: PARTICLE_TYPES.STRANGE_QUARK },
-    { id: 'top-1', type: PARTICLE_TYPES.TOP_QUARK },
-    { id: 'bottom-1', type: PARTICLE_TYPES.BOTTOM_QUARK },
-  ],
-  'Anti-Quarks': [
-    { id: 'anti-up-1', type: PARTICLE_TYPES.ANTI_UP_QUARK },
-    { id: 'anti-down-1', type: PARTICLE_TYPES.ANTI_DOWN_QUARK },
-    { id: 'anti-charm-1', type: PARTICLE_TYPES.ANTI_CHARM_QUARK },
-  ],
-  Leptons: [
-    { id: 'electron-1', type: PARTICLE_TYPES.ELECTRON },
-    { id: 'electron-neutrino-1', type: PARTICLE_TYPES.ELECTRON_NEUTRINO },
-  ],
-  'Anti-Leptons': [
-    { id: 'e-antineutrino-1', type: PARTICLE_TYPES.ELECTRON_ANTINEUTRINO },
-  ],
-  Bosons: [
-    { id: 'photon-1', type: PARTICLE_TYPES.PHOTON },
-    { id: 'gluon-1', type: PARTICLE_TYPES.GLUON },
-    { id: 'w-boson-1', type: PARTICLE_TYPES.W_BOSON },
-    { id: 'z-boson-1', type: PARTICLE_TYPES.Z_BOSON },
-  ]
-};
+import { PARTICLE_TYPES } from './particles.js';
 
 export const GOALS = [
   { name: 'Synthesize a Proton', type: PARTICLE_TYPES.PROTON },

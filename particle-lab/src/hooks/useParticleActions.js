@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { PARTICLE_CATEGORIES, COMPOSITION_MAP, RECIPES } from '../recipes.js';
 import { MOLECULE_RECIPES } from '../components/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
-import { GOALS } from '../gameData.js';
 import { PARTICLE_NAMES } from '../constants/particles.js';
 
 export const useParticleActions = ({
@@ -18,6 +17,7 @@ export const useParticleActions = ({
   showMessage,
   setSelectedParticleIds,
   setBonds,
+  goals,
   particles: allParticles,
 }) => {
   const disassembleParticle = useCallback((particleId, particleIndex) => {
@@ -143,11 +143,11 @@ export const useParticleActions = ({
       setParticles(prev => [...prev.filter(p => !combinedIds.has(p.id)), newMolecule]);
       setBonds(prev => prev.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
 
-      if (currentGoalIndex < GOALS.length && assemblyRecipe.type === GOALS[currentGoalIndex].type) {
+      if (currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
         showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);
         setCurrentGoalIndex(prev => prev + 1);
       } else {
-        showMessage(`Success! You've created ${assemblyRecipe.name}.`);
+        showMessage(`Success! You've created ${PARTICLE_NAMES[assemblyRecipe.type]}.`);
       }
 
       setSelectedParticleIds(new Set());
@@ -185,8 +185,8 @@ export const useParticleActions = ({
       return next;
     });
 
-    if (currentGoalIndex < GOALS.length && assemblyRecipe.type === GOALS[currentGoalIndex].type) {
-      showMessage(`Goal Complete: ${GOALS[currentGoalIndex].name}!`);
+    if (currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
+      showMessage(`Goal Complete: ${goals[currentGoalIndex].name}!`);
       setCurrentGoalIndex(prev => prev + 1);
     } else {
       showMessage(`${PARTICLE_NAMES[assemblyRecipe.type]} formed!`);

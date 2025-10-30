@@ -67,6 +67,19 @@ export const MOLECULE_RECIPES = [
     },
   },
   {
+    type: PARTICLE_TYPES.SERINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 3,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 7,
+    },
+    bonds: {
+      single: 11,
+      double: 1,
+    },
+  },
+  {
     type: PARTICLE_TYPES.ADENINE,
     atoms: {
       [PARTICLE_TYPES.CARBON]: 5,

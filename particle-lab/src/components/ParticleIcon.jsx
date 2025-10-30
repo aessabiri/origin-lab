@@ -18,9 +18,9 @@ const QuarkComposition = ({ up = 0, down = 0, parentHexColor }) => {
     const particles = [];
     if (total === 3) { // Baryons (like protons/neutrons) have one of each color.
         const qcdAnimations = [
-            'qcd-color-cycle-1 3s linear infinite',
-            'qcd-color-cycle-2 3s linear infinite',
-            'qcd-color-cycle-3 3s linear infinite',
+            'animate-qcd-color-cycle-1',
+            'animate-qcd-color-cycle-2',
+            'animate-qcd-color-cycle-3',
         ];
         let upQuarks = up;
         for (let i = 0; i < 3; i++) {
@@ -51,16 +51,16 @@ const QuarkComposition = ({ up = 0, down = 0, parentHexColor }) => {
           strokeWidth="2"
           fill="none"
           strokeDasharray="2 4"
-          style={{ animation: 'jiggle 0.5s infinite, gluon-pulse 1.5s ease-in-out infinite' }}
+          className="animate-jiggle animate-gluon-pulse"
         />
         {/* Quarks */}
         {particles.map((p, i) => (
-          <g key={i} style={{ animation: 'jiggle 0.3s infinite', animationDelay: `${i * 0.1}s` }}>
+          <g key={i} className="animate-jiggle" style={{ animationDelay: `${i * 0.1}s` }}>
             <circle
               cx={particlePositions[i][0]}
               cy={particlePositions[i][1]}
               r="10"
-              style={{ animation: p.animation }}
+              className={p.animation}
               stroke="#fff" strokeOpacity="0.5" strokeWidth="1" />
             <text x={particlePositions[i][0]} y={particlePositions[i][1]} dy=".35em" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">
               {p.type}
@@ -141,76 +141,69 @@ const MesonComposition = ({ quarkColor, antiquarkColor }) => {
 
 // --- Individual Particle Icon Components ---
 
-const UpQuarkIcon = ({ hexColor }) => ( // Pyramid
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g style={{ animation: 'float 8s ease-in-out infinite' }}>
-      <polygon points="50,15 85,85 15,85" fill={hexColor} />
-      <polygon points="50,15 15,85 50,85" fill="rgba(255,255,255,0.3)" />
-    </g>
+const SprinkleDots = () => (
+  <>
+    <circle cx="20" cy="30" r="1.5" fill="#fde047" className="animate-electron-particle" />
+    <circle cx="80" cy="70" r="1.5" fill="#818cf8" className="animate-electron-particle" style={{ animationDelay: '0.3s' }} />
+    <circle cx="30" cy="80" r="1" fill="#ef4444" className="animate-electron-particle" style={{ animationDelay: '0.6s' }} />
+    <circle cx="75" cy="25" r="1" fill="#22c55e" className="animate-electron-particle" style={{ animationDelay: '0.9s' }} />
+  </>
+);
+
+const VibratingDot = ({ hexColor }) => (
+  <circle cx="50" cy="50" r="4" fill={hexColor} className="animate-vibrate" />
+);
+
+const QuarkIconBase = ({ hexColor, isAnti = false, children }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <defs>
+      <filter id="foam-blur">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="5" />
+      </filter>
+    </defs>
+    <path
+      d="M 50 10 C 20 20, 20 80, 50 90 C 80 80, 80 20, 50 10 Z"
+      fill={hexColor}
+      opacity="0.3"
+      filter="url(#foam-blur)"
+      className="animate-ocean-wave"
+    />
+    <VibratingDot hexColor={hexColor} />
+    {children}
+    {!isAnti && <SprinkleDots />}
   </svg>
 );
 
-const DownQuarkIcon = ({ hexColor }) => ( // Inverted Pyramid
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g style={{ animation: 'float 8s ease-in-out infinite' }}>
-      <polygon points="15,15 85,15 50,85" fill={hexColor} />
-      <polygon points="50,15 85,15 50,85" fill="rgba(0,0,0,0.3)" />
-    </g>
-  </svg>
+const UpQuarkIcon = ({ hexColor }) => (
+  <QuarkIconBase hexColor={hexColor} />
 );
 
-const CharmQuarkIcon = ({ hexColor }) => ( // Cube
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g style={{ animation: 'float 7s ease-in-out infinite' }}>
-      <polygon points="20,35 50,20 80,35 50,50" fill="rgba(255,255,255,0.4)" />
-      <polygon points="20,35 20,65 50,80 50,50" fill="rgba(0,0,0,0.3)" />
-      <polygon points="50,50 50,80 80,65 80,35" fill={hexColor} />
-    </g>
-  </svg>
+const DownQuarkIcon = ({ hexColor }) => (
+  <QuarkIconBase hexColor={hexColor} />
 );
 
-const StrangeQuarkIcon = ({ hexColor }) => ( // Cylinder
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g style={{ animation: 'float 9s ease-in-out infinite' }}>
-      <ellipse cx="50" cy="25" rx="30" ry="10" fill="rgba(255,255,255,0.4)" />
-      <rect x="20" y="25" width="60" height="50" fill={hexColor} />
-      <ellipse cx="50" cy="75" rx="30" ry="10" fill="rgba(0,0,0,0.3)" />
-    </g>
-  </svg>
+const CharmQuarkIcon = ({ hexColor }) => (
+  <QuarkIconBase hexColor={hexColor} />
 );
 
-const TopQuarkIcon = ({ hexColor }) => ( // Sphere
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <defs>{radialGradient('top-quark-grad', hexColor, 0.8)}</defs>
-    <g style={{ animation: 'float 6s ease-in-out infinite' }}>
-      <circle cx="50" cy="50" r="35" fill="url(#top-quark-grad)" />
-    </g>
-  </svg>
+const StrangeQuarkIcon = ({ hexColor }) => (
+  <QuarkIconBase hexColor={hexColor} />
 );
 
-const BottomQuarkIcon = ({ hexColor }) => ( // Cone
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g style={{ animation: 'float 10s ease-in-out infinite' }}>
-      <polygon points="50,15 85,85 15,85" fill={hexColor} />
-      <ellipse cx="50" cy="85" rx="35" ry="8" fill="rgba(0,0,0,0.3)" />
-    </g>
-  </svg>
+const TopQuarkIcon = ({ hexColor }) => (
+  <QuarkIconBase hexColor={hexColor} />
+);
+
+const BottomQuarkIcon = ({ hexColor }) => (
+  <QuarkIconBase hexColor={hexColor} />
 );
 
 const AntiUpQuarkIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g style={{ animation: 'float 8s ease-in-out infinite' }}>
-      <polygon points="50,15 85,85 15,85" fill="none" stroke={hexColor} strokeWidth="3" />
-    </g>
-  </svg>
+  <QuarkIconBase hexColor={hexColor} isAnti />
 );
 
 const AntiDownQuarkIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g style={{ animation: 'float 8s ease-in-out infinite' }}>
-      <polygon points="15,15 85,15 50,85" fill="none" stroke={hexColor} strokeWidth="3" />
-    </g>
-  </svg>
+  <QuarkIconBase hexColor={hexColor} isAnti />
 );
 
 const ElectronIcon = ({ hexColor }) => (
@@ -224,26 +217,17 @@ const ElectronIcon = ({ hexColor }) => (
         <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
       </radialGradient>
     </defs>
-    {/* The probability cloud */}
-    <circle cx="50" cy="50" r="30" fill="url(#electron-glow)" filter="url(#cloud-blur)" style={{ animation: 'electron-cloud 6s infinite ease-in-out' }} />
-    
-    {/* The point particle */}
-    <g style={{ animation: 'electron-path 6s infinite ease-in-out' }}>
-      <circle cx="50" cy="50" r="6" fill="white" style={{ animation: 'electron-particle 6s infinite ease-in-out' }}>
-        <title>Electron</title>
-      </circle>
-    </g>
+    {/* Quantum Foam */}
+    <circle cx="50" cy="50" r="40" fill="url(#electron-glow)" filter="url(#cloud-blur)" style={{ animation: 'turbulence 4s infinite ease-in-out' }} />
+    {/* Subtler Flickering dots */}
+    <circle cx="45" cy="48" r="1.5" fill="white" style={{ animation: 'electron-particle 1.2s infinite ease-in-out' }} />
+    <circle cx="58" cy="58" r="1" fill="white" style={{ animation: 'electron-particle 0.8s infinite ease-in-out 0.3s' }} />
+    <circle cx="52" cy="40" r="1.5" fill="white" style={{ animation: 'electron-particle 1.5s infinite ease-in-out 0.6s' }} />
   </svg>
 );
 
 const AntiCharmQuarkIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g style={{ animation: 'float 7s ease-in-out infinite' }}>
-      <polygon points="20,35 50,20 80,35 50,50" fill="none" stroke={hexColor} strokeWidth="3" />
-      <polygon points="20,35 20,65 50,80 50,50" fill="none" stroke={hexColor} strokeWidth="3" />
-      <polygon points="50,50 50,80 80,65 80,35" fill="none" stroke={hexColor} strokeWidth="3" />
-    </g>
-  </svg>
+  <QuarkIconBase hexColor={hexColor} isAnti />
 );
 
 const ElectronNeutrinoIcon = ({ hexColor }) => (
@@ -259,42 +243,43 @@ const ElectronAntineutrinoIcon = ({ hexColor }) => (
       );
 
 const PhotonIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('photon-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="25" fill="url(#photon-grad)" />
-          {Array.from({ length: 8 }).map((_, i) => (
-            <line
-              key={i}
-              x1="50"
-              y1="50"
-              x2={50 + 45 * Math.cos(i * Math.PI / 4)}
-              y2={50 + 45 * Math.sin(i * Math.PI / 4)}
-              stroke={hexColor}
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          ))}
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('photon-grad', hexColor)}</defs>
+    <circle cx="50" cy="50" r="25" fill="url(#photon-grad)" className="animate-pulse-glow" />
+    {Array.from({ length: 8 }).map((_, i) => (
+      <line
+        key={i}
+        x1="50"
+        y1="50"
+        x2={50 + 45 * Math.cos(i * Math.PI / 4)}
+        y2={50 + 45 * Math.sin(i * Math.PI / 4)}
+        stroke={hexColor}
+        strokeWidth="3"
+        strokeLinecap="round"
+        className="animate-spin"
+        style={{ animationDuration: '2s', animationDelay: `${i * 0.25}s` }}
+      />
+    ))}
+  </svg>
+);
 
 const GluonIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
-          <path d="M 20 50 C 20 30, 30 30, 30 50 S 40 70, 40 50 S 50 30, 50 50 S 60 70, 60 50 S 70 30, 70 50 S 80 70, 80 50"
-            stroke={hexColor} strokeWidth="6" strokeLinecap="round" />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+    <path d="M 20 50 C 20 30, 30 30, 30 50 S 40 70, 40 50 S 50 30, 50 50 S 60 70, 60 50 S 70 30, 70 50 S 80 70, 80 50" stroke={hexColor} strokeWidth="6" strokeLinecap="round" className="animate-ocean-wave" />
+  </svg>
+);
 
 const WBosonIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <path d="M50,10 L90,50 L50,90 L10,50 Z" fill={hexColor} />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <path d="M50,10 L90,50 L50,90 L10,50 Z" fill={hexColor} className="animate-pulse-glow" />
+  </svg>
+);
 
 const ZBosonIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <path d="M50,10 L90,50 L50,90 L10,50 Z" fill={hexColor} />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <path d="M50,10 L90,50 L50,90 L10,50 Z" fill={hexColor} className="animate-pulse-glow" />
+  </svg>
+);
 
 const ProtonIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -740,9 +725,6 @@ const KryptonIcon = ({ hexColor }) => (
 
 const AminoAcidIcon = ({ hexColor, rGroup, name }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>{radialGradient('amino-acid-grad', hexColor, 0.4)}</defs>
-    <circle cx="50" cy="50" r="48" fill="url(#amino-acid-grad)" stroke={hexColor} strokeWidth="2" />
-
     {/* Backbone */}
     <circle cx="25" cy="50" r="10" fill={PARTICLE_COLOR_MAP['sky-500']} />
     <text x="25" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">N</text>
@@ -771,12 +753,12 @@ const ValineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="
 const LeucineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="Leu" name="Leucine" />;
 const SerineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="Ser" name="Serine" />;
 
-const DipeptideIcon = ({ hexColor, name1, name2 }) => (
+const DipeptideIcon = ({ hexColor, name1, name2, color1, color2 }) => (
   <svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="5" y="35" width="50" height="30" rx="8" fill={PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE]} stroke={PARTICLE_COLOR_MAP[PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE].replace('bg-','')] || '#fff'} strokeWidth="2" />
+    <rect x="5" y="35" width="50" height="30" rx="8" fill={color1} stroke={PARTICLE_COLOR_MAP[color1.replace('bg-','')] || '#fff'} strokeWidth="2" />
     <text x="30" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">{name1}</text>
 
-    <rect x="65" y="35" width="50" height="30" rx="8" fill={PARTICLE_COLORS[PARTICLE_TYPES.ALANINE]} stroke={PARTICLE_COLOR_MAP[PARTICLE_COLORS[PARTICLE_TYPES.ALANINE].replace('bg-','')] || '#fff'} strokeWidth="2" />
+    <rect x="65" y="35" width="50" height="30" rx="8" fill={color2} stroke={PARTICLE_COLOR_MAP[color2.replace('bg-','')] || '#fff'} strokeWidth="2" />
     <text x="90" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">{name2}</text>
 
     {/* Peptide bond */}
@@ -785,8 +767,8 @@ const DipeptideIcon = ({ hexColor, name1, name2 }) => (
   </svg>
 );
 
-const GlycylglycineIcon = ({ hexColor }) => <DipeptideIcon hexColor={hexColor} name1="Gly" name2="Gly" />;
-const GlycylAlanineIcon = ({ hexColor }) => <DipeptideIcon hexColor={hexColor} name1="Gly" name2="Ala" />;
+const GlycylglycineIcon = ({ hexColor }) => <DipeptideIcon hexColor={hexColor} name1="Gly" name2="Gly" color1={PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE]} color2={PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE]} />;
+const GlycylAlanineIcon = ({ hexColor }) => <DipeptideIcon hexColor={hexColor} name1="Gly" name2="Ala" color1={PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE]} color2={PARTICLE_COLORS[PARTICLE_TYPES.ALANINE]} />;
 
 const AyoubIcon = ({ hexColor }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
