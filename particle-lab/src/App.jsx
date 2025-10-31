@@ -706,20 +706,8 @@ const App = () => {
           const structuralIconTypes = new Set([PARTICLE_TYPES.WATER, PARTICLE_TYPES.ELECTRON, PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE, PARTICLE_TYPES.ALANINE, PARTICLE_TYPES.GLYCYL_ALANINE, PARTICLE_TYPES.SERINE]);
           const hasStructuralIcon = structuralIconTypes.has(particle.type);
 
-          const getBaseSize = (type) => {
-            if (type.endsWith('quark')) return 56; // Quarks (w-14)
-            const recipe = RECIPES.find(r => r.type === type);
-            if (recipe) {
-              if (recipe.category === PARTICLE_CATEGORIES.ATOM) return 80; // Atoms (w-20)
-              if (recipe.category === PARTICLE_CATEGORIES.SECONDARY) return 64; // Hadrons (w-16)
-            }
-            if (MOLECULE_PARTICLE_TYPES.has(type)) return 96; // Molecules (w-24)
-            // Amino Acids & Polypeptides
-            if (structuralIconTypes.has(type)) return 96;
-            return 64; // Default for elementary particles
-          };
-
-          const baseSize = getBaseSize(particle.type);
+          // Get size from the centralized PARTICLE_INFO constant. Default to 64 if not found.
+          const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
           // Only apply a background color if it's not a structural icon
           const isQuark = particle.type.endsWith('quark');
           const particleColorClass = hasStructuralIcon || isQuark ? '' : (PARTICLE_COLORS[particle.type] || 'bg-gray-500');
