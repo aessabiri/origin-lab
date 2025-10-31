@@ -231,53 +231,94 @@ const AntiCharmQuarkIcon = ({ hexColor }) => (
 );
 
 const ElectronNeutrinoIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" strokeWidth="4">
-          <path d="M 10 50 C 30 20, 70 20, 90 50 S 70 80, 10 50" stroke={hexColor} />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+    <defs>
+      <filter id="neutrino-blur">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" />
+      </filter>
+      <radialGradient id="neutrino-glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor={hexColor} stopOpacity="0.5" />
+        <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    {/* The energy cloud */}
+    <circle cx="50" cy="50" r="35" fill="url(#neutrino-glow)" filter="url(#neutrino-blur)" className="animate-pulse-slow" />
+    {/* The vibrating, glowing dot */}
+    <circle cx="50" cy="50" r="3" fill="white" className="animate-vibrate-glow" />
+  </svg>
+);
 
 const ElectronAntineutrinoIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" strokeWidth="4">
-          <path d="M 10 50 C 30 80, 70 80, 90 50 S 70 20, 10 50" stroke={hexColor} />
-        </svg>
-      );
+  <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+    <defs>
+      <filter id="antineutrino-blur">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" />
+      </filter>
+    </defs>
+    {/* The energy cloud for antimatter */}
+    <circle cx="50" cy="50" r="35" fill={hexColor} filter="url(#antineutrino-blur)" className="animate-pulse-slow" opacity="0.4" />
+    {/* The vibrating, glowing dot with a reverse animation */}
+    <circle cx="50" cy="50" r="3" fill="black" className="animate-vibrate-glow-reverse" />
+  </svg>
+);
 
 const PhotonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <defs>{radialGradient('photon-grad', hexColor)}</defs>
-    <circle cx="50" cy="50" r="25" fill="url(#photon-grad)" className="animate-pulse-glow" />
-    {Array.from({ length: 8 }).map((_, i) => (
-      <line
-        key={i}
-        x1="50"
-        y1="50"
-        x2={50 + 45 * Math.cos(i * Math.PI / 4)}
-        y2={50 + 45 * Math.sin(i * Math.PI / 4)}
-        stroke={hexColor}
-        strokeWidth="3"
-        strokeLinecap="round"
-        className="animate-spin"
-        style={{ animationDuration: '2s', animationDelay: `${i * 0.25}s` }}
-      />
-    ))}
+  <svg viewBox="0 0 100 100" className="w-full h-full animate-pulse-glow overflow-visible" fill="none" style={{
+    '--glow-color': hexColor,
+  }}>
+    <defs>
+      <filter id="photon-glow-filter">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+      </filter>
+    </defs>
+    {/* A wave packet to represent energy */}
+    <path d="M 20 50 Q 35 25, 50 50 T 80 50" stroke={hexColor} strokeWidth="6" strokeLinecap="round" className="animate-vibrate" filter="url(#photon-glow-filter)" />
+    <path d="M 20 50 Q 35 25, 50 50 T 80 50" stroke="white" strokeWidth="2" strokeLinecap="round" className="animate-vibrate" />
   </svg>
 );
 
 const GluonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+  <svg viewBox="0 0 100 100" className="w-full h-full animate-pulse-glow overflow-visible" fill="none" style={{
+    '--glow-color': hexColor,
+  }}>
     <path d="M 20 50 C 20 30, 30 30, 30 50 S 40 70, 40 50 S 50 30, 50 50 S 60 70, 60 50 S 70 30, 70 50 S 80 70, 80 50" stroke={hexColor} strokeWidth="6" strokeLinecap="round" className="animate-ocean-wave" />
   </svg>
 );
 
 const WBosonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <path d="M50,10 L90,50 L50,90 L10,50 Z" fill={hexColor} className="animate-pulse-glow" />
+  <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+    <defs>
+      <filter id="w-boson-glow">
+        <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+        <feMerge>
+          <feMergeNode in="coloredBlur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+    {/* A transient, directional energy burst representing flavor change */}
+    <g filter="url(#w-boson-glow)" className="animate-pulse-glow" style={{
+    '--glow-color': hexColor,
+  }}>
+      <path d="M 20 50 L 40 30 Q 50 50, 60 70 L 80 50" stroke={hexColor} strokeWidth="8" strokeLinecap="round" />
+      <path d="M 20 50 L 40 30 Q 50 50, 60 70 L 80 50" stroke="white" strokeWidth="3" strokeLinecap="round" strokeDasharray="4 6" className="animate-dash-flow" />
+    </g>
   </svg>
 );
 
 const ZBosonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <path d="M50,10 L90,50 L50,90 L10,50 Z" fill={hexColor} className="animate-pulse-glow" />
+  <svg viewBox="0 0 100 100" className="w-full h-full animate-pulse-glow overflow-visible" fill="none" style={{
+    '--glow-color': hexColor,
+  }}>
+    <defs>
+      <filter id="z-boson-glow">
+        <feGaussianBlur stdDeviation="5" />
+      </filter>
+    </defs>
+    {/* A shimmering, neutral interaction field */}
+    <circle cx="50" cy="50" r="30" stroke={hexColor} strokeWidth="6" filter="url(#z-boson-glow)" />
+    <circle cx="50" cy="50" r="30" stroke="white" strokeWidth="2" strokeDasharray="1 8" strokeLinecap="round" className="animate-spin-slow" />
+    <circle cx="50" cy="50" r="15" stroke={hexColor} strokeWidth="3" strokeDasharray="4 4" strokeLinecap="round" className="animate-spin-slow-reverse" />
   </svg>
 );
 
@@ -747,28 +788,118 @@ const AminoAcidIcon = ({ hexColor, rGroup, name }) => (
   </svg>
 );
 
-const GlycineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="H" name="Glycine" />;
-const AlanineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="CH₃" name="Alanine" />;
-const ValineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="Val" name="Valine" />;
-const LeucineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="Leu" name="Leucine" />;
-const SerineIcon = ({ hexColor }) => <AminoAcidIcon hexColor={hexColor} rGroup="Ser" name="Serine" />;
-
-const DipeptideIcon = ({ hexColor, name1, name2, color1, color2 }) => (
-  <svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="5" y="35" width="50" height="30" rx="8" fill={color1} stroke={PARTICLE_COLOR_MAP[color1.replace('bg-','')] || '#fff'} strokeWidth="2" />
-    <text x="30" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">{name1}</text>
-
-    <rect x="65" y="35" width="50" height="30" rx="8" fill={color2} stroke={PARTICLE_COLOR_MAP[color2.replace('bg-','')] || '#fff'} strokeWidth="2" />
-    <text x="90" y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">{name2}</text>
-
-    {/* Peptide bond */}
-    <line x1="55" y1="50" x2="65" y2="50" stroke="#ec4899" strokeWidth="4" />
-    <line x1="55" y1="50" x2="65" y2="50" stroke="white" strokeWidth="2" strokeDasharray="2 2" />
+const GlycineIcon = ({ hexColor }) => (
+  // C2 H5 N1 O2 - Simplest amino acid
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(50 50)">
+      {/* Central Carbon */}
+      <circle cx="0" cy="0" r="12" fill="#4A5568" />
+      <text x="0" y="5" fill="white" textAnchor="middle" fontSize="12" fontWeight="bold">C</text>
+      {/* Amino Group (N) */}
+      <circle cx="-25" cy="-15" r="10" fill="#3B82F6" />
+      <text x="-25" y="-10" fill="white" textAnchor="middle" fontSize="10" fontWeight="bold">N</text>
+      {/* Carboxyl Group (C, O, O) */}
+      <circle cx="25" cy="0" r="10" fill="#4A5568" />
+      <circle cx="40" cy="-15" r="8" fill="#EF4444" />
+      <circle cx="40" cy="15" r="8" fill="#EF4444" />
+      {/* Hydrogen side chain */}
+      <circle cx="0" cy="25" r="6" fill="#E5E7EB" />
+    </g>
   </svg>
 );
 
-const GlycylglycineIcon = ({ hexColor }) => <DipeptideIcon hexColor={hexColor} name1="Gly" name2="Gly" color1={PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE]} color2={PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE]} />;
-const GlycylAlanineIcon = ({ hexColor }) => <DipeptideIcon hexColor={hexColor} name1="Gly" name2="Ala" color1={PARTICLE_COLORS[PARTICLE_TYPES.GLYCINE]} color2={PARTICLE_COLORS[PARTICLE_TYPES.ALANINE]} />;
+const AlanineIcon = ({ hexColor }) => (
+  // C3 H7 N1 O2 - Side chain: CH3
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(50 50)">
+      {/* Central Carbon */}
+      <circle cx="0" cy="0" r="12" fill="#4A5568" />
+      <text x="0" y="5" fill="white" textAnchor="middle" fontSize="12" fontWeight="bold">C</text>
+      {/* Amino Group (N) */}
+      <circle cx="-25" cy="-15" r="10" fill="#3B82F6" />
+      <text x="-25" y="-10" fill="white" textAnchor="middle" fontSize="10" fontWeight="bold">N</text>
+      {/* Carboxyl Group (C, O, O) */}
+      <circle cx="25" cy="0" r="10" fill="#4A5568" />
+      <circle cx="40" cy="-15" r="8" fill="#EF4444" />
+      <circle cx="40" cy="15" r="8" fill="#EF4444" />
+      {/* CH3 side chain */}
+      <circle cx="0" cy="28" r="10" fill="#4A5568" />
+      <text x="0" y="33" fill="white" textAnchor="middle" fontSize="10" fontWeight="bold">C</text>
+    </g>
+  </svg>
+);
+
+const SerineIcon = ({ hexColor }) => (
+  // C3 H7 N1 O3 - Side chain: CH2OH
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(50 50)">
+      <circle cx="0" cy="0" r="12" fill="#4A5568" /><text x="0" y="5" fill="white" textAnchor="middle" fontSize="12" fontWeight="bold">C</text>
+      <circle cx="-25" cy="-15" r="10" fill="#3B82F6" /><text x="-25" y="-10" fill="white" textAnchor="middle" fontSize="10" fontWeight="bold">N</text>
+      <circle cx="25" cy="0" r="10" fill="#4A5568" />
+      <circle cx="40" cy="-15" r="8" fill="#EF4444" />
+      <circle cx="40" cy="15" r="8" fill="#EF4444" />
+      {/* CH2OH side chain */}
+      <circle cx="0" cy="28" r="10" fill="#4A5568" />
+      <circle cx="0" cy="45" r="8" fill="#EF4444" /><text x="0" y="50" fill="white" textAnchor="middle" fontSize="10" fontWeight="bold">O</text>
+    </g>
+  </svg>
+);
+
+const ValineIcon = ({ hexColor }) => (
+  // C5 H11 N1 O2 - Branched side chain
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(50 50)">
+      <circle cx="0" cy="0" r="12" fill="#4A5568" /><text x="0" y="5" fill="white" textAnchor="middle" fontSize="12" fontWeight="bold">C</text>
+      <circle cx="-25" cy="-15" r="10" fill="#3B82F6" /><text x="-25" y="-10" fill="white" textAnchor="middle" fontSize="10" fontWeight="bold">N</text>
+      <circle cx="25" cy="0" r="10" fill="#4A5568" />
+      <circle cx="40" cy="-15" r="8" fill="#EF4444" />
+      <circle cx="40" cy="15" r="8" fill="#EF4444" />
+      {/* Branched side chain */}
+      <circle cx="0" cy="25" r="9" fill="#4A5568" />
+      <circle cx="-15" cy="40" r="9" fill="#4A5568" />
+      <circle cx="15" cy="40" r="9" fill="#4A5568" />
+    </g>
+  </svg>
+);
+
+const LeucineIcon = ({ hexColor }) => (
+  // C6 H13 N1 O2 - Larger branched side chain
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(50 50)">
+      <circle cx="0" cy="0" r="12" fill="#4A5568" /><text x="0" y="5" fill="white" textAnchor="middle" fontSize="12" fontWeight="bold">C</text>
+      <circle cx="-25" cy="-15" r="10" fill="#3B82F6" /><text x="-25" y="-10" fill="white" textAnchor="middle" fontSize="10" fontWeight="bold">N</text>
+      <circle cx="25" cy="0" r="10" fill="#4A5568" />
+      <circle cx="40" cy="-15" r="8" fill="#EF4444" />
+      <circle cx="40" cy="15" r="8" fill="#EF4444" />
+      {/* Larger branched side chain */}
+      <circle cx="0" cy="25" r="9" fill="#4A5568" />
+      <circle cx="0" cy="42" r="9" fill="#4A5568" />
+      <circle cx="-15" cy="57" r="9" fill="#4A5568" />
+      <circle cx="15" cy="57" r="9" fill="#4A5568" />
+    </g>
+  </svg>
+);
+
+const DipeptideIcon = ({ Icon1, Icon2 }) => (
+  <svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    {/* Peptide bond line */}
+    {/* Peptide bond */}
+    <line x1="50" y1="50" x2="70" y2="50" stroke="#ec4899" strokeWidth="4" />
+    <line x1="50" y1="50" x2="70" y2="50" stroke="white" strokeWidth="2" strokeDasharray="2 2" />
+    
+    {/* First Amino Acid Icon */}
+    <g transform="scale(0.6) translate(-15, 25)">
+      <Icon1 />
+    </g>
+    {/* Second Amino Acid Icon */}
+    <g transform="scale(0.6) translate(85, 25)">
+      <Icon2 />
+    </g>
+  </svg>
+);
+
+const GlycylglycineIcon = () => <DipeptideIcon Icon1={GlycineIcon} Icon2={GlycineIcon} />;
+const GlycylAlanineIcon = () => <DipeptideIcon Icon1={GlycineIcon} Icon2={AlanineIcon} />;
 
 const AyoubIcon = ({ hexColor }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">

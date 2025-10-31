@@ -133,11 +133,21 @@ const App = () => {
 
     draggedIndexRef.current = active ? index : null;
 
+    const canvasBounds = canvasRef.current.getBoundingClientRect();
+    const particle = particles[index];
+    const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
+    const particleSize = baseSize * uiScale;
+
+    // Clamp coordinates to keep particles within the canvas border
+    const clampedX = Math.max(0, Math.min(ox, canvasBounds.width - particleSize));
+    const clampedY = Math.max(0, Math.min(oy, canvasBounds.height - particleSize));
+
     api.start(i => {
       if (i === index) {
         return {
-          x: ox,
-          y: oy,
+          // Use clamped coordinates
+          x: clampedX,
+          y: clampedY,
           scale: active ? 1.1 : 1,
           immediate: active,
         };
@@ -145,9 +155,7 @@ const App = () => {
     });
 
     if (!active) {
-      setParticles(prev => prev.map((p, i) => i === index ? { ...p, x: ox, y: oy, scale: 1 } : p));
-
-      // Combination logic is now handled by the "Assemble" button
+      setParticles(prev => prev.map((p, i) => i === index ? { ...p, x: clampedX, y: clampedY, scale: 1 } : p));
     }
   }, {
     from: ({ args: [index] }) => [springs[index].x.get(), springs[index].y.get()],
@@ -199,6 +207,7 @@ const App = () => {
     setDiscoveredAtoms,
     setDiscoveredMolecules,
     currentGoalIndex,
+    goals,
     setCurrentGoalIndex,
     showMessage,
     setSelectedParticleIds,
@@ -365,22 +374,59 @@ const App = () => {
 
         // 3. For each group, check if it matches a molecule recipe.
         const groupParticles = particles.filter(p => group.has(p.id));
-        const groupBonds = bonds.filter(b => group.has(b.particleA_id) && group.has(b.particleB_id));
+        // This was the bug: it should check against all bonds, not just selected ones.
+        // The group of particles is determined by traversing bonds, so we need to find
+        // the bonds relevant to this specific group.
+        const groupBonds = bonds.filter(b => group.has(b.particleA_id) || group.has(b.particleB_id));
+
         const atomCounts = groupParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
         const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
 
-        const recipeMatch = MOLECULE_RECIPES.find(r => {
-          const checkCounts = (recipeObj, countObj) => {
-            const recipeKeys = Object.keys(recipeObj || {});
-            const countKeys = Object.keys(countObj || {});
-            const allKeys = new Set([...recipeKeys, ...countKeys]);
-            return Array.from(allKeys).every(key => (recipeObj[key] || 0) === (countObj[key] || 0));
-          };
+        let recipeMatch = null;
 
-          const atomsMatch = checkCounts(r.atoms, atomCounts);
-          const bondsMatch = checkCounts(r.bonds, bondCounts);
-          return atomsMatch && bondsMatch;
-        });
+        const checkCounts = (recipeObj, countObj) => {
+          const recipeKeys = Object.keys(recipeObj || {});
+          const countKeys = Object.keys(countObj || {});
+          const allKeys = new Set([...recipeKeys, ...countKeys]);
+          return Array.from(allKeys).every(key => (recipeObj[key] || 0) === (countObj[key] || 0));
+        };
+
+        // Check simple recipes first (no bonds)
+        if (groupBonds.length === 0) {
+          for (const recipe of RECIPES) {
+            if (checkCounts(recipe.ingredients, atomCounts)) {
+              recipeMatch = recipe;
+              break;
+            }
+          }
+        }
+
+        // Then check molecule recipes
+        if (!recipeMatch) {
+          const peptideBondCount = groupBonds.filter(b => b.type === 'peptide').length;
+          if (peptideBondCount > 0) {
+            for (const polyRecipe of POLYPEPTIDE_RECIPES) {
+              const moleculesMatch = checkCounts(polyRecipe.molecules, atomCounts);
+              const peptideBondsMatch = (polyRecipe.peptideBonds || 0) === peptideBondCount;
+              if (moleculesMatch && peptideBondsMatch && groupBonds.length === peptideBondCount) {
+                recipeMatch = polyRecipe;
+                break;
+              }
+            }
+          }
+        }
+
+        // Finally, check molecule recipes
+        if (!recipeMatch) {
+          for (const r of MOLECULE_RECIPES) {
+            const atomsMatch = checkCounts(r.atoms, atomCounts);
+            const bondsMatch = checkCounts(r.bonds, bondCounts);
+            if (atomsMatch && bondsMatch) {
+              recipeMatch = r;
+              break;
+            }
+          }
+        }
 
         if (recipeMatch) {
           group.forEach(id => assemblableIds.add(id));
@@ -429,6 +475,35 @@ const App = () => {
       };
     });
   }, [particles, api]); // Note: draggedIndexRef is intentionally not in the dependency array
+
+  // Effect to handle window resizing and push particles back into view
+  useEffect(() => {
+    const handleResize = () => {
+      if (!canvasRef.current) return;
+      const canvasBounds = canvasRef.current.getBoundingClientRect();
+
+      setParticles(currentParticles => {
+        let wasChanged = false;
+        const newParticles = currentParticles.map(p => {
+          const baseSize = PARTICLE_INFO[p.type]?.size || 64;
+          const particleSize = baseSize * uiScale;
+
+          const clampedX = Math.max(0, Math.min(p.x, canvasBounds.width - particleSize));
+          const clampedY = Math.max(0, Math.min(p.y, canvasBounds.height - particleSize));
+
+          if (clampedX !== p.x || clampedY !== p.y) {
+            wasChanged = true;
+            return { ...p, x: clampedX, y: clampedY };
+          }
+          return p;
+        });
+        return wasChanged ? newParticles : currentParticles;
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [uiScale, setParticles]); // Rerun if uiScale changes particle sizes
 
   return (
     <>
@@ -703,7 +778,22 @@ const App = () => {
           const isAssemblable = assemblableParticleIds.has(particle.id);
 
           // Define which particles should have a transparent background
-          const structuralIconTypes = new Set([PARTICLE_TYPES.WATER, PARTICLE_TYPES.ELECTRON, PARTICLE_TYPES.GLYCINE, PARTICLE_TYPES.GLYCYLGLYCINE, PARTICLE_TYPES.ALANINE, PARTICLE_TYPES.GLYCYL_ALANINE, PARTICLE_TYPES.SERINE]);
+          const structuralIconTypes = new Set([
+            PARTICLE_TYPES.WATER, 
+            PARTICLE_TYPES.ELECTRON, 
+            PARTICLE_TYPES.ELECTRON_NEUTRINO,
+            PARTICLE_TYPES.ELECTRON_ANTINEUTRINO,
+            PARTICLE_TYPES.PHOTON,
+            PARTICLE_TYPES.GLUON,
+            PARTICLE_TYPES.W_BOSON,
+            PARTICLE_TYPES.Z_BOSON,
+            PARTICLE_TYPES.GLYCINE, 
+            PARTICLE_TYPES.ALANINE, 
+            PARTICLE_TYPES.SERINE, 
+            PARTICLE_TYPES.VALINE, 
+            PARTICLE_TYPES.LEUCINE, 
+            PARTICLE_TYPES.GLYCYLGLYCINE, 
+            PARTICLE_TYPES.GLYCYL_ALANINE]);
           const hasStructuralIcon = structuralIconTypes.has(particle.type);
 
           // Get size from the centralized PARTICLE_INFO constant. Default to 64 if not found.
@@ -764,13 +854,8 @@ const App = () => {
                     className="icon-container relative flex items-center justify-center"
                     style={{ width: `${80 * uiScale}px`, height: `${80 * uiScale}px` }}
                   >
-                    <div
-                      className={`absolute inset-0 rounded-full ${p.type.includes('boson') || p.type.includes('photon') ? 'animate-pulse-glow' : ''}`}
-                      style={{
-                        '--glow-color': PARTICLE_COLOR_MAP[PARTICLE_COLORS[p.type]?.replace('bg-', '')] || '#9ca3af',
-                      }}
-                    />
-                    <div className={`w-full h-full ${p.type.includes('quark') ? 'animate-float' : ''} ${p.type === PARTICLE_TYPES.GLUON ? 'animate-spring' : ''}`}>
+                    {/* Animations are now part of the ParticleIcon component itself for consistency */}
+                    <div className="w-full h-full">
                       <ParticleIcon type={p.type} color={PARTICLE_COLORS[p.type]} />
                     </div>
                   </div>

@@ -10,7 +10,7 @@ export const MOLECULE_RECIPES = [
       [PARTICLE_TYPES.HYDROGEN]: 5,
     },
     bonds: {
-      single: 7,
+      single: 8,
       double: 1,
     },
   },

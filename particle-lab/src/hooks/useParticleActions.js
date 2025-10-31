@@ -143,7 +143,7 @@ export const useParticleActions = ({
       setParticles(prev => [...prev.filter(p => !combinedIds.has(p.id)), newMolecule]);
       setBonds(prev => prev.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
 
-      if (currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
+      if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
         showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);
         setCurrentGoalIndex(prev => prev + 1);
       } else {
@@ -185,7 +185,7 @@ export const useParticleActions = ({
       return next;
     });
 
-    if (currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
+    if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
       showMessage(`Goal Complete: ${goals[currentGoalIndex].name}!`);
       setCurrentGoalIndex(prev => prev + 1);
     } else {

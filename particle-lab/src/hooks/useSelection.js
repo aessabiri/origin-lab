@@ -122,7 +122,7 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
 
         // If no polypeptide recipe, check for molecule recipes (atoms + covalent bonds)
         if (!assemblyRecipe) {
-        const bondCounts = selectedBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
+          const bondCounts = selectedBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
 
         for (const moleculeRecipe of MOLECULE_RECIPES) {
           const atomsMatch = checkCounts(moleculeRecipe.atoms, ingredientCounts);
