@@ -339,6 +339,69 @@ const App = () => {
 
   }, [particles, selectedParticleIds]);
   
+  /**
+   * A fresh, robust implementation of the glow effect.
+   * This logic finds all groups of bonded particles on the canvas and checks if any
+   * of them match a known molecule recipe.
+   */
+  const assemblableMoleculeIds = useMemo(() => {
+    const assemblableIds = new Set();
+    if (!bonds.length) return assemblableIds;
+
+    // Helper to compare recipe counts with group counts
+    const doCountsMatch = (recipeCounts = {}, groupCounts = {}) => {
+      const allKeys = new Set([...Object.keys(recipeCounts), ...Object.keys(groupCounts)]);
+      return Array.from(allKeys).every(key => (recipeCounts[key] || 0) === (groupCounts[key] || 0));
+    };
+
+    // 1. Build a map of all particle connections (an adjacency list)
+    const adj = new Map();
+    particles.forEach(p => adj.set(p.id, []));
+    bonds.forEach(bond => {
+      if (adj.has(bond.particleA_id) && adj.has(bond.particleB_id)) {
+        adj.get(bond.particleA_id).push(bond.particleB_id);
+        adj.get(bond.particleB_id).push(bond.particleA_id);
+      }
+    });
+
+    // 2. Find all distinct groups of bonded particles
+    const visited = new Set();
+    for (const particle of particles) {
+      if (!visited.has(particle.id)) {
+        const groupIds = new Set();
+        const queue = [particle.id];
+        visited.add(particle.id);
+
+        while (queue.length > 0) {
+          const currentId = queue.shift();
+          groupIds.add(currentId);
+          (adj.get(currentId) || []).forEach(neighborId => {
+            if (!visited.has(neighborId)) {
+              visited.add(neighborId);
+              queue.push(neighborId);
+            }
+          });
+        }
+
+        // 3. If the group has bonds, check if it matches a molecule recipe
+        const groupBonds = bonds.filter(b => groupIds.has(b.particleA_id) && groupIds.has(b.particleB_id));
+        if (groupBonds.length > 0) {
+          const groupParticles = particles.filter(p => groupIds.has(p.id));
+
+          const atomCounts = groupParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
+          const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
+
+          const recipeMatch = MOLECULE_RECIPES.find(r => doCountsMatch(r.atoms, atomCounts) && doCountsMatch(r.bonds, bondCounts));
+
+          if (recipeMatch) {
+            groupIds.forEach(id => assemblableIds.add(id));
+          }
+        }
+      }
+    }
+    return assemblableIds;
+  }, [particles, bonds]);
+
   const handleShowInfo = useCallback((type) => setInfoPanelType(type), []);
   const handleCloseInfo = useCallback(() => setInfoPanelType(null), []);
 
@@ -678,6 +741,7 @@ const App = () => {
 
           const isSelected = selectedParticleIds.has(particle.id);
           const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type) || MOLECULE_PARTICLE_TYPES.has(particle.type);
+          const isAssemblable = assemblableMoleculeIds.has(particle.id);
 
           // Define which particles should have a transparent background
           const structuralIconTypes = new Set([
@@ -717,7 +781,7 @@ const App = () => {
                 width: `${baseSize * uiScale}px`,
                 height: `${baseSize * uiScale}px`,
               }}
-              className={`absolute cursor-grab ${hasStructuralIcon || isQuark ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-2 ring-yellow-300' : ''}`}
+              className={`absolute cursor-grab ${hasStructuralIcon || isQuark ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-2 ring-yellow-300' : ''} ${isAssemblable ? 'molecule-glow' : ''}`}
               onClick={(e) => handleParticleClick(e, particle.id)}
               onDoubleClick={() => handleShowInfo(particle.type)}
               onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}
