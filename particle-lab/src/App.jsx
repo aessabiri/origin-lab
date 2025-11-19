@@ -339,103 +339,6 @@ const App = () => {
 
   }, [particles, selectedParticleIds]);
   
-  const assemblableParticleIds = useMemo(() => {
-    const assemblableIds = new Set();
-    if (particles.length === 0) {
-      return assemblableIds;
-    }
-
-    // 1. Build an adjacency list for all particles connected by bonds.
-    const adj = new Map();
-    particles.forEach(p => adj.set(p.id, []));
-    bonds.forEach(b => {
-      adj.get(b.particleA_id)?.push(b.particleB_id);
-      adj.get(b.particleB_id)?.push(b.particleA_id);
-    });
-
-    // 2. Find all connected groups of particles (molecules).
-    const visited = new Set();
-    for (const particle of particles) {
-      if (!visited.has(particle.id)) {
-        const group = new Set();
-        const queue = [particle.id];
-        visited.add(particle.id);
-
-        while (queue.length > 0) {
-          const u = queue.shift();
-          group.add(u);
-          adj.get(u)?.forEach(v => {
-            if (!visited.has(v)) {
-              visited.add(v);
-              queue.push(v);
-            }
-          });
-        }
-
-        // 3. For each group, check if it matches a molecule recipe.
-        const groupParticles = particles.filter(p => group.has(p.id));
-        // This was the bug: it should check against all bonds, not just selected ones.
-        // The group of particles is determined by traversing bonds, so we need to find
-        // the bonds relevant to this specific group.
-        const groupBonds = bonds.filter(b => group.has(b.particleA_id) || group.has(b.particleB_id));
-
-        const atomCounts = groupParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
-        const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
-
-        let recipeMatch = null;
-
-        const checkCounts = (recipeObj, countObj) => {
-          const recipeKeys = Object.keys(recipeObj || {});
-          const countKeys = Object.keys(countObj || {});
-          const allKeys = new Set([...recipeKeys, ...countKeys]);
-          return Array.from(allKeys).every(key => (recipeObj[key] || 0) === (countObj[key] || 0));
-        };
-
-        // Check simple recipes first (no bonds)
-        if (groupBonds.length === 0) {
-          for (const recipe of RECIPES) {
-            if (checkCounts(recipe.ingredients, atomCounts)) {
-              recipeMatch = recipe;
-              break;
-            }
-          }
-        }
-
-        // Then check molecule recipes
-        if (!recipeMatch) {
-          const peptideBondCount = groupBonds.filter(b => b.type === 'peptide').length;
-          if (peptideBondCount > 0) {
-            for (const polyRecipe of POLYPEPTIDE_RECIPES) {
-              const moleculesMatch = checkCounts(polyRecipe.molecules, atomCounts);
-              const peptideBondsMatch = (polyRecipe.peptideBonds || 0) === peptideBondCount;
-              if (moleculesMatch && peptideBondsMatch && groupBonds.length === peptideBondCount) {
-                recipeMatch = polyRecipe;
-                break;
-              }
-            }
-          }
-        }
-
-        // Finally, check molecule recipes
-        if (!recipeMatch) {
-          for (const r of MOLECULE_RECIPES) {
-            const atomsMatch = checkCounts(r.atoms, atomCounts);
-            const bondsMatch = checkCounts(r.bonds, bondCounts);
-            if (atomsMatch && bondsMatch) {
-              recipeMatch = r;
-              break;
-            }
-          }
-        }
-
-        if (recipeMatch) {
-          group.forEach(id => assemblableIds.add(id));
-        }
-      }
-    }
-    return assemblableIds;
-  }, [particles, bonds]);
-
   const handleShowInfo = useCallback((type) => setInfoPanelType(type), []);
   const handleCloseInfo = useCallback(() => setInfoPanelType(null), []);
 
@@ -775,7 +678,6 @@ const App = () => {
 
           const isSelected = selectedParticleIds.has(particle.id);
           const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type) || MOLECULE_PARTICLE_TYPES.has(particle.type);
-          const isAssemblable = assemblableParticleIds.has(particle.id);
 
           // Define which particles should have a transparent background
           const structuralIconTypes = new Set([
@@ -815,7 +717,7 @@ const App = () => {
                 width: `${baseSize * uiScale}px`,
                 height: `${baseSize * uiScale}px`,
               }}
-              className={`absolute cursor-grab ${hasStructuralIcon || isQuark ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-2 ring-yellow-300' : ''} ${isAssemblable ? 'glow-for-assembly' : ''}`}
+              className={`absolute cursor-grab ${hasStructuralIcon || isQuark ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-2 ring-yellow-300' : ''}`}
               onClick={(e) => handleParticleClick(e, particle.id)}
               onDoubleClick={() => handleShowInfo(particle.type)}
               onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}
