@@ -1,52 +1,46 @@
 import { useCallback } from 'react';
-import { PARTICLE_CATEGORIES, COMPOSITION_MAP, RECIPES } from '../recipes.js';
-import { MOLECULE_RECIPES } from '../components/moleculeRecipes.js';
+import { PARTICLE_CATEGORIES, COMPOSITION_MAP } from '../recipes.js';
+import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
 import { PARTICLE_NAMES } from '../constants/particles.js';
+import { useStore } from '../store.js';
 
 export const useParticleActions = ({
-  particles,
-  bonds,
-  setParticles,
   selectionInfo,
-  setSecondaryParticles,
-  setDiscoveredAtoms,
-  setDiscoveredMolecules,
-  currentGoalIndex,
-  setCurrentGoalIndex,
-  showMessage,
-  setSelectedParticleIds,
-  setBonds,
   goals,
-  particles: allParticles,
+  setSelectedParticleIds,
 }) => {
+  const particles = useStore(state => state.particles);
+  const setParticles = useStore(state => state.setParticles);
+  const setBonds = useStore(state => state.setBonds);
+  const setSecondaryParticles = useStore(state => state.setSecondaryParticles);
+  const setDiscoveredAtoms = useStore(state => state.setDiscoveredAtoms);
+  const setDiscoveredMolecules = useStore(state => state.setDiscoveredMolecules);
+  const currentGoalIndex = useStore(state => state.currentGoalIndex);
+  const setCurrentGoalIndex = useStore(state => state.setCurrentGoalIndex);
+  const showMessage = useStore(state => state.showMessage);
+
   const disassembleParticle = useCallback((particleId, particleIndex) => {
     const particle = particles[particleIndex];
     if (!particle) return;
 
-    // Check if it's a molecule from moleculeRecipes
     const moleculeRecipe = MOLECULE_RECIPES.find(r => r.type === particle.type);
     const polypeptideRecipe = POLYPEPTIDE_RECIPES.find(r => r.type === particle.type);
     if (moleculeRecipe) {
       const newAtoms = [];
-
-      // Create the new atoms
       Object.entries(moleculeRecipe.atoms).forEach(([atomType, count]) => {
         for (let i = 0; i < count; i++) {
-          const newAtom = {
+          newAtoms.push({
             id: `${atomType}-${Date.now()}-${i}`,
             type: atomType,
             x: particle.x + (Math.random() - 0.5) * 100,
             y: particle.y + (Math.random() - 0.5) * 100,
             scale: 1,
-          };
-          newAtoms.push(newAtom);
+          });
         }
       });
 
-      setParticles(prev => [...prev.filter(p => p.id !== particleId), ...newAtoms]);
-      // Since we are breaking a molecule down into its constituent atoms,
-      // it's safest and most correct to clear all existing bonds from the canvas.
+      setParticles([...particles.filter(p => p.id !== particleId), ...newAtoms]);
       setBonds([]);
       showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
       return;
@@ -65,7 +59,7 @@ export const useParticleActions = ({
           });
         }
       });
-      setParticles(prev => [...prev.filter(p => p.id !== particleId), ...newMolecules]);
+      setParticles([...particles.filter(p => p.id !== particleId), ...newMolecules]);
       setBonds([]);
       showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
       return;
@@ -80,20 +74,18 @@ export const useParticleActions = ({
 
     if (compositionArray.length === 0) return;
 
-    setParticles(prev => {
-      const next = prev.filter(x => x.id !== particleId);
-      const newComps = compositionArray.map((c, i) => ({
-        id: `${c.type}-${Date.now()}-${i}`,
-        type: c.type,
-        x: particle.x + Math.cos(i * (2 * Math.PI / compositionArray.length)) * 40,
-        y: particle.y + Math.sin(i * (2 * Math.PI / compositionArray.length)) * 40,
-        scale: 1,
-        composition: c.composition,
-      }));
-      return [...next, ...newComps];
-    });
+    const next = particles.filter(x => x.id !== particleId);
+    const newComps = compositionArray.map((c, i) => ({
+      id: `${c.type}-${Date.now()}-${i}`,
+      type: c.type,
+      x: particle.x + Math.cos(i * (2 * Math.PI / compositionArray.length)) * 40,
+      y: particle.y + Math.sin(i * (2 * Math.PI / compositionArray.length)) * 40,
+      scale: 1,
+      composition: c.composition,
+    }));
+    setParticles([...next, ...newComps]);
     showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
-  }, [particles, showMessage, setParticles]);
+  }, [particles, showMessage, setParticles, setBonds]);
 
   const getElementaryComposition = useCallback((particleType) => {
     const elementaryParticles = [];
@@ -119,16 +111,12 @@ export const useParticleActions = ({
     const { assemblyRecipe, selectedParticles, isMoleculeAssembly, isPolypeptideAssembly } = selectionInfo;
     const combinedIds = new Set(selectedParticles.map(p => p.id));
 
-    // Handle molecule and polypeptide assembly
     if (isMoleculeAssembly || isPolypeptideAssembly) {
-      setDiscoveredMolecules(prev => {
-        if (prev.some(m => m.type === assemblyRecipe.type)) {
-          return prev;
-        }
-        return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
-      });
+      const discoveredMolecules = useStore.getState().discoveredMolecules;
+      if (!discoveredMolecules.some(m => m.type === assemblyRecipe.type)) {
+        setDiscoveredMolecules([...discoveredMolecules, { id: assemblyRecipe.type, type: assemblyRecipe.type, discoveredAt: Date.now() }]);
+      }
 
-      // Transformation logic
       const centerX = selectedParticles.reduce((sum, p) => sum + p.x, 0) / selectedParticles.length;
       const centerY = selectedParticles.reduce((sum, p) => sum + p.y, 0) / selectedParticles.length;
 
@@ -140,12 +128,13 @@ export const useParticleActions = ({
         scale: 1,
       };
 
-      setParticles(prev => [...prev.filter(p => !combinedIds.has(p.id)), newMolecule]);
-      setBonds(prev => prev.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
+      setParticles([...particles.filter(p => !combinedIds.has(p.id)), newMolecule]);
+      const bonds = useStore.getState().bonds;
+      setBonds(bonds.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
 
       if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
         showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);
-        setCurrentGoalIndex(prev => prev + 1);
+        setCurrentGoalIndex(currentGoalIndex + 1);
       } else {
         showMessage(`Success! You've created ${PARTICLE_NAMES[assemblyRecipe.type]}.`);
       }
@@ -162,37 +151,34 @@ export const useParticleActions = ({
 
     const updater = discoveryUpdaterMap[assemblyRecipe.category];
     if (updater) {
-      updater(prev => {
-        if (!prev.some(p => p.type === assemblyRecipe.type)) {
-          return [...prev, { id: assemblyRecipe.type, type: assemblyRecipe.type }];
-        }
-        return prev;
-      });
+      const stateKey = assemblyRecipe.category === 'secondary' ? 'secondaryParticles' : `${assemblyRecipe.category}s`;
+      const currentDiscovered = useStore.getState()[stateKey];
+      if (currentDiscovered && !currentDiscovered.some(p => p.type === assemblyRecipe.type)) {
+        updater([...currentDiscovered, { id: assemblyRecipe.type, type: assemblyRecipe.type, discoveredAt: Date.now() }]);
+      }
     }
 
-    setParticles(prev => {
-      const next = prev.filter(p => !combinedIds.has(p.id));
-      const centerX = selectedParticles.reduce((s, p) => s + p.x, 0) / selectedParticles.length;
-      const centerY = selectedParticles.reduce((s, p) => s + p.y, 0) / selectedParticles.length;
-      next.push({
-        id: `compound-${Date.now()}`,
-        type: assemblyRecipe.type,
-        x: centerX,
-        y: centerY,
-        scale: 1,
-        composition: selectedParticles.map(p => ({ type: p.type, composition: p.composition })),
-      });
-      return next;
+    const next = particles.filter(p => !combinedIds.has(p.id));
+    const centerX = selectedParticles.reduce((s, p) => s + p.x, 0) / selectedParticles.length;
+    const centerY = selectedParticles.reduce((s, p) => s + p.y, 0) / selectedParticles.length;
+    next.push({
+      id: `compound-${Date.now()}`,
+      type: assemblyRecipe.type,
+      x: centerX,
+      y: centerY,
+      scale: 1,
+      composition: selectedParticles.map(p => ({ type: p.type, composition: p.composition })),
     });
+    setParticles(next);
 
     if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
       showMessage(`Goal Complete: ${goals[currentGoalIndex].name}!`);
-      setCurrentGoalIndex(prev => prev + 1);
+      setCurrentGoalIndex(currentGoalIndex + 1);
     } else {
       showMessage(`${PARTICLE_NAMES[assemblyRecipe.type]} formed!`);
     }
     setSelectedParticleIds(new Set());
-  }, [selectionInfo, showMessage, currentGoalIndex, setCurrentGoalIndex, setParticles, setSecondaryParticles, setDiscoveredAtoms, setDiscoveredMolecules, setSelectedParticleIds]);
+  }, [selectionInfo, showMessage, currentGoalIndex, setCurrentGoalIndex, setParticles, setSecondaryParticles, setDiscoveredAtoms, setDiscoveredMolecules, setSelectedParticleIds, particles, setBonds, goals]);
 
   const handleDisassemble = useCallback(() => {
     if (!selectionInfo.canDisassemble) return;
@@ -210,17 +196,15 @@ export const useParticleActions = ({
 
     const elementaryConstituents = getElementaryComposition(particle.type);
 
-    setParticles(prev => {
-      const next = prev.filter(p => p.id !== particle.id);
-      const newComps = elementaryConstituents.map((c, i) => ({
-        id: `${c.type}-${Date.now()}-${i}`,
-        type: c.type,
-        x: particle.x + Math.cos(i * (2 * Math.PI / elementaryConstituents.length)) * 60,
-        y: particle.y + Math.sin(i * (2 * Math.PI / elementaryConstituents.length)) * 60,
-        scale: 1,
-      }));
-      return [...next, ...newComps];
-    });
+    const next = particles.filter(p => p.id !== particle.id);
+    const newComps = elementaryConstituents.map((c, i) => ({
+      id: `${c.type}-${Date.now()}-${i}`,
+      type: c.type,
+      x: particle.x + Math.cos(i * (2 * Math.PI / elementaryConstituents.length)) * 60,
+      y: particle.y + Math.sin(i * (2 * Math.PI / elementaryConstituents.length)) * 60,
+      scale: 1,
+    }));
+    setParticles([...next, ...newComps]);
 
     showMessage(`Reverted ${PARTICLE_NAMES[particle.type]} to elementary particles!`);
     setSelectedParticleIds(new Set());

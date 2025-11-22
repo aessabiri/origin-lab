@@ -1,5 +1,5 @@
 import { PARTICLE_TYPES } from './constants/particles.js';
-import { MOLECULE_RECIPES } from './components/moleculeRecipes.js';
+import { MOLECULE_RECIPES } from './constants/moleculeRecipes.js';
 
 export const PARTICLE_CATEGORIES = {
   SECONDARY: 'secondary',

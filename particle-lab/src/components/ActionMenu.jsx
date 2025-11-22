@@ -7,6 +7,8 @@ const ActionMenu = ({
   onOpenCodex,
   onOpenPeriodicTable,
   onOpenSettings,
+  onOpenTimeline,
+  onOpenStellarNursery,
   onEmptyCanvas,
   onReset,
   onToggleSandbox,
@@ -44,6 +46,8 @@ const ActionMenu = ({
       )}
       <button onClick={onOpenCodex} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Particle Codex</button>
       <button onClick={onOpenPeriodicTable} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Periodic Table</button>
+      <button onClick={onOpenTimeline} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Big Bang Timeline</button>
+      <button onClick={onOpenStellarNursery} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Stellar Nursery</button>
       <button onClick={onOpenSettings} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Settings</button>
       <button onClick={onEmptyCanvas} disabled={!hasParticles} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-red-800 hover:bg-red-700 transition-colors disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed">Empty Canvas</button>
       <button

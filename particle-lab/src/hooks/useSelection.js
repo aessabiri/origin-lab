@@ -1,10 +1,15 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { RECIPES, COMPOUND_PARTICLE_TYPES } from '../recipes.js';
-import { MOLECULE_RECIPES } from '../components/moleculeRecipes.js';
+import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
+import { useStore } from '../store.js';
 
-export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TYPES }) => {
+export const useSelection = ({ canvasRef }) => {
+  const particles = useStore(state => state.particles);
+  const bonds = useStore(state => state.bonds);
+  const MOLECULE_PARTICLE_TYPES = useMemo(() => new Set(MOLECULE_RECIPES.map(r => r.type)), []);
+
   const [selectedParticleIds, setSelectedParticleIds] = useState(new Set());
   const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0, visible: false });
 
@@ -12,7 +17,7 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
     e.stopPropagation();
     setSelectedParticleIds(prev => {
       const newSelection = new Set(prev);
-      if (e.ctrlKey || e.metaKey) { // metaKey for Command on Mac
+      if (e.ctrlKey || e.metaKey) {
         if (newSelection.has(particleId)) {
           newSelection.delete(particleId);
         } else {
@@ -27,7 +32,6 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
   }, []);
 
   const canvasBind = useDrag(({ active, event, initial, movement: [mx, my], tap, memo }) => {
-    // If it's a simple tap on the canvas, clear selection.
     if (tap) {
       if (event.target === canvasRef.current) {
         setSelectedParticleIds(new Set());
@@ -35,12 +39,10 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
       return;
     }
 
-    // On the first event of the drag, check if it started on the canvas background.
-    // If not, memoize `false` to ignore the rest of this drag gesture.
     if (memo === undefined) {
       memo = event.target === canvasRef.current;
     }
-    if (!memo) return; // Ignore drag if it didn't start on the canvas.
+    if (!memo) return;
 
     const [x, y] = initial;
     const box = {
@@ -52,14 +54,13 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
     };
     setSelectionBox(box);
 
-    if (!active) { // on drag end
+    if (!active) {
       const selectedIds = new Set();
       particles.forEach(p => {
         const particleSize = COMPOUND_PARTICLE_TYPES.has(p.type) ? 96 : 64;
         const pBox = { x1: p.x, y1: p.y, x2: p.x + particleSize, y2: p.y + particleSize };
         const sBox = { x1: box.x, y1: box.y, x2: box.x + box.width, y2: box.y + box.height };
 
-        // Check for overlap
         if (pBox.x1 < sBox.x2 && pBox.x2 > sBox.x1 && pBox.y1 < sBox.y2 && pBox.y2 > sBox.y1) {
           selectedIds.add(p.id);
         }
@@ -79,7 +80,7 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
   const selectionInfo = useMemo(() => {
     const selectedParticles = particles.filter(p => selectedParticleIds.has(p.id));
     const canDisassemble = selectedParticles.length === 1 && (COMPOUND_PARTICLE_TYPES.has(selectedParticles[0].type) || (MOLECULE_PARTICLE_TYPES && MOLECULE_PARTICLE_TYPES.has(selectedParticles[0].type)));
-    const canRevert = canDisassemble; // Same condition
+    const canRevert = canDisassemble;
 
     let assemblyRecipe = null;
     let isMoleculeAssembly = false;
@@ -93,7 +94,6 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
     };
 
     if (selectedParticles.length > 0 && !canDisassemble) {
-      // First, check for simple particle recipes
       const ingredientCounts = selectedParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
 
       for (const recipe of RECIPES) {
@@ -106,7 +106,6 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
           selectedParticleIds.has(bond.particleA_id) && selectedParticleIds.has(bond.particleB_id)
         );
 
-        // Check for polypeptide recipes (molecules + peptide bonds)
         const peptideBondCount = selectedBonds.filter(b => b.type === 'peptide').length;
         if (peptideBondCount > 0) {
           for (const polyRecipe of POLYPEPTIDE_RECIPES) {
@@ -120,21 +119,20 @@ export const useSelection = ({ particles, bonds, canvasRef, MOLECULE_PARTICLE_TY
           }
         }
 
-        // If no polypeptide recipe, check for molecule recipes (atoms + covalent bonds)
         if (!assemblyRecipe) {
           const bondCounts = selectedBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
 
-        for (const moleculeRecipe of MOLECULE_RECIPES) {
-          const atomsMatch = checkCounts(moleculeRecipe.atoms, ingredientCounts);
-          const bondsMatch = checkCounts(moleculeRecipe.bonds, bondCounts);
+          for (const moleculeRecipe of MOLECULE_RECIPES) {
+            const atomsMatch = checkCounts(moleculeRecipe.atoms, ingredientCounts);
+            const bondsMatch = checkCounts(moleculeRecipe.bonds, bondCounts);
 
-          if (atomsMatch && bondsMatch) {
-            assemblyRecipe = moleculeRecipe;
-            isMoleculeAssembly = true;
-            break;
+            if (atomsMatch && bondsMatch) {
+              assemblyRecipe = moleculeRecipe;
+              isMoleculeAssembly = true;
+              break;
+            }
           }
         }
-      }
       }
     }
 
