@@ -28,6 +28,7 @@ export const useStore = create(
       isPeriodicTablePinned: false,
       goalPath: 'medium',
       isSandboxMode: false,
+      chemicals: [],
 
       // UI State
       isPaletteVisible: true,
@@ -38,9 +39,8 @@ export const useStore = create(
       isSettingsVisible: false,
       isResetConfirmVisible: false,
       isPeriodicTableVisible: false,
-      isTimelineVisible: false,
-      isStellarNurseryVisible: false,
       message: '',
+      currentView: 'particle', // 'particle' or 'chemistry'
 
       // Actions
       setParticles: (particles) => set({ particles }),
@@ -53,6 +53,7 @@ export const useStore = create(
       setIsPeriodicTablePinned: (isPeriodicTablePinned) => set({ isPeriodicTablePinned }),
       setGoalPath: (goalPath) => set({ goalPath }),
       setIsSandboxMode: (isSandboxMode) => set({ isSandboxMode }),
+      setChemicals: (chemicals) => set({ chemicals }),
 
       // UI Actions
       setIsPaletteVisible: (isPaletteVisible) => set({ isPaletteVisible }),
@@ -63,8 +64,7 @@ export const useStore = create(
       setIsSettingsVisible: (isSettingsVisible) => set({ isSettingsVisible }),
       setIsResetConfirmVisible: (isResetConfirmVisible) => set({ isResetConfirmVisible }),
       setIsPeriodicTableVisible: (isPeriodicTableVisible) => set({ isPeriodicTableVisible }),
-      setIsTimelineVisible: (isTimelineVisible) => set({ isTimelineVisible }),
-      setIsStellarNurseryVisible: (isStellarNurseryVisible) => set({ isStellarNurseryVisible }),
+      setCurrentView: (currentView) => set({ currentView }),
       
       showMessage: (message) => {
         set({ message });
@@ -79,8 +79,6 @@ export const useStore = create(
           isSettingsVisible: false,
           isCodexVisible: false,
           isPeriodicTableVisible: get().isPeriodicTablePinned ? get().isPeriodicTableVisible : false,
-          isTimelineVisible: false,
-          isStellarNurseryVisible: false,
         });
         set({ [setter]: !isOpen });
       },
@@ -140,6 +138,7 @@ export const useStore = create(
         isPeriodicTablePinned: state.isPeriodicTablePinned,
         goalPath: state.goalPath,
         isSandboxMode: state.isSandboxMode,
+        chemicals: state.chemicals,
       }),
     }
   )
