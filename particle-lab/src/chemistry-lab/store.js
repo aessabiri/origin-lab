@@ -100,7 +100,14 @@ export const useChemistryStore = create(
             msg = 'Sample collected (already known).';
           }
 
-          return { inventory: newInventory, message: msg };
+          return { 
+            inventory: newInventory, 
+            message: msg,
+            vessels: {
+              ...state.vessels,
+              [vesselId]: { ...vessel, contents: {} }
+            }
+          };
         });
       },
     }),

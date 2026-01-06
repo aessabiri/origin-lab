@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useChemistryStore } from '../store';
 import { CHEMICALS, ELEMENTARY_IDS } from '../data/chemicals';
+import ChemicalIcon from './ChemicalIcon';
 
 const Pantry = () => {
   const inventory = useChemistryStore(state => state.inventory);
@@ -58,14 +59,16 @@ const Pantry = () => {
                 key={chemId}
                 draggable
                 onDragStart={(e) => handleDragStart(e, chemId)}
-                className="min-w-[80px] w-24 flex flex-col items-center gap-2 p-2 bg-gray-800 rounded-lg border border-gray-700 hover:border-amber-400/50 hover:bg-gray-750 cursor-grab active:cursor-grabbing transition-all group"
+                className="min-w-[80px] w-24 flex flex-col items-center gap-1 p-2 bg-gray-800 rounded-lg border border-gray-700 hover:border-amber-400/50 hover:bg-gray-750 cursor-grab active:cursor-grabbing transition-all group"
                 title={chem.description}
               >
-                <div 
-                  className="w-12 h-12 rounded-full shadow-lg border-2 border-white/10 flex items-center justify-center transition-transform group-hover:scale-110"
-                  style={{ backgroundColor: chem.color }}
-                >
-                    <span className="text-[10px] font-mono text-white/50 mix-blend-difference">{chem.state.substring(0,1).toUpperCase()}</span>
+                <div className="py-2">
+                  <ChemicalIcon 
+                    color={chem.color} 
+                    state={chem.state} 
+                    formula={chem.formula} 
+                    className="group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
                 <p className="text-xs text-center text-gray-300 font-medium group-hover:text-white w-full truncate px-1">{chem.name}</p>
               </div>
