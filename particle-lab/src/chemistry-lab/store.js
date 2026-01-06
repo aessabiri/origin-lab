@@ -7,16 +7,47 @@ export const useChemistryStore = create(
       inventory: [
         'H2O', 'NaCl', 'VINEGAR', 'BAKING_SODA', 
         'CARBON', 'SULFUR', 'IRON', 'ETHANOL', 
-        'OXYGEN', 'HYDROGEN'
+        'OXYGEN', 'HYDROGEN', 'NITROGEN',
+        'MAGNESIUM', 'POTASSIUM_PERMANGANATE'
       ],
       vessels: {
-        beaker: { id: 'beaker', name: 'Open Beaker', contents: {}, temp: 20, pressure: 1, maxVol: 500 },
-        flask: { id: 'flask', name: 'Reaction Flask', contents: {}, temp: 20, pressure: 1, maxVol: 500 },
-        chamber: { id: 'chamber', name: 'Pressure Chamber', contents: {}, temp: 20, pressure: 1, maxVol: 1000 },
+        beaker: { id: 'beaker', name: 'Open Beaker', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 500, status: 'ok', type: 'glass' },
+        flask: { id: 'flask', name: 'Reaction Flask', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 500, status: 'ok', type: 'glass' },
+        chamber: { id: 'chamber', name: 'Pressure Chamber', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 1000, status: 'ok', type: 'reinforced' },
       },
       message: '',
+      timeSpeed: 1,
 
+      setTimeSpeed: (speed) => set({ timeSpeed: speed }),
       setMessage: (msg) => set({ message: msg }),
+      
+      breakVessel: (vesselId) => {
+        set((state) => ({
+          vessels: {
+            ...state.vessels,
+            [vesselId]: { ...state.vessels[vesselId], status: 'broken', contents: {}, pressure: 1 }
+          },
+          message: `DANGER: ${state.vessels[vesselId].name} failed!`
+        }));
+      },
+
+      repairVessel: (vesselId) => {
+        set((state) => ({
+          vessels: {
+            ...state.vessels,
+            [vesselId]: { ...state.vessels[vesselId], status: 'ok', temp: 20, targetTemp: 20, pressure: 1 }
+          }
+        }));
+      },
+      
+      updateVesselTemperature: (vesselId, newTemp) => {
+         set((state) => ({
+          vessels: {
+            ...state.vessels,
+            [vesselId]: { ...state.vessels[vesselId], temp: newTemp }
+          }
+        }));
+      },
 
       addToVessel: (vesselId, chemicalId, amount) => {
         set((state) => {

@@ -4,6 +4,7 @@ import Workstation from './components/Workstation';
 import { useReaction } from './hooks/useReaction';
 import { useChemistryStore } from './store';
 import ChemistryCodex from './components/ChemistryCodex';
+import TimeControls from './components/TimeControls';
 
 const ChemistryApp = () => {
   useReaction();
@@ -23,6 +24,8 @@ const ChemistryApp = () => {
       <Workstation />
       <Pantry />
       
+      <TimeControls />
+
       {/* Top Right Controls */}
       <div className="absolute top-4 right-4 z-10">
         <button
