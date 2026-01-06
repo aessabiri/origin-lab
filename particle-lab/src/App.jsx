@@ -16,7 +16,7 @@ import { GOAL_PATHS } from './constants/goalPaths.js';
 import { RECIPES, PARTICLE_CATEGORIES } from './recipes.js';
 import { useDecay } from './hooks/useDecay.js';
 import { useStore } from './store.js';
-import ChemistryLab from './components/ChemistryLab.jsx';
+import ChemistryApp from './chemistry-lab/ChemistryApp.jsx';
 
 const MOLECULE_PARTICLE_TYPES = new Set(
   MOLECULE_RECIPES.map(r => r.type)
@@ -762,7 +762,7 @@ const App = () => {
             </div>
           </div>
         )}
-        {currentView === 'chemistry' && <ChemistryLab />}
+        {currentView === 'chemistry' && <ChemistryApp />}
       </div>
     </div>
   );

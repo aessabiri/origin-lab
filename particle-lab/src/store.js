@@ -28,7 +28,6 @@ export const useStore = create(
       isPeriodicTablePinned: false,
       goalPath: 'medium',
       isSandboxMode: false,
-      chemicals: [],
 
       // UI State
       isPaletteVisible: true,
@@ -53,7 +52,6 @@ export const useStore = create(
       setIsPeriodicTablePinned: (isPeriodicTablePinned) => set({ isPeriodicTablePinned }),
       setGoalPath: (goalPath) => set({ goalPath }),
       setIsSandboxMode: (isSandboxMode) => set({ isSandboxMode }),
-      setChemicals: (chemicals) => set({ chemicals }),
 
       // UI Actions
       setIsPaletteVisible: (isPaletteVisible) => set({ isPaletteVisible }),
@@ -138,7 +136,6 @@ export const useStore = create(
         isPeriodicTablePinned: state.isPeriodicTablePinned,
         goalPath: state.goalPath,
         isSandboxMode: state.isSandboxMode,
-        chemicals: state.chemicals,
       }),
     }
   )
