@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import Pantry from './components/Pantry';
 import Workstation from './components/Workstation';
-import { useReaction } from './hooks/useReaction';
+import { useSimulation } from './hooks/useSimulation';
 import { useChemistryStore } from './store';
 import ChemistryCodex from './components/ChemistryCodex';
 import TimeControls from './components/TimeControls';
+import ChemicalInfoModal from './components/ChemicalInfoModal';
 
 const ChemistryApp = () => {
-  useReaction();
+  useSimulation();
   const message = useChemistryStore(state => state.message);
   const setMessage = useChemistryStore(state => state.setMessage);
   const [isCodexOpen, setIsCodexOpen] = useState(false);
@@ -25,6 +26,7 @@ const ChemistryApp = () => {
       <Pantry />
       
       <TimeControls />
+      <ChemicalInfoModal />
 
       {/* Top Right Controls */}
       <div className="absolute top-4 right-4 z-10">

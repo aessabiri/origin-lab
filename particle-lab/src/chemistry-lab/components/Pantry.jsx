@@ -5,6 +5,7 @@ import ChemicalIcon from './ChemicalIcon';
 
 const Pantry = () => {
   const inventory = useChemistryStore(state => state.inventory);
+  const setInspectedChemical = useChemistryStore(state => state.setInspectedChemical);
   const [activeTab, setActiveTab] = useState('elementary');
 
   const handleDragStart = (e, chemicalId) => {
@@ -59,6 +60,7 @@ const Pantry = () => {
                 key={chemId}
                 draggable
                 onDragStart={(e) => handleDragStart(e, chemId)}
+                onDoubleClick={() => setInspectedChemical(chemId)}
                 className="min-w-[80px] w-24 flex flex-col items-center gap-1 p-2 bg-gray-800 rounded-lg border border-gray-700 hover:border-amber-400/50 hover:bg-gray-750 cursor-grab active:cursor-grabbing transition-all group"
                 title={chem.description}
               >
@@ -67,6 +69,7 @@ const Pantry = () => {
                     color={chem.color} 
                     state={chem.state} 
                     formula={chem.formula} 
+                    iconType={chem.iconType}
                     className="group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>

@@ -110,5 +110,33 @@ export const REACTIONS = [
     conditions: { tempMin: 300 },
     outputs: { ACETONE: 1, CO2: 1, H2O: 1 },
     visual: 'distill',
+  },
+  // Esterification: Ethanol + Vinegar -> Ethyl Acetate
+  {
+    inputs: { ETHANOL: 1, VINEGAR: 1 },
+    conditions: { tempMin: 60 },
+    outputs: { ETHYL_ACETATE: 1, H2O: 1 },
+    visual: 'distill',
+  },
+  // Methanol Synthesis: CO2 + Hydrogen -> Methanol
+  {
+    inputs: { CO2: 1, HYDROGEN: 3 },
+    conditions: { tempMin: 200, pressureMin: 30 },
+    outputs: { METHANOL: 1, H2O: 1 },
+    visual: 'condense',
+  },
+  // Dehydration: Ethanol -> Ethylene
+  {
+    inputs: { ETHANOL: 1 },
+    conditions: { tempMin: 170 },
+    outputs: { ETHYLENE: 1, H2O: 1 },
+    visual: 'fume',
+  },
+  // Polymerization: Ethylene -> Polyethylene
+  {
+    inputs: { ETHYLENE: 5 },
+    conditions: { tempMin: 100, pressureMin: 50 },
+    outputs: { POLYETHYLENE: 1 }, // Simplified ratio
+    visual: 'solidify',
   }
 ];

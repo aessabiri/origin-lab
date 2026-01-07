@@ -1,14 +1,19 @@
 import React from 'react';
 
-const ChemicalIcon = ({ color, state, formula, className = '' }) => {
+const ChemicalIcon = ({ color, state, formula, iconType, className = '' }) => {
   const wrapperStyle = `relative flex items-center justify-center w-16 h-16 transition-transform hover:scale-105 ${className}`;
   
   // Use a sanitized ID for gradients to avoid special character issues
-  const gradId = `grad-${state}-${formula.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-${formula.replace(/[^a-zA-Z0-9]/g, '')}`;
 
   const renderIcon = () => {
-    switch (state) {
+    // If no iconType is provided, fallback to state
+    const type = iconType || state;
+
+    switch (type) {
+      // --- LIQUIDS ---
       case 'liquid':
+      case 'droplet':
         return (
           <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
              <defs>
@@ -23,11 +28,48 @@ const ChemicalIcon = ({ color, state, formula, className = '' }) => {
                 stroke={color} 
                 strokeWidth="0.5"
             />
-            {/* Highlight */}
             <ellipse cx="9" cy="11" rx="1.5" ry="3" transform="rotate(-30 9 11)" fill="white" fillOpacity="0.4" />
           </svg>
         );
+
+      case 'bottle':
+        return (
+          <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+             <defs>
+                <linearGradient id={`${gradId}-bottle`} x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor={color} stopOpacity="0.8" />
+                    <stop offset="100%" stopColor={color} stopOpacity="0.4" />
+                </linearGradient>
+            </defs>
+            <path d="M9 2H15V6L19 10V21C19 21.55 18.55 22 18 22H6C5.45 22 5 21.55 5 21V10L9 6V2Z" 
+                fill={`url(#${gradId}-bottle)`} stroke={color} strokeWidth="1" />
+            <path d="M5 14H19" stroke={color} strokeWidth="0.5" strokeOpacity="0.5" />
+            <path d="M14 4V6M10 4V6" stroke="white" strokeWidth="1" strokeOpacity="0.5"/>
+          </svg>
+        );
+
+      case 'vial':
+        return (
+          <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+            <defs>
+                <linearGradient id={`${gradId}-vial`} x1="0%" y1="100%" x2="0%" y2="0%">
+                     <stop offset="0%" stopColor={color} stopOpacity="0.9"/>
+                     <stop offset="50%" stopColor={color} stopOpacity="0.6"/>
+                     <stop offset="100%" stopColor="white" stopOpacity="0.1"/>
+                </linearGradient>
+            </defs>
+            <path d="M16 4H8V6L9 7V21C9 21.55 9.45 22 10 22H14C14.55 22 15 21.55 15 21V7L16 6V4Z" 
+                  fill={`url(#${gradId}-vial)`} stroke={color} strokeWidth="1"/>
+            <rect x="7" y="2" width="10" height="2" rx="1" fill="#555" />
+            {/* Caution Symbol */}
+            <path d="M12 11L11 15H13L12 11Z" fill="#333" />
+            <circle cx="12" cy="17" r="1" fill="#333" />
+          </svg>
+        );
+
+      // --- SOLIDS ---
       case 'solid':
+      case 'crystal':
         return (
           <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
               <defs>
@@ -36,18 +78,57 @@ const ChemicalIcon = ({ color, state, formula, className = '' }) => {
                     <stop offset="100%" stopColor="black" stopOpacity="0.2" />
                 </linearGradient>
             </defs>
-            {/* Hexagonal Crystal Shape */}
-            <path 
-                d="M12 3L4 8V18L12 23L20 18V8L12 3Z" 
-                fill={`url(#${gradId})`}
-                stroke={color}
-                strokeWidth="1"
-            />
-            {/* Inner Facets */}
+            <path d="M12 3L4 8V18L12 23L20 18V8L12 3Z" fill={`url(#${gradId})`} stroke={color} strokeWidth="1"/>
             <path d="M12 3V13M12 13L20 8M12 13L4 8" stroke="white" strokeOpacity="0.3" strokeWidth="1"/>
           </svg>
         );
+      
+      case 'powder':
+        return (
+           <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+              <defs>
+                 <radialGradient id={`${gradId}-dust`}>
+                    <stop offset="0%" stopColor={color} />
+                    <stop offset="100%" stopColor={color} stopOpacity="0" />
+                 </radialGradient>
+              </defs>
+              <path d="M4 20C4 20 6 14 12 14C18 14 20 20 20 20H4Z" fill={color} fillOpacity="0.8" />
+              <circle cx="8" cy="18" r="1" fill="white" opacity="0.5" />
+              <circle cx="10" cy="16" r="1" fill="white" opacity="0.5" />
+              <circle cx="15" cy="19" r="1" fill="white" opacity="0.5" />
+              <circle cx="13" cy="15" r="1" fill="white" opacity="0.5" />
+           </svg>
+        );
+
+      case 'bar': // Ingot
+      case 'metal':
+        return (
+           <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+              <defs>
+                 <linearGradient id={`${gradId}-metal`} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#fff" stopOpacity="0.8" />
+                    <stop offset="20%" stopColor={color} />
+                    <stop offset="100%" stopColor="#000" stopOpacity="0.5" />
+                 </linearGradient>
+              </defs>
+              <path d="M4 12L8 8H20L16 12H4Z" fill={`url(#${gradId}-metal)`} stroke={color} strokeWidth="0.5"/>
+              <path d="M4 12L6 18H18L16 12" fill={color} fillOpacity="0.8" />
+              <path d="M18 18L22 14V10L20 8" fill={color} fillOpacity="0.6" />
+           </svg>
+        );
+
+      case 'rock':
+        return (
+            <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+               <path d="M4 14L7 6L14 4L20 9L18 18L10 21L4 14Z" fill={color} stroke="black" strokeWidth="0.5" strokeOpacity="0.3" />
+               <path d="M7 6L12 10L18 9" stroke="white" strokeOpacity="0.2" fill="none" />
+               <path d="M4 14L10 15L10 21" stroke="black" strokeOpacity="0.2" fill="none" />
+            </svg>
+        );
+
+      // --- GASES ---
       case 'gas':
+      case 'cloud':
         return (
            <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
              <defs>
@@ -56,17 +137,36 @@ const ChemicalIcon = ({ color, state, formula, className = '' }) => {
                     <stop offset="100%" stopColor={color} stopOpacity="0"/>
                  </radialGradient>
              </defs>
-             {/* Cloud-like blobs */}
              <circle cx="12" cy="12" r="8" fill={`url(#${gradId})`} />
              <circle cx="8" cy="14" r="5" fill={`url(#${gradId})`} opacity="0.7"/>
              <circle cx="16" cy="10" r="4" fill={`url(#${gradId})`} opacity="0.7"/>
-             
-             {/* Swirl lines */}
              <path d="M7 12a3 3 0 0 1 3-3" stroke="white" strokeOpacity="0.2" fill="none"/>
            </svg>
         );
+
+      case 'cylinder':
+        return (
+           <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+              <defs>
+                  <linearGradient id={`${gradId}-tank`} x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor={color} />
+                      <stop offset="50%" stopColor="white" stopOpacity="0.5" />
+                      <stop offset="100%" stopColor={color} />
+                  </linearGradient>
+              </defs>
+              <rect x="7" y="6" width="10" height="16" rx="2" fill={`url(#${gradId}-tank)`} stroke={color} strokeWidth="1" />
+              <path d="M7 6C7 3 17 3 17 6" fill={color} stroke={color} strokeWidth="1" />
+              <rect x="10" y="2" width="4" height="2" fill="#555" />
+              <rect x="11" y="1" width="2" height="1" fill="#333" />
+           </svg>
+        );
+
       default:
-        return null;
+        return (
+             <div className="w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center opacity-50" style={{ borderColor: color }}>
+                ?
+             </div>
+        );
     }
   };
 

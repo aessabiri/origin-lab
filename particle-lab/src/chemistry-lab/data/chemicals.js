@@ -8,6 +8,8 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 1.0,
     description: 'Universal solvent.',
+    iconType: 'liquid',
+    boilingPoint: 100
   },
   NaCl: {
     id: 'NaCl',
@@ -17,6 +19,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 2.16,
     description: 'Table salt.',
+    iconType: 'crystal',
+    boilingPoint: 1465
   },
   VINEGAR: {
     id: 'VINEGAR',
@@ -26,6 +30,8 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 1.01,
     description: 'Acetic acid solution.',
+    iconType: 'bottle',
+    boilingPoint: 118
   },
   BAKING_SODA: {
     id: 'BAKING_SODA',
@@ -35,6 +41,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 2.2,
     description: 'Sodium bicarbonate.',
+    iconType: 'powder',
+    boilingPoint: 851 // Decomposes before boiling usually
   },
   CARBON: {
     id: 'CARBON',
@@ -44,6 +52,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 2.26,
     description: 'Charcoal or graphite. Basis of life.',
+    iconType: 'rock',
+    boilingPoint: 4827
   },
   SULFUR: {
     id: 'SULFUR',
@@ -53,6 +63,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 2.07,
     description: 'A bright yellow, brittle non-metal.',
+    iconType: 'powder',
+    boilingPoint: 444
   },
   IRON: {
     id: 'IRON',
@@ -62,6 +74,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 7.87,
     description: 'A strong, magnetic metal.',
+    iconType: 'bar',
+    boilingPoint: 2862
   },
   ETHANOL: {
     id: 'ETHANOL',
@@ -71,6 +85,8 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 0.78,
     description: 'A versatile organic solvent and fuel.',
+    iconType: 'bottle',
+    boilingPoint: 78
   },
   OXYGEN: {
     id: 'OXYGEN',
@@ -80,6 +96,8 @@ export const CHEMICALS = {
     state: 'gas',
     density: 0.0014,
     description: 'Highly reactive gas essential for life.',
+    iconType: 'cylinder',
+    boilingPoint: -183
   },
   HYDROGEN: {
     id: 'HYDROGEN',
@@ -89,6 +107,8 @@ export const CHEMICALS = {
     state: 'gas',
     density: 0.00008,
     description: 'Lightest and most abundant element.',
+    iconType: 'cylinder',
+    boilingPoint: -252
   },
   NITROGEN: {
     id: 'NITROGEN',
@@ -98,6 +118,8 @@ export const CHEMICALS = {
     state: 'gas',
     density: 0.0012,
     description: 'Inert gas making up most of the atmosphere.',
+    iconType: 'cylinder',
+    boilingPoint: -195
   },
   MAGNESIUM: {
     id: 'MAGNESIUM',
@@ -107,6 +129,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 1.74,
     description: 'Lightweight flammable metal.',
+    iconType: 'bar',
+    boilingPoint: 1090
   },
   POTASSIUM_PERMANGANATE: {
     id: 'POTASSIUM_PERMANGANATE',
@@ -116,6 +140,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 2.7,
     description: 'Strong oxidizer (deep purple).',
+    iconType: 'crystal',
+    boilingPoint: 240 // Decomposes
   },
 
   // --- Discovered (Intermediate/Complex) ---
@@ -127,6 +153,8 @@ export const CHEMICALS = {
     state: 'gas',
     density: 0.0032,
     description: 'Toxic yellow-green gas.',
+    iconType: 'cloud',
+    boilingPoint: -34
   },
   SODIUM_HYDROXIDE: {
     id: 'SODIUM_HYDROXIDE',
@@ -136,6 +164,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 2.13,
     description: 'Caustic soda (Lye). Strong base.',
+    iconType: 'crystal',
+    boilingPoint: 1388
   },
   HYDROCHLORIC_ACID: {
     id: 'HYDROCHLORIC_ACID',
@@ -145,6 +175,8 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 1.18,
     description: 'Strong acid found in the stomach.',
+    iconType: 'vial',
+    boilingPoint: 48 // For concentrated solution
   },
   NITRIC_ACID: {
     id: 'NITRIC_ACID',
@@ -154,6 +186,8 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 1.51,
     description: 'Highly corrosive mineral acid.',
+    iconType: 'vial',
+    boilingPoint: 83
   },
   ACETONE: {
     id: 'ACETONE',
@@ -163,6 +197,8 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 0.78,
     description: 'Organic solvent and cleaner.',
+    iconType: 'bottle',
+    boilingPoint: 56
   },
   CO2: {
     id: 'CO2',
@@ -172,6 +208,8 @@ export const CHEMICALS = {
     state: 'gas',
     density: 0.0019,
     description: 'Product of combustion and respiration.',
+    iconType: 'cloud',
+    boilingPoint: -78 // Sublimation
   },
   IRON_OXIDE: {
     id: 'IRON_OXIDE',
@@ -181,6 +219,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 5.24,
     description: 'Oxidized iron (Rust).',
+    iconType: 'powder',
+    boilingPoint: 1987 // Decomposes
   },
   SO2: {
     id: 'SO2',
@@ -190,6 +230,8 @@ export const CHEMICALS = {
     state: 'gas',
     density: 0.0029,
     description: 'Toxic gas from burning sulfur.',
+    iconType: 'cloud',
+    boilingPoint: -10
   },
   AMMONIA: {
     id: 'AMMONIA',
@@ -199,6 +241,8 @@ export const CHEMICALS = {
     state: 'gas',
     density: 0.0007,
     description: 'Pungent gas used in fertilizers.',
+    iconType: 'cloud',
+    boilingPoint: -33
   },
   CARBONIC_ACID: {
     id: 'CARBONIC_ACID',
@@ -208,6 +252,8 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 1.0,
     description: 'Soda water.',
+    iconType: 'bottle',
+    boilingPoint: 100 // Mostly water
   },
   SULFURIC_ACID: {
     id: 'SULFURIC_ACID',
@@ -217,6 +263,8 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 1.83,
     description: 'Strong mineral acid.',
+    iconType: 'vial',
+    boilingPoint: 337
   },
   IRON_SULFIDE: {
     id: 'IRON_SULFIDE',
@@ -226,6 +274,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 4.84,
     description: 'Pyrite-like compound.',
+    iconType: 'rock',
+    boilingPoint: 1194 // Decomposes
   },
   STEEL: {
     id: 'STEEL',
@@ -235,6 +285,8 @@ export const CHEMICALS = {
     state: 'solid',
     density: 7.85,
     description: 'Hardened iron alloy.',
+    iconType: 'bar',
+    boilingPoint: 2800
   },
   AMMONIUM_HYDROXIDE: {
     id: 'AMMONIUM_HYDROXIDE',
@@ -244,6 +296,52 @@ export const CHEMICALS = {
     state: 'liquid',
     density: 0.9,
     description: 'Household ammonia cleaner.',
+    iconType: 'bottle',
+    boilingPoint: 27 // Ammonia comes out
+  },
+  ETHYL_ACETATE: {
+    id: 'ETHYL_ACETATE',
+    name: 'Ethyl Acetate',
+    formula: 'CH₃COOCH₂CH₃',
+    color: '#ffffff',
+    state: 'liquid',
+    density: 0.9,
+    description: 'Sweet-smelling ester (solvent).',
+    iconType: 'bottle',
+    boilingPoint: 77
+  },
+  METHANOL: {
+    id: 'METHANOL',
+    name: 'Methanol',
+    formula: 'CH₃OH',
+    color: '#f8fafc',
+    state: 'liquid',
+    density: 0.79,
+    description: 'Simple wood alcohol.',
+    iconType: 'bottle',
+    boilingPoint: 64
+  },
+  ETHYLENE: {
+    id: 'ETHYLENE',
+    name: 'Ethylene',
+    formula: 'C₂H₄',
+    color: '#cbd5e1',
+    state: 'gas',
+    density: 0.0011,
+    description: 'Fundamental building block for plastics.',
+    iconType: 'cylinder',
+    boilingPoint: -103
+  },
+  POLYETHYLENE: {
+    id: 'POLYETHYLENE',
+    name: 'Polyethylene',
+    formula: '(C₂H₄)n',
+    color: '#f1f5f9',
+    state: 'solid',
+    density: 0.92,
+    description: 'Common plastic (polythene).',
+    iconType: 'rock',
+    boilingPoint: 360 // Degradation
   }
 };
 
