@@ -4,6 +4,8 @@ import { CHEMICALS } from '../data/chemicals';
 import { VESSEL_STATS } from '../data/constants';
 import QuantityModal from './QuantityModal';
 import Condenser from './Condenser';
+import VesselVisuals from './VesselVisuals';
+import AnalogueDial from './AnalogueDial';
 
 const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
   const vessel = useChemistryStore(state => state.vessels[id]);
@@ -13,10 +15,11 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
   const bottleVessel = useChemistryStore(state => state.bottleVessel);
   const repairVessel = useChemistryStore(state => state.repairVessel);
   const upgradeVessel = useChemistryStore(state => state.upgradeVessel);
+  const toggleVesselLid = useChemistryStore(state => state.toggleVesselLid);
 
   const [modalState, setModalState] = useState({ isOpen: false, chemicalId: null });
   const [showUpgradeMenu, setShowUpgradeMenu] = useState(false);
-  const breakVessel = useChemistryStore(state => state.breakVessel); // Kept if needed for manual break debug, otherwise can remove
+  const breakVessel = useChemistryStore(state => state.breakVessel); 
 
   const currentStats = VESSEL_STATS[vessel.type || (id === 'chamber' ? 'reinforced' : 'glass')] || VESSEL_STATS.glass;
 
@@ -43,6 +46,7 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
   const handleDrop = (e) => {
     e.preventDefault();
     if (vessel.status === 'broken') return;
+    if (!vessel.isOpen) return; 
     const chemicalId = e.dataTransfer.getData('chemicalId');
     if (chemicalId) {
       setModalState({ isOpen: true, chemicalId });
@@ -88,7 +92,6 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
                 Replace Glassware
              </button>
              
-             {/* Allow upgrading even when broken to "Replace with better" */}
              <button 
                 onClick={() => setShowUpgradeMenu(true)}
                 className="absolute top-2 right-2 p-2 text-gray-500 hover:text-white"
@@ -188,87 +191,91 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
         <div className="w-1 h-4 bg-gray-700 absolute top-[76px] z-0"></div>
 
         <div className={`flex flex-col items-center gap-2 p-4 bg-gray-800 rounded-xl border-2 shadow-lg min-w-[220px] z-10 transition-colors duration-500 ${currentStats.style}`}>
+          {/* Lid Status Indicator */}
+          <div className="absolute top-2 right-2 z-20">
+             <span className={`text-[10px] px-1 rounded ${vessel.isOpen ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400 border border-red-800'}`}>
+                {vessel.isOpen ? 'OPEN' : 'SEALED'}
+             </span>
+          </div>
+
           {/* The Vessel Container */}
-          <div className="flex items-end">
+          <div className={`flex items-end ${hasCondenser ? 'min-w-[200px] pr-12' : ''}`}>
               <div 
-                className="relative w-32 h-40 bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-b-2xl rounded-t-md overflow-hidden backdrop-blur-md shadow-inner group"
+                className="relative w-32 h-40 z-10"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
               >
-                <div 
-                  className="absolute bottom-0 w-full transition-all duration-500 ease-out"
-                  style={{ 
-                    height: `${fillPercentage}%`, 
-                    backgroundColor: fluidColor, 
-                    opacity: 0.8,
-                    boxShadow: `0 0 20px ${fluidColor}`
-                  }} 
-                />
-                
-                {/* Visual Effects Layer */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    {/* 1. Standard Boiling Bubbles */}
-                    {vessel.temp > 95 && totalVolume > 0 && (
-                        <div className="absolute bottom-0 w-full h-full flex items-end justify-around pb-2 opacity-40">
-                            <div className="animate-bounce delay-75 w-2 h-2 bg-white rounded-full" />
-                            <div className="animate-bounce delay-200 w-1 h-1 bg-white rounded-full" />
-                            <div className="animate-bounce delay-500 w-1.5 h-1.5 bg-white rounded-full" />
-                        </div>
-                    )}
+                <VesselVisuals 
+                    variant={vessel.variant || 'flask'} 
+                    fillPercentage={fillPercentage} 
+                    fluidColor={fluidColor}
+                >
+                    {/* Visual Effects Layer - passed as children */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                        {/* 1. Standard Boiling Bubbles */}
+                        {vessel.temp > 95 && totalVolume > 0 && (
+                            <div className="absolute bottom-0 w-full h-full flex items-end justify-around pb-2 opacity-40">
+                                <div className="animate-bounce delay-75 w-2 h-2 bg-white rounded-full" />
+                                <div className="animate-bounce delay-200 w-1 h-1 bg-white rounded-full" />
+                                <div className="animate-bounce delay-500 w-1.5 h-1.5 bg-white rounded-full" />
+                            </div>
+                        )}
 
-                    {/* 2. Reaction Specific Visuals */}
-                    {vessel.activeVisual === 'bubble' && (
-                        <div className="absolute bottom-0 w-full h-full flex items-end justify-around pb-4">
-                            {[...Array(6)].map((_, i) => (
-                                <div 
-                                    key={i}
-                                    className="w-1.5 h-1.5 bg-white/60 rounded-full animate-[ping_1.5s_infinite]"
-                                    style={{ animationDelay: `${i * 0.2}s`, left: `${i * 15}%` }}
-                                />
-                            ))}
-                        </div>
-                    )}
+                        {/* 2. Reaction Specific Visuals */}
+                        {vessel.activeVisual === 'bubble' && (
+                            <div className="absolute bottom-0 w-full h-full flex items-end justify-around pb-4">
+                                {[...Array(6)].map((_, i) => (
+                                    <div 
+                                        key={i}
+                                        className="w-1.5 h-1.5 bg-white/60 rounded-full animate-[ping_1.5s_infinite]"
+                                        style={{ animationDelay: `${i * 0.2}s`, left: `${i * 15}%` }}
+                                    />
+                                ))}
+                            </div>
+                        )}
 
-                    {vessel.activeVisual === 'fume' && (
-                        <div className="absolute top-0 w-full h-1/2 flex justify-center opacity-60">
-                            <div className="w-12 h-20 bg-gradient-to-t from-white/20 to-transparent blur-xl animate-pulse" />
-                        </div>
-                    )}
+                        {vessel.activeVisual === 'fume' && (
+                            <div className="absolute top-0 w-full h-1/2 flex justify-center opacity-60">
+                                <div className="w-12 h-20 bg-gradient-to-t from-white/20 to-transparent blur-xl animate-pulse" />
+                            </div>
+                        )}
 
-                    {vessel.activeVisual === 'steam' && (
-                        <div className="absolute top-0 w-full h-full flex flex-col items-center pt-2 opacity-80">
-                            <div className="w-16 h-10 bg-white/20 blur-lg rounded-full animate-bounce" />
-                            <div className="w-10 h-8 bg-white/10 blur-md rounded-full animate-pulse delay-75" />
-                        </div>
-                    )}
+                        {vessel.activeVisual === 'steam' && (
+                            <div className="absolute top-0 w-full h-full flex flex-col items-center pt-2 opacity-80">
+                                <div className="w-16 h-10 bg-white/20 blur-lg rounded-full animate-bounce" />
+                                <div className="w-10 h-8 bg-white/10 blur-md rounded-full animate-pulse delay-75" />
+                            </div>
+                        )}
 
-                    {vessel.activeVisual === 'solidify' && (
-                        <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px] animate-pulse" />
-                    )}
+                        {vessel.activeVisual === 'solidify' && (
+                            <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px] animate-pulse" />
+                        )}
 
-                    {vessel.activeVisual === 'distill' && (
-                        <div className="absolute top-0 w-full h-full">
-                            <div className="absolute right-2 top-4 w-1 h-2 bg-white/40 rounded-full animate-bounce" />
-                            <div className="absolute right-4 top-8 w-1 h-2 bg-white/40 rounded-full animate-bounce delay-100" />
-                        </div>
-                    )}
-                </div>
+                        {vessel.activeVisual === 'distill' && (
+                            <div className="absolute top-0 w-full h-full">
+                                <div className="absolute right-2 top-4 w-1 h-2 bg-white/40 rounded-full animate-bounce" />
+                                <div className="absolute right-4 top-8 w-1 h-2 bg-white/40 rounded-full animate-bounce delay-100" />
+                            </div>
+                        )}
+                    </div>
 
-                {/* Label Overlay */}
-                <div className="absolute top-2 w-full flex justify-center opacity-50">
-                    <span className="text-[10px] font-mono text-white/50 bg-black/20 px-1 rounded">{currentStats.name.split(' ')[0]}</span>
-                </div>
-                
-                {totalVolume > 0 && vessel.isOpen && (
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button 
-                      onClick={handleBottle}
-                      className="bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold py-1 px-3 rounded-full shadow-lg transform hover:scale-105 transition-all"
-                    >
-                      Bottle
-                    </button>
-                  </div>
-                )}
+                    {/* Label Overlay */}
+                    <div className="absolute top-2 w-full flex justify-center opacity-50">
+                        <span className="text-[10px] font-mono text-white/50 bg-black/20 px-1 rounded">{currentStats.name.split(' ')[0]}</span>
+                    </div>
+                    
+                    {/* Bottle Button */}
+                    {totalVolume > 0 && vessel.isOpen && (
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-auto">
+                        <button 
+                          onClick={handleBottle}
+                          className="bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold py-1 px-3 rounded-full shadow-lg transform hover:scale-105 transition-all"
+                        >
+                          Bottle
+                        </button>
+                      </div>
+                    )}
+                </VesselVisuals>
               </div>
               
               {/* Attached Condenser */}
@@ -277,38 +284,49 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
 
           {/* Controls */}
           <div className="w-full space-y-3 mt-2 bg-gray-900/50 p-2 rounded-lg">
-            {hasTempControl && (
-              <div className="flex flex-col gap-1">
-                <input 
-                  type="range" min="0" max={currentStats.maxTemp + 200} value={vessel.targetTemp || 20} 
-                  onChange={(e) => setVesselControl(id, 'targetTemp', parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500"
+            <button 
+                onClick={() => toggleVesselLid(id)}
+                className={`w-full py-1 text-xs font-bold rounded transition-colors ${vessel.isOpen ? 'bg-green-900/30 text-green-400 border border-green-800' : 'bg-red-900/30 text-red-400 border border-red-800'}`}
+            >
+                {vessel.isOpen ? 'OPEN LID' : 'SEALED'}
+            </button>
+
+            <div className="flex gap-4 justify-center py-2">
+                {hasTempControl && (
+                    <AnalogueDial 
+                        label="TEMP" 
+                        value={vessel.targetTemp || 20} 
+                        min={0} 
+                        max={currentStats.maxTemp + 200}
+                        unit="°C"
+                        color="#ef4444" // red-500
+                        onChange={(val) => setVesselControl(id, 'targetTemp', val)}
+                    />
+                )}
+                
+                {/* Pressure Dial (Always show pressure even if not controllable, for safety feedback) */}
+                <AnalogueDial 
+                    label="PRESS" 
+                    value={vessel.pressure} 
+                    min={0} 
+                    max={currentStats.maxPress + 50} 
+                    unit="atm"
+                    color="#a855f7" // purple-500
+                    disabled={true} // Physics controls this
                 />
-                <div className="flex justify-between text-[10px] text-gray-500 font-mono">
-                    <span>HEATER</span>
-                    <span>{vessel.targetTemp || 20}°C</span>
-                </div>
-              </div>
-            )}
-            {hasPressureControl && (
-              <div className="flex flex-col gap-1">
-                <input 
-                  type="range" min="1" max={currentStats.maxPress + 20} value={vessel.pressure} 
-                  disabled
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-not-allowed opacity-50 accent-purple-500"
-                />
-                <div className="flex justify-between text-[10px] text-gray-500 font-mono">
-                    <span>PRESS (AUTO)</span>
-                    <span>{vessel.pressure} atm</span>
-                </div>
-              </div>
-            )}
+            </div>
+
             <button 
                 onClick={() => clearVessel(id)} 
                 className="text-xs text-red-400 hover:text-red-300 w-full text-center hover:bg-red-900/20 py-1 rounded transition-colors"
             >
                 Dump Contents
             </button>
+            
+            {/* Equipment Type Label */}
+            <div className="text-[10px] text-gray-500 text-center font-mono uppercase tracking-widest pt-1 border-t border-gray-700">
+                {currentStats.name}
+            </div>
           </div>
         </div>
       </div>

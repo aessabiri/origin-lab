@@ -14,7 +14,7 @@ const TimeControls = () => {
   ];
 
   return (
-    <div className="absolute top-4 left-4 z-20 flex bg-gray-900 border border-gray-700 rounded-lg overflow-hidden shadow-lg">
+    <div className="absolute bottom-52 right-4 z-20 flex bg-gray-900 border border-gray-700 rounded-lg overflow-hidden shadow-lg">
       {speeds.map((s) => (
         <button
           key={s.label}

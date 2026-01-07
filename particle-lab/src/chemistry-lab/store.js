@@ -1,49 +1,105 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { MISSIONS, STARTING_CHEMICALS, STARTING_EQUIPMENT } from './data/missions';
+import { CHEMICALS } from './data/chemicals';
+import { EQUIPMENT } from './data/equipment';
 
 export const useChemistryStore = create(
   persist(
     (set, get) => ({
-      inventory: [
-        'H2O', 'NaCl', 'VINEGAR', 'BAKING_SODA', 
-        'CARBON', 'SULFUR', 'IRON', 'ETHANOL', 
-        'OXYGEN', 'HYDROGEN', 'NITROGEN',
-        'MAGNESIUM', 'POTASSIUM_PERMANGANATE'
-      ],
+      // --- Game State ---
+      gameMode: 'career', // 'sandbox' or 'career'
+      missionIndex: 0,
+      unlockedEquipment: [...STARTING_EQUIPMENT],
+      
+      // --- Physical State ---
+      inventory: [...STARTING_CHEMICALS], // Chemicals available in Pantry
       vessels: {
-        beaker: { id: 'beaker', name: 'Open Beaker', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 500, status: 'ok', type: 'glass', activeVisual: null, isOpen: true },
-        flask: { id: 'flask', name: 'Reaction Flask', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 500, status: 'ok', type: 'glass', activeVisual: null, isOpen: false },
-        chamber: { id: 'chamber', name: 'Pressure Chamber', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 1000, status: 'ok', type: 'reinforced', activeVisual: null, isOpen: false },
+        beaker: { id: 'beaker', name: 'Open Beaker', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 500, status: 'ok', type: 'glass', variant: 'beaker', activeVisual: null, isOpen: true },
       },
       condenser: {
         id: 'condenser',
         name: 'Distillation Column',
-        connectedTo: 'flask', // Default connected to Flask
+        connectedTo: null,
         contents: {},
         maxVol: 300,
         status: 'ok',
-        isActive: true // New: User can toggle if it captures or not
+        isActive: true
       },
-      message: '',
+      message: 'Welcome to the Lab! Check your current objective.',
       timeSpeed: 1,
       isFumeHoodOn: false,
       inspectedChemical: null,
+      isHintVisible: false,
 
+      // --- Actions ---
       setTimeSpeed: (speed) => set({ timeSpeed: speed }),
       setMessage: (msg) => set({ message: msg }),
       setInspectedChemical: (chemicalId) => set({ inspectedChemical: chemicalId }),
       toggleFumeHood: () => set((state) => ({ isFumeHoodOn: !state.isFumeHoodOn })),
+      toggleHint: () => set((state) => ({ isHintVisible: !state.isHintVisible })),
       
-      addVessel: (typeId) => {
-          set((state) => {
-              // Import EQUIPMENT lazily or assume it is passed, but for clean store we can just take the template.
-              // To avoid circular deps, let's pass the full vessel config object from the UI.
-              // NO, standard practice is to look it up. But the store doesn't import data usually.
-              // Let's modify the action signature to accept the `vesselConfig`.
-              return state;
-          });
+      setGameMode: (mode) => {
+          if (mode === 'sandbox') {
+              set({ 
+                  gameMode: 'sandbox',
+                  inventory: Object.keys(CHEMICALS),
+                  unlockedEquipment: EQUIPMENT.map(e => e.id),
+                  message: 'SANDBOX MODE: Everything unlocked. Have fun!'
+              });
+          } else {
+              // Reset to career state (or load if we tracked progress properly, but for now reset)
+              set({ 
+                  gameMode: 'career',
+                  inventory: [...STARTING_CHEMICALS],
+                  unlockedEquipment: [...STARTING_EQUIPMENT],
+                  missionIndex: 0,
+                  message: 'CAREER MODE: Progress reset. Good luck!'
+              });
+          }
       },
-      // Re-implementing with proper logic below
+
+      checkMissionCompletion: (newChemicals) => {
+          const state = get();
+          if (state.gameMode !== 'career') return;
+
+          const currentMission = MISSIONS[state.missionIndex];
+          if (!currentMission) return;
+
+          // Check if any of the newly acquired chemicals match the requirement
+          const reqs = currentMission.requirements;
+          const met = Object.keys(reqs).some(reqChem => newChemicals.includes(reqChem));
+
+          if (met) {
+              const nextIndex = state.missionIndex + 1;
+              const rewards = currentMission.rewards;
+              
+              // Apply Rewards
+              const newInventory = [...state.inventory];
+              if (rewards.unlockChemicals) {
+                  rewards.unlockChemicals.forEach(c => {
+                      if (!newInventory.includes(c)) newInventory.push(c);
+                  });
+              }
+              
+              const newEquipment = [...state.unlockedEquipment];
+              if (rewards.unlockEquipment) {
+                  rewards.unlockEquipment.forEach(e => {
+                      if (!newEquipment.includes(e)) newEquipment.push(e);
+                  });
+              }
+
+              set({
+                  missionIndex: nextIndex,
+                  inventory: newInventory,
+                  unlockedEquipment: newEquipment,
+                  message: `🎉 MISSION COMPLETE! ${rewards.message}`
+              });
+          }
+      },
+
+      addVessel: (typeId) => {}, // Legacy placeholder, remove if safe
+      
       createVessel: (vesselConfig) => {
           set((state) => {
               const newId = `vessel_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
@@ -71,6 +127,7 @@ export const useChemistryStore = create(
                           maxVol: vesselConfig.stats.maxVol,
                           status: 'ok',
                           type: vesselConfig.type,
+                          variant: vesselConfig.icon, // Store the shape/icon type
                           isOpen: vesselConfig.stats.isOpen,
                           activeVisual: null,
                           // Persist feature flags
@@ -117,9 +174,30 @@ export const useChemistryStore = create(
       },
       
       emptyCondenser: () => {
-         set((state) => ({
-             condenser: { ...state.condenser, contents: {} }
-         }));
+         set((state) => {
+             const contents = state.condenser.contents;
+             const newInventory = [...state.inventory];
+             const discovered = [];
+
+             Object.keys(contents).forEach(chemId => {
+                 if (!newInventory.includes(chemId)) {
+                     newInventory.push(chemId);
+                     discovered.push(chemId);
+                 }
+             });
+
+             if (discovered.length > 0) {
+                 get().setMessage(`Distillate Captured: ${discovered.join(', ')}`);
+                 setTimeout(() => get().checkMissionCompletion(discovered), 0);
+             } else {
+                 get().setMessage('Distillate collected.');
+             }
+
+             return {
+                 inventory: newInventory,
+                 condenser: { ...state.condenser, contents: {} }
+             };
+         });
       },
 
       setVesselVisual: (vesselId, visual) => {
@@ -246,6 +324,8 @@ export const useChemistryStore = create(
           let msg = '';
           if (discovered.length > 0) {
             msg = `Discovered: ${discovered.join(', ')}! Added to pantry.`;
+            // Trigger Mission Check
+            setTimeout(() => get().checkMissionCompletion(discovered), 0);
           } else {
             msg = 'Sample collected (already known).';
           }

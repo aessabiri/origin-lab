@@ -6,15 +6,23 @@ import ChemicalIcon from './ChemicalIcon';
 const Pantry = () => {
   const inventory = useChemistryStore(state => state.inventory);
   const setInspectedChemical = useChemistryStore(state => state.setInspectedChemical);
+  const gameMode = useChemistryStore(state => state.gameMode);
   const [activeTab, setActiveTab] = useState('elementary');
 
   const handleDragStart = (e, chemicalId) => {
     e.dataTransfer.setData('chemicalId', chemicalId);
   };
 
+  // Logic:
+  // If Sandbox: Show ALL chemicals defined in data.
+  // If Career: Show only chemicals present in 'inventory' (which acts as the Unlocked list).
+  
+  const allChemicalIds = Object.keys(CHEMICALS);
+  const availableChemicals = gameMode === 'sandbox' ? allChemicalIds : inventory;
+
   const visibleChemicals = activeTab === 'elementary' 
-    ? ELEMENTARY_IDS 
-    : inventory.filter(id => !ELEMENTARY_IDS.includes(id));
+    ? ELEMENTARY_IDS.filter(id => availableChemicals.includes(id))
+    : availableChemicals.filter(id => !ELEMENTARY_IDS.includes(id));
 
   return (
     <div className="w-full bg-gray-900 border-t border-gray-800 flex flex-col h-48 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)] z-20">

@@ -4,6 +4,7 @@ import { useChemistryStore } from '../store';
 
 const EquipmentPalette = ({ isOpen, onClose }) => {
   const createVessel = useChemistryStore(state => state.createVessel);
+  const unlockedEquipment = useChemistryStore(state => state.unlockedEquipment);
 
   if (!isOpen) return null;
 
@@ -12,8 +13,10 @@ const EquipmentPalette = ({ isOpen, onClose }) => {
     e.dataTransfer.effectAllowed = 'copy';
   };
 
+  const visibleEquipment = EQUIPMENT.filter(item => unlockedEquipment.includes(item.id));
+
   return (
-    <div className="absolute top-32 right-20 z-40 w-64 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+    <div className="absolute top-0 right-full mr-4 z-40 w-64 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
       {/* Header */}
       <div className="bg-gray-900 p-3 border-b border-gray-700 flex justify-between items-center">
         <h3 className="text-white font-bold text-sm tracking-wide">LAB EQUIPMENT</h3>
@@ -22,7 +25,7 @@ const EquipmentPalette = ({ isOpen, onClose }) => {
 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
-        {EQUIPMENT.map((item) => (
+        {visibleEquipment.map((item) => (
           <div 
             key={item.id}
             draggable

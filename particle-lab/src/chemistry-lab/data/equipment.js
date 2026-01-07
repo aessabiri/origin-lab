@@ -15,7 +15,7 @@ export const EQUIPMENT = [
     type: 'glass',
     icon: 'flask',
     cost: 0,
-    stats: { maxTemp: 800, maxPress: 10, maxVol: 500, isOpen: false },
+    stats: { maxTemp: 800, maxPress: 50, maxVol: 500, isOpen: false },
     features: { hasTempControl: true, hasPressureControl: false },
     description: 'Heatable flask with a narrow neck. Can be sealed.'
   },
