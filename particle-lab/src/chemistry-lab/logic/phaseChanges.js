@@ -20,11 +20,23 @@ export const processPhaseChanges = (vessel, timeSpeed) => {
     // 2. OR Vessel is connected to ACTIVE condenser (gas leaves vessel to go to condenser)
     const canGasEscape = vessel.isOpen || (isConnectedToCondenser && isCondenserActive);
 
+    let isAnySolidified = false;
+
     Object.entries(vessel.contents).forEach(([chemId, amount]) => {
         const chem = CHEMICALS[chemId];
         if (!chem) return;
 
         let amountToRemove = 0;
+
+        // 0. Freezing/Melting Check (Visual Only for now)
+        if (chem.meltingPoint !== undefined) {
+            if (vessel.temp < chem.meltingPoint) {
+                isAnySolidified = true;
+            }
+        } else if (chem.state === 'solid') {
+             // If no melting point defined but state is solid, assume it's solid unless very hot
+             if (vessel.temp < 1000) isAnySolidified = true;
+        }
 
         // 1. Gas Escaping (Venting)
         if (chem.state === 'gas' && canGasEscape) {
@@ -53,6 +65,10 @@ export const processPhaseChanges = (vessel, timeSpeed) => {
             }
         }
     });
+
+    if (isAnySolidified && !visualEffect) {
+        visualEffect = 'solidify';
+    }
 
     return { changes, visualEffect, condensed };
 };

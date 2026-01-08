@@ -92,6 +92,14 @@ export const useSimulation = () => {
         
         if (reactionResult.inputsToRemove) {
             transmuteContents(vessel.id, reactionResult.inputsToRemove, reactionResult.outputsToAdd);
+            
+            // Apply Reaction Heat (Exothermic/Endothermic)
+            if (reactionResult.heatGenerated) {
+                const newReactionTemp = vessel.temp + reactionResult.heatGenerated;
+                updateVesselTemperature(vessel.id, newReactionTemp);
+                vessel.temp = newReactionTemp; // Update local ref for next checks
+            }
+
             if (vessel.activeVisual !== reactionResult.visual) {
                 setVesselVisual(vessel.id, reactionResult.visual);
             }

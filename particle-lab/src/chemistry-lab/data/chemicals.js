@@ -9,7 +9,9 @@ export const CHEMICALS = {
     density: 1.0,
     description: 'Universal solvent.',
     iconType: 'liquid',
-    boilingPoint: 100
+    boilingPoint: 100,
+    meltingPoint: 0,
+    ph: 7.0
   },
   NaCl: {
     id: 'NaCl',
@@ -20,7 +22,10 @@ export const CHEMICALS = {
     density: 2.16,
     description: 'Table salt.',
     iconType: 'crystal',
-    boilingPoint: 1465
+    boilingPoint: 1465,
+    meltingPoint: 801,
+    ph: 7.0,
+    solubility: 36
   },
   VINEGAR: {
     id: 'VINEGAR',
@@ -31,7 +36,9 @@ export const CHEMICALS = {
     density: 1.01,
     description: 'Acetic acid solution.',
     iconType: 'bottle',
-    boilingPoint: 118
+    boilingPoint: 118,
+    meltingPoint: 16,
+    ph: 2.5
   },
   BAKING_SODA: {
     id: 'BAKING_SODA',
@@ -42,7 +49,23 @@ export const CHEMICALS = {
     density: 2.2,
     description: 'Sodium bicarbonate.',
     iconType: 'powder',
-    boilingPoint: 851 // Decomposes before boiling usually
+    boilingPoint: 851, // Decomposes before boiling usually
+    meltingPoint: 50, // Decomposes
+    ph: 8.5,
+    solubility: 9
+  },
+  UNIVERSAL_INDICATOR: {
+    id: 'UNIVERSAL_INDICATOR',
+    name: 'Universal Indicator',
+    formula: 'Solution',
+    color: '#22c55e', // green-500 (start neutral)
+    state: 'liquid',
+    density: 1.0,
+    description: 'Changes color based on pH (Red=Acid, Purple=Base).',
+    iconType: 'bottle',
+    boilingPoint: 100,
+    meltingPoint: 0,
+    ph: 7.0
   },
   CARBON: {
     id: 'CARBON',
@@ -53,7 +76,10 @@ export const CHEMICALS = {
     density: 2.26,
     description: 'Charcoal or graphite. Basis of life.',
     iconType: 'rock',
-    boilingPoint: 4827
+    boilingPoint: 4827,
+    meltingPoint: 3550,
+    ph: 7.0,
+    solubility: 0 // Insoluble
   },
   SULFUR: {
     id: 'SULFUR',
@@ -64,7 +90,10 @@ export const CHEMICALS = {
     density: 2.07,
     description: 'A bright yellow, brittle non-metal.',
     iconType: 'powder',
-    boilingPoint: 444
+    boilingPoint: 444,
+    meltingPoint: 115,
+    ph: 7.0,
+    solubility: 0
   },
   IRON: {
     id: 'IRON',
@@ -75,7 +104,10 @@ export const CHEMICALS = {
     density: 7.87,
     description: 'A strong, magnetic metal.',
     iconType: 'bar',
-    boilingPoint: 2862
+    boilingPoint: 2862,
+    meltingPoint: 1538,
+    ph: 7.0,
+    solubility: 0
   },
   ETHANOL: {
     id: 'ETHANOL',
@@ -86,7 +118,9 @@ export const CHEMICALS = {
     density: 0.78,
     description: 'A versatile organic solvent and fuel.',
     iconType: 'bottle',
-    boilingPoint: 78
+    boilingPoint: 78,
+    meltingPoint: -114,
+    ph: 7.33
   },
   OXYGEN: {
     id: 'OXYGEN',
@@ -97,7 +131,9 @@ export const CHEMICALS = {
     density: 0.0014,
     description: 'Highly reactive gas essential for life.',
     iconType: 'cylinder',
-    boilingPoint: -183
+    boilingPoint: -183,
+    meltingPoint: -218,
+    ph: 7.0
   },
   HYDROGEN: {
     id: 'HYDROGEN',
@@ -108,7 +144,9 @@ export const CHEMICALS = {
     density: 0.00008,
     description: 'Lightest and most abundant element.',
     iconType: 'cylinder',
-    boilingPoint: -252
+    boilingPoint: -252,
+    meltingPoint: -259,
+    ph: 7.0
   },
   NITROGEN: {
     id: 'NITROGEN',
@@ -119,7 +157,9 @@ export const CHEMICALS = {
     density: 0.0012,
     description: 'Inert gas making up most of the atmosphere.',
     iconType: 'cylinder',
-    boilingPoint: -195
+    boilingPoint: -195,
+    meltingPoint: -210,
+    ph: 7.0
   },
   MAGNESIUM: {
     id: 'MAGNESIUM',
@@ -130,7 +170,10 @@ export const CHEMICALS = {
     density: 1.74,
     description: 'Lightweight flammable metal.',
     iconType: 'bar',
-    boilingPoint: 1090
+    boilingPoint: 1090,
+    meltingPoint: 650,
+    ph: 7.0,
+    solubility: 0
   },
   POTASSIUM_PERMANGANATE: {
     id: 'POTASSIUM_PERMANGANATE',
@@ -141,7 +184,10 @@ export const CHEMICALS = {
     density: 2.7,
     description: 'Strong oxidizer (deep purple).',
     iconType: 'crystal',
-    boilingPoint: 240 // Decomposes
+    boilingPoint: 240, // Decomposes
+    meltingPoint: 240,
+    ph: 7.0,
+    solubility: 6.4
   },
 
   // --- Discovered (Intermediate/Complex) ---
@@ -154,7 +200,9 @@ export const CHEMICALS = {
     density: 0.0032,
     description: 'Toxic yellow-green gas.',
     iconType: 'cloud',
-    boilingPoint: -34
+    boilingPoint: -34,
+    meltingPoint: -101,
+    ph: 4.0
   },
   SODIUM_HYDROXIDE: {
     id: 'SODIUM_HYDROXIDE',
@@ -165,7 +213,10 @@ export const CHEMICALS = {
     density: 2.13,
     description: 'Caustic soda (Lye). Strong base.',
     iconType: 'crystal',
-    boilingPoint: 1388
+    boilingPoint: 1388,
+    meltingPoint: 318,
+    ph: 14.0,
+    solubility: 100
   },
   HYDROCHLORIC_ACID: {
     id: 'HYDROCHLORIC_ACID',
@@ -176,7 +227,9 @@ export const CHEMICALS = {
     density: 1.18,
     description: 'Strong acid found in the stomach.',
     iconType: 'vial',
-    boilingPoint: 48 // For concentrated solution
+    boilingPoint: 48, // For concentrated solution
+    meltingPoint: -27,
+    ph: 1.0
   },
   NITRIC_ACID: {
     id: 'NITRIC_ACID',
@@ -187,7 +240,9 @@ export const CHEMICALS = {
     density: 1.51,
     description: 'Highly corrosive mineral acid.',
     iconType: 'vial',
-    boilingPoint: 83
+    boilingPoint: 83,
+    meltingPoint: -42,
+    ph: 1.0
   },
   ACETONE: {
     id: 'ACETONE',
@@ -198,7 +253,9 @@ export const CHEMICALS = {
     density: 0.78,
     description: 'Organic solvent and cleaner.',
     iconType: 'bottle',
-    boilingPoint: 56
+    boilingPoint: 56,
+    meltingPoint: -95,
+    ph: 7.0
   },
   CO2: {
     id: 'CO2',
@@ -209,7 +266,9 @@ export const CHEMICALS = {
     density: 0.0019,
     description: 'Product of combustion and respiration.',
     iconType: 'cloud',
-    boilingPoint: -78 // Sublimation
+    boilingPoint: -78, // Sublimation
+    sublimationPoint: -78,
+    ph: 5.5 // Acidic when dissolved
   },
   IRON_OXIDE: {
     id: 'IRON_OXIDE',
@@ -220,7 +279,10 @@ export const CHEMICALS = {
     density: 5.24,
     description: 'Oxidized iron (Rust).',
     iconType: 'powder',
-    boilingPoint: 1987 // Decomposes
+    boilingPoint: 1987, // Decomposes
+    meltingPoint: 1566,
+    ph: 7.0,
+    solubility: 0
   },
   SO2: {
     id: 'SO2',
@@ -231,7 +293,9 @@ export const CHEMICALS = {
     density: 0.0029,
     description: 'Toxic gas from burning sulfur.',
     iconType: 'cloud',
-    boilingPoint: -10
+    boilingPoint: -10,
+    meltingPoint: -72,
+    ph: 4.5
   },
   AMMONIA: {
     id: 'AMMONIA',
@@ -242,7 +306,9 @@ export const CHEMICALS = {
     density: 0.0007,
     description: 'Pungent gas used in fertilizers.',
     iconType: 'cloud',
-    boilingPoint: -33
+    boilingPoint: -33,
+    meltingPoint: -77,
+    ph: 11.5
   },
   CARBONIC_ACID: {
     id: 'CARBONIC_ACID',
@@ -253,7 +319,9 @@ export const CHEMICALS = {
     density: 1.0,
     description: 'Soda water.',
     iconType: 'bottle',
-    boilingPoint: 100 // Mostly water
+    boilingPoint: 100, // Mostly water
+    meltingPoint: 0,
+    ph: 4.0
   },
   SULFURIC_ACID: {
     id: 'SULFURIC_ACID',
@@ -264,7 +332,9 @@ export const CHEMICALS = {
     density: 1.83,
     description: 'Strong mineral acid.',
     iconType: 'vial',
-    boilingPoint: 337
+    boilingPoint: 337,
+    meltingPoint: 10,
+    ph: 0.5
   },
   IRON_SULFIDE: {
     id: 'IRON_SULFIDE',
@@ -275,7 +345,10 @@ export const CHEMICALS = {
     density: 4.84,
     description: 'Pyrite-like compound.',
     iconType: 'rock',
-    boilingPoint: 1194 // Decomposes
+    boilingPoint: 1194, // Decomposes
+    meltingPoint: 1194,
+    ph: 7.0,
+    solubility: 0
   },
   STEEL: {
     id: 'STEEL',
@@ -286,7 +359,10 @@ export const CHEMICALS = {
     density: 7.85,
     description: 'Hardened iron alloy.',
     iconType: 'bar',
-    boilingPoint: 2800
+    boilingPoint: 2800,
+    meltingPoint: 1370,
+    ph: 7.0,
+    solubility: 0
   },
   AMMONIUM_HYDROXIDE: {
     id: 'AMMONIUM_HYDROXIDE',
@@ -297,7 +373,9 @@ export const CHEMICALS = {
     density: 0.9,
     description: 'Household ammonia cleaner.',
     iconType: 'bottle',
-    boilingPoint: 27 // Ammonia comes out
+    boilingPoint: 27, // Ammonia comes out
+    meltingPoint: -57,
+    ph: 10.5
   },
   ETHYL_ACETATE: {
     id: 'ETHYL_ACETATE',
@@ -308,7 +386,9 @@ export const CHEMICALS = {
     density: 0.9,
     description: 'Sweet-smelling ester (solvent).',
     iconType: 'bottle',
-    boilingPoint: 77
+    boilingPoint: 77,
+    meltingPoint: -84,
+    ph: 7.0
   },
   METHANOL: {
     id: 'METHANOL',
@@ -319,7 +399,9 @@ export const CHEMICALS = {
     density: 0.79,
     description: 'Simple wood alcohol.',
     iconType: 'bottle',
-    boilingPoint: 64
+    boilingPoint: 64,
+    meltingPoint: -97,
+    ph: 7.0
   },
   ETHYLENE: {
     id: 'ETHYLENE',
@@ -330,7 +412,9 @@ export const CHEMICALS = {
     density: 0.0011,
     description: 'Fundamental building block for plastics.',
     iconType: 'cylinder',
-    boilingPoint: -103
+    boilingPoint: -103,
+    meltingPoint: -169,
+    ph: 7.0
   },
   POLYETHYLENE: {
     id: 'POLYETHYLENE',
@@ -341,7 +425,51 @@ export const CHEMICALS = {
     density: 0.92,
     description: 'Common plastic (polythene).',
     iconType: 'rock',
-    boilingPoint: 360 // Degradation
+    boilingPoint: 360, // Degradation
+    meltingPoint: 115,
+    ph: 7.0,
+    solubility: 0
+  },
+  METHANE: {
+    id: 'METHANE',
+    name: 'Methane',
+    formula: 'CH₄',
+    color: '#f1f5f9',
+    state: 'gas',
+    density: 0.0006,
+    description: 'Primary component of natural gas.',
+    iconType: 'cylinder',
+    boilingPoint: -161,
+    meltingPoint: -182,
+    ph: 7.0
+  },
+  GLUCOSE: {
+    id: 'GLUCOSE',
+    name: 'Glucose',
+    formula: 'C₆H₁₂O₆',
+    color: '#ffffff',
+    state: 'solid',
+    density: 1.54,
+    description: 'Simple sugar, essential energy source.',
+    iconType: 'crystal',
+    boilingPoint: 527,
+    meltingPoint: 146,
+    ph: 7.0,
+    solubility: 90
+  },
+  GLYCINE: {
+    id: 'GLYCINE',
+    name: 'Glycine',
+    formula: 'C₂H₅NO₂',
+    color: '#fdf2f8', // pink-50
+    state: 'solid',
+    density: 1.16,
+    description: 'The simplest amino acid.',
+    iconType: 'crystal',
+    boilingPoint: 233,
+    meltingPoint: 233, // Decomposes
+    ph: 6.0,
+    solubility: 25
   }
 };
 
@@ -349,5 +477,5 @@ export const ELEMENTARY_IDS = [
   'H2O', 'NaCl', 'VINEGAR', 'BAKING_SODA', 
   'CARBON', 'SULFUR', 'IRON', 'ETHANOL', 
   'OXYGEN', 'HYDROGEN', 'NITROGEN',
-  'MAGNESIUM', 'POTASSIUM_PERMANGANATE'
+  'MAGNESIUM', 'POTASSIUM_PERMANGANATE', 'UNIVERSAL_INDICATOR'
 ];

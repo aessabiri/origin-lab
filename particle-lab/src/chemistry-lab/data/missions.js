@@ -97,6 +97,37 @@ export const MISSIONS = [
         process: '1. Pour Ethanol. 2. Seal Lid. 3. OPEN CONDENSER VALVE. 4. Heat >78°C.',
         tip: 'If you forget to open the valve, the flask might explode from pressure.'
     }
+  },
+  {
+    id: 'mission_07',
+    title: 'The Sabatier Process',
+    description: 'Convert CO2 and Hydrogen into Methane gas. This is how we might make fuel on Mars!',
+    requirements: { METHANE: 1 },
+    rewards: {
+      unlockChemicals: ['POTASSIUM_PERMANGANATE'],
+      message: 'Unlocks: Potassium Permanganate'
+    },
+    hint: {
+        vessel: 'High-Pressure Reactor',
+        ingredients: ['CO2', 'Hydrogen (4x)'],
+        process: 'Seal lid. Heat to >300°C and maintain >10atm.',
+        tip: 'Check your pressure dial; if it\'s too low, heat it more.'
+    }
+  },
+  {
+    id: 'mission_08',
+    title: 'Building Blocks of Life',
+    description: 'Synthesize Glucose and Glycine to prove that chemistry leads to biology.',
+    requirements: { GLYCINE: 1 },
+    rewards: {
+      message: 'You have mastered the foundations of the Chemistry Lab!'
+    },
+    hint: {
+        vessel: 'High-Pressure Reactor',
+        ingredients: ['Methane', 'Ammonia', 'Water'],
+        process: 'Intense Heat (>400°C) and Pressure (>40atm).',
+        tip: 'This simulates the primordial conditions of early Earth.'
+    }
   }
 ];
 

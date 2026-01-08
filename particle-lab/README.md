@@ -1,76 +1,62 @@
 # Particle Lab
 
-Particle Lab is an interactive web-based sandbox game where you can build everything from subatomic particles to complex molecules. Discover the fundamental rules of chemistry and physics by combining elementary particles to create new ones. Follow guided goals or experiment freely in sandbox mode.
+**Particle Lab** is a multi-disciplinary scientific sandbox. It is an interactive web application that gamifies the discovery of the universe's building blocks, from Quarks to Cells.
 
+The application is divided into three specialized laboratories:
 
+## ⚛️ 1. Particle Lab (Physics)
+The original sandbox.
+*   **Mechanics:** Drag-and-drop particle fusion and decay.
+*   **Goal:** Construct atoms from quarks, and simple molecules from atoms.
+*   **Key Features:** Interactive canvas, Decay physics, Goal Paths.
 
-## ✨ Features
+## ⚗️ 2. Chemistry Lab (Chemistry)
+A semi-realistic laboratory simulation.
+*   **Mechanics:** Tick-based simulation of Thermodynamics, Phase Changes, and Chemical Reactions.
+*   **Equipment:** Beakers, Flasks, Heaters, Condensers, and High-Pressure Reactors.
+*   **Key Features:**
+    *   **Dynamic pH System:** Real-time acidity calculation and color indicators.
+    *   **Solubility Engine:** Temperature-dependent precipitation and saturation.
+    *   **Industrial Processes:** Synthesize Ammonia (Haber Process) or Plastics (Polyethylene).
 
-*   **Particle Crafting**: Combine particles to discover over 50+ unique atoms, molecules, and subatomic particles.
-*   **Interactive Simulation**: A fluid, physics-based canvas where you can drag, select, and interact with your creations.
-*   **Chemical Bonding**: Visually create single, double, and peptide bonds to construct complex molecules.
-*   **Goal-Oriented Gameplay**: Follow a "Goal Path" to guide your discoveries from simple quarks to complex organic compounds.
-*   **Sandbox Mode**: Unleash your creativity with access to all particles from the start.
-*   **Codex & Info Panel**: An in-game encyclopedia that tracks your discoveries and provides detailed information about each particle.
-*   **Persistent State**: Your lab's progress is automatically saved to your browser's local storage.
+## 🧫 3. Biology Lab (Biology)
+*In Development* - "The Petri Dish".
+*   **Mechanics:** Agent-based simulation of cellular life.
+*   **Vision:** Cells consuming nutrients, dividing (Mitosis), and evolving over generations.
+
+---
 
 ## 🛠️ Tech Stack
 
 *   **Framework**: [React](https://reactjs.org/)
+*   **State Management**: [Zustand](https://github.com/pmndrs/zustand)
 *   **Build Tool**: [Vite](https://vitejs.dev/)
 *   **Styling**: [TailwindCSS](https://tailwindcss.com/)
-*   **Animation**: [React Spring](https://www.react-spring.dev/)
-*   **Gesture Handling**: [Use Gesture](https://use-gesture.netlify.app/)
+*   **Testing**: [Vitest](https://vitest.dev/)
 
 ## 🚀 Getting Started
 
-To run this project locally, you'll need [Node.js](https://nodejs.org/) (version 20 or higher is recommended). You can use a version manager like `nvm` to easily manage Node versions.
-
-### 1. Set up Node.js (Recommended: via nvm)
-
-If you don't have `nvm`, you can install it:
-
+### 1. Install Dependencies
 ```bash
-# Install NVM (Node Version Manager)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-
-# Load NVM into the current shell session
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-# Install and use the latest Node.js LTS version (e.g., 20.x)
-nvm install --lts
-nvm use --lts
+npm install
 ```
 
-### 2. Install Dependencies and Run
-
-Clone the repository and navigate into the project directory.
-
+### 2. Run Development Server
 ```bash
-# Navigate to your project folder
-# cd particle-lab
-
-# It's good practice to remove old dependencies if you're re-installing
-rm -rf node_modules package-lock.json
-
-# Install all required packages
-npm install
-
-# Start the local development server
 npm run dev
 ```
+Open `http://localhost:5173` to start experimenting.
 
-Your application should now be running at `http://localhost:5173` (or another port if 5173 is in use).
+### 3. Run Tests
+To verify the integrity of the physics engines:
+```bash
+npm test
+```
 
 ## 📂 Project Structure
 
-*   `/public`: Static assets.
-*   `/src`: Main application source code.
-    *   `/components`: Reusable React components (e.g., `PeriodicTable`, `InfoPanel`).
-    *   `/constants`: Core data like particle definitions and goal paths.
-    *   `/core`: Core simulation logic (currently placeholder).
-    *   `/hooks`: Custom React hooks for managing state and actions.
-    *   `/recipes.js`: Definitions for how particles are combined.
-    *   `App.jsx`: The main application component.
-    *   `main.jsx`: The entry point for the React application.
+*   `src/`: Main source code.
+    *   `src/components/`: Shared UI components.
+    *   `src/chemistry-lab/`: **Isolated Module** for the Chemistry simulation (Logic, Data, Store).
+    *   `src/biology-lab/`: **Isolated Module** for the Biology simulation (Planned).
+    *   `src/hooks/`: Logic for the main Particle Lab.

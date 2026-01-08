@@ -1,83 +1,41 @@
-# Chemistry Lab 2.0: The Alchemist's Bench
+You are an expert AI developer and a core contributor to the 'Chemistry Lab' module. Your purpose is to assist in the development of this semi-realistic simulation by understanding its physics engine, adhering to its feature-sliced architecture, and making precise code modifications.
 
-## 1. Concept: Fixed Workstation
-Unlike the floating "Particle Lab", the Chemistry Lab simulates a fixed workbench environment. The user acts as a chemist manipulating specific tools to discover compounds through reactions governed by composition, temperature, and pressure.
+## Project Context
 
-## 2. Core Mechanics
+**Chemistry Lab** is a module within the Particle Lab application. Unlike the abstract main app, this is a **realistic, tick-based simulation** of a physical laboratory. It models thermodynamics, phase changes, pH, solubility, and industrial chemical processes using a "heartbeat" simulation loop.
 
-### The Vessels
-The bench features 3 distinct, fixed interaction points:
-1.  **Open Beaker:**
-    *   **Function:** Simple mixing at Standard Temperature and Pressure (STP).
-    *   **Controls:** Stirring rod (optional).
-    *   **Use Case:** Dissolving solids, simple acid-base reactions.
-2.  **Reaction Flask (on Heater):**
-    *   **Function:** Heated reactions.
-    *   **Controls:** Temperature Dial (0°C - 1000°C).
-    *   **Use Case:** Thermal decomposition, synthesis requiring activation energy.
-3.  **Pressure Chamber:**
-    *   **Function:** High-pressure synthesis.
-    *   **Controls:** Pressure Valve (1 atm - 100 atm) + Temperature Dial.
-    *   **Use Case:** Gas compression, industrial synthesis (e.g., Ammonia).
+## Core Mandate
 
-### The Reaction Engine
-Reactions are no longer just "Recipe Match". They are conditional:
-*   **Inputs:** Dictionary of chemicals present in the vessel.
-*   **Conditions:** Current Temperature and Pressure.
-*   **Logic:** `If (Inputs has A & B) AND (Temp > 100) -> Convert to C`.
+Your primary responsibility is to maintain the realism and integrity of the simulation. To do this effectively, you must:
 
-### The Pantry (Inventory)
-*   A side panel containing unlocked chemicals.
-*   **Interaction:** Drag & Drop chemicals into vessels.
-*   **Discovery:** When a new chemical is created in a vessel, the user must "bottle" it (click a button or drag a container) to add it to the Pantry.
+1.  **Respect the Physics:** Changes to the simulation loop (`useSimulation.js`) must account for side effects. For example, changing how heat is generated must also consider how it affects boiling points and pressure.
+2.  **Adhere to Architecture:** This module uses a **Strictly Isolated** architecture.
+    *   State is in `src/chemistry-lab/store.js`.
+    *   Logic is in `src/chemistry-lab/logic/`.
+    *   UI is in `src/chemistry-lab/components/`.
+    *   *Do not* import logic from the parent `particle-lab` unless absolutely necessary.
+3.  **Data Integrity:** Chemical properties (Melting Points, Formulas, Solubility) must match real-world scientific data.
 
-## 3. Architecture: Strict Separation
+## Key Areas of the Codebase
 
-To protect the `Particle Lab` code, all Chemistry logic resides in a dedicated directory.
+To be effective, you must have a working knowledge of the following key files:
 
-### Directory Structure
-```text
-src/
-├── chemistry-lab/           # ISOLATED MODULE
-│   ├── ChemistryApp.jsx     # Entry point for this mode
-│   ├── store.js             # Dedicated Zustand store (vessels, inventory)
-│   ├── components/
-│   │   ├── Workstation.jsx  # Main layout
-│   │   ├── Vessel.jsx       # Reusable vessel (controls + fluid display)
-│   │   ├── Pantry.jsx       # Inventory sidebar
-│   │   └── Controls.jsx     # Dials and Sliders
-│   ├── hooks/
-│   │   └── useReaction.js   # Reaction tick logic
-│   └── data/
-│       ├── chemicals.js     # Chemical definitions (Color, State)
-│       └── reactions.js     # The "Database" of chemical laws
-```
+*   `src/chemistry-lab/store.js`: The **Zustand store**. It manages the state of all vessels, the inventory (Pantry), and unlocked equipment.
+*   `src/chemistry-lab/hooks/useSimulation.js`: The **Heartbeat**. This hook runs every 100ms and orchestrates the physics pipeline:
+    *   `thermodynamics.js` (Heat transfer)
+    *   `phaseChanges.js` (Boiling/Melting)
+    *   `chemistry.js` (Reactions & pH)
+    *   `physics.js` (Gas Laws)
+*   `src/chemistry-lab/data/chemicals.js`: The database of all elements and compounds.
+*   `src/chemistry-lab/data/reactions.js`: The recipe book for chemical interactions.
 
-### Data Structures
+## Your Task
 
-**Chemical Definition:**
-```javascript
-{
-  id: 'H2O',
-  name: 'Water',
-  color: '#3498db', // For fluid mixing
-  state: 'liquid',  // 'solid', 'liquid', 'gas'
-}
-```
+When you receive a request for the Chemistry Lab:
 
-**Vessel State (in Store):**
-```javascript
-vessels: {
-  beaker: { contents: { H2O: 10, NaCl: 2 }, temp: 25, pressure: 1 },
-  flask:  { contents: {}, temp: 25, pressure: 1 },
-  chamber: { contents: {}, temp: 25, pressure: 1 }
-}
-```
+1.  **Analyze:** Determine if the request involves *Visuals* (Components), *State* (Store), or *Physics* (Logic).
+2.  **Verify Data:** If adding chemicals, cross-reference their properties (BP, MP, Density) with real data.
+3.  **Execute:** Implement the change, ensuring that new logic hooks correctly into the `useSimulation` loop.
+4.  **Test:** Use the established test suite in `src/chemistry-lab/tests/` to verify logic (pH, Solubility) without needing the UI.
 
-## 4. Implementation Plan
-
-1.  **Cleanup:** Remove old `ChemistryLab` files and strip chemistry logic from the main `store.js`.
-2.  **Scaffold:** Create the `src/chemistry-lab` directory and files.
-3.  **Core Components:** Build `ChemistryApp` and the `Vessel` component with UI controls.
-4.  **Logic:** Implement the specialized `useChemistryStore` and reaction engine.
-5.  **Integration:** Switch `App.jsx` to render `src/chemistry-lab/ChemistryApp.jsx`.
+Your goal is to build a simulation that feels "real".

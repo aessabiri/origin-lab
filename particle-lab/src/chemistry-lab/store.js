@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { MISSIONS, STARTING_CHEMICALS, STARTING_EQUIPMENT } from './data/missions';
 import { CHEMICALS } from './data/chemicals';
 import { EQUIPMENT } from './data/equipment';
+import { audioSystem, SFX } from './logic/audio';
 
 export const useChemistryStore = create(
   persist(
@@ -187,6 +188,7 @@ export const useChemistryStore = create(
              });
 
              if (discovered.length > 0) {
+                 audioSystem.playOneShot(SFX.SUCCESS);
                  get().setMessage(`Distillate Captured: ${discovered.join(', ')}`);
                  setTimeout(() => get().checkMissionCompletion(discovered), 0);
              } else {
@@ -247,6 +249,7 @@ export const useChemistryStore = create(
       },
 
       addToVessel: (vesselId, chemicalId, amount) => {
+        audioSystem.playOneShot(SFX.POUR);
         set((state) => {
           const vessel = state.vessels[vesselId];
           const currentAmount = vessel.contents[chemicalId] || 0;
@@ -323,6 +326,7 @@ export const useChemistryStore = create(
           
           let msg = '';
           if (discovered.length > 0) {
+            audioSystem.playOneShot(SFX.SUCCESS);
             msg = `Discovered: ${discovered.join(', ')}! Added to pantry.`;
             // Trigger Mission Check
             setTimeout(() => get().checkMissionCompletion(discovered), 0);

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useChemistryStore } from '../store';
 import { CHEMICALS } from '../data/chemicals';
 import { VESSEL_STATS } from '../data/constants';
+import { calculatePH, calculateMixtureColor, calculatePrecipitates } from '../logic/chemistry';
 import QuantityModal from './QuantityModal';
 import Condenser from './Condenser';
 import VesselVisuals from './VesselVisuals';
@@ -22,26 +23,6 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
   const breakVessel = useChemistryStore(state => state.breakVessel); 
 
   const currentStats = VESSEL_STATS[vessel.type || (id === 'chamber' ? 'reinforced' : 'glass')] || VESSEL_STATS.glass;
-
-  // Naming Logic
-  const mixtureName = useMemo(() => {
-     const entries = Object.entries(vessel.contents);
-     if (entries.length === 0) return 'Empty';
-     if (entries.length === 1) return CHEMICALS[entries[0][0]]?.name || 'Unknown';
-
-     const sorted = entries.sort((a, b) => b[1] - a[1]);
-     const dominantId = sorted[0][0];
-     const dominant = CHEMICALS[dominantId];
-     
-     if (dominantId === 'H2O' && entries.length > 1) {
-        const soluteId = sorted[1][0];
-        const solute = CHEMICALS[soluteId];
-        return `Aq. ${solute?.name || 'Solution'}`;
-     }
-     
-     if (dominant?.state === 'liquid') return `${dominant.name} Mix`;
-     return 'Sludge';
-  }, [vessel.contents]);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -65,13 +46,46 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
   const totalVolume = Object.values(vessel.contents).reduce((a, b) => a + b, 0);
   const fillPercentage = Math.min((totalVolume / vessel.maxVol) * 100, 100);
 
+  const phValue = useMemo(() => calculatePH(vessel.contents), [vessel.contents]);
+  
+  const { dissolved, precipitates } = useMemo(() => calculatePrecipitates(vessel.contents, vessel.temp), [vessel.contents, vessel.temp]);
+  const hasPrecipitate = Object.keys(precipitates).length > 0;
+
   const fluidColor = useMemo(() => {
-    if (totalVolume === 0) return 'transparent';
-    const entries = Object.entries(vessel.contents);
-    if (entries.length === 0) return 'transparent';
-    const dominant = entries.reduce((a, b) => a[1] > b[1] ? a : b);
-    return CHEMICALS[dominant[0]]?.color || '#3b82f6';
-  }, [vessel.contents, totalVolume]);
+    return calculateMixtureColor(dissolved, phValue); 
+  }, [dissolved, phValue]);
+
+  // Naming Logic
+  const mixtureName = useMemo(() => {
+     if (hasPrecipitate) return 'Saturated / Precipitate';
+     
+     const entries = Object.entries(vessel.contents);
+     if (entries.length === 0) return 'Empty';
+     
+     const sorted = entries.sort((a, b) => b[1] - a[1]);
+     const dominantId = sorted[0][0];
+     const dominant = CHEMICALS[dominantId];
+     if (!dominant) return 'Unknown';
+
+     // Determine effective state
+     let effectiveState = dominant.state;
+     if (dominant.meltingPoint !== undefined) {
+         effectiveState = vessel.temp < dominant.meltingPoint ? 'solid' : 'liquid';
+     }
+     if (dominant.boilingPoint !== undefined && vessel.temp >= dominant.boilingPoint) {
+         effectiveState = 'gas';
+     }
+
+     if (dominantId === 'H2O' && entries.length > 1 && effectiveState === 'liquid') {
+        const soluteId = sorted[1][0];
+        const solute = CHEMICALS[soluteId];
+        return `Aq. ${solute?.name || 'Solution'}`;
+     }
+     
+     if (effectiveState === 'solid') return `${dominant.name} (Solid)`;
+     if (effectiveState === 'gas') return `${dominant.name} (Gas)`;
+     return `${dominant.name} Mix`;
+  }, [vessel.contents, vessel.temp, hasPrecipitate]);
 
   const handleBottle = () => {
     bottleVessel(id);
@@ -182,7 +196,12 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
                     <span className={`text-lg font-bold font-mono ${vessel.temp > 100 ? 'text-red-400' : 'text-white'}`}>
                         {vessel.temp}°C
                     </span>
-                    <span className="text-xs text-gray-500 font-mono">{totalVolume}ml</span>
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs text-gray-500 font-mono">{totalVolume}ml</span>
+                        <span className={`text-xs font-mono font-bold ${phValue < 3 ? 'text-red-400' : phValue > 11 ? 'text-purple-400' : 'text-green-400'}`}>
+                           pH {phValue.toFixed(2)}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -209,6 +228,7 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
                     variant={vessel.variant || 'flask'} 
                     fillPercentage={fillPercentage} 
                     fluidColor={fluidColor}
+                    hasPrecipitate={hasPrecipitate}
                 >
                     {/* Visual Effects Layer - passed as children */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">

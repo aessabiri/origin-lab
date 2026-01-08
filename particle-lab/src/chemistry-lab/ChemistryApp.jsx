@@ -6,12 +6,22 @@ import { useChemistryStore } from './store';
 import ChemistryCodex from './components/ChemistryCodex';
 import TimeControls from './components/TimeControls';
 import ChemicalInfoModal from './components/ChemicalInfoModal';
+import { audioSystem } from './logic/audio';
 
 const ChemistryApp = () => {
   useSimulation();
   const message = useChemistryStore(state => state.message);
   const setMessage = useChemistryStore(state => state.setMessage);
   const [isCodexOpen, setIsCodexOpen] = useState(false);
+
+  useEffect(() => {
+    const handleInteraction = () => {
+      audioSystem.init();
+      audioSystem.resume();
+    };
+    window.addEventListener('click', handleInteraction);
+    return () => window.removeEventListener('click', handleInteraction);
+  }, []);
 
   useEffect(() => {
     if (message) {
