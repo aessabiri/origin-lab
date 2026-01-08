@@ -157,20 +157,41 @@ const VibratingDot = ({ hexColor }) => (
 const QuarkIconBase = ({ hexColor, isAnti = false, children }) => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
     <defs>
-      <filter id="foam-blur">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="5" />
+      <radialGradient id={`grad-${hexColor.replace('#', '')}`} cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor={hexColor} stopOpacity="0.8" />
+        <stop offset="60%" stopColor={hexColor} stopOpacity="0.2" />
+        <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
+      </radialGradient>
+      <filter id="quantum-turbulence">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" result="turbulence" />
+        <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="15" xChannelSelector="R" yChannelSelector="G" />
+        <feGaussianBlur stdDeviation="2" />
       </filter>
     </defs>
-    <path
-      d="M 50 10 C 20 20, 20 80, 50 90 C 80 80, 80 20, 50 10 Z"
-      fill={hexColor}
-      opacity="0.3"
-      filter="url(#foam-blur)"
-      className="animate-ocean-wave"
-    />
-    <VibratingDot hexColor={hexColor} />
+    
+    {/* Quantum Probability Cloud / Gluon Field */}
+    <g className="animate-pulse-glow" style={{ animationDuration: '4s' }}>
+      <circle 
+        cx="50" cy="50" r="40" 
+        fill={`url(#grad-${hexColor.replace('#', '')})`} 
+        filter="url(#quantum-turbulence)" 
+        opacity="0.8"
+      />
+    </g>
+
+    {/* The Point Particle - Infinite Density */}
+    <circle cx="50" cy="50" r="5" fill="white" className="animate-vibrate" opacity="0.95" />
+    <circle cx="50" cy="50" r="2.5" fill={hexColor} className="animate-vibrate" />
+
     {children}
-    {!isAnti && <SprinkleDots />}
+    
+    {/* Virtual Particle Fluctuations */}
+    {!isAnti && (
+       <g opacity="0.7">
+         <circle cx="50" cy="50" r="30" fill="none" stroke={hexColor} strokeWidth="1" strokeDasharray="2 4" className="animate-spin-slow" opacity="0.3" />
+         <SprinkleDots />
+       </g>
+    )}
   </svg>
 );
 
