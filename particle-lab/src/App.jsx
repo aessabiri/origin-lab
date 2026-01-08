@@ -665,7 +665,8 @@ const App = () => {
                   PARTICLE_TYPES.LEUCINE, 
                   PARTICLE_TYPES.GLYCYLGLYCINE, 
                   PARTICLE_TYPES.GLYCYL_ALANINE]);
-                const hasStructuralIcon = structuralIconTypes.has(particle.type);
+                const isAtom = PARTICLE_INFO[particle.type]?.category === 'Atom' || PARTICLE_INFO[particle.type]?.category === 'Isotope';
+                const hasStructuralIcon = structuralIconTypes.has(particle.type) || isAtom;
 
                 const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
                 const isQuark = particle.type.endsWith('quark');

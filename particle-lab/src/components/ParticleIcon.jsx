@@ -72,61 +72,122 @@ const QuarkComposition = ({ up = 0, down = 0, parentHexColor }) => {
   };
 
 const Nucleus = ({ protonCount = 0, neutronCount = 0 }) => {
-    const protonColor = PARTICLE_COLOR_MAP['red-500'];
-    const neutronColor = PARTICLE_COLOR_MAP['pink-500'];
     const total = protonCount + neutronCount;
     if (total === 0) return null;
 
+    // Spiral packing
     const particles = [];
-    for (let i = 0; i < protonCount; i++) particles.push(protonColor);
-    for (let i = 0; i < neutronCount; i++) particles.push(neutronColor);
-
-    const positions = [
-      [],
-      [[50, 50]],
-      [[45, 50], [55, 50]],
-      [[50, 44], [43, 56], [57, 56]],
-      [[45, 45], [55, 45], [45, 55], [55, 55]],
-    ];
-
-    const particlePositions = positions[total] || [];
-    if (particlePositions.length === 0 && total > 0) {
-      const R = total > 9 ? 15 : 12;
-      for (let i = 0; i < total; i++) {
-        const angle = (i / total) * 2 * Math.PI;
-        particlePositions.push([50 + R * Math.cos(angle), 50 + R * Math.sin(angle)]);
-      }
+    // Interleave protons and neutrons for better mixing visually
+    let p = protonCount, n = neutronCount;
+    while(p > 0 || n > 0) {
+        if(p > 0) { particles.push({ type: 'p' }); p--; }
+        if(n > 0) { particles.push({ type: 'n' }); n--; }
     }
+
+    const c = 6; // Spacing factor
+    const maxRadius = c * Math.sqrt(total);
+    // Scale down if nucleus gets too large relative to icon size (100x100)
+    const scale = maxRadius > 35 ? 35 / maxRadius : 1; 
 
     return (
       <g>
-        {particles.map((fill, i) => (
-          <circle key={i} cx={particlePositions[i][0]} cy={particlePositions[i][1]} r={total > 4 ? 6 : 7} fill={fill} />
-        ))}
+        <defs>
+            <radialGradient id="proton-sphere" cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#fca5a5" />
+                <stop offset="100%" stopColor="#dc2626" />
+            </radialGradient>
+            <radialGradient id="neutron-sphere" cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#e5e7eb" />
+                <stop offset="100%" stopColor="#4b5563" />
+            </radialGradient>
+            <filter id="nucleus-glow">
+                <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <g transform="translate(50,50)" filter="url(#nucleus-glow)">
+            {particles.map((particle, i) => {
+                // Fermat's spiral
+                const angle = i * 2.39996; // Golden angle
+                const r = c * Math.sqrt(i) * scale;
+                const x = r * Math.cos(angle);
+                const y = r * Math.sin(angle);
+                const radius = 4 * scale; 
+                return (
+                    <circle 
+                        key={i} 
+                        cx={x} 
+                        cy={y} 
+                        r={radius < 1.5 ? 1.5 : radius}
+                        fill={particle.type === 'p' ? "url(#proton-sphere)" : "url(#neutron-sphere)"} 
+                        stroke="black" strokeWidth="0.2" strokeOpacity="0.5"
+                    />
+                );
+            })}
+        </g>
       </g>
     );
-  };
+};
 
 const ElectronShells = ({ electronCount = 0, hexColor }) => {
     if (electronCount === 0) return null;
-    const electronColor = PARTICLE_COLOR_MAP['blue-600'];
-    const shells = [];
-    if (electronCount > 0) shells.push({ radius: 25, count: Math.min(electronCount, 2) });
-    if (electronCount > 2) shells.push({ radius: 40, count: Math.min(electronCount - 2, 8) });
-    if (electronCount > 10) shells.push({ radius: 55, count: Math.min(electronCount - 10, 8) });
-    if (electronCount > 18) shells.push({ radius: 70, count: Math.min(electronCount - 18, 18) });
+    
+    // Electron Configuration (approximate filling)
+    const shells = [2, 8, 18, 32, 50]; 
+    const activeShells = [];
+    let remaining = electronCount;
+    
+    for (let capacity of shells) {
+        if (remaining <= 0) break;
+        const count = Math.min(remaining, capacity);
+        activeShells.push(count);
+        remaining -= count;
+    }
 
-    return shells.map((shell, shellIndex) => (
-      <g key={shellIndex}>
-        <circle cx="50" cy="50" r={shell.radius} stroke={hexColor} strokeWidth="1.5" strokeDasharray="3 3" fill="none" opacity="0.6" />
-        {Array.from({ length: shell.count }).map((_, i) => {
-          const angle = (i / shell.count) * 360 + shellIndex * 20;
-          const x = 50 + shell.radius * Math.cos(angle * (Math.PI / 180));
-          const y = 50 + shell.radius * Math.sin(angle * (Math.PI / 180));
-          return <circle key={i} cx={x} cy={y} r="4" fill={electronColor} />;
+    const baseRadius = 22;
+    const radiusStep = 10;
+
+    return (
+      <g>
+        <defs>
+            <filter id="electron-glow">
+                <feGaussianBlur stdDeviation="1" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+        </defs>
+        {activeShells.map((count, i) => {
+            const r = baseRadius + i * radiusStep;
+            // Limit radius to keep inside box
+            const safeR = Math.min(r, 48); 
+            return (
+                <g key={i} className="animate-spin-slow" style={{ animationDuration: `${6 + i * 3}s`, transformOrigin: '50px 50px' }}>
+                    {/* Orbit path - Glassy look */}
+                    <circle cx="50" cy="50" r={safeR} fill="none" stroke={hexColor} strokeWidth="0.8" opacity="0.6" />
+                    <circle cx="50" cy="50" r={safeR} fill="none" stroke="white" strokeWidth="0.2" opacity="0.3" />
+                    
+                    {/* Electrons */}
+                    {Array.from({ length: count }).map((_, j) => {
+                        const angle = (j / count) * 2 * Math.PI;
+                        return (
+                            <circle 
+                                key={j}
+                                cx={50 + safeR * Math.cos(angle)}
+                                cy={50 + safeR * Math.sin(angle)}
+                                r="2"
+                                fill="white"
+                                filter="url(#electron-glow)"
+                                className="animate-pulse"
+                            />
+                        );
+                    })}
+                </g>
+            );
         })}
       </g>
-    ));
+    );
   };
 
 const MesonComposition = ({ quarkColor, antiquarkColor }) => {
@@ -601,239 +662,57 @@ const HydrogenFluorideIcon = ({ hexColor }) => (
         </svg>
       );
 
-const HydrogenIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={1} hexColor={hexColor} />
-          <Nucleus protonCount={1} neutronCount={0} />
-        </svg>
-      );
+const NeoAtomIcon = ({ hexColor, symbol, p, n, e }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    
+    <ElectronShells electronCount={e} hexColor={hexColor} />
+    <Nucleus protonCount={p} neutronCount={n} />
+    
+    {/* Symbol Overlay - Small and in corner to identify, but let particles shine */}
+    <text x="88" y="92" textAnchor="end" fill="white" fontSize="14" fontWeight="bold" opacity="0.5" style={{ textShadow: '0 1px 2px black' }}>{symbol}</text>
+  </svg>
+);
 
-const DeuteriumIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={1} hexColor={hexColor} />
-          <Nucleus protonCount={1} neutronCount={1} />
-        </svg>
-      );
+const HydrogenIcon = (p) => <NeoAtomIcon symbol="H" p={1} n={0} e={1} {...p} />;
+const DeuteriumIcon = (p) => <NeoAtomIcon symbol="D" p={1} n={1} e={1} {...p} />;
+const TritiumIcon = (p) => <NeoAtomIcon symbol="T" p={1} n={2} e={1} {...p} />;
+const HeliumIcon = (p) => <NeoAtomIcon symbol="He" p={2} n={2} e={2} {...p} />;
+const LithiumIcon = (p) => <NeoAtomIcon symbol="Li" p={3} n={4} e={3} {...p} />;
+const BerylliumIcon = (p) => <NeoAtomIcon symbol="Be" p={4} n={5} e={4} {...p} />;
+const BoronIcon = (p) => <NeoAtomIcon symbol="B" p={5} n={6} e={5} {...p} />;
+const CarbonIcon = (p) => <NeoAtomIcon symbol="C" p={6} n={6} e={6} {...p} />;
+const NitrogenIcon = (p) => <NeoAtomIcon symbol="N" p={7} n={7} e={7} {...p} />;
+const OxygenIcon = (p) => <NeoAtomIcon symbol="O" p={8} n={8} e={8} {...p} />;
+const FluorineIcon = (p) => <NeoAtomIcon symbol="F" p={9} n={10} e={9} {...p} />;
+const NeonIcon = (p) => <NeoAtomIcon symbol="Ne" p={10} n={10} e={10} {...p} />;
+const SodiumIcon = (p) => <NeoAtomIcon symbol="Na" p={11} n={12} e={11} {...p} />;
+const MagnesiumIcon = (p) => <NeoAtomIcon symbol="Mg" p={12} n={12} e={12} {...p} />;
+const AluminiumIcon = (p) => <NeoAtomIcon symbol="Al" p={13} n={14} e={13} {...p} />;
+const SiliconIcon = (p) => <NeoAtomIcon symbol="Si" p={14} n={14} e={14} {...p} />;
+const PhosphorusIcon = (p) => <NeoAtomIcon symbol="P" p={15} n={16} e={15} {...p} />;
+const SulfurIcon = (p) => <NeoAtomIcon symbol="S" p={16} n={16} e={16} {...p} />;
+const ChlorineIcon = (p) => <NeoAtomIcon symbol="Cl" p={17} n={18} e={17} {...p} />;
+const ArgonIcon = (p) => <NeoAtomIcon symbol="Ar" p={18} n={22} e={18} {...p} />;
+const PotassiumIcon = (p) => <NeoAtomIcon symbol="K" p={19} n={20} e={19} {...p} />;
+const CalciumIcon = (p) => <NeoAtomIcon symbol="Ca" p={20} n={20} e={20} {...p} />;
+const ScandiumIcon = (p) => <NeoAtomIcon symbol="Sc" p={21} n={24} e={21} {...p} />;
+const TitaniumIcon = (p) => <NeoAtomIcon symbol="Ti" p={22} n={26} e={22} {...p} />;
+const VanadiumIcon = (p) => <NeoAtomIcon symbol="V" p={23} n={28} e={23} {...p} />;
+const ChromiumIcon = (p) => <NeoAtomIcon symbol="Cr" p={24} n={28} e={24} {...p} />;
+const ManganeseIcon = (p) => <NeoAtomIcon symbol="Mn" p={25} n={30} e={25} {...p} />;
+const IronIcon = (p) => <NeoAtomIcon symbol="Fe" p={26} n={30} e={26} {...p} />;
+const CobaltIcon = (p) => <NeoAtomIcon symbol="Co" p={27} n={32} e={27} {...p} />;
+const NickelIcon = (p) => <NeoAtomIcon symbol="Ni" p={28} n={31} e={28} {...p} />;
+const CopperIcon = (p) => <NeoAtomIcon symbol="Cu" p={29} n={34} e={29} {...p} />;
+const ZincIcon = (p) => <NeoAtomIcon symbol="Zn" p={30} n={35} e={30} {...p} />;
+const GalliumIcon = (p) => <NeoAtomIcon symbol="Ga" p={31} n={39} e={31} {...p} />;
+const GermaniumIcon = (p) => <NeoAtomIcon symbol="Ge" p={32} n={41} e={32} {...p} />;
+const ArsenicIcon = (p) => <NeoAtomIcon symbol="As" p={33} n={42} e={33} {...p} />;
+const SeleniumIcon = (p) => <NeoAtomIcon symbol="Se" p={34} n={45} e={34} {...p} />;
+const BromineIcon = (p) => <NeoAtomIcon symbol="Br" p={35} n={45} e={35} {...p} />;
+const KryptonIcon = (p) => <NeoAtomIcon symbol="Kr" p={36} n={48} e={36} {...p} />;
 
-const TritiumIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={1} hexColor={hexColor} />
-          <Nucleus protonCount={1} neutronCount={2} />
-        </svg>
-      );
-
-const HeliumIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={2} hexColor={hexColor} />
-          <Nucleus protonCount={2} neutronCount={2} />
-        </svg>
-      );
-
-const LithiumIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={3} hexColor={hexColor} />
-          <Nucleus protonCount={3} neutronCount={4} />
-        </svg>
-      );
-
-const BerylliumIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={4} hexColor={hexColor} />
-          <Nucleus protonCount={4} neutronCount={5} />
-        </svg>
-      );
-const BoronIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={5} hexColor={hexColor} />
-          <Nucleus protonCount={5} neutronCount={6} />
-        </svg>
-      );
-const CarbonIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={6} hexColor={hexColor} />
-          <Nucleus protonCount={6} neutronCount={6} />
-        </svg>
-      );
-const NitrogenIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={7} hexColor={hexColor} />
-          <Nucleus protonCount={7} neutronCount={7} />
-        </svg>
-      );
-const OxygenIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={8} hexColor={hexColor} />
-          <Nucleus protonCount={8} neutronCount={8} />
-        </svg>
-      );
-const FluorineIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={9} hexColor={hexColor} />
-          <Nucleus protonCount={9} neutronCount={10} />
-        </svg>
-      );
-const NeonIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={10} hexColor={hexColor} />
-          <Nucleus protonCount={10} neutronCount={10} />
-        </svg>
-      );
-const SodiumIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={11} hexColor={hexColor} />
-          <Nucleus protonCount={11} neutronCount={12} />
-        </svg>
-      );
-const MagnesiumIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={12} hexColor={hexColor} />
-          <Nucleus protonCount={12} neutronCount={12} />
-        </svg>
-      );
-const AluminiumIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={13} hexColor={hexColor} />
-          <Nucleus protonCount={13} neutronCount={14} />
-        </svg>
-      );
-const SiliconIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={14} hexColor={hexColor} />
-          <Nucleus protonCount={14} neutronCount={14} />
-        </svg>
-      );
-const PhosphorusIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={15} hexColor={hexColor} />
-    <Nucleus protonCount={15} neutronCount={16} />
-  </svg>
-);
-const SulfurIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={16} hexColor={hexColor} />
-    <Nucleus protonCount={16} neutronCount={16} />
-  </svg>
-);
-const ChlorineIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={17} hexColor={hexColor} />
-    <Nucleus protonCount={17} neutronCount={18} />
-  </svg>
-);
-const ArgonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={18} hexColor={hexColor} />
-    <Nucleus protonCount={18} neutronCount={22} />
-  </svg>
-);
-const PotassiumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={19} hexColor={hexColor} />
-    <Nucleus protonCount={19} neutronCount={20} />
-  </svg>
-);
-const CalciumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={20} hexColor={hexColor} />
-    <Nucleus protonCount={20} neutronCount={20} />
-  </svg>
-);
-const ScandiumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={21} hexColor={hexColor} />
-    <Nucleus protonCount={21} neutronCount={24} />
-  </svg>
-);
-const TitaniumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={22} hexColor={hexColor} />
-    <Nucleus protonCount={22} neutronCount={26} />
-  </svg>
-);
-const VanadiumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={23} hexColor={hexColor} />
-    <Nucleus protonCount={23} neutronCount={28} />
-  </svg>
-);
-const ChromiumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={24} hexColor={hexColor} />
-    <Nucleus protonCount={24} neutronCount={28} />
-  </svg>
-);
-const ManganeseIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={25} hexColor={hexColor} />
-    <Nucleus protonCount={25} neutronCount={30} />
-  </svg>
-);
-const IronIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={26} hexColor={hexColor} />
-    <Nucleus protonCount={26} neutronCount={30} />
-  </svg>
-);
-const CobaltIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={27} hexColor={hexColor} />
-    <Nucleus protonCount={27} neutronCount={32} />
-  </svg>
-);
-const NickelIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={28} hexColor={hexColor} />
-    <Nucleus protonCount={28} neutronCount={31} />
-  </svg>
-);
-const CopperIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={29} hexColor={hexColor} />
-    <Nucleus protonCount={29} neutronCount={34} />
-  </svg>
-);
-const ZincIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={30} hexColor={hexColor} />
-    <Nucleus protonCount={30} neutronCount={35} />
-  </svg>
-);
-const GalliumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={31} hexColor={hexColor} />
-    <Nucleus protonCount={31} neutronCount={39} />
-  </svg>
-);
-const GermaniumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={32} hexColor={hexColor} />
-    <Nucleus protonCount={32} neutronCount={41} />
-  </svg>
-);
-const ArsenicIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={33} hexColor={hexColor} />
-    <Nucleus protonCount={33} neutronCount={42} />
-  </svg>
-);
-const SeleniumIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={34} hexColor={hexColor} />
-    <Nucleus protonCount={34} neutronCount={45} />
-  </svg>
-);
-const BromineIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={35} hexColor={hexColor} />
-    <Nucleus protonCount={35} neutronCount={45} />
-  </svg>
-);
-const KryptonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <ElectronShells electronCount={36} hexColor={hexColor} />
-    <Nucleus protonCount={36} neutronCount={48} />
-  </svg>
-);
+const GenericAtomIcon = (props) => <NeoAtomIcon symbol="?" p={10} n={10} e={10} {...props} />;
 
 const AminoAcidIcon = ({ hexColor, rGroup, name }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1084,12 +963,7 @@ const UracilIcon = ({ hexColor }) => ( // Pyrimidine (single ring)
   </svg>
 );
 
-const GenericAtomIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <ElectronShells electronCount={18} hexColor={hexColor} />
-          <Nucleus protonCount={18} neutronCount={22} />
-        </svg>
-      );
+
 
 const DefaultIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">

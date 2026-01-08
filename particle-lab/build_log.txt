@@ -1,0 +1,31 @@
+
+> particle-lab@0.1.0 build
+> vite build
+
+vite v5.4.20 building for production...
+transforming...
+✓ 25 modules transformed.
+x Build failed in 3.84s
+error during build:
+[vite:esbuild] Transform failed with 1 error:
+/home/tsylop/origin-lab/particle-lab/src/components/ParticleIcon.jsx:974:6: ERROR: The symbol "GenericAtomIcon" has already been declared
+file: /home/tsylop/origin-lab/particle-lab/src/components/ParticleIcon.jsx:974:6
+
+The symbol "GenericAtomIcon" has already been declared
+972|  );
+973|  
+974|  const GenericAtomIcon = (props) => <ModernAtomIcon symbol="?" z="" {...props} />;
+   |        ^
+975|  
+976|  const DefaultIcon = ({ hexColor }) => (
+
+    at failureErrorWithLog (/home/tsylop/origin-lab/particle-lab/node_modules/esbuild/lib/main.js:1472:15)
+    at /home/tsylop/origin-lab/particle-lab/node_modules/esbuild/lib/main.js:755:50
+    at responseCallbacks.<computed> (/home/tsylop/origin-lab/particle-lab/node_modules/esbuild/lib/main.js:622:9)
+    at handleIncomingPacket (/home/tsylop/origin-lab/particle-lab/node_modules/esbuild/lib/main.js:677:12)
+    at Socket.readFromStdout (/home/tsylop/origin-lab/particle-lab/node_modules/esbuild/lib/main.js:600:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
