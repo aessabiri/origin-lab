@@ -3,6 +3,31 @@ import { PARTICLE_TYPES, PARTICLE_COLOR_MAP, PARTICLE_COLORS } from '../constant
 
 // --- Helper Components & Functions ---
 
+const NeoBond = ({ x1, y1, x2, y2, type = 'single' }) => (
+  <g>
+    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#94a3b8" strokeWidth={type === 'double' ? 10 : 6} strokeLinecap="round" opacity="0.6" />
+    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth={type === 'double' ? 4 : 2} strokeLinecap="round" opacity="0.8" />
+  </g>
+);
+
+const NeoSphere = ({ x, y, r, color, label }) => (
+  <g transform={`translate(${x},${y})`}>
+    <defs>
+        <radialGradient id={`sphere-grad-${color.replace('#','')}`} cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="white" stopOpacity="0.9" />
+            <stop offset="20%" stopColor={color} />
+            <stop offset="100%" stopColor="#000" stopOpacity="0.3" />
+        </radialGradient>
+        <filter id="sphere-shadow">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" floodOpacity="0.3" />
+        </filter>
+    </defs>
+    <circle r={r} fill={color} filter="url(#sphere-shadow)" />
+    <circle r={r} fill={`url(#sphere-grad-${color.replace('#','')})`} opacity="0.9" />
+    {label && <text y="4" textAnchor="middle" fill="white" fontSize={Math.max(10, r*0.8)} fontWeight="bold" style={{ textShadow: '0 1px 2px black' }} pointerEvents="none">{label}</text>}
+  </g>
+);
+
 const radialGradient = (id, c, opacity = 0.8) => (
     <radialGradient id={id} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
       <stop offset="0%" stopColor="#ffffff" stopOpacity={opacity} />
@@ -289,22 +314,27 @@ const AntiDownQuarkIcon = ({ hexColor }) => (
 );
 
 const ElectronIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
     <defs>
-      <filter id="cloud-blur">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
-      </filter>
-      <radialGradient id="electron-glow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stopColor={hexColor} stopOpacity="0.8" />
+      <radialGradient id={`electron-core-glow-${hexColor.replace('#','')}`} cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="white" stopOpacity="1" />
+        <stop offset="40%" stopColor={hexColor} stopOpacity="0.8" />
         <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
       </radialGradient>
     </defs>
-    {/* Quantum Foam */}
-    <circle cx="50" cy="50" r="40" fill="url(#electron-glow)" filter="url(#cloud-blur)" style={{ animation: 'turbulence 4s infinite ease-in-out' }} />
-    {/* Subtler Flickering dots */}
-    <circle cx="45" cy="48" r="1.5" fill="white" style={{ animation: 'electron-particle 1.2s infinite ease-in-out' }} />
-    <circle cx="58" cy="58" r="1" fill="white" style={{ animation: 'electron-particle 0.8s infinite ease-in-out 0.3s' }} />
-    <circle cx="52" cy="40" r="1.5" fill="white" style={{ animation: 'electron-particle 1.5s infinite ease-in-out 0.6s' }} />
+    
+    {/* The Probability Cloud / Halo - Spinning */}
+    <g className="animate-spin-slow" style={{ animationDuration: '3s' }}>
+       <circle cx="50" cy="50" r="30" stroke={hexColor} strokeWidth="1" strokeDasharray="1 10" strokeLinecap="round" opacity="0.6" />
+       <circle cx="50" cy="50" r="38" stroke={hexColor} strokeWidth="0.5" strokeDasharray="10 20" opacity="0.3" />
+    </g>
+
+    {/* The Point Particle - Vibrating and Glowing */}
+    <circle cx="50" cy="50" r="8" fill={`url(#electron-core-glow-${hexColor.replace('#','')})`} className="animate-vibrate" />
+    <circle cx="50" cy="50" r="3" fill="white" />
+    
+    {/* Electric Field Lines / Glitch */}
+    <path d="M 20 50 L 80 50 M 50 20 L 50 80" stroke={hexColor} strokeWidth="2" strokeOpacity="0.2" className="animate-pulse" />
   </svg>
 );
 
@@ -519,66 +549,64 @@ const JPsiMesonIcon = ({ hexColor }) => (
         </svg>
       );
 
-const CarbonDioxideIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('co2-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#co2-grad)" opacity="0.4" />
-          <circle cx="50" cy="50" r="15" fill={PARTICLE_COLOR_MAP['gray-800']} />
-          <circle cx="20" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-          <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-        </svg>
-      );
+const CarbonDioxideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={20} y2={50} type="double" />
+    <NeoBond x1={50} y1={50} x2={80} y2={50} type="double" />
+    <NeoSphere x={50} y={50} r={15} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
+    <NeoSphere x={20} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={80} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
 
-const SodiumChlorideIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('nacl-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#nacl-grad)" opacity="0.4" />
-          <rect x="25" y="25" width="50" height="50" fill="none" stroke="white" strokeWidth="3" />
-          <circle cx="35" cy="35" r="8" fill={PARTICLE_COLOR_MAP['violet-500']} />
-          <circle cx="65" cy="35" r="8" fill={PARTICLE_COLOR_MAP['green-400']} />
-          <circle cx="35" cy="65" r="8" fill={PARTICLE_COLOR_MAP['green-400']} />
-          <circle cx="65" cy="65" r="8" fill={PARTICLE_COLOR_MAP['violet-500']} />
-        </svg>
-      );
+const SodiumChlorideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Ionic lattice hint */}
+    <rect x="35" y="35" width="30" height="30" fill="none" stroke="white" strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
+    <NeoSphere x={35} y={35} r={14} color={PARTICLE_COLOR_MAP['violet-500']} label="Na" />
+    <NeoSphere x={65} y={65} r={16} color={PARTICLE_COLOR_MAP['green-400']} label="Cl" />
+    <NeoSphere x={65} y={35} r={16} color={PARTICLE_COLOR_MAP['green-400']} opacity="0.5" />
+    <NeoSphere x={35} y={65} r={14} color={PARTICLE_COLOR_MAP['violet-500']} opacity="0.5" />
+  </svg>
+);
 
-const HydrochloricAcidIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('hcl-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#hcl-grad)" opacity="0.4" />
-          <circle cx="35" cy="50" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
-          <circle cx="65" cy="50" r="20" fill={PARTICLE_COLOR_MAP['green-400']} />
-        </svg>
-      );
+const HydrochloricAcidIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={35} y1={50} x2={65} y2={50} />
+    <NeoSphere x={35} y={50} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={65} y={50} r={18} color={PARTICLE_COLOR_MAP['green-400']} label="Cl" />
+  </svg>
+);
 
-const CarbonMonoxideIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('co-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#co-grad)" opacity="0.4" />
-          <circle cx="38" cy="50" r="18" fill={PARTICLE_COLOR_MAP['gray-800']} />
-          <circle cx="68" cy="50" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
-        </svg>
-      );
+const CarbonMonoxideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={40} y1={50} x2={60} y2={50} type="double" /> {/* Triple bond visual trick: thick double */}
+    <NeoSphere x={40} y={50} r={16} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
+    <NeoSphere x={60} y={50} r={16} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+  </svg>
+);
 
-const HydrogenSulfideIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('h2s-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#h2s-grad)" opacity="0.4" />
-          <circle cx="50" cy="40" r="22" fill={PARTICLE_COLOR_MAP['yellow-500']} />
-          <circle cx="30" cy="70" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
-          <circle cx="70" cy="70" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
-        </svg>
-      );
+const HydrogenSulfideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={45} x2={30} y2={70} />
+    <NeoBond x1={50} y1={45} x2={70} y2={70} />
+    <NeoSphere x={50} y={45} r={20} color={PARTICLE_COLOR_MAP['yellow-500']} label="S" />
+    <NeoSphere x={30} y={70} r={12} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={70} y={70} r={12} color={PARTICLE_COLOR_MAP['teal-500']} />
+  </svg>
+);
 
-const HydrogenPeroxideIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('h2o2-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#h2o2-grad)" opacity="0.4" />
-          <circle cx="40" cy="45" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
-          <circle cx="60" cy="55" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
-          <circle cx="25" cy="60" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
-          <circle cx="75" cy="40" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
-        </svg>
-      );
+const HydrogenPeroxideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={40} y1={45} x2={60} y2={55} /> {/* O-O */}
+    <NeoBond x1={40} y1={45} x2={25} y2={60} /> {/* H-O */}
+    <NeoBond x1={60} y1={55} x2={75} y2={40} /> {/* O-H */}
+    <NeoSphere x={40} y={45} r={14} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={60} y={55} r={14} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={25} y={60} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={75} y={40} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+  </svg>
+);
 
 const PionMinusIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -588,79 +616,78 @@ const PionMinusIcon = ({ hexColor }) => (
         </svg>
       );
 
-const WaterIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>
-            <linearGradient id="water-grad-linear" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#a5f3fc" />
-              <stop offset="100%" stopColor={hexColor} />
-            </linearGradient>
-          </defs>
-          <path d="M50 10 C 20 40, 20 70, 50 90 C 80 70, 80 40, 50 10 Z" fill="url(#water-grad-linear)" />
-          <path d="M40 30 C 45 20, 55 20, 60 30" stroke="white" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.7" />
-        </svg>
-      );
+const WaterIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={55} x2={30} y2={75} />
+    <NeoBond x1={50} y1={55} x2={70} y2={75} />
+    <NeoSphere x={50} y={55} r={20} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={30} y={75} r={12} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={70} y={75} r={12} color={PARTICLE_COLOR_MAP['teal-500']} />
+  </svg>
+);
 
-const MethaneIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('methane-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#methane-grad)" opacity="0.4" />
-          <circle cx="50" cy="50" r="18" fill={PARTICLE_COLOR_MAP['gray-800']} />
-          <circle cx="50" cy="20" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
-          <circle cx="25" cy="65" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
-          <circle cx="75" cy="65" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
-        </svg>
-      );
+const MethaneIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={50} y2={20} />
+    <NeoBond x1={50} y1={50} x2={25} y2={65} />
+    <NeoBond x1={50} y1={50} x2={75} y2={65} />
+    <NeoBond x1={50} y1={50} x2={50} y2={65} />
+    <NeoSphere x={50} y={50} r={18} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
+    <NeoSphere x={50} y={20} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={25} y={65} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={75} y={65} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+  </svg>
+);
 
-const AmmoniaIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('ammonia-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#ammonia-grad)" opacity="0.4" />
-          <circle cx="50" cy="40" r="20" fill={PARTICLE_COLOR_MAP['sky-500']} />
-          <circle cx="30" cy="70" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
-          <circle cx="70" cy="70" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
-          <circle cx="50" cy="75" r="12" fill={PARTICLE_COLOR_MAP['teal-500']} />
-        </svg>
-      );
+const AmmoniaIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={45} x2={30} y2={70} />
+    <NeoBond x1={50} y1={45} x2={70} y2={70} />
+    <NeoBond x1={50} y1={45} x2={50} y2={75} />
+    <NeoSphere x={50} y={45} r={20} color={PARTICLE_COLOR_MAP['sky-500']} label="N" />
+    <NeoSphere x={30} y={70} r={12} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={70} y={70} r={12} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={50} y={75} r={12} color={PARTICLE_COLOR_MAP['teal-500']} />
+  </svg>
+);
 
-const OzoneIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('ozone-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#ozone-grad)" opacity="0.4" />
-          <circle cx="50" cy="35" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
-          <circle cx="30" cy="65" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
-          <circle cx="70" cy="65" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
-        </svg>
-      );
+const OzoneIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={35} x2={30} y2={65} type="double" />
+    <NeoBond x1={50} y1={35} x2={70} y2={65} />
+    <NeoSphere x={50} y={35} r={15} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={30} y={65} r={15} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={70} y={65} r={15} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
 
-const NitrousOxideIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('n2o-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#n2o-grad)" opacity="0.4" />
-          <circle cx="30" cy="50" r="15" fill={PARTICLE_COLOR_MAP['sky-500']} />
-          <circle cx="55" cy="50" r="15" fill={PARTICLE_COLOR_MAP['sky-500']} />
-          <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-        </svg>
-      );
+const NitrousOxideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={30} y1={50} x2={55} y2={50} type="double" />
+    <NeoBond x1={55} y1={50} x2={80} y2={50} type="double" />
+    <NeoSphere x={30} y={50} r={15} color={PARTICLE_COLOR_MAP['sky-500']} label="N" />
+    <NeoSphere x={55} y={50} r={15} color={PARTICLE_COLOR_MAP['sky-500']} />
+    <NeoSphere x={80} y={50} r={15} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+  </svg>
+);
 
-const SiliconDioxideIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('sio2-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#sio2-grad)" opacity="0.4" />
-          <circle cx="50" cy="50" r="18" fill={PARTICLE_COLOR_MAP['stone-500']} />
-          <circle cx="20" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-          <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-        </svg>
-      );
+const SiliconDioxideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={20} y2={50} type="double" />
+    <NeoBond x1={50} y1={50} x2={80} y2={50} type="double" />
+    <NeoSphere x={50} y={50} r={18} color={PARTICLE_COLOR_MAP['stone-500']} label="Si" />
+    <NeoSphere x={20} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={80} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
 
-const HydrogenFluorideIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>{radialGradient('hf-grad', hexColor)}</defs>
-          <circle cx="50" cy="50" r="45" fill="url(#hf-grad)" opacity="0.4" />
-          <circle cx="35" cy="50" r="10" fill={PARTICLE_COLOR_MAP['teal-500']} />
-          <circle cx="65" cy="50" r="20" fill={PARTICLE_COLOR_MAP['emerald-500']} />
-        </svg>
-      );
+const HydrogenFluorideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={35} y1={50} x2={65} y2={50} />
+    <NeoSphere x={35} y={50} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={65} y={50} r={20} color={PARTICLE_COLOR_MAP['emerald-500']} label="F" />
+  </svg>
+);
 
 const NeoAtomIcon = ({ hexColor, symbol, p, n, e }) => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
@@ -851,11 +878,14 @@ const DipeptideIcon = ({ Icon1, Icon2 }) => (
 const GlycylglycineIcon = () => <DipeptideIcon Icon1={GlycineIcon} Icon2={GlycineIcon} />;
 const GlycylAlanineIcon = () => <DipeptideIcon Icon1={GlycineIcon} Icon2={AlanineIcon} />;
 
-const AyoubIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>{radialGradient('ayoub-grad', hexColor)}</defs>
-    <circle cx="50" cy="50" r="45" fill="url(#ayoub-grad)" />
-    <path d="M30 70 L50 30 L70 70 M38 55 H62" stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+const AyoubIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={20} x2={20} y2={80} />
+    <NeoBond x1={50} y1={20} x2={80} y2={80} />
+    <NeoBond x1={35} y1={50} x2={65} y2={50} />
+    <NeoSphere x={50} y={20} r={15} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={20} y={80} r={15} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={80} y={80} r={15} color={PARTICLE_COLOR_MAP['teal-500']} />
   </svg>
 );
 
@@ -885,74 +915,174 @@ const ThymineIcon = ({ hexColor }) => ( // Pyrimidine (single ring)
   </svg>
 );
 
-const NitrogenGasIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <defs>{radialGradient('n2-grad', hexColor, 0.4)}</defs>
-    <circle cx="50" cy="50" r="45" fill="url(#n2-grad)" opacity="0.4" />
-    <circle cx="35" cy="50" r="15" fill={PARTICLE_COLOR_MAP['sky-500']} />
-    <circle cx="65" cy="50" r="15" fill={PARTICLE_COLOR_MAP['sky-500']} />
+const NitrogenGasIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={35} y1={50} x2={65} y2={50} type="triple" />
+    <NeoSphere x={35} y={50} r={16} color={PARTICLE_COLOR_MAP['sky-500']} label="N" />
+    <NeoSphere x={65} y={50} r={16} color={PARTICLE_COLOR_MAP['sky-500']} label="N" />
   </svg>
 );
 
-const OxygenGasIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <defs>{radialGradient('o2-grad', hexColor, 0.4)}</defs>
-    <circle cx="50" cy="50" r="45" fill="url(#o2-grad)" opacity="0.4" />
-    <circle cx="35" cy="50" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
-    <circle cx="65" cy="50" r="15" fill={PARTICLE_COLOR_MAP['red-600']} />
+const OxygenGasIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={35} y1={50} x2={65} y2={50} type="double" />
+    <NeoSphere x={35} y={50} r={16} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={65} y={50} r={16} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
   </svg>
 );
 
-const AceticAcidIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <polygon points="20,40 40,20 80,60 60,80" fill={hexColor} stroke="white" strokeWidth="3" />
+const AceticAcidIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={30} y1={60} x2={50} y2={40} />
+    <NeoBond x1={50} y1={40} x2={70} y2={30} type="double" />
+    <NeoBond x1={50} y1={40} x2={65} y2={60} />
+    <NeoSphere x={30} y={60} r={14} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={50} y={40} r={14} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={70} y={30} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={65} y={60} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
   </svg>
 );
 
-const EthanolIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <defs>{radialGradient('ethanol-grad', hexColor, 0.4)}</defs>
-    <circle cx="50" cy="50" r="45" fill="url(#ethanol-grad)" opacity="0.4" />
-    {/* C-C-O backbone */}
-    <circle cx="30" cy="50" r="12" fill={PARTICLE_COLOR_MAP['gray-800']} />
-    <circle cx="55" cy="50" r="12" fill={PARTICLE_COLOR_MAP['gray-800']} />
-    <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-    <line x1="42" y1="50" x2="43" y2="50" stroke="white" strokeWidth="2" />
-    <line x1="67" y1="50" x2="68" y2="50" stroke="white" strokeWidth="2" />
+const EthanolIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={30} y1={50} x2={55} y2={50} />
+    <NeoBond x1={55} y1={50} x2={75} y2={50} />
+    <NeoSphere x={30} y={50} r={14} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={55} y={50} r={14} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={75} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
   </svg>
 );
 
-const SulfuricAcidIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <defs>{radialGradient('h2so4-grad', hexColor, 0.4)}</defs>
-    <circle cx="50" cy="50" r="45" fill="url(#h2so4-grad)" opacity="0.4" />
-    <circle cx="50" cy="50" r="20" fill={PARTICLE_COLOR_MAP['yellow-500']} />
-    <circle cx="50" cy="20" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-    <circle cx="50" cy="80" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-    <circle cx="20" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
-    <circle cx="80" cy="50" r="12" fill={PARTICLE_COLOR_MAP['red-600']} />
+const SulfuricAcidIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={50} y2={25} type="double" />
+    <NeoBond x1={50} y1={50} x2={50} y2={75} type="double" />
+    <NeoBond x1={50} y1={50} x2={25} y2={50} />
+    <NeoBond x1={50} y1={50} x2={75} y2={50} />
+    <NeoSphere x={50} y={50} r={16} color={PARTICLE_COLOR_MAP['yellow-500']} label="S" />
+    <NeoSphere x={50} y={25} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={50} y={75} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={25} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={75} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
   </svg>
 );
 
-const GlucoseIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <g transform="rotate(-30 50 50) scale(0.9)">
-      <polygon points="50,15 85,37.5 85,82.5 50,105 15,82.5 15,37.5" fill={hexColor} stroke="white" strokeWidth="3" />
-      <circle cx="50" cy="22" r="6" fill={PARTICLE_COLOR_MAP['red-600']} stroke="white" strokeWidth="1.5" />
+const GlucoseIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <g transform="rotate(30 50 50)">
+        <NeoBond x1={35} y1={25} x2={65} y2={25} />
+        <NeoBond x1={65} y1={25} x2={80} y2={50} />
+        <NeoBond x1={80} y1={50} x2={65} y2={75} />
+        <NeoBond x1={65} y1={75} x2={35} y2={75} />
+        <NeoBond x1={35} y1={75} x2={20} y2={50} />
+        <NeoBond x1={20} y1={50} x2={35} y2={25} />
+        
+        <NeoSphere x={35} y={25} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={65} y={25} r={10} color={PARTICLE_COLOR_MAP['red-600']} />
+        <NeoSphere x={80} y={50} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={65} y={75} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={35} y={75} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={20} y={50} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
     </g>
   </svg>
 );
 
 const DNAIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <path d="M30 10 C 70 30, 30 70, 70 90" stroke={PARTICLE_COLOR_MAP['blue-400']} strokeWidth="8" fill="none" strokeLinecap="round" />
-    <path d="M70 10 C 30 30, 70 70, 30 90" stroke={PARTICLE_COLOR_MAP['purple-600']} strokeWidth="8" fill="none" strokeLinecap="round" />
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <defs>
+      <linearGradient id="dna-strand-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#3b82f6" />
+        <stop offset="50%" stopColor="#8b5cf6" />
+        <stop offset="100%" stopColor="#ec4899" />
+      </linearGradient>
+      <filter id="neon-bloom">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+        <feMerge>
+          <feMergeNode in="coloredBlur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+    
+    <g filter="url(#neon-bloom)">
+      {/* Back Strand */}
+      <path 
+        d="M65 5 Q 25 25, 65 45 Q 105 65, 65 85" 
+        stroke="url(#dna-strand-grad)" 
+        strokeWidth="4" 
+        fill="none" 
+        strokeLinecap="round"
+        opacity="0.3"
+      />
+      
+      {/* Base Pairs (Pulsing Data Links) */}
+      <g stroke="white" strokeWidth="2" strokeLinecap="round">
+         {[15, 35, 55, 75].map((y, i) => (
+            <line 
+              key={i}
+              x1="35" y1={y + 10} 
+              x2="65" y2={y} 
+              className="animate-pulse"
+              style={{ animationDuration: '2s', animationDelay: `${i * 0.3}s`, opacity: 0.7 }}
+            />
+         ))}
+      </g>
+
+      {/* Front Strand (Flowing Energy) */}
+      <path 
+        d="M35 15 Q 75 35, 35 55 Q -5 75, 35 95" 
+        stroke="url(#dna-strand-grad)" 
+        strokeWidth="5" 
+        fill="none" 
+        strokeLinecap="round"
+        strokeDasharray="15 5"
+      >
+        <animate attributeName="stroke-dashoffset" from="100" to="0" dur="4s" repeatCount="indefinite" />
+      </path>
+    </g>
+    
+    {/* Floating Particles */}
+    <circle cx="20" cy="20" r="2" fill="#3b82f6" className="animate-float" />
+    <circle cx="80" cy="80" r="2" fill="#ec4899" className="animate-float" style={{ animationDelay: '1s' }} />
   </svg>
 );
 
 const RNAIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full">
-    <path d="M30 10 C 70 30, 30 70, 70 90" stroke={PARTICLE_COLOR_MAP['orange-500']} strokeWidth="8" fill="none" strokeLinecap="round" />
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <defs>
+      <linearGradient id="rna-strand-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#f97316" />
+        <stop offset="100%" stopColor="#ef4444" />
+      </linearGradient>
+    </defs>
+    
+    <g filter="url(#neon-bloom)">
+      {/* Single Strand */}
+      <path 
+        d="M50 10 C 20 20, 20 40, 50 50 C 80 60, 80 80, 50 90" 
+        stroke="url(#rna-strand-grad)" 
+        strokeWidth="5" 
+        fill="none" 
+        strokeLinecap="round"
+      />
+      
+      {/* Asymmetric Bases (The 'Keys') */}
+      {[20, 35, 65, 80].map((y, i) => (
+        <line 
+          key={i}
+          x1="50" y1={y} 
+          x2={i % 2 === 0 ? "75" : "25"} y2={y} 
+          stroke="white" 
+          strokeWidth="3" 
+          strokeLinecap="round"
+          className="animate-shake"
+          style={{ animationDuration: '4s', animationDelay: `${i * 0.5}s` }}
+        />
+      ))}
+      
+      {/* Active Tip */}
+      <circle cx="50" cy="90" r="4" fill="white" className="animate-pulse" />
+    </g>
   </svg>
 );
 
