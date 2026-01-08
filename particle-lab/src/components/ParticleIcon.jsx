@@ -284,62 +284,112 @@ const ElectronAntineutrinoIcon = ({ hexColor }) => (
 );
 
 const PhotonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full animate-pulse-glow overflow-visible" fill="none" style={{
-    '--glow-color': hexColor,
-  }}>
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible" fill="none">
     <defs>
-      <filter id="photon-glow-filter">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+      <linearGradient id={`photon-beam-${hexColor.replace('#','')}`} x1="0%" y1="50%" x2="100%" y2="50%">
+        <stop offset="0%" stopColor={hexColor} stopOpacity="0" />
+        <stop offset="50%" stopColor={hexColor} stopOpacity="1" />
+        <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
+      </linearGradient>
+      <filter id="photon-glare">
+        <feGaussianBlur stdDeviation="2" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
       </filter>
     </defs>
-    {/* A wave packet to represent energy */}
-    <path d="M 20 50 Q 35 25, 50 50 T 80 50" stroke={hexColor} strokeWidth="6" strokeLinecap="round" className="animate-vibrate" filter="url(#photon-glow-filter)" />
-    <path d="M 20 50 Q 35 25, 50 50 T 80 50" stroke="white" strokeWidth="2" strokeLinecap="round" className="animate-vibrate" />
-  </svg>
-);
-
-const GluonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full animate-pulse-glow overflow-visible" fill="none" style={{
-    '--glow-color': hexColor,
-  }}>
-    <path d="M 20 50 C 20 30, 30 30, 30 50 S 40 70, 40 50 S 50 30, 50 50 S 60 70, 60 50 S 70 30, 70 50 S 80 70, 80 50" stroke={hexColor} strokeWidth="6" strokeLinecap="round" className="animate-ocean-wave" />
-  </svg>
-);
-
-const WBosonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
-    <defs>
-      <filter id="w-boson-glow">
-        <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-        <feMerge>
-          <feMergeNode in="coloredBlur" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
-    </defs>
-    {/* A transient, directional energy burst representing flavor change */}
-    <g filter="url(#w-boson-glow)" className="animate-pulse-glow" style={{
-    '--glow-color': hexColor,
-  }}>
-      <path d="M 20 50 L 40 30 Q 50 50, 60 70 L 80 50" stroke={hexColor} strokeWidth="8" strokeLinecap="round" />
-      <path d="M 20 50 L 40 30 Q 50 50, 60 70 L 80 50" stroke="white" strokeWidth="3" strokeLinecap="round" strokeDasharray="4 6" className="animate-dash-flow" />
+    {/* Sleek Interference Pattern */}
+    <g className="animate-pulse-glow" style={{ animationDuration: '2s' }}>
+      <path d="M 10 50 C 30 20, 70 80, 90 50" stroke={`url(#photon-beam-${hexColor.replace('#','')})`} strokeWidth="2" fill="none" className="animate-ocean-wave" style={{ animationDuration: '3s' }} />
+      <path d="M 10 50 C 30 80, 70 20, 90 50" stroke={`url(#photon-beam-${hexColor.replace('#','')})`} strokeWidth="2" fill="none" className="animate-ocean-wave" style={{ animationDuration: '3s', animationDirection: 'reverse' }} />
+      <circle cx="50" cy="50" r="4" fill="white" filter="url(#photon-glare)" className="animate-vibrate" />
     </g>
   </svg>
 );
 
-const ZBosonIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full animate-pulse-glow overflow-visible" fill="none" style={{
-    '--glow-color': hexColor,
-  }}>
+const GluonIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible" fill="none">
     <defs>
-      <filter id="z-boson-glow">
-        <feGaussianBlur stdDeviation="5" />
+      <filter id="gluon-strain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="1" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
       </filter>
     </defs>
-    {/* A shimmering, neutral interaction field */}
-    <circle cx="50" cy="50" r="30" stroke={hexColor} strokeWidth="6" filter="url(#z-boson-glow)" />
-    <circle cx="50" cy="50" r="30" stroke="white" strokeWidth="2" strokeDasharray="1 8" strokeLinecap="round" className="animate-spin-slow" />
-    <circle cx="50" cy="50" r="15" stroke={hexColor} strokeWidth="3" strokeDasharray="4 4" strokeLinecap="round" className="animate-spin-slow-reverse" />
+    {/* Flux Knot - Rotating Tension */}
+    <g className="animate-spin-slow" style={{ transformOrigin: '50px 50px' }}>
+      <path 
+        d="M50 20 Q 80 20, 80 50 Q 80 80, 50 80 Q 20 80, 20 50 Q 20 20, 50 20 Z" 
+        stroke={hexColor} 
+        strokeWidth="3" 
+        strokeOpacity="0.6"
+        fill="none"
+        filter="url(#gluon-strain)"
+      />
+      <path 
+        d="M50 20 L 50 80 M 20 50 L 80 50" 
+        stroke={hexColor} 
+        strokeWidth="1" 
+        strokeDasharray="2 2"
+        opacity="0.5" 
+      />
+      <circle cx="50" cy="50" r="8" fill={hexColor} opacity="0.3" className="animate-pulse" />
+    </g>
+  </svg>
+);
+
+const WBosonIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible" fill="none">
+    <defs>
+      <filter id={`w-distortion-${hexColor.replace('#','')}`}>
+         <feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" result="noise" />
+         <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" />
+      </filter>
+      <linearGradient id={`w-grad-${hexColor.replace('#','')}`} x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor={hexColor} stopOpacity="0" />
+        <stop offset="50%" stopColor={hexColor} stopOpacity="1" />
+        <stop offset="100%" stopColor="white" stopOpacity="1" />
+      </linearGradient>
+    </defs>
+    
+    {/* The Chiral Helix - representing Parity Violation */}
+    <g className="animate-spin-slow" style={{ transformOrigin: '50px 50px', animationDuration: '10s' }}>
+       {/* Background structural rings */}
+       <circle cx="50" cy="50" r="30" stroke={hexColor} strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 4" />
+       
+       {/* The Winding Path of Transformation */}
+       <path 
+         d="M 50 80 Q 20 50, 50 20 Q 80 50, 50 80" 
+         stroke={`url(#w-grad-${hexColor.replace('#','')})`}
+         strokeWidth="4" 
+         fill="none"
+         filter={`url(#w-distortion-${hexColor.replace('#','')})`}
+         className="animate-pulse"
+       />
+       
+       {/* The weak interaction vertex - a sharp break */}
+       <path d="M 30 70 L 70 30" stroke="white" strokeWidth="2" strokeDasharray="5 5" className="animate-draw-wave" />
+    </g>
+    
+    {/* Emitting Particles (Decay products) - Using style for custom props */}
+    <circle cx="20" cy="80" r="3" fill={hexColor} className="animate-fade-out-and-disperse" style={{ '--i': 0, '--j': 1 }} />
+    <circle cx="80" cy="20" r="3" fill="white" className="animate-fade-out-and-disperse" style={{ '--i': 1, '--j': 0 }} />
+  </svg>
+);
+
+const ZBosonIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible" fill="none">
+     <defs>
+      <radialGradient id={`z-void-${hexColor.replace('#','')}`} cx="50%" cy="50%" r="50%">
+        <stop offset="40%" stopColor="black" stopOpacity="0" />
+        <stop offset="90%" stopColor={hexColor} stopOpacity="0.5" />
+        <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    {/* Neutral Current - Rotating Rings */}
+    <circle cx="50" cy="50" r="35" fill={`url(#z-void-${hexColor.replace('#','')})`} />
+    
+    <circle cx="50" cy="50" r="28" stroke={hexColor} strokeWidth="1.5" strokeDasharray="10 30" className="animate-spin-slow" opacity="0.8" />
+    <circle cx="50" cy="50" r="22" stroke={hexColor} strokeWidth="1.5" strokeDasharray="5 15" className="animate-spin-slow-reverse" opacity="0.6" />
+    
+    <circle cx="50" cy="50" r="4" fill="none" stroke={hexColor} strokeWidth="2" className="animate-pulse" />
   </svg>
 );
 
