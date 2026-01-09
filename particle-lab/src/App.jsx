@@ -639,6 +639,7 @@ const App = () => {
                 particleCategories={allPossibleParticles}
                 discoveredParticles={allDiscoveredParticles}
                 onParticleClick={handleShowInfo}
+                onDragStart={handleDragStart}
               />
 
               {springs.map((props, i) => {

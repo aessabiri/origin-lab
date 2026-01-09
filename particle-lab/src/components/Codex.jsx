@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import ParticleIcon from './ParticleIcon';
 import { PARTICLE_NAMES, PARTICLE_COLORS } from '../constants/particles';
 
-const Codex = ({ isVisible, onClose, particleCategories, discoveredParticles, onParticleClick }) => {
+const Codex = ({ isVisible, onClose, particleCategories, discoveredParticles, onParticleClick, onDragStart }) => {
   const [showAll, setShowAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -74,7 +74,9 @@ const Codex = ({ isVisible, onClose, particleCategories, discoveredParticles, on
                   return (
                     <div
                       key={particleType}
-                      className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-300 ${isDiscovered ? 'cursor-pointer hover:bg-gray-700' : 'cursor-default'}`}
+                      draggable={isDiscovered}
+                      onDragStart={(e) => isDiscovered && onDragStart(e, { type: particleType })}
+                      className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-300 ${isDiscovered ? 'cursor-grab hover:bg-gray-700' : 'cursor-default'}`}
                       onClick={() => isDiscovered && onParticleClick(particleType)}
                     >
                       <div className={`relative w-20 h-20 ${isDiscovered ? '' : 'opacity-20'}`}>
