@@ -416,39 +416,7 @@ export const RECIPES = [
       [PARTICLE_TYPES.ELECTRON]: 36,
     },
   },
-  // Molecules
-  {
-    type: PARTICLE_TYPES.WATER,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.HYDROGEN]: 2,
-      [PARTICLE_TYPES.OXYGEN]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.METHANE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.CARBON]: 1,
-      [PARTICLE_TYPES.HYDROGEN]: 4,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.AMMONIA,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.NITROGEN]: 1,
-      [PARTICLE_TYPES.HYDROGEN]: 3,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.CARBON_DIOXIDE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.CARBON]: 1,
-      [PARTICLE_TYPES.OXYGEN]: 2,
-    },
-  },
+  // Molecules - Moved simple ones to moleculeRecipes.js for structural checks
   {
     type: PARTICLE_TYPES.SODIUM_CHLORIDE,
     category: PARTICLE_CATEGORIES.MOLECULE, // Ionic compound, but fits game logic
@@ -510,67 +478,6 @@ export const RECIPES = [
     ingredients: {
       [PARTICLE_TYPES.SILICON]: 1,
       [PARTICLE_TYPES.OXYGEN]: 2,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.ETHANOL,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.CARBON]: 2,
-      [PARTICLE_TYPES.HYDROGEN]: 6,
-      [PARTICLE_TYPES.OXYGEN]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.SULFURIC_ACID,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.HYDROGEN]: 2,
-      [PARTICLE_TYPES.SULFUR]: 1,
-      [PARTICLE_TYPES.OXYGEN]: 4,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.GLUCOSE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.CARBON]: 6,
-      [PARTICLE_TYPES.HYDROGEN]: 12,
-      [PARTICLE_TYPES.OXYGEN]: 6,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.NITROGEN_GAS,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.NITROGEN]: 2,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.OXYGEN_GAS,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.OXYGEN]: 2,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.DNA,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.ADENINE]: 1,
-      [PARTICLE_TYPES.THYMINE]: 1,
-      [PARTICLE_TYPES.GUANINE]: 1,
-      [PARTICLE_TYPES.CYTOSINE]: 1,
-    },
-  },
-  {
-    type: PARTICLE_TYPES.RNA,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.ADENINE]: 1,
-      [PARTICLE_TYPES.URACIL]: 1,
-      [PARTICLE_TYPES.GUANINE]: 1,
-      [PARTICLE_TYPES.CYTOSINE]: 1,
     },
   },
 ];

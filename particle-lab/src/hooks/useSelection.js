@@ -4,6 +4,7 @@ import { RECIPES, COMPOUND_PARTICLE_TYPES } from '../recipes.js';
 import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
 import { useStore } from '../store.js';
+import { generateGraphSignature } from '../utils/chemistryStructure.js';
 
 export const useSelection = ({ canvasRef }) => {
   const particles = useStore(state => state.particles);
@@ -127,9 +128,23 @@ export const useSelection = ({ canvasRef }) => {
             const bondsMatch = checkCounts(moleculeRecipe.bonds, bondCounts);
 
             if (atomsMatch && bondsMatch) {
-              assemblyRecipe = moleculeRecipe;
-              isMoleculeAssembly = true;
-              break;
+              // Structural Check
+              if (moleculeRecipe.structure) {
+                const recipeSignature = generateGraphSignature(moleculeRecipe.structure.nodes, moleculeRecipe.structure.edges);
+                const userSignature = generateGraphSignature(selectedParticles, selectedBonds);
+
+                if (recipeSignature === userSignature) {
+                  assemblyRecipe = moleculeRecipe;
+                  isMoleculeAssembly = true;
+                  break;
+                }
+                // If structure doesn't match, continue looking (or fail if this was the only candidate)
+              } else {
+                // Fallback for recipes without explicit structure definition (legacy)
+                assemblyRecipe = moleculeRecipe;
+                isMoleculeAssembly = true;
+                break;
+              }
             }
           }
         }

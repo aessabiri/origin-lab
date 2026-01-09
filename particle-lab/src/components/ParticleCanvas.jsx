@@ -15,6 +15,7 @@ import { GOAL_PATHS } from '../constants/goalPaths.js';
 import { RECIPES, PARTICLE_CATEGORIES } from '../recipes.js';
 import { useDecay } from '../hooks/useDecay.js';
 import { useStore } from '../store.js';
+import { generateGraphSignature } from '../utils/chemistryStructure.js';
 
 const MOLECULE_PARTICLE_TYPES = new Set(
   MOLECULE_RECIPES.map(r => r.type)
@@ -283,7 +284,25 @@ const ParticleCanvas = ({ onDragStart }) => {
           const atomCounts = groupParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
           const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
 
-          const recipeMatch = MOLECULE_RECIPES.find(r => doCountsMatch(r.atoms, atomCounts) && doCountsMatch(r.bonds, bondCounts));
+          // Initial check: Counts match
+          const possibleRecipes = MOLECULE_RECIPES.filter(r => doCountsMatch(r.atoms, atomCounts) && doCountsMatch(r.bonds, bondCounts));
+
+          let recipeMatch = null;
+
+          for (const recipe of possibleRecipes) {
+            if (recipe.structure) {
+              const recipeSignature = generateGraphSignature(recipe.structure.nodes, recipe.structure.edges);
+              const userSignature = generateGraphSignature(groupParticles, groupBonds);
+              
+              if (recipeSignature === userSignature) {
+                recipeMatch = recipe;
+                break;
+              }
+            } else {
+              recipeMatch = recipe;
+              break;
+            }
+          }
 
           if (recipeMatch) {
             groupIds.forEach(id => assemblableIds.add(id));

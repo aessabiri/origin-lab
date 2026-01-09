@@ -2,6 +2,96 @@ import { PARTICLE_TYPES } from '../constants/particles.js';
 
 export const MOLECULE_RECIPES = [
   {
+    type: PARTICLE_TYPES.WATER,
+    atoms: {
+      [PARTICLE_TYPES.HYDROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+    bonds: {
+      single: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN }
+      ],
+      edges: [
+        { source: 'o1', target: 'h1', type: 'single' },
+        { source: 'o1', target: 'h2', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.METHANE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 4,
+    },
+    bonds: {
+      single: 4,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'h4', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.AMMONIA,
+    atoms: {
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 3,
+    },
+    bonds: {
+      single: 3,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'h3', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.CARBON_DIOXIDE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      double: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN }
+      ],
+      edges: [
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'double' }
+      ]
+    }
+  },
+  {
     type: PARTICLE_TYPES.GLYCINE,
     atoms: {
       [PARTICLE_TYPES.CARBON]: 2,
@@ -13,6 +103,31 @@ export const MOLECULE_RECIPES = [
       single: 8,
       double: 1,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'h4', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h5', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.ALANINE,
@@ -26,6 +141,37 @@ export const MOLECULE_RECIPES = [
       single: 10,
       double: 1,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h6', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h7', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c1', target: 'c3', type: 'single' },
+        { source: 'c3', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'h6', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h7', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.VALINE,
@@ -39,6 +185,49 @@ export const MOLECULE_RECIPES = [
       single: 16,
       double: 1,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h6', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h7', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h8', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h9', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h10', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h11', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c1', target: 'c3', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h11', type: 'single' },
+        { source: 'c3', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'c4', type: 'single' },
+        { source: 'c3', target: 'c5', type: 'single' },
+        { source: 'c4', target: 'h5', type: 'single' },
+        { source: 'c4', target: 'h6', type: 'single' },
+        { source: 'c4', target: 'h7', type: 'single' },
+        { source: 'c5', target: 'h8', type: 'single' },
+        { source: 'c5', target: 'h9', type: 'single' },
+        { source: 'c5', target: 'h10', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.LEUCINE,
@@ -52,6 +241,55 @@ export const MOLECULE_RECIPES = [
       single: 19,
       double: 1,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h6', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h7', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h8', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h9', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h10', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h11', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h12', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h13', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c1', target: 'c3', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h13', type: 'single' },
+        { source: 'c3', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'c4', type: 'single' },
+        { source: 'c4', target: 'h6', type: 'single' },
+        { source: 'c4', target: 'c5', type: 'single' },
+        { source: 'c4', target: 'c6', type: 'single' },
+        { source: 'c5', target: 'h7', type: 'single' },
+        { source: 'c5', target: 'h8', type: 'single' },
+        { source: 'c5', target: 'h9', type: 'single' },
+        { source: 'c6', target: 'h10', type: 'single' },
+        { source: 'c6', target: 'h11', type: 'single' },
+        { source: 'c6', target: 'h12', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.SERINE,
@@ -65,19 +303,39 @@ export const MOLECULE_RECIPES = [
       single: 11,
       double: 1,
     },
-  },
-  {
-    type: PARTICLE_TYPES.SERINE,
-    atoms: {
-      [PARTICLE_TYPES.CARBON]: 3,
-      [PARTICLE_TYPES.OXYGEN]: 3,
-      [PARTICLE_TYPES.NITROGEN]: 1,
-      [PARTICLE_TYPES.HYDROGEN]: 7,
-    },
-    bonds: {
-      single: 11,
-      double: 1,
-    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h6', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h7', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c1', target: 'c3', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h6', type: 'single' },
+        { source: 'c3', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'o3', type: 'single' },
+        { source: 'o3', target: 'h7', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.ADENINE,
@@ -87,9 +345,46 @@ export const MOLECULE_RECIPES = [
       [PARTICLE_TYPES.NITROGEN]: 5,
     },
     bonds: {
-      single: 9,
+      single: 12,
       double: 4,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'n3', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        { id: 'n7', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c8', type: PARTICLE_TYPES.CARBON },
+        { id: 'n9', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'n10', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'c6', type: 'double' },
+        { source: 'n1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'n3', type: 'double' },
+        { source: 'c2', target: 'h1', type: 'single' },
+        { source: 'n3', target: 'c4', type: 'single' },
+        { source: 'c4', target: 'c5', type: 'double' },
+        { source: 'c4', target: 'n9', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'single' },
+        { source: 'c5', target: 'n7', type: 'single' },
+        { source: 'c6', target: 'n10', type: 'single' },
+        { source: 'n7', target: 'c8', type: 'double' },
+        { source: 'c8', target: 'n9', type: 'single' },
+        { source: 'c8', target: 'h2', type: 'single' },
+        { source: 'n9', target: 'h3', type: 'single' },
+        { source: 'n10', target: 'h4', type: 'single' },
+        { source: 'n10', target: 'h5', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.GUANINE,
@@ -100,9 +395,48 @@ export const MOLECULE_RECIPES = [
       [PARTICLE_TYPES.OXYGEN]: 1,
     },
     bonds: {
-      single: 9,
+      single: 13,
       double: 4,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'n3', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        { id: 'n7', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c8', type: PARTICLE_TYPES.CARBON },
+        { id: 'n9', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'n10', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'c2', type: 'single' },
+        { source: 'n1', target: 'c6', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'c2', target: 'n3', type: 'double' },
+        { source: 'c2', target: 'n10', type: 'single' },
+        { source: 'n3', target: 'c4', type: 'single' },
+        { source: 'c4', target: 'c5', type: 'double' },
+        { source: 'c4', target: 'n9', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'single' },
+        { source: 'c5', target: 'n7', type: 'single' },
+        { source: 'c6', target: 'o1', type: 'double' },
+        { source: 'n7', target: 'c8', type: 'double' },
+        { source: 'c8', target: 'n9', type: 'single' },
+        { source: 'c8', target: 'h2', type: 'single' },
+        { source: 'n9', target: 'h3', type: 'single' },
+        { source: 'n10', target: 'h4', type: 'single' },
+        { source: 'n10', target: 'h5', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.CYTOSINE,
@@ -113,9 +447,41 @@ export const MOLECULE_RECIPES = [
       [PARTICLE_TYPES.OXYGEN]: 1,
     },
     bonds: {
-      single: 8,
-      double: 4,
+      single: 10,
+      double: 3,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'n3', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        { id: 'n4', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'c2', type: 'single' },
+        { source: 'n1', target: 'c6', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'n3', type: 'single' },
+        { source: 'n3', target: 'c4', type: 'double' },
+        { source: 'c4', target: 'c5', type: 'single' },
+        { source: 'c4', target: 'n4', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'double' },
+        { source: 'c5', target: 'h2', type: 'single' },
+        { source: 'c6', target: 'h3', type: 'single' },
+        { source: 'n4', target: 'h4', type: 'single' },
+        { source: 'n4', target: 'h5', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.THYMINE,
@@ -126,9 +492,45 @@ export const MOLECULE_RECIPES = [
       [PARTICLE_TYPES.OXYGEN]: 2,
     },
     bonds: {
-      single: 9,
-      double: 4,
+      single: 12,
+      double: 3,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'n3', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        { id: 'c7', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h6', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'c2', type: 'single' },
+        { source: 'n1', target: 'c6', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'n3', type: 'single' },
+        { source: 'n3', target: 'c4', type: 'single' },
+        { source: 'n3', target: 'h2', type: 'single' },
+        { source: 'c4', target: 'o2', type: 'double' },
+        { source: 'c4', target: 'c5', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'double' },
+        { source: 'c5', target: 'c7', type: 'single' },
+        { source: 'c6', target: 'h3', type: 'single' },
+        { source: 'c7', target: 'h4', type: 'single' },
+        { source: 'c7', target: 'h5', type: 'single' },
+        { source: 'c7', target: 'h6', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.ACETIC_ACID,
@@ -141,6 +543,27 @@ export const MOLECULE_RECIPES = [
       single: 6,
       double: 1,
     },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.URACIL,
@@ -151,8 +574,139 @@ export const MOLECULE_RECIPES = [
       [PARTICLE_TYPES.OXYGEN]: 2,
     },
     bonds: {
-      single: 8,
-      double: 4,
+      single: 9,
+      double: 3,
     },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'n3', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'c2', type: 'single' },
+        { source: 'n1', target: 'c6', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'n3', type: 'single' },
+        { source: 'n3', target: 'c4', type: 'single' },
+        { source: 'n3', target: 'h2', type: 'single' },
+        { source: 'c4', target: 'o2', type: 'double' },
+        { source: 'c4', target: 'c5', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'double' },
+        { source: 'c5', target: 'h3', type: 'single' },
+        { source: 'c6', target: 'h4', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ETHANOL,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 2,
+      [PARTICLE_TYPES.HYDROGEN]: 6,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+    bonds: {
+      single: 8,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h6', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'h4', type: 'single' },
+        { source: 'c2', target: 'h5', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'single' },
+        { source: 'o1', target: 'h6', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.SULFURIC_ACID,
+    atoms: {
+      [PARTICLE_TYPES.SULFUR]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 4,
+      [PARTICLE_TYPES.HYDROGEN]: 2,
+    },
+    bonds: {
+      single: 4,
+      double: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 's1', type: PARTICLE_TYPES.SULFUR },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o4', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 's1', target: 'o1', type: 'double' },
+        { source: 's1', target: 'o2', type: 'double' },
+        { source: 's1', target: 'o3', type: 'single' },
+        { source: 's1', target: 'o4', type: 'single' },
+        { source: 'o3', target: 'h1', type: 'single' },
+        { source: 'o4', target: 'h2', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.NITROGEN_GAS,
+    atoms: {
+      [PARTICLE_TYPES.NITROGEN]: 2,
+    },
+    bonds: {
+      double: 1, // Approximation for triple
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'n2', type: PARTICLE_TYPES.NITROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'n2', type: 'double' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.OXYGEN_GAS,
+    atoms: {
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+      ],
+      edges: [
+        { source: 'o1', target: 'o2', type: 'double' },
+      ]
+    }
   },
 ];
