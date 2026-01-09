@@ -988,4 +988,152 @@ export const MOLECULE_RECIPES = [
       single: 3,
     },
   },
+  {
+    type: PARTICLE_TYPES.GLYCEROL,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 3,
+      [PARTICLE_TYPES.HYDROGEN]: 8,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 11,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h6', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h7', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h8', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'single' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'c3', target: 'o3', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c2', target: 'h3', type: 'single' },
+        { source: 'c3', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' },
+        { source: 'o1', target: 'h6', type: 'single' },
+        { source: 'o2', target: 'h7', type: 'single' },
+        { source: 'o3', target: 'h8', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.FATTY_ACID,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 8,
+      [PARTICLE_TYPES.HYDROGEN]: 16,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 23,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        { id: 'c7', type: PARTICLE_TYPES.CARBON },
+        { id: 'c8', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h_o', type: PARTICLE_TYPES.HYDROGEN },
+        // Simplified chain hydrogens (represented by generic nodes for signature)
+        // Actually need unique IDs
+        ...Array.from({ length: 15 }, (_, i) => ({ id: `h${i}`, type: PARTICLE_TYPES.HYDROGEN })),
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c3', target: 'c4', type: 'single' },
+        { source: 'c4', target: 'c5', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'single' },
+        { source: 'c6', target: 'c7', type: 'single' },
+        { source: 'c7', target: 'c8', type: 'single' },
+        { source: 'c8', target: 'o1', type: 'double' },
+        { source: 'c8', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h_o', type: 'single' },
+        // Connecting hydrogens roughly (not validating exact H placement on specific carbons to save verbose code, just ensuring topology allows for it)
+        // Actually, to pass graph signature, edges MUST be exact.
+        // C1 (Methyl end): 3 H
+        { source: 'c1', target: 'h0', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        // C2-C7: 2 H each
+        { source: 'c2', target: 'h3', type: 'single' }, { source: 'c2', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' }, { source: 'c3', target: 'h6', type: 'single' },
+        { source: 'c4', target: 'h7', type: 'single' }, { source: 'c4', target: 'h8', type: 'single' },
+        { source: 'c5', target: 'h9', type: 'single' }, { source: 'c5', target: 'h10', type: 'single' },
+        { source: 'c6', target: 'h11', type: 'single' }, { source: 'c6', target: 'h12', type: 'single' },
+        { source: 'c7', target: 'h13', type: 'single' }, { source: 'c7', target: 'h14', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.LIPID,
+    atoms: {
+      [PARTICLE_TYPES.GLYCEROL]: 1,
+      [PARTICLE_TYPES.FATTY_ACID]: 3,
+    },
+    bonds: {
+      single: 3,
+    },
+    structure: {
+      nodes: [
+        { id: 'gly', type: PARTICLE_TYPES.GLYCEROL },
+        { id: 'fa1', type: PARTICLE_TYPES.FATTY_ACID },
+        { id: 'fa2', type: PARTICLE_TYPES.FATTY_ACID },
+        { id: 'fa3', type: PARTICLE_TYPES.FATTY_ACID },
+      ],
+      edges: [
+        { source: 'gly', target: 'fa1', type: 'single' },
+        { source: 'gly', target: 'fa2', type: 'single' },
+        { source: 'gly', target: 'fa3', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ATP,
+    atoms: {
+      [PARTICLE_TYPES.ADENINE]: 1,
+      [PARTICLE_TYPES.RIBOSE]: 1,
+      [PARTICLE_TYPES.PHOSPHATE]: 3,
+    },
+    bonds: {
+      single: 4,
+    },
+    structure: {
+      nodes: [
+        { id: 'base', type: PARTICLE_TYPES.ADENINE },
+        { id: 'sugar', type: PARTICLE_TYPES.RIBOSE },
+        { id: 'p1', type: PARTICLE_TYPES.PHOSPHATE },
+        { id: 'p2', type: PARTICLE_TYPES.PHOSPHATE },
+        { id: 'p3', type: PARTICLE_TYPES.PHOSPHATE },
+      ],
+      edges: [
+        { source: 'base', target: 'sugar', type: 'single' },
+        { source: 'sugar', target: 'p1', type: 'single' },
+        { source: 'p1', target: 'p2', type: 'single' },
+        { source: 'p2', target: 'p3', type: 'single' },
+      ]
+    }
+  },
 ];

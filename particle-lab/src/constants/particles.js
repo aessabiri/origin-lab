@@ -105,6 +105,10 @@ export const PARTICLE_TYPES = {
   NUCLEOTIDE_G: 'nucleotide-g',
   NUCLEOTIDE_C: 'nucleotide-c',
   NUCLEOTIDE_U: 'nucleotide-u',
+  ATP: 'atp',
+  GLYCEROL: 'glycerol',
+  FATTY_ACID: 'fatty-acid',
+  LIPID: 'lipid',
 };
 
 export const PARTICLE_COLORS = {
@@ -211,6 +215,10 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.NUCLEOTIDE_G]: 'bg-green-500',
   [PARTICLE_TYPES.NUCLEOTIDE_C]: 'bg-orange-500',
   [PARTICLE_TYPES.NUCLEOTIDE_U]: 'bg-teal-500',
+  [PARTICLE_TYPES.ATP]: 'bg-yellow-400',
+  [PARTICLE_TYPES.GLYCEROL]: 'bg-cyan-200',
+  [PARTICLE_TYPES.FATTY_ACID]: 'bg-stone-400',
+  [PARTICLE_TYPES.LIPID]: 'bg-orange-300',
 };
 
 export const PARTICLE_NAMES = {
@@ -317,6 +325,10 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.NUCLEOTIDE_G]: 'dGMP (Guanine Nuc.)',
   [PARTICLE_TYPES.NUCLEOTIDE_C]: 'dCMP (Cytosine Nuc.)',
   [PARTICLE_TYPES.NUCLEOTIDE_U]: 'UMP (Uracil Nuc.)',
+  [PARTICLE_TYPES.ATP]: 'ATP (Energy)',
+  [PARTICLE_TYPES.GLYCEROL]: 'Glycerol',
+  [PARTICLE_TYPES.FATTY_ACID]: 'Fatty Acid',
+  [PARTICLE_TYPES.LIPID]: 'Lipid (Fat)',
 };
 
 export const PARTICLE_INFO = {
@@ -406,6 +418,10 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.NUCLEOTIDE_G]: { size: 112, name: 'dGMP', category: 'Nucleotide', description: 'Deoxyguanosine monophosphate. A nucleotide found in DNA.' },
   [PARTICLE_TYPES.NUCLEOTIDE_C]: { size: 112, name: 'dCMP', category: 'Nucleotide', description: 'Deoxycytidine monophosphate. A nucleotide found in DNA.' },
   [PARTICLE_TYPES.NUCLEOTIDE_U]: { size: 112, name: 'UMP', category: 'Nucleotide', description: 'Uridine monophosphate. A nucleotide found in RNA.' },
+  [PARTICLE_TYPES.ATP]: { size: 128, name: 'Adenosine Triphosphate', category: 'Energy Carrier', description: 'The primary energy currency of the cell. It releases energy when its phosphate bonds are hydrolyzed.' },
+  [PARTICLE_TYPES.GLYCEROL]: { size: 96, name: 'Glycerol', category: 'Polyol', description: 'A simple polyol compound. It is a colorless, odorless, viscous liquid that is sweet-tasting and non-toxic. It is the backbone of triglycerides.' },
+  [PARTICLE_TYPES.FATTY_ACID]: { size: 96, name: 'Fatty Acid', category: 'Lipid Component', description: 'A carboxylic acid with a long aliphatic chain, which is either saturated or unsaturated.' },
+  [PARTICLE_TYPES.LIPID]: { size: 128, name: 'Triglyceride', category: 'Lipid', description: 'An ester derived from glycerol and three fatty acids. Triglycerides are the main constituents of body fat in humans and other vertebrates.' },
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -584,6 +600,8 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
       PARTICLE_TYPES.DEOXYRIBOSE,
       PARTICLE_TYPES.RIBOSE,
       PARTICLE_TYPES.PHOSPHATE,
+      PARTICLE_TYPES.GLYCEROL,
+      PARTICLE_TYPES.FATTY_ACID,
     ]
   },
   {
@@ -608,11 +626,18 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
   {
     name: 'Nucleotides',
     particles: [
+      PARTICLE_TYPES.ATP,
       PARTICLE_TYPES.NUCLEOTIDE_A,
       PARTICLE_TYPES.NUCLEOTIDE_T,
       PARTICLE_TYPES.NUCLEOTIDE_G,
       PARTICLE_TYPES.NUCLEOTIDE_C,
       PARTICLE_TYPES.NUCLEOTIDE_U,
+    ]
+  },
+  {
+    name: 'Lipids',
+    particles: [
+      PARTICLE_TYPES.LIPID,
     ]
   },
 ];

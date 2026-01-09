@@ -1173,35 +1173,110 @@ const RiboseIcon = ({ isDeoxy = false }) => (
 
 const DeoxyriboseIcon = () => <RiboseIcon isDeoxy={true} />;
 
-const GenericNucleotideIcon = ({ BaseIcon }) => (
-  <svg viewBox="0 0 120 100" className="w-full h-full overflow-visible">
-    {/* Phosphate (Left) */}
-    <g transform="translate(10, 50) scale(0.4)">
-       <circle cx="0" cy="0" r={30} fill={PARTICLE_COLOR_MAP['orange-500']} />
-       <text x="0" y="10" textAnchor="middle" fill="white" fontSize="30" fontWeight="bold">P</text>
+const GenericNucleotideIcon = ({ BaseIcon, isDeoxy = true }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Phosphate Group (Top Left) */}
+    <g transform="translate(15, 25) scale(0.35)">
+        <PhosphateIcon />
     </g>
     
-    {/* Sugar (Center) */}
-    <g transform="translate(50, 50) scale(0.5)">
-       <path d="M 0 -30 L 30 -10 L 20 30 L -20 30 L -30 -10 Z" fill={PARTICLE_COLOR_MAP['amber-200']} stroke="white" strokeWidth="4" />
+    {/* Bond: Phosphate -> Sugar */}
+    <line x1={25} y1={35} x2={40} y2={50} stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
+
+    {/* Sugar Group (Center-Bottom) */}
+    <g transform="translate(35, 45) scale(0.4)">
+        <RiboseIcon isDeoxy={isDeoxy} />
     </g>
-    
-    {/* Base (Right) */}
-    <g transform="translate(90, 50) scale(0.6)">
+
+    {/* Bond: Sugar -> Base */}
+    <line x1={65} y1={55} x2={75} y2={45} stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
+
+    {/* Nitrogenous Base (Right) */}
+    <g transform="translate(60, 15) scale(0.45)">
         <BaseIcon />
     </g>
-    
-    {/* Connections */}
-    <line x1={22} y1={50} x2={35} y2={50} stroke="white" strokeWidth="3" />
-    <line x1={65} y1={50} x2={80} y2={50} stroke="white" strokeWidth="3" />
   </svg>
 );
 
-const NucleotideAIcon = () => <GenericNucleotideIcon BaseIcon={AdenineIcon} />;
-const NucleotideTIcon = () => <GenericNucleotideIcon BaseIcon={ThymineIcon} />;
-const NucleotideGIcon = () => <GenericNucleotideIcon BaseIcon={GuanineIcon} />;
-const NucleotideCIcon = () => <GenericNucleotideIcon BaseIcon={CytosineIcon} />;
-const NucleotideUIcon = () => <GenericNucleotideIcon BaseIcon={UracilIcon} />;
+const NucleotideAIcon = () => <GenericNucleotideIcon BaseIcon={AdenineIcon} isDeoxy={true} />;
+const NucleotideTIcon = () => <GenericNucleotideIcon BaseIcon={ThymineIcon} isDeoxy={true} />;
+const NucleotideGIcon = () => <GenericNucleotideIcon BaseIcon={GuanineIcon} isDeoxy={true} />;
+const NucleotideCIcon = () => <GenericNucleotideIcon BaseIcon={CytosineIcon} isDeoxy={true} />;
+const NucleotideUIcon = () => <GenericNucleotideIcon BaseIcon={UracilIcon} isDeoxy={false} />;
+
+const ATPIcon = () => (
+  <svg viewBox="0 0 140 100" className="w-full h-full overflow-visible">
+    {/* Phosphates (Left) */}
+    <g transform="translate(10, 50) scale(0.3)">
+       <PhosphateIcon />
+    </g>
+    <line x1={20} y1={50} x2={30} y2={50} stroke="white" strokeWidth="2" />
+    <g transform="translate(30, 50) scale(0.3)">
+       <PhosphateIcon />
+    </g>
+    <line x1={40} y1={50} x2={50} y2={50} stroke="white" strokeWidth="2" />
+    <g transform="translate(50, 50) scale(0.3)">
+       <PhosphateIcon />
+    </g>
+    <line x1={60} y1={50} x2={70} y2={50} stroke="white" strokeWidth="2" />
+
+    {/* Ribose (Center) */}
+    <g transform="translate(70, 45) scale(0.35)">
+        <RiboseIcon />
+    </g>
+    <line x1={90} y1={55} x2={100} y2={45} stroke="white" strokeWidth="2" />
+
+    {/* Adenine (Right) */}
+    <g transform="translate(90, 15) scale(0.4)">
+        <AdenineIcon />
+    </g>
+  </svg>
+);
+
+const GlycerolIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Vertical Carbon Backbone */}
+    <NeoBond x1={50} y1={20} x2={50} y2={50} />
+    <NeoBond x1={50} y1={50} x2={50} y2={80} />
+    
+    {/* Hydroxyls */}
+    <NeoBond x1={50} y1={20} x2={70} y2={20} />
+    <NeoBond x1={50} y1={50} x2={70} y2={50} />
+    <NeoBond x1={50} y1={80} x2={70} y2={80} />
+
+    <NeoSphere x={50} y={20} r={12} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={50} y={50} r={12} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={50} y={80} r={12} color={PARTICLE_COLOR_MAP['gray-800']} />
+    
+    <NeoSphere x={70} y={20} r={10} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={70} y={50} r={10} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={70} y={80} r={10} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
+
+const FattyAcidIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Carboxyl Head */}
+    <NeoSphere x={85} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoBond x1={85} y1={50} x2={70} y2={50} />
+    
+    {/* Zig Zag Chain */}
+    <polyline points="70,50 60,30 50,70 40,30 30,70 20,30 10,50" fill="none" stroke={PARTICLE_COLOR_MAP['stone-400']} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+    <polyline points="70,50 60,30 50,70 40,30 30,70 20,30 10,50" fill="none" stroke="white" strokeWidth="2" strokeOpacity="0.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const LipidIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Glycerol Backbone (Vertical, Left) */}
+    <line x1={20} y1={20} x2={20} y2={80} stroke={PARTICLE_COLOR_MAP['gray-800']} strokeWidth="8" strokeLinecap="round" />
+    
+    {/* 3 Fatty Acid Chains (Horizontal) */}
+    <path d="M 20 25 L 40 15 L 60 35 L 80 25" stroke={PARTICLE_COLOR_MAP['orange-300']} strokeWidth="6" fill="none" />
+    <path d="M 20 50 L 40 40 L 60 60 L 80 50" stroke={PARTICLE_COLOR_MAP['orange-300']} strokeWidth="6" fill="none" />
+    <path d="M 20 75 L 40 65 L 60 85 L 80 75" stroke={PARTICLE_COLOR_MAP['orange-300']} strokeWidth="6" fill="none" />
+  </svg>
+);
 
 const DefaultIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -1271,6 +1346,10 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.NUCLEOTIDE_G]: NucleotideGIcon,
   [PARTICLE_TYPES.NUCLEOTIDE_C]: NucleotideCIcon,
   [PARTICLE_TYPES.NUCLEOTIDE_U]: NucleotideUIcon,
+  [PARTICLE_TYPES.ATP]: ATPIcon,
+  [PARTICLE_TYPES.GLYCEROL]: GlycerolIcon,
+  [PARTICLE_TYPES.FATTY_ACID]: FattyAcidIcon,
+  [PARTICLE_TYPES.LIPID]: LipidIcon,
   [PARTICLE_TYPES.DNA]: DNAIcon,
   [PARTICLE_TYPES.RNA]: RNAIcon,
   'ayoub': AyoubIcon, // Directly using the string for the test molecule
