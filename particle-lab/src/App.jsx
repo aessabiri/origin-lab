@@ -2,6 +2,7 @@ import React from 'react';
 import { useStore } from './store.js';
 import ParticleLab from './components/ParticleLab.jsx';
 import ChemistryApp from './chemistry-lab/ChemistryApp.jsx';
+import BiologyApp from './biology-lab/BiologyApp.jsx';
 
 const App = () => {
   const { currentView, setCurrentView } = useStore();
@@ -34,21 +35,7 @@ const App = () => {
       <div className="flex-1 overflow-hidden">
         {currentView === 'particle' && <ParticleLab />}
         {currentView === 'chemistry' && <ChemistryApp />}
-        {currentView === 'biology' && (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-teal-950 text-teal-100">
-            <h1 className="text-4xl font-bold mb-4">🧫 Biology Lab</h1>
-            <p className="text-xl mb-8">The Petri Dish is under construction.</p>
-            <div className="p-6 bg-teal-900 rounded-xl border border-teal-700 max-w-md">
-              <h2 className="text-lg font-bold mb-2">Planned Features:</h2>
-              <ul className="list-disc list-inside space-y-2 text-teal-200">
-                <li>Cellular Automata (Conway's Game of Life style)</li>
-                <li>DNA/RNA Editing</li>
-                <li>Evolutionary Simulation</li>
-                <li>Microscopy View</li>
-              </ul>
-            </div>
-          </div>
-        )}
+        {currentView === 'biology' && <BiologyApp />}
       </div>
     </div>
   );
