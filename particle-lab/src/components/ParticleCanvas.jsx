@@ -543,20 +543,42 @@ const ParticleCanvas = ({ onDragStart }) => {
           let hintRecipe = RECIPES.find(r => r.type === currentGoal.type) || MOLECULE_RECIPES.find(r => r.type === currentGoal.type);
           if (!hintRecipe) return null;
 
-          return (
-            <div className="absolute bottom-full mb-2 w-64 bg-gray-900/80 backdrop-blur-md p-4 rounded-lg shadow-xl border border-gray-700">
-              <h4 className="font-bold text-amber-300 mb-2">Recipe for {PARTICLE_NAMES[currentGoal.type]}</h4>
-              <ul>
-                {Object.entries(hintRecipe.ingredients || hintRecipe.atoms).map(([type, count]) => (
-                  <li key={type} className="flex justify-between text-gray-300">
-                    <span>{PARTICLE_NAMES[type]}</span>
-                    <span className="font-mono font-bold">x {count}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        })()}
+                            return (
+                              <div className="absolute bottom-full mb-2 w-64 bg-gray-900/80 backdrop-blur-md p-4 rounded-lg shadow-xl border border-gray-700">
+                                <h4 className="font-bold text-amber-300 mb-2">Recipe for {PARTICLE_NAMES[currentGoal.type]}</h4>
+                                <ul className="mb-2">
+                                  {Object.entries(hintRecipe.ingredients || hintRecipe.atoms).map(([type, count]) => (
+                                    <li key={type} className="flex justify-between text-gray-300">
+                                      <span>{PARTICLE_NAMES[type]}</span>
+                                      <span className="font-mono font-bold">x {count}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                                {hintRecipe.bonds && (
+                                  <div className="border-t border-gray-600 pt-2 mb-2">
+                                    <p className="text-xs font-semibold text-gray-400 mb-1">Required Bonds:</p>
+                                    <ul>
+                                      {Object.entries(hintRecipe.bonds).map(([type, count]) => (
+                                        <li key={type} className="flex justify-between text-gray-300 text-sm">
+                                          <span className="capitalize">{type}</span>
+                                          <span className="font-mono font-bold">x {count}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                {hintRecipe.structure && (
+                                  <div className="border-t border-gray-600 pt-2">
+                                    <p className="text-xs text-amber-400 font-bold flex items-center gap-1">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                      </svg>
+                                      Specific Structure Required
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            );        })()}
         <ActionMenu
           isVisible={isActionMenuVisible}
           onClose={() => setIsActionMenuVisible(false)}

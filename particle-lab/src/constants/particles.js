@@ -97,6 +97,14 @@ export const PARTICLE_TYPES = {
   LEUCINE: 'leucine',
   DNA: 'dna',
   RNA: 'rna',
+  DEOXYRIBOSE: 'deoxyribose',
+  RIBOSE: 'ribose',
+  PHOSPHATE: 'phosphate',
+  NUCLEOTIDE_A: 'nucleotide-a',
+  NUCLEOTIDE_T: 'nucleotide-t',
+  NUCLEOTIDE_G: 'nucleotide-g',
+  NUCLEOTIDE_C: 'nucleotide-c',
+  NUCLEOTIDE_U: 'nucleotide-u',
 };
 
 export const PARTICLE_COLORS = {
@@ -195,6 +203,14 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.URACIL]: 'bg-teal-400',
   [PARTICLE_TYPES.DNA]: 'bg-gradient-to-br from-blue-500 to-purple-600',
   [PARTICLE_TYPES.RNA]: 'bg-gradient-to-br from-orange-500 to-red-600',
+  [PARTICLE_TYPES.DEOXYRIBOSE]: 'bg-amber-200',
+  [PARTICLE_TYPES.RIBOSE]: 'bg-amber-300',
+  [PARTICLE_TYPES.PHOSPHATE]: 'bg-orange-500',
+  [PARTICLE_TYPES.NUCLEOTIDE_A]: 'bg-blue-500',
+  [PARTICLE_TYPES.NUCLEOTIDE_T]: 'bg-red-500',
+  [PARTICLE_TYPES.NUCLEOTIDE_G]: 'bg-green-500',
+  [PARTICLE_TYPES.NUCLEOTIDE_C]: 'bg-orange-500',
+  [PARTICLE_TYPES.NUCLEOTIDE_U]: 'bg-teal-500',
 };
 
 export const PARTICLE_NAMES = {
@@ -293,6 +309,14 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.URACIL]: 'Uracil',
   [PARTICLE_TYPES.DNA]: 'DNA',
   [PARTICLE_TYPES.RNA]: 'RNA',
+  [PARTICLE_TYPES.DEOXYRIBOSE]: 'Deoxyribose',
+  [PARTICLE_TYPES.RIBOSE]: 'Ribose',
+  [PARTICLE_TYPES.PHOSPHATE]: 'Phosphate',
+  [PARTICLE_TYPES.NUCLEOTIDE_A]: 'dAMP (Adenine Nuc.)',
+  [PARTICLE_TYPES.NUCLEOTIDE_T]: 'dTMP (Thymine Nuc.)',
+  [PARTICLE_TYPES.NUCLEOTIDE_G]: 'dGMP (Guanine Nuc.)',
+  [PARTICLE_TYPES.NUCLEOTIDE_C]: 'dCMP (Cytosine Nuc.)',
+  [PARTICLE_TYPES.NUCLEOTIDE_U]: 'UMP (Uracil Nuc.)',
 };
 
 export const PARTICLE_INFO = {
@@ -374,6 +398,14 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.URACIL]: { size: 96, name: 'Uracil', category: 'Nucleobase (Pyrimidine)', mass: '112.08 g/mol', charge: '0 e', composition: '4 Carbon, 4 Hydrogen, 2 Nitrogen, 2 Oxygen', description: 'A pyrimidine nucleobase found in RNA, where it pairs with adenine. It takes the place of thymine in the genetic code.' },
   [PARTICLE_TYPES.DNA]: { size: 144, name: 'DNA (Deoxyribonucleic Acid)', category: 'Nucleic Acid', mass: 'Variable', charge: 'Negative', composition: 'Adenine, Guanine, Cytosine, Thymine + Sugar-Phosphate Backbone', description: 'A molecule composed of two polynucleotide chains that coil around each other to form a double helix carrying genetic instructions for the development, functioning, growth and reproduction of all known organisms and many viruses.' },
   [PARTICLE_TYPES.RNA]: { size: 144, name: 'RNA (Ribonucleic Acid)', category: 'Nucleic Acid', mass: 'Variable', charge: 'Negative', composition: 'Adenine, Guanine, Cytosine, Uracil + Sugar-Phosphate Backbone', description: 'A nucleic acid present in all living cells. Its principal role is to act as a messenger carrying instructions from DNA for controlling the synthesis of proteins, although in some viruses RNA rather than DNA carries the genetic information.' },
+  [PARTICLE_TYPES.DEOXYRIBOSE]: { size: 96, name: 'Deoxyribose', category: 'Sugar', description: 'A pentose sugar derived from ribose by the replacement of a hydroxyl group by hydrogen. It is the sugar component of DNA.' },
+  [PARTICLE_TYPES.RIBOSE]: { size: 96, name: 'Ribose', category: 'Sugar', description: 'A pentose sugar occurring in nature as a component of RNA.' },
+  [PARTICLE_TYPES.PHOSPHATE]: { size: 96, name: 'Phosphate Group', category: 'Functional Group', description: 'A functional group characterized by a phosphorus atom bonded to four oxygen atoms. It provides the energy for the backbone of DNA and RNA.' },
+  [PARTICLE_TYPES.NUCLEOTIDE_A]: { size: 112, name: 'dAMP', category: 'Nucleotide', description: 'Deoxyadenosine monophosphate. A nucleotide found in DNA.' },
+  [PARTICLE_TYPES.NUCLEOTIDE_T]: { size: 112, name: 'dTMP', category: 'Nucleotide', description: 'Deoxythymidine monophosphate. A nucleotide found in DNA.' },
+  [PARTICLE_TYPES.NUCLEOTIDE_G]: { size: 112, name: 'dGMP', category: 'Nucleotide', description: 'Deoxyguanosine monophosphate. A nucleotide found in DNA.' },
+  [PARTICLE_TYPES.NUCLEOTIDE_C]: { size: 112, name: 'dCMP', category: 'Nucleotide', description: 'Deoxycytidine monophosphate. A nucleotide found in DNA.' },
+  [PARTICLE_TYPES.NUCLEOTIDE_U]: { size: 112, name: 'UMP', category: 'Nucleotide', description: 'Uridine monophosphate. A nucleotide found in RNA.' },
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -549,6 +581,9 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
       PARTICLE_TYPES.OXYGEN_GAS,
       PARTICLE_TYPES.ACETIC_ACID,
       PARTICLE_TYPES.URACIL,
+      PARTICLE_TYPES.DEOXYRIBOSE,
+      PARTICLE_TYPES.RIBOSE,
+      PARTICLE_TYPES.PHOSPHATE,
     ]
   },
   {
@@ -568,6 +603,16 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
       PARTICLE_TYPES.LEUCINE,
       PARTICLE_TYPES.GLYCYLGLYCINE,
       PARTICLE_TYPES.GLYCYL_ALANINE,
+    ]
+  },
+  {
+    name: 'Nucleotides',
+    particles: [
+      PARTICLE_TYPES.NUCLEOTIDE_A,
+      PARTICLE_TYPES.NUCLEOTIDE_T,
+      PARTICLE_TYPES.NUCLEOTIDE_G,
+      PARTICLE_TYPES.NUCLEOTIDE_C,
+      PARTICLE_TYPES.NUCLEOTIDE_U,
     ]
   },
 ];

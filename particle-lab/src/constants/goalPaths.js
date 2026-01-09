@@ -13,6 +13,9 @@ const GOALS_FAST = [
   { name: 'Create Guanine', type: PARTICLE_TYPES.GUANINE },
   { name: 'Create Cytosine', type: PARTICLE_TYPES.CYTOSINE },
   { name: 'Create Thymine', type: PARTICLE_TYPES.THYMINE },
+  { name: 'Create Deoxyribose', type: PARTICLE_TYPES.DEOXYRIBOSE },
+  { name: 'Create Phosphate', type: PARTICLE_TYPES.PHOSPHATE },
+  { name: 'Create Nucleotide A (dAMP)', type: PARTICLE_TYPES.NUCLEOTIDE_A },
   { name: 'Create DNA', type: PARTICLE_TYPES.DNA },
 ];
 
@@ -36,7 +39,12 @@ const GOALS_MEDIUM = [
   { name: 'Create Cytosine', type: PARTICLE_TYPES.CYTOSINE },
   { name: 'Create Thymine', type: PARTICLE_TYPES.THYMINE },
   { name: 'Create Uracil', type: PARTICLE_TYPES.URACIL },
+  { name: 'Create Ribose', type: PARTICLE_TYPES.RIBOSE },
+  { name: 'Create Phosphate', type: PARTICLE_TYPES.PHOSPHATE },
+  { name: 'Create Nucleotide U (UMP)', type: PARTICLE_TYPES.NUCLEOTIDE_U },
   { name: 'Create RNA', type: PARTICLE_TYPES.RNA },
+  { name: 'Create Deoxyribose', type: PARTICLE_TYPES.DEOXYRIBOSE },
+  { name: 'Create Nucleotide T (dTMP)', type: PARTICLE_TYPES.NUCLEOTIDE_T },
   { name: 'Create DNA', type: PARTICLE_TYPES.DNA },
 ];
 
@@ -85,7 +93,13 @@ const GOALS_SLOW = [
   { name: 'Create Thymine', type: PARTICLE_TYPES.THYMINE },
   { name: 'Create Uracil', type: PARTICLE_TYPES.URACIL },
   // Nucleic Acids
+  { name: 'Create Ribose', type: PARTICLE_TYPES.RIBOSE },
+  { name: 'Create Deoxyribose', type: PARTICLE_TYPES.DEOXYRIBOSE },
+  { name: 'Create Phosphate', type: PARTICLE_TYPES.PHOSPHATE },
+  { name: 'Create Nucleotide A', type: PARTICLE_TYPES.NUCLEOTIDE_A },
+  { name: 'Create Nucleotide U', type: PARTICLE_TYPES.NUCLEOTIDE_U },
   { name: 'Create RNA', type: PARTICLE_TYPES.RNA },
+  { name: 'Create Nucleotide T', type: PARTICLE_TYPES.NUCLEOTIDE_T },
   { name: 'Create DNA', type: PARTICLE_TYPES.DNA },
 ];
 
