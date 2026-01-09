@@ -1133,7 +1133,75 @@ const UracilIcon = () => (
   </svg>
 );
 
+const PhosphateIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={50} y2={20} type="double" />
+    <NeoBond x1={50} y1={50} x2={20} y2={65} />
+    <NeoBond x1={50} y1={50} x2={80} y2={65} />
+    <NeoBond x1={50} y1={50} x2={50} y2={80} />
+    <NeoSphere x={50} y={50} r={16} color={PARTICLE_COLOR_MAP['orange-500']} label="P" />
+    <NeoSphere x={50} y={20} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={20} y={65} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={80} y={65} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={50} y={80} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
 
+const RiboseIcon = ({ isDeoxy = false }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Pentagon Ring: O(top), C1(right), C2(bottom-right), C3(bottom-left), C4(left) */}
+    <path d="M 50 20 L 80 40 L 65 80 L 35 80 L 20 40 Z" stroke="#9ca3af" strokeWidth="6" fill="none" opacity="0.6" strokeLinejoin="round" />
+    
+    {/* Oxygen at top */}
+    <NeoSphere x={50} y={20} r={12} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    {/* Carbons */}
+    <NeoSphere x={80} y={40} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={65} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={35} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={20} y={40} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    
+    {/* C5 Branch */}
+    <NeoBond x1={20} y1={40} x2={5} y2={20} />
+    <NeoSphere x={5} y={20} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+
+    {/* Hydroxyls */}
+    <NeoSphere x={95} y={40} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" /> {/* C1 OH */}
+    {!isDeoxy && <NeoSphere x={75} y={95} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" />} {/* C2 OH */}
+    <NeoSphere x={25} y={95} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" /> {/* C3 OH */}
+  </svg>
+);
+
+const DeoxyriboseIcon = () => <RiboseIcon isDeoxy={true} />;
+
+const GenericNucleotideIcon = ({ BaseIcon }) => (
+  <svg viewBox="0 0 120 100" className="w-full h-full overflow-visible">
+    {/* Phosphate (Left) */}
+    <g transform="translate(10, 50) scale(0.4)">
+       <circle cx="0" cy="0" r={30} fill={PARTICLE_COLOR_MAP['orange-500']} />
+       <text x="0" y="10" textAnchor="middle" fill="white" fontSize="30" fontWeight="bold">P</text>
+    </g>
+    
+    {/* Sugar (Center) */}
+    <g transform="translate(50, 50) scale(0.5)">
+       <path d="M 0 -30 L 30 -10 L 20 30 L -20 30 L -30 -10 Z" fill={PARTICLE_COLOR_MAP['amber-200']} stroke="white" strokeWidth="4" />
+    </g>
+    
+    {/* Base (Right) */}
+    <g transform="translate(90, 50) scale(0.6)">
+        <BaseIcon />
+    </g>
+    
+    {/* Connections */}
+    <line x1={22} y1={50} x2={35} y2={50} stroke="white" strokeWidth="3" />
+    <line x1={65} y1={50} x2={80} y2={50} stroke="white" strokeWidth="3" />
+  </svg>
+);
+
+const NucleotideAIcon = () => <GenericNucleotideIcon BaseIcon={AdenineIcon} />;
+const NucleotideTIcon = () => <GenericNucleotideIcon BaseIcon={ThymineIcon} />;
+const NucleotideGIcon = () => <GenericNucleotideIcon BaseIcon={GuanineIcon} />;
+const NucleotideCIcon = () => <GenericNucleotideIcon BaseIcon={CytosineIcon} />;
+const NucleotideUIcon = () => <GenericNucleotideIcon BaseIcon={UracilIcon} />;
 
 const DefaultIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -1195,6 +1263,14 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.OXYGEN_GAS]: OxygenGasIcon,
   [PARTICLE_TYPES.ACETIC_ACID]: AceticAcidIcon,
   [PARTICLE_TYPES.URACIL]: UracilIcon,
+  [PARTICLE_TYPES.DEOXYRIBOSE]: DeoxyriboseIcon,
+  [PARTICLE_TYPES.RIBOSE]: RiboseIcon,
+  [PARTICLE_TYPES.PHOSPHATE]: PhosphateIcon,
+  [PARTICLE_TYPES.NUCLEOTIDE_A]: NucleotideAIcon,
+  [PARTICLE_TYPES.NUCLEOTIDE_T]: NucleotideTIcon,
+  [PARTICLE_TYPES.NUCLEOTIDE_G]: NucleotideGIcon,
+  [PARTICLE_TYPES.NUCLEOTIDE_C]: NucleotideCIcon,
+  [PARTICLE_TYPES.NUCLEOTIDE_U]: NucleotideUIcon,
   [PARTICLE_TYPES.DNA]: DNAIcon,
   [PARTICLE_TYPES.RNA]: RNAIcon,
   'ayoub': AyoubIcon, // Directly using the string for the test molecule
