@@ -313,30 +313,28 @@ const AntiDownQuarkIcon = ({ hexColor }) => (
   <QuarkIconBase hexColor={hexColor} isAnti />
 );
 
-const ElectronIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    <defs>
-      <radialGradient id={`electron-core-glow-${hexColor.replace('#','')}`} cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stopColor="white" stopOpacity="1" />
-        <stop offset="40%" stopColor={hexColor} stopOpacity="0.8" />
-        <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
-      </radialGradient>
-    </defs>
-    
-    {/* The Probability Cloud / Halo - Spinning */}
-    <g className="animate-spin-slow" style={{ animationDuration: '3s' }}>
-       <circle cx="50" cy="50" r="30" stroke={hexColor} strokeWidth="1" strokeDasharray="1 10" strokeLinecap="round" opacity="0.6" />
-       <circle cx="50" cy="50" r="38" stroke={hexColor} strokeWidth="0.5" strokeDasharray="10 20" opacity="0.3" />
-    </g>
-
-    {/* The Point Particle - Vibrating and Glowing */}
-    <circle cx="50" cy="50" r="8" fill={`url(#electron-core-glow-${hexColor.replace('#','')})`} className="animate-vibrate" />
-    <circle cx="50" cy="50" r="3" fill="white" />
-    
-    {/* Electric Field Lines / Glitch */}
-    <path d="M 20 50 L 80 50 M 50 20 L 50 80" stroke={hexColor} strokeWidth="2" strokeOpacity="0.2" className="animate-pulse" />
-  </svg>
-);
+const ElectronIcon = ({ hexColor }) => {
+  const gradId = `electron-grad-${hexColor.replace('#', '')}`;
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-lg">
+      <defs>
+        <radialGradient id={gradId} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+          <stop offset="0%" stopColor={hexColor} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="33.3" fill={`url(#${gradId})`} />
+      <circle cx="33.3" cy="58.3" r="20.8" fill={`url(#${gradId})`} opacity="0.7" />
+      <circle cx="66.6" cy="41.6" r="16.6" fill={`url(#${gradId})`} opacity="0.7" />
+      <path d="M29.1 50 a 12.5 12.5 0 0 1 12.5 -12.5" stroke="white" strokeOpacity="0.2" fill="none" strokeWidth="2" />
+      
+      {/* The mystery core: a flickering, vibrating red dot */}
+      <g className="animate-vibrate">
+        <circle cx="50" cy="50" r="3" fill="#ef4444" className="animate-pulse" style={{ animationDuration: '0.2s' }} />
+      </g>
+    </svg>
+  );
+};
 
 const AntiCharmQuarkIcon = ({ hexColor }) => (
   <QuarkIconBase hexColor={hexColor} isAnti />
