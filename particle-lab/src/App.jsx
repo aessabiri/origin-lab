@@ -650,28 +650,7 @@ const App = () => {
                 const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type) || MOLECULE_PARTICLE_TYPES.has(particle.type);
                 const isAssemblable = assemblableMoleculeIds.has(particle.id);
 
-                const structuralIconTypes = new Set([
-                  PARTICLE_TYPES.WATER, 
-                  PARTICLE_TYPES.ELECTRON, 
-                  PARTICLE_TYPES.ELECTRON_NEUTRINO,
-                  PARTICLE_TYPES.ELECTRON_ANTINEUTRINO,
-                  PARTICLE_TYPES.PHOTON,
-                  PARTICLE_TYPES.GLUON,
-                  PARTICLE_TYPES.W_BOSON,
-                  PARTICLE_TYPES.Z_BOSON,
-                  PARTICLE_TYPES.GLYCINE, 
-                  PARTICLE_TYPES.ALANINE, 
-                  PARTICLE_TYPES.SERINE, 
-                  PARTICLE_TYPES.VALINE, 
-                  PARTICLE_TYPES.LEUCINE, 
-                  PARTICLE_TYPES.GLYCYLGLYCINE, 
-                  PARTICLE_TYPES.GLYCYL_ALANINE]);
-                const isAtom = PARTICLE_INFO[particle.type]?.category === 'Atom' || PARTICLE_INFO[particle.type]?.category === 'Isotope';
-                const hasStructuralIcon = structuralIconTypes.has(particle.type) || isAtom;
-
                 const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
-                const isQuark = particle.type.endsWith('quark');
-                const particleColorClass = hasStructuralIcon || isQuark ? '' : (PARTICLE_COLORS[particle.type] || 'bg-gray-500');
 
                 return (
                   <animated.div
@@ -686,7 +665,7 @@ const App = () => {
                       width: `${baseSize * uiScale}px`,
                       height: `${baseSize * uiScale}px`,
                     }}
-                    className={`absolute cursor-grab ${hasStructuralIcon || isQuark ? '' : 'rounded-full shadow-lg'} transition-colors duration-300 flex items-center justify-center font-bold text-white ${particleColorClass} ${isSelected ? 'ring-2 ring-yellow-300' : ''} ${isAssemblable ? 'molecule-glow' : ''}`}
+                    className={`absolute cursor-grab transition-colors duration-300 flex items-center justify-center font-bold text-white ${isSelected ? 'ring-2 ring-yellow-300 rounded-lg' : ''} ${isAssemblable ? 'molecule-glow' : ''}`}
                     onClick={(e) => handleParticleClick(e, particle.id)}
                     onDoubleClick={() => handleShowInfo(particle.type)}
                     onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}
