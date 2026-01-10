@@ -149,9 +149,15 @@ export const useParticleActions = ({
       [PARTICLE_CATEGORIES.MOLECULE]: setDiscoveredMolecules,
     };
 
+    const discoveryStateKeyMap = {
+      [PARTICLE_CATEGORIES.SECONDARY]: 'secondaryParticles',
+      [PARTICLE_CATEGORIES.ATOM]: 'discoveredAtoms',
+      [PARTICLE_CATEGORIES.MOLECULE]: 'discoveredMolecules',
+    };
+
     const updater = discoveryUpdaterMap[assemblyRecipe.category];
     if (updater) {
-      const stateKey = assemblyRecipe.category === 'secondary' ? 'secondaryParticles' : `${assemblyRecipe.category}s`;
+      const stateKey = discoveryStateKeyMap[assemblyRecipe.category];
       const currentDiscovered = useStore.getState()[stateKey];
       if (currentDiscovered && !currentDiscovered.some(p => p.type === assemblyRecipe.type)) {
         updater([...currentDiscovered, { id: assemblyRecipe.type, type: assemblyRecipe.type, discoveredAt: Date.now() }]);

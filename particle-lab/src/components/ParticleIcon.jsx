@@ -1013,98 +1013,97 @@ const MiniAtom = ({ cx, cy, r, color }) => (
 
 const DNAIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    {/* 3 Base Pairs in 3D perspective */}
+    {/* --- Top Pair (A-T) --- */}
     
-    {/* Pair 1 (Top, Back) */}
-    <g opacity="0.8" transform="translate(35, 20) scale(0.8)">
-       {/* Backbone L */}
-       <MiniAtom cx={0} cy={0} r={8} color={PARTICLE_COLOR_MAP['orange-500']} />
-       {/* Backbone R */}
-       <MiniAtom cx={60} cy={0} r={8} color={PARTICLE_COLOR_MAP['orange-500']} />
-       {/* Base Pair A-T */}
-       <line x1={0} y1={0} x2={60} y2={0} stroke="white" strokeWidth="2" opacity="0.5" />
-       {/* Adenine (L) - Double Ring */}
-       <MiniAtom cx={15} cy={-3} r={5} color={PARTICLE_COLOR_MAP['blue-600']} />
-       <MiniAtom cx={22} cy={3} r={5} color={PARTICLE_COLOR_MAP['gray-800']} />
-       {/* Thymine (R) - Single Ring */}
-       <MiniAtom cx={45} cy={0} r={5} color={PARTICLE_COLOR_MAP['gray-800']} />
-    </g>
-
-    {/* Pair 2 (Middle, Front) */}
-    <g transform="translate(25, 50)">
-       {/* Backbone L */}
-       <MiniAtom cx={0} cy={0} r={10} color={PARTICLE_COLOR_MAP['orange-500']} />
-       {/* Backbone R */}
-       <MiniAtom cx={80} cy={0} r={10} color={PARTICLE_COLOR_MAP['orange-500']} />
-       {/* Base Pair G-C */}
-       {/* Guanine (L) - Purine */}
-       <MiniAtom cx={15} cy={-5} r={6} color={PARTICLE_COLOR_MAP['blue-600']} />
-       <MiniAtom cx={25} cy={0} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
-       <MiniAtom cx={20} cy={8} r={6} color={PARTICLE_COLOR_MAP['red-600']} /> {/* O */}
-       {/* H-Bonds */}
-       <line x1={32} y1={-2} x2={48} y2={-2} stroke="white" strokeWidth="1" strokeDasharray="2 1" />
-       <line x1={32} y1={2} x2={48} y2={2} stroke="white" strokeWidth="1" strokeDasharray="2 1" />
-       <line x1={32} y1={6} x2={48} y2={6} stroke="white" strokeWidth="1" strokeDasharray="2 1" />
-       {/* Cytosine (R) - Pyrimidine */}
-       <MiniAtom cx={55} cy={0} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
-       <MiniAtom cx={62} cy={-5} r={6} color={PARTICLE_COLOR_MAP['blue-600']} />
-    </g>
-
-    {/* Pair 3 (Bottom, Back) */}
-    <g opacity="0.8" transform="translate(35, 80) scale(0.8)">
-       {/* Backbone L */}
-       <MiniAtom cx={0} cy={0} r={8} color={PARTICLE_COLOR_MAP['orange-500']} />
-       {/* Backbone R */}
-       <MiniAtom cx={60} cy={0} r={8} color={PARTICLE_COLOR_MAP['orange-500']} />
-       {/* Base Pair T-A */}
-       <line x1={0} y1={0} x2={60} y2={0} stroke="white" strokeWidth="2" opacity="0.5" />
-       {/* Thymine (L) */}
-       <MiniAtom cx={15} cy={0} r={5} color={PARTICLE_COLOR_MAP['gray-800']} />
-       {/* Adenine (R) */}
-       <MiniAtom cx={45} cy={-3} r={5} color={PARTICLE_COLOR_MAP['blue-600']} />
-       <MiniAtom cx={38} cy={3} r={5} color={PARTICLE_COLOR_MAP['gray-800']} />
-    </g>
+    {/* Backbone Left (5') */}
+    <line x1={12} y1={12} x2={22} y2={32} stroke="#94a3b8" strokeWidth="2" /> {/* P -> S */}
+    <line x1={22} y1={32} x2={45} y2={25} stroke="#94a3b8" strokeWidth="2" /> {/* S -> Base */}
     
-    {/* Helical Twist Lines (Backbones connecting) */}
-    <path d="M 35 20 Q 15 50, 35 80" stroke={PARTICLE_COLOR_MAP['orange-500']} strokeWidth="2" fill="none" opacity="0.5" />
-    <path d="M 83 20 Q 105 50, 83 80" stroke={PARTICLE_COLOR_MAP['orange-500']} strokeWidth="2" fill="none" opacity="0.5" />
+    <svg x="0" y="0" width="25" height="25" viewBox="0 0 100 100"><PhosphateIcon /></svg>
+    <svg x="10" y="20" width="25" height="25" viewBox="0 0 100 100"><DeoxyriboseIcon /></svg>
+    <svg x="30" y="10" width="30" height="30" viewBox="0 0 100 100"><AdenineIcon /></svg>
+
+    {/* Backbone Right (3' - Antiparallel) */}
+    {/* Mirroring logic: Phosphate at bottom relative to sugar visually, or just inverted stack? 
+        Let's keep it symmetric for icon clarity, just reversed horizontally. */}
+    <line x1={88} y1={12} x2={78} y2={32} stroke="#94a3b8" strokeWidth="2" />
+    <line x1={78} y1={32} x2={55} y2={25} stroke="#94a3b8" strokeWidth="2" />
+
+    <svg x="75" y="0" width="25" height="25" viewBox="0 0 100 100"><PhosphateIcon /></svg>
+    <svg x="65" y="20" width="25" height="25" viewBox="0 0 100 100"><DeoxyriboseIcon /></svg>
+    <svg x="40" y="10" width="30" height="30" viewBox="0 0 100 100"><ThymineIcon /></svg>
+
+    {/* H-Bonds */}
+    <line x1={45} y1={25} x2={55} y2={25} stroke="white" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
+
+
+    {/* --- Bottom Pair (C-G) --- */}
+    
+    {/* Backbone Connection Left (Top S -> Bot P) */}
+    <line x1={22} y1={32} x2={12} y2={62} stroke="#94a3b8" strokeWidth="2" />
+
+    {/* Backbone Left */}
+    <line x1={12} y1={62} x2={22} y2={82} stroke="#94a3b8" strokeWidth="2" />
+    <line x1={22} y1={82} x2={45} y2={75} stroke="#94a3b8" strokeWidth="2" />
+    
+    <svg x="0" y="50" width="25" height="25" viewBox="0 0 100 100"><PhosphateIcon /></svg>
+    <svg x="10" y="70" width="25" height="25" viewBox="0 0 100 100"><DeoxyriboseIcon /></svg>
+    <svg x="30" y="60" width="30" height="30" viewBox="0 0 100 100"><CytosineIcon /></svg>
+
+    {/* Backbone Connection Right (Top S -> Bot P) */}
+    <line x1={78} y1={32} x2={88} y2={62} stroke="#94a3b8" strokeWidth="2" />
+
+    {/* Backbone Right */}
+    <line x1={88} y1={62} x2={78} y2={82} stroke="#94a3b8" strokeWidth="2" />
+    <line x1={78} y1={82} x2={55} y2={75} stroke="#94a3b8" strokeWidth="2" />
+
+    <svg x="75" y="50" width="25" height="25" viewBox="0 0 100 100"><PhosphateIcon /></svg>
+    <svg x="65" y="70" width="25" height="25" viewBox="0 0 100 100"><DeoxyriboseIcon /></svg>
+    <svg x="40" y="60" width="30" height="30" viewBox="0 0 100 100"><GuanineIcon /></svg>
+
+    {/* H-Bonds */}
+    <line x1={45} y1={75} x2={55} y2={75} stroke="white" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
+
+    {/* Twist/Helix Hints */}
+    <path d="M 5 25 Q -5 50 5 75" stroke="#ec4899" strokeWidth="2" fill="none" opacity="0.1" />
+    <path d="M 95 25 Q 105 50 95 75" stroke="#ec4899" strokeWidth="2" fill="none" opacity="0.1" />
   </svg>
 );
 
 const RNAIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    {/* Backbone Spine */}
-    <path d="M 40 10 Q 20 30, 40 50 Q 60 70, 40 90" stroke={PARTICLE_COLOR_MAP['red-500']} strokeWidth="3" fill="none" opacity="0.6" />
+    {/* Single Strand Backbone Curve */}
+    <path d="M 25 15 Q 15 50 35 85" stroke="#f97316" strokeWidth="3" fill="none" opacity="0.3" strokeLinecap="round" />
+
+    {/* --- Base 1 (Adenine) --- */}
+    <line x1={20} y1={15} x2={30} y2={25} stroke="#94a3b8" strokeWidth="2" />
+    <line x1={30} y1={25} x2={50} y2={20} stroke="#94a3b8" strokeWidth="2" />
     
-    {/* Base 1: Uracil (Top) */}
-    <g transform="translate(40, 20)">
-        <MiniAtom cx={0} cy={0} r={8} color={PARTICLE_COLOR_MAP['red-500']} /> {/* Backbone P */}
-        <line x1={0} y1={0} x2={30} y2={-5} stroke="white" strokeWidth="2" />
-        {/* Uracil Ring */}
-        <MiniAtom cx={30} cy={-5} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
-        <MiniAtom cx={38} cy={0} r={6} color={PARTICLE_COLOR_MAP['blue-600']} />
-        <MiniAtom cx={25} cy={5} r={6} color={PARTICLE_COLOR_MAP['red-600']} />
-    </g>
+    <svg x="10" y="5" width="20" height="20" viewBox="0 0 100 100"><PhosphateIcon /></svg>
+    <svg x="20" y="15" width="20" height="20" viewBox="0 0 100 100"><RiboseIcon /></svg>
+    <svg x="40" y="10" width="25" height="25" viewBox="0 0 100 100"><AdenineIcon /></svg>
 
-    {/* Base 2: Adenine (Middle) */}
-    <g transform="translate(40, 50)">
-        <MiniAtom cx={0} cy={0} r={8} color={PARTICLE_COLOR_MAP['red-500']} />
-        <line x1={0} y1={0} x2={35} y2={5} stroke="white" strokeWidth="2" />
-        {/* Adenine Double Ring */}
-        <MiniAtom cx={30} cy={5} r={6} color={PARTICLE_COLOR_MAP['blue-600']} />
-        <MiniAtom cx={40} cy={0} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
-        <MiniAtom cx={25} cy={-5} r={5} color={PARTICLE_COLOR_MAP['gray-800']} />
-    </g>
+    {/* Link 1-2 */}
+    <line x1={30} y1={25} x2={25} y2={45} stroke="#94a3b8" strokeWidth="2" />
 
-    {/* Base 3: Cytosine (Bottom) */}
-    <g transform="translate(40, 80)">
-        <MiniAtom cx={0} cy={0} r={8} color={PARTICLE_COLOR_MAP['red-500']} />
-        <line x1={0} y1={0} x2={30} y2={-5} stroke="white" strokeWidth="2" />
-        {/* Cytosine Ring */}
-        <MiniAtom cx={30} cy={-5} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
-        <MiniAtom cx={38} cy={0} r={6} color={PARTICLE_COLOR_MAP['blue-600']} />
-        <MiniAtom cx={35} cy={-10} r={5} color={PARTICLE_COLOR_MAP['red-600']} />
-    </g>
+    {/* --- Base 2 (Uracil) --- */}
+    <line x1={15} y1={45} x2={25} y2={55} stroke="#94a3b8" strokeWidth="2" />
+    <line x1={25} y1={55} x2={45} y2={50} stroke="#94a3b8" strokeWidth="2" />
+
+    <svg x="5" y="35" width="20" height="20" viewBox="0 0 100 100"><PhosphateIcon /></svg>
+    <svg x="15" y="45" width="20" height="20" viewBox="0 0 100 100"><RiboseIcon /></svg>
+    <svg x="35" y="40" width="25" height="25" viewBox="0 0 100 100"><UracilIcon /></svg>
+
+    {/* Link 2-3 */}
+    <line x1={25} y1={55} x2={30} y2={75} stroke="#94a3b8" strokeWidth="2" />
+
+    {/* --- Base 3 (Guanine) --- */}
+    <line x1={20} y1={75} x2={30} y2={85} stroke="#94a3b8" strokeWidth="2" />
+    <line x1={30} y1={85} x2={50} y2={80} stroke="#94a3b8" strokeWidth="2" />
+
+    <svg x="10" y="65" width="20" height="20" viewBox="0 0 100 100"><PhosphateIcon /></svg>
+    <svg x="20" y="75" width="20" height="20" viewBox="0 0 100 100"><RiboseIcon /></svg>
+    <svg x="40" y="70" width="25" height="25" viewBox="0 0 100 100"><GuanineIcon /></svg>
   </svg>
 );
 
@@ -1256,25 +1255,95 @@ const GlycerolIcon = () => (
 
 const FattyAcidIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Carbon Backbone (Zig-Zag) */}
+    <NeoBond x1={80} y1={50} x2={65} y2={50} />
+    <NeoBond x1={65} y1={50} x2={55} y2={30} />
+    <NeoBond x1={55} y1={30} x2={45} y2={60} />
+    <NeoBond x1={45} y1={60} x2={35} y2={30} />
+    <NeoBond x1={35} y1={30} x2={25} y2={60} />
+    <NeoBond x1={25} y1={60} x2={15} y2={30} />
+    <NeoBond x1={15} y1={30} x2={5} y2={50} />
+
     {/* Carboxyl Head */}
-    <NeoSphere x={85} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
-    <NeoBond x1={85} y1={50} x2={70} y2={50} />
+    <NeoBond x1={80} y1={50} x2={90} y2={35} type="double" />
+    <NeoBond x1={80} y1={50} x2={90} y2={65} />
+
+    {/* Atoms */}
+    <NeoSphere x={80} y={50} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={90} y={35} r={10} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={90} y={65} r={10} color={PARTICLE_COLOR_MAP['red-600']} label="OH" />
     
-    {/* Zig Zag Chain */}
-    <polyline points="70,50 60,30 50,70 40,30 30,70 20,30 10,50" fill="none" stroke={PARTICLE_COLOR_MAP['stone-400']} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-    <polyline points="70,50 60,30 50,70 40,30 30,70 20,30 10,50" fill="none" stroke="white" strokeWidth="2" strokeOpacity="0.5" strokeLinecap="round" strokeLinejoin="round" />
+    <NeoSphere x={65} y={50} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={55} y={30} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={45} y={60} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={35} y={30} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={25} y={60} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={15} y={30} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={5} y={50} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
   </svg>
 );
 
 const LipidIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    {/* Glycerol Backbone (Vertical, Left) */}
-    <line x1={20} y1={20} x2={20} y2={80} stroke={PARTICLE_COLOR_MAP['gray-800']} strokeWidth="8" strokeLinecap="round" />
+    {/* Glycerol Backbone (Vertical) */}
+    <NeoBond x1={15} y1={25} x2={15} y2={50} />
+    <NeoBond x1={15} y1={50} x2={15} y2={75} />
     
-    {/* 3 Fatty Acid Chains (Horizontal) */}
-    <path d="M 20 25 L 40 15 L 60 35 L 80 25" stroke={PARTICLE_COLOR_MAP['orange-300']} strokeWidth="6" fill="none" />
-    <path d="M 20 50 L 40 40 L 60 60 L 80 50" stroke={PARTICLE_COLOR_MAP['orange-300']} strokeWidth="6" fill="none" />
-    <path d="M 20 75 L 40 65 L 60 85 L 80 75" stroke={PARTICLE_COLOR_MAP['orange-300']} strokeWidth="6" fill="none" />
+    {/* Ester Linkages */}
+    <NeoBond x1={15} y1={25} x2={25} y2={25} />
+    <NeoBond x1={15} y1={50} x2={25} y2={50} />
+    <NeoBond x1={15} y1={75} x2={25} y2={75} />
+    
+    {/* Fatty Acid Chains (Simplified) */}
+    {/* Top Chain */}
+    <NeoBond x1={25} y1={25} x2={35} y2={25} />
+    <NeoBond x1={35} y1={25} x2={45} y2={15} />
+    <NeoBond x1={45} y1={15} x2={55} y2={30} />
+    <NeoBond x1={55} y1={30} x2={65} y2={15} />
+    <NeoBond x1={65} y1={15} x2={75} y2={30} />
+    <NeoBond x1={75} y1={30} x2={85} y2={15} />
+
+    {/* Middle Chain */}
+    <NeoBond x1={25} y1={50} x2={35} y2={50} />
+    <NeoBond x1={35} y1={50} x2={45} y2={40} />
+    <NeoBond x1={45} y1={40} x2={55} y2={60} />
+    <NeoBond x1={55} y1={60} x2={65} y2={40} />
+    <NeoBond x1={65} y1={40} x2={75} y2={60} />
+    <NeoBond x1={75} y1={60} x2={85} y2={40} />
+
+    {/* Bottom Chain */}
+    <NeoBond x1={25} y1={75} x2={35} y2={75} />
+    <NeoBond x1={35} y1={75} x2={45} y2={65} />
+    <NeoBond x1={45} y1={65} x2={55} y2={80} />
+    <NeoBond x1={55} y1={80} x2={65} y2={65} />
+    <NeoBond x1={65} y1={65} x2={75} y2={80} />
+    <NeoBond x1={75} y1={80} x2={85} y2={65} />
+
+    {/* Atoms */}
+    {/* Glycerol Carbons */}
+    <NeoSphere x={15} y={25} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={15} y={50} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={15} y={75} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+
+    {/* Ester Oxygens */}
+    <NeoSphere x={25} y={25} r={6} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={25} y={50} r={6} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={25} y={75} r={6} color={PARTICLE_COLOR_MAP['red-600']} />
+
+    {/* Carbonyl Carbons */}
+    <NeoSphere x={35} y={25} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={35} y={50} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={35} y={75} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
+
+    {/* Chain Carbons (Just a few representative ones to avoid clutter) */}
+    <NeoSphere x={55} y={30} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={75} y={30} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
+    
+    <NeoSphere x={55} y={60} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={75} y={60} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
+
+    <NeoSphere x={55} y={80} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={75} y={80} r={6} color={PARTICLE_COLOR_MAP['gray-800']} />
   </svg>
 );
 
