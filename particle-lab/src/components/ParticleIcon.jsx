@@ -10,7 +10,7 @@ const NeoBond = ({ x1, y1, x2, y2, type = 'single' }) => (
   </g>
 );
 
-const NeoSphere = ({ x, y, r, color, label }) => (
+const NeoSphere = ({ x, y, r, color = '#9ca3af', label }) => (
   <g transform={`translate(${x},${y})`}>
     <defs>
         <radialGradient id={`sphere-grad-${color.replace('#','')}`} cx="30%" cy="30%" r="70%">
@@ -1347,6 +1347,180 @@ const LipidIcon = () => (
   </svg>
 );
 
+const MembraneIcon = () => {
+  const heads = Array.from({ length: 13 }, (_, i) => i);
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+      {/* Dense Phospholipid Bilayer */}
+      
+      {/* Tails (Forest of Carbon Chains) */}
+      <g>
+        {heads.map(i => (
+          <g key={`tail-${i}`}>
+             <line x1={5 + i * 7.5} y1={30} x2={5 + i * 7.5} y2={48} stroke="#a8a29e" strokeWidth="2" strokeLinecap="round" />
+             <line x1={5 + i * 7.5} y1={70} x2={5 + i * 7.5} y2={52} stroke="#a8a29e" strokeWidth="2" strokeLinecap="round" />
+          </g>
+        ))}
+      </g>
+
+      {/* Top Layer Heads (Hydrophilic) */}
+      <g>
+        {heads.map(i => (
+          <NeoSphere key={`top-${i}`} x={5 + i * 7.5} y={30} r={4} color={PARTICLE_COLOR_MAP['orange-300']} />
+        ))}
+      </g>
+
+      {/* Bottom Layer Heads */}
+      <g>
+        {heads.map(i => (
+          <NeoSphere key={`bot-${i}`} x={5 + i * 7.5} y={70} r={4} color={PARTICLE_COLOR_MAP['orange-300']} />
+        ))}
+      </g>
+
+      {/* Transmembrane Protein Cluster (Dense) */}
+      <g transform="translate(65, 50)">
+         <NeoSphere x={0} y={-20} r={5} color={PARTICLE_COLOR_MAP['blue-400']} />
+         <NeoSphere x={-5} y={-10} r={5} color={PARTICLE_COLOR_MAP['blue-500']} />
+         <NeoSphere x={5} y={-10} r={5} color={PARTICLE_COLOR_MAP['blue-300']} />
+         <NeoSphere x={0} y={0} r={6} color={PARTICLE_COLOR_MAP['blue-600']} />
+         <NeoSphere x={-6} y={10} r={5} color={PARTICLE_COLOR_MAP['blue-400']} />
+         <NeoSphere x={6} y={10} r={5} color={PARTICLE_COLOR_MAP['blue-500']} />
+         <NeoSphere x={0} y={20} r={5} color={PARTICLE_COLOR_MAP['blue-300']} />
+      </g>
+    </svg>
+  );
+};
+
+const RibosomeIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* mRNA Strand (Chain of nucleotides) */}
+    <path d="M 5 65 Q 50 80 95 65" stroke="#fb923c" strokeWidth="2" fill="none" opacity="0.5" />
+    {Array.from({length: 12}).map((_, i) => (
+       <NeoSphere key={i} x={10 + i*7} y={65 + Math.sin(i)*5} r={2.5} color={PARTICLE_COLOR_MAP['orange-500']} />
+    ))}
+
+    {/* Small Subunit (Dense Cluster - Bottom) */}
+    <g transform="translate(50, 70)">
+        <NeoSphere x={-15} y={0} r={5} color={PARTICLE_COLOR_MAP['red-400']} />
+        <NeoSphere x={0} y={5} r={6} color={PARTICLE_COLOR_MAP['red-500']} />
+        <NeoSphere x={15} y={0} r={5} color={PARTICLE_COLOR_MAP['red-400']} />
+        <NeoSphere x={-8} y={-5} r={4} color={PARTICLE_COLOR_MAP['red-300']} />
+        <NeoSphere x={8} y={-5} r={4} color={PARTICLE_COLOR_MAP['red-300']} />
+    </g>
+
+    {/* Large Subunit (Dense Cluster - Top) */}
+    <g transform="translate(50, 45)">
+        <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['red-600']} />
+        <NeoSphere x={-12} y={-5} r={7} color={PARTICLE_COLOR_MAP['red-500']} />
+        <NeoSphere x={12} y={-5} r={7} color={PARTICLE_COLOR_MAP['red-500']} />
+        <NeoSphere x={-20} y={-15} r={6} color={PARTICLE_COLOR_MAP['red-400']} />
+        <NeoSphere x={20} y={-15} r={6} color={PARTICLE_COLOR_MAP['red-400']} />
+        <NeoSphere x={0} y={-15} r={7} color={PARTICLE_COLOR_MAP['red-500']} />
+        <NeoSphere x={-10} y={-25} r={6} color={PARTICLE_COLOR_MAP['red-400']} />
+        <NeoSphere x={10} y={-25} r={6} color={PARTICLE_COLOR_MAP['red-400']} />
+    </g>
+
+    {/* Emerging Polypeptide (Chain of Amino Acids) */}
+    <g transform="translate(50, 20)">
+        <line x1={0} y1={0} x2={10} y2={-15} stroke="#9333ea" strokeWidth="2" />
+        <NeoSphere x={0} y={0} r={3} color={PARTICLE_COLOR_MAP['purple-500']} />
+        <NeoSphere x={5} y={-8} r={3} color={PARTICLE_COLOR_MAP['purple-500']} />
+        <NeoSphere x={10} y={-15} r={3} color={PARTICLE_COLOR_MAP['purple-500']} />
+        <NeoSphere x={8} y={-23} r={3} color={PARTICLE_COLOR_MAP['purple-500']} />
+    </g>
+  </svg>
+);
+
+const MitochondrionIcon = () => {
+  // Generate points for outer membrane oval
+  const outerMembrane = Array.from({length: 30}).map((_, i) => {
+      const angle = (i / 30) * Math.PI * 2;
+      return { x: 50 + 40 * Math.cos(angle), y: 50 + 30 * Math.sin(angle) };
+  });
+
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+        {/* Outer Membrane Chain */}
+        {outerMembrane.map((pos, i) => (
+            <NeoSphere key={i} x={pos.x} y={pos.y} r={3} color={PARTICLE_COLOR_MAP['orange-700']} />
+        ))}
+
+        {/* Inner Membrane (Invaginations) - Dense Chains */}
+        <g>
+            {/* Cristae 1 */}
+            {Array.from({length: 8}).map((_, i) => (
+                <NeoSphere key={`c1-${i}`} x={20 + i*3} y={30 + i*2} r={2.5} color={PARTICLE_COLOR_MAP['orange-400']} />
+            ))}
+            {/* Cristae 2 */}
+            {Array.from({length: 8}).map((_, i) => (
+                <NeoSphere key={`c2-${i}`} x={80 - i*3} y={70 - i*2} r={2.5} color={PARTICLE_COLOR_MAP['orange-400']} />
+            ))}
+             {/* Cristae 3 */}
+             {Array.from({length: 8}).map((_, i) => (
+                <NeoSphere key={`c3-${i}`} x={30 + i*4} y={70 - i*1} r={2.5} color={PARTICLE_COLOR_MAP['orange-400']} />
+            ))}
+        </g>
+
+        {/* Matrix "Soup" - Scattered Atoms */}
+        <g opacity="0.7">
+            <NeoSphere x={40} y={45} r={2} color="#fef3c7" />
+            <NeoSphere x={60} y={55} r={2} color="#fef3c7" />
+            <NeoSphere x={50} y={50} r={2} color="#fef3c7" />
+            <NeoSphere x={35} y={60} r={2} color="#fef3c7" />
+            <NeoSphere x={65} y={40} r={2} color="#fef3c7" />
+        </g>
+
+        {/* ATP Synthase Heads (Tiny Dots on Cristae) */}
+        <NeoSphere x={25} y={38} r={1.5} color="white" />
+        <NeoSphere x={75} y={62} r={1.5} color="white" />
+    </svg>
+  );
+};
+
+const NucleusIcon = () => {
+  // Nuclear Envelope Ring
+  const envelope = Array.from({length: 36}).map((_, i) => {
+      const angle = (i / 36) * Math.PI * 2;
+      // Skip points for pores
+      if (i % 9 === 0) return null; 
+      return { x: 50 + 45 * Math.cos(angle), y: 50 + 45 * Math.sin(angle) };
+  }).filter(Boolean);
+
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+        {/* Envelope */}
+        {envelope.map((pos, i) => (
+            <NeoSphere key={i} x={pos.x} y={pos.y} r={3.5} color={PARTICLE_COLOR_MAP['indigo-600']} />
+        ))}
+
+        {/* Inner Chromatin (Tangled DNA Chains) */}
+        <g opacity="0.8">
+            {/* Strand 1 */}
+            {Array.from({length: 15}).map((_, i) => (
+                <NeoSphere key={`d1-${i}`} x={30 + i*3} y={30 + Math.sin(i)*10} r={2} color={PARTICLE_COLOR_MAP['blue-500']} />
+            ))}
+            {/* Strand 2 */}
+            {Array.from({length: 15}).map((_, i) => (
+                <NeoSphere key={`d2-${i}`} x={30 + i*3} y={50 + Math.cos(i)*10} r={2} color={PARTICLE_COLOR_MAP['blue-500']} />
+            ))}
+             {/* Strand 3 */}
+             {Array.from({length: 15}).map((_, i) => (
+                <NeoSphere key={`d3-${i}`} x={30 + i*3} y={70 + Math.sin(i)*10} r={2} color={PARTICLE_COLOR_MAP['blue-500']} />
+            ))}
+        </g>
+
+        {/* Nucleolus (Dense Core) */}
+        <g transform="translate(50, 50)">
+            <NeoSphere x={0} y={0} r={6} color={PARTICLE_COLOR_MAP['indigo-900']} />
+            <NeoSphere x={-5} y={-4} r={5} color={PARTICLE_COLOR_MAP['indigo-800']} />
+            <NeoSphere x={5} y={-4} r={5} color={PARTICLE_COLOR_MAP['indigo-800']} />
+            <NeoSphere x={-5} y={4} r={5} color={PARTICLE_COLOR_MAP['indigo-800']} />
+            <NeoSphere x={5} y={4} r={5} color={PARTICLE_COLOR_MAP['indigo-800']} />
+        </g>
+    </svg>
+  );
+};
+
 const DefaultIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <circle cx="50" cy="50" r="45" fill={hexColor} />
@@ -1421,6 +1595,10 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.LIPID]: LipidIcon,
   [PARTICLE_TYPES.DNA]: DNAIcon,
   [PARTICLE_TYPES.RNA]: RNAIcon,
+  [PARTICLE_TYPES.MEMBRANE]: MembraneIcon,
+  [PARTICLE_TYPES.RIBOSOME]: RibosomeIcon,
+  [PARTICLE_TYPES.MITOCHONDRION]: MitochondrionIcon,
+  [PARTICLE_TYPES.NUCLEUS]: NucleusIcon,
   'ayoub': AyoubIcon, // Directly using the string for the test molecule
   [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
   [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,

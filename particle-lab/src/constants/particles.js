@@ -109,6 +109,10 @@ export const PARTICLE_TYPES = {
   GLYCEROL: 'glycerol',
   FATTY_ACID: 'fatty-acid',
   LIPID: 'lipid',
+  MEMBRANE: 'membrane',
+  RIBOSOME: 'ribosome',
+  MITOCHONDRION: 'mitochondrion',
+  NUCLEUS: 'nucleus',
 };
 
 export const PARTICLE_COLORS = {
@@ -219,6 +223,10 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.GLYCEROL]: 'bg-cyan-200',
   [PARTICLE_TYPES.FATTY_ACID]: 'bg-stone-400',
   [PARTICLE_TYPES.LIPID]: 'bg-orange-300',
+  [PARTICLE_TYPES.MEMBRANE]: 'bg-orange-200',
+  [PARTICLE_TYPES.RIBOSOME]: 'bg-red-400',
+  [PARTICLE_TYPES.MITOCHONDRION]: 'bg-orange-600',
+  [PARTICLE_TYPES.NUCLEUS]: 'bg-indigo-500',
 };
 
 export const PARTICLE_NAMES = {
@@ -328,6 +336,10 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.GLYCEROL]: 'Glycerol',
   [PARTICLE_TYPES.FATTY_ACID]: 'Fatty Acid',
   [PARTICLE_TYPES.LIPID]: 'Lipid (Fat)',
+  [PARTICLE_TYPES.MEMBRANE]: 'Cell Membrane',
+  [PARTICLE_TYPES.RIBOSOME]: 'Ribosome',
+  [PARTICLE_TYPES.MITOCHONDRION]: 'Mitochondrion',
+  [PARTICLE_TYPES.NUCLEUS]: 'Cell Nucleus',
 };
 
 export const PARTICLE_INFO = {
@@ -421,6 +433,10 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.GLYCEROL]: { size: 96, name: 'Glycerol', category: 'Polyol', description: 'A simple polyol compound. It is a colorless, odorless, viscous liquid that is sweet-tasting and non-toxic. It is the backbone of triglycerides.' },
   [PARTICLE_TYPES.FATTY_ACID]: { size: 96, name: 'Fatty Acid', category: 'Lipid Component', description: 'A carboxylic acid with a long aliphatic chain, which is either saturated or unsaturated.' },
   [PARTICLE_TYPES.LIPID]: { size: 128, name: 'Triglyceride', category: 'Lipid', description: 'An ester derived from glycerol and three fatty acids. Triglycerides are the main constituents of body fat in humans and other vertebrates.' },
+  [PARTICLE_TYPES.MEMBRANE]: { size: 160, name: 'Cell Membrane', category: 'Organelle', description: 'A phospholipid bilayer that separates the interior of the cell from the outside environment. It controls the movement of substances in and out of cells.' },
+  [PARTICLE_TYPES.RIBOSOME]: { size: 160, name: 'Ribosome', category: 'Organelle', description: 'A complex molecular machine found within all living cells, that serves as the site of biological protein synthesis (translation).' },
+  [PARTICLE_TYPES.MITOCHONDRION]: { size: 200, name: 'Mitochondrion', category: 'Organelle', description: 'The powerhouse of the cell. It generates most of the cell\'s supply of adenosine triphosphate (ATP), used as a source of chemical energy.' },
+  [PARTICLE_TYPES.NUCLEUS]: { size: 240, name: 'Cell Nucleus', category: 'Organelle', description: 'A membrane-bound organelle that contains the cell\'s chromosomes. It controls and regulates the activities of the cell (e.g., growth and metabolism) and carries the genes.' },
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -637,6 +653,15 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
     name: 'Lipids',
     particles: [
       PARTICLE_TYPES.LIPID,
+    ]
+  },
+  {
+    name: 'Organelles',
+    particles: [
+      PARTICLE_TYPES.MEMBRANE,
+      PARTICLE_TYPES.RIBOSOME,
+      PARTICLE_TYPES.MITOCHONDRION,
+      PARTICLE_TYPES.NUCLEUS,
     ]
   },
 ];

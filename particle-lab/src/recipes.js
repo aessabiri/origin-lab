@@ -5,6 +5,7 @@ export const PARTICLE_CATEGORIES = {
   SECONDARY: 'secondary',
   ATOM: 'atom',
   MOLECULE: 'molecule',
+  ORGANELLE: 'organelle',
 };
 
 export const RECIPES = [
@@ -15,6 +16,40 @@ export const RECIPES = [
     ingredients: {
       [PARTICLE_TYPES.UP_QUARK]: 2,
       [PARTICLE_TYPES.DOWN_QUARK]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.MEMBRANE,
+    category: PARTICLE_CATEGORIES.ORGANELLE,
+    ingredients: {
+      [PARTICLE_TYPES.LIPID]: 2,
+      [PARTICLE_TYPES.GLYCYL_ALANINE]: 1, // Represents membrane proteins
+    },
+  },
+  {
+    type: PARTICLE_TYPES.RIBOSOME,
+    category: PARTICLE_CATEGORIES.ORGANELLE,
+    ingredients: {
+      [PARTICLE_TYPES.RNA]: 2,
+      [PARTICLE_TYPES.GLYCYLGLYCINE]: 2, // Represents ribosomal proteins
+    },
+  },
+  {
+    type: PARTICLE_TYPES.MITOCHONDRION,
+    category: PARTICLE_CATEGORIES.ORGANELLE,
+    ingredients: {
+      [PARTICLE_TYPES.MEMBRANE]: 1,
+      [PARTICLE_TYPES.DNA]: 1,
+      [PARTICLE_TYPES.ATP]: 1,
+      [PARTICLE_TYPES.GLYCYLGLYCINE]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.NUCLEUS,
+    category: PARTICLE_CATEGORIES.ORGANELLE,
+    ingredients: {
+      [PARTICLE_TYPES.MEMBRANE]: 2,
+      [PARTICLE_TYPES.DNA]: 4,
     },
   },
   {
