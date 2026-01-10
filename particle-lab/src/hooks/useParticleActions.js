@@ -31,7 +31,7 @@ export const useParticleActions = ({
       Object.entries(moleculeRecipe.atoms).forEach(([atomType, count]) => {
         for (let i = 0; i < count; i++) {
           newAtoms.push({
-            id: `${atomType}-${Date.now()}-${i}`,
+            id: `${atomType}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${i}`,
             type: atomType,
             x: particle.x + (Math.random() - 0.5) * 100,
             y: particle.y + (Math.random() - 0.5) * 100,
@@ -51,7 +51,7 @@ export const useParticleActions = ({
       Object.entries(polypeptideRecipe.molecules).forEach(([moleculeType, count]) => {
         for (let i = 0; i < count; i++) {
           newMolecules.push({
-            id: `${moleculeType}-${Date.now()}-${i}`,
+            id: `${moleculeType}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${i}`,
             type: moleculeType,
             x: particle.x + (Math.random() - 0.5) * 100,
             y: particle.y + (Math.random() - 0.5) * 100,
@@ -76,7 +76,7 @@ export const useParticleActions = ({
 
     const next = particles.filter(x => x.id !== particleId);
     const newComps = compositionArray.map((c, i) => ({
-      id: `${c.type}-${Date.now()}-${i}`,
+      id: `${c.type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${i}`,
       type: c.type,
       x: particle.x + Math.cos(i * (2 * Math.PI / compositionArray.length)) * 40,
       y: particle.y + Math.sin(i * (2 * Math.PI / compositionArray.length)) * 40,
@@ -121,7 +121,7 @@ export const useParticleActions = ({
       const centerY = selectedParticles.reduce((sum, p) => sum + p.y, 0) / selectedParticles.length;
 
       const newMolecule = {
-        id: `${assemblyRecipe.type}-${Date.now()}`,
+        id: `${assemblyRecipe.type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         type: assemblyRecipe.type,
         x: centerX,
         y: centerY,
@@ -168,7 +168,7 @@ export const useParticleActions = ({
     const centerX = selectedParticles.reduce((s, p) => s + p.x, 0) / selectedParticles.length;
     const centerY = selectedParticles.reduce((s, p) => s + p.y, 0) / selectedParticles.length;
     next.push({
-      id: `compound-${Date.now()}`,
+      id: `compound-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       type: assemblyRecipe.type,
       x: centerX,
       y: centerY,
@@ -204,7 +204,7 @@ export const useParticleActions = ({
 
     const next = particles.filter(p => p.id !== particle.id);
     const newComps = elementaryConstituents.map((c, i) => ({
-      id: `${c.type}-${Date.now()}-${i}`,
+      id: `${c.type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${i}`,
       type: c.type,
       x: particle.x + Math.cos(i * (2 * Math.PI / elementaryConstituents.length)) * 60,
       y: particle.y + Math.sin(i * (2 * Math.PI / elementaryConstituents.length)) * 60,

@@ -20,9 +20,9 @@ export const useDecay = (triggerRadiationBurst) => {
           if (!particleToDecay) return;
 
           const otherParticles = currentParticles.filter(part => part.id !== p.id);
-          const newElectron = { ...particleToDecay, type: PARTICLE_TYPES.ELECTRON, id: `electron-${Date.now()}` };
+          const newElectron = { ...particleToDecay, type: PARTICLE_TYPES.ELECTRON, id: `electron-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` };
           const newPhoton = {
-            id: `photon-${Date.now()}`,
+            id: `photon-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             type: PARTICLE_TYPES.PHOTON,
             x: particleToDecay.x + 50,
             y: particleToDecay.y - 50,
@@ -40,9 +40,9 @@ export const useDecay = (triggerRadiationBurst) => {
           if (!particleToDecay) return;
 
           const otherParticles = currentParticles.filter(part => part.id !== p.id);
-          const newProton = { ...particleToDecay, type: PARTICLE_TYPES.PROTON, id: `proton-${Date.now()}` };
-          const newElectron = { id: `electron-${Date.now()}`, type: PARTICLE_TYPES.ELECTRON, x: particleToDecay.x + 50, y: particleToDecay.y + 50, scale: 1 };
-          const newAntiNeutrino = { id: `e-antineutrino-${Date.now()}`, type: PARTICLE_TYPES.ELECTRON_ANTINEUTRINO, x: particleToDecay.x - 50, y: particleToDecay.y - 50, scale: 1 };
+          const newProton = { ...particleToDecay, type: PARTICLE_TYPES.PROTON, id: `proton-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` };
+          const newElectron = { id: `electron-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, type: PARTICLE_TYPES.ELECTRON, x: particleToDecay.x + 50, y: particleToDecay.y + 50, scale: 1 };
+          const newAntiNeutrino = { id: `e-antineutrino-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, type: PARTICLE_TYPES.ELECTRON_ANTINEUTRINO, x: particleToDecay.x - 50, y: particleToDecay.y - 50, scale: 1 };
 
           setParticles([...otherParticles, newProton, newElectron, newAntiNeutrino]);
           triggerRadiationBurst(p.x, p.y);

@@ -164,7 +164,7 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.ZINC]: 'bg-sky-200',
   [PARTICLE_TYPES.GALLIUM]: 'bg-fuchsia-400',
   [PARTICLE_TYPES.GERMANIUM]: 'bg-stone-400',
-    [PARTICLE_TYPES.ARSENIC]: { size: 80, name: 'Arsenic', category: 'Atom', atomicNumber: 33, mass: '74.922 u', charge: '0 e', composition: '33 Protons, 42 Neutrons, 33 Electrons', description: 'A toxic metalloid. In biological systems, it disrupts ATP production by mimicking phosphate, causing cell death.' },
+  [PARTICLE_TYPES.ARSENIC]: 'bg-purple-600',
   [PARTICLE_TYPES.SELENIUM]: 'bg-slate-300',
   [PARTICLE_TYPES.BROMINE]: 'bg-red-800',
   [PARTICLE_TYPES.KRYPTON]: 'bg-violet-300',
@@ -207,7 +207,7 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.OXYGEN_GAS]: 'bg-red-800',
   [PARTICLE_TYPES.ACETIC_ACID]: 'bg-stone-400',
   [PARTICLE_TYPES.VALINE]: 'bg-orange-600',
-  [PARTICLE_TYPES.LEUCINE]: 'bg-yellow-600', // This was the duplicate color entry
+  [PARTICLE_TYPES.LEUCINE]: 'bg-yellow-600',
   [PARTICLE_TYPES.URACIL]: 'bg-teal-400',
   [PARTICLE_TYPES.DNA]: 'bg-gradient-to-br from-blue-500 to-purple-600',
   [PARTICLE_TYPES.RNA]: 'bg-gradient-to-br from-orange-500 to-red-600',
@@ -320,7 +320,7 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.OXYGEN_GAS]: 'Oxygen Gas',
   [PARTICLE_TYPES.ACETIC_ACID]: 'Acetic Acid',
   [PARTICLE_TYPES.VALINE]: 'Valine',
-  [PARTICLE_TYPES.LEUCINE]: 'Leucine', // This was the duplicate name entry
+  [PARTICLE_TYPES.LEUCINE]: 'Leucine',
   [PARTICLE_TYPES.URACIL]: 'Uracil',
   [PARTICLE_TYPES.DNA]: 'DNA',
   [PARTICLE_TYPES.RNA]: 'RNA',
