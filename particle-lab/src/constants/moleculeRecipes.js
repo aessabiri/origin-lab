@@ -1136,4 +1136,81 @@ export const MOLECULE_RECIPES = [
       ]
     }
   },
+  {
+    type: PARTICLE_TYPES.BENZENE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.HYDROGEN]: 6,
+    },
+    bonds: {
+      single: 3,
+      double: 3,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 6}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN })),
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'double' },
+        { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c3', target: 'c4', type: 'double' },
+        { source: 'c4', target: 'c5', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'double' },
+        { source: 'c6', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c2', target: 'h2', type: 'single' },
+        { source: 'c3', target: 'h3', type: 'single' },
+        { source: 'c4', target: 'h4', type: 'single' },
+        { source: 'c5', target: 'h5', type: 'single' },
+        { source: 'c6', target: 'h6', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.CYSTEINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 3,
+      [PARTICLE_TYPES.HYDROGEN]: 7,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+      [PARTICLE_TYPES.SULFUR]: 1,
+    },
+    bonds: {
+      single: 12,
+      double: 1,
+    },
+    // Simplified structure
+  },
+  {
+    type: PARTICLE_TYPES.PHENYLALANINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 9,
+      [PARTICLE_TYPES.HYDROGEN]: 11,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 20,
+      double: 4,
+    },
+    // Simplified structure
+  },
+  {
+    type: PARTICLE_TYPES.FRUCTOSE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.HYDROGEN]: 12,
+      [PARTICLE_TYPES.OXYGEN]: 6,
+    },
+    bonds: {
+      single: 20,
+    },
+    // Simplified structure
+  },
 ];

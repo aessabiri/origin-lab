@@ -1490,6 +1490,70 @@ const NucleusIcon = () => {
   );
 };
 
+const BenzeneIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <polygon points="50,20 80,35 80,65 50,80 20,65 20,35" fill="none" stroke="#52525b" strokeWidth="2" />
+    <NeoBond x1={50} y1={20} x2={80} y2={35} type="double" />
+    <NeoBond x1={80} y1={35} x2={80} y2={65} />
+    <NeoBond x1={80} y1={65} x2={50} y2={80} type="double" />
+    <NeoBond x1={50} y1={80} x2={20} y2={65} />
+    <NeoBond x1={20} y1={65} x2={20} y2={35} type="double" />
+    <NeoBond x1={20} y1={35} x2={50} y2={20} />
+    
+    <NeoSphere x={50} y={20} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
+    <NeoSphere x={80} y={35} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
+    <NeoSphere x={80} y={65} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
+    <NeoSphere x={50} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
+    <NeoSphere x={20} y={65} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
+    <NeoSphere x={20} y={35} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
+  </svg>
+);
+
+const CysteineIcon = () => (
+  <NeoAminoAcid name="Cys" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-15} />
+      <NeoBond x1={0} y1={-15} x2={10} y2={-25} />
+      <NeoSphere x={0} y={0} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-15} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-25} r={12} color={PARTICLE_COLOR_MAP['yellow-500']} label="S" />
+    </g>
+  } />
+);
+
+const PhenylalanineIcon = () => (
+  <NeoAminoAcid name="Phe" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-15} />
+      <NeoSphere x={0} y={0} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <g transform="translate(0, -35) scale(0.4)">
+        <BenzeneIcon />
+      </g>
+    </g>
+  } />
+);
+
+const FructoseIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Furanose Ring (Pentagon) */}
+    <path d="M 50 20 L 80 45 L 70 80 L 30 80 L 20 45 Z" stroke="#9ca3af" strokeWidth="6" fill="none" opacity="0.6" strokeLinejoin="round" />
+    <NeoSphere x={50} y={20} r={12} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={80} y={45} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={70} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={30} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={20} y={45} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    
+    {/* CH2OH Branches */}
+    <NeoBond x1={20} y1={45} x2={5} y2={30} />
+    <NeoSphere x={5} y={30} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={-5} y={20} r={8} color={PARTICLE_COLOR_MAP['red-600']} />
+
+    <NeoBond x1={80} y1={45} x2={95} y2={30} />
+    <NeoSphere x={95} y={30} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={105} y={20} r={8} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
+
 const DefaultIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <circle cx="50" cy="50" r="45" fill={hexColor} />
@@ -1497,6 +1561,10 @@ const DefaultIcon = ({ hexColor }) => (
       );
 
 const PARTICLE_ICON_MAP = {
+  [PARTICLE_TYPES.BENZENE]: BenzeneIcon,
+  [PARTICLE_TYPES.CYSTEINE]: CysteineIcon,
+  [PARTICLE_TYPES.PHENYLALANINE]: PhenylalanineIcon,
+  [PARTICLE_TYPES.FRUCTOSE]: FructoseIcon,
   [PARTICLE_TYPES.UP_QUARK]: UpQuarkIcon,
   [PARTICLE_TYPES.DOWN_QUARK]: DownQuarkIcon,
   [PARTICLE_TYPES.CHARM_QUARK]: CharmQuarkIcon,

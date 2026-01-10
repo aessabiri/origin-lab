@@ -113,6 +113,10 @@ export const PARTICLE_TYPES = {
   RIBOSOME: 'ribosome',
   MITOCHONDRION: 'mitochondrion',
   NUCLEUS: 'nucleus',
+  BENZENE: 'benzene',
+  CYSTEINE: 'cysteine',
+  PHENYLALANINE: 'phenylalanine',
+  FRUCTOSE: 'fructose',
 };
 
 export const PARTICLE_COLORS = {
@@ -227,6 +231,10 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.RIBOSOME]: 'bg-red-400',
   [PARTICLE_TYPES.MITOCHONDRION]: 'bg-orange-600',
   [PARTICLE_TYPES.NUCLEUS]: 'bg-indigo-500',
+  [PARTICLE_TYPES.BENZENE]: 'bg-zinc-600',
+  [PARTICLE_TYPES.CYSTEINE]: 'bg-yellow-600',
+  [PARTICLE_TYPES.PHENYLALANINE]: 'bg-fuchsia-600',
+  [PARTICLE_TYPES.FRUCTOSE]: 'bg-pink-400',
 };
 
 export const PARTICLE_NAMES = {
@@ -340,6 +348,10 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.RIBOSOME]: 'Ribosome',
   [PARTICLE_TYPES.MITOCHONDRION]: 'Mitochondrion',
   [PARTICLE_TYPES.NUCLEUS]: 'Cell Nucleus',
+  [PARTICLE_TYPES.BENZENE]: 'Benzene',
+  [PARTICLE_TYPES.CYSTEINE]: 'Cysteine',
+  [PARTICLE_TYPES.PHENYLALANINE]: 'Phenylalanine',
+  [PARTICLE_TYPES.FRUCTOSE]: 'Fructose',
 };
 
 export const PARTICLE_INFO = {
@@ -437,6 +449,10 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.RIBOSOME]: { size: 160, name: 'Ribosome', category: 'Organelle', description: 'A complex molecular machine found within all living cells, that serves as the site of biological protein synthesis (translation).' },
   [PARTICLE_TYPES.MITOCHONDRION]: { size: 200, name: 'Mitochondrion', category: 'Organelle', description: 'The powerhouse of the cell. It generates most of the cell\'s supply of adenosine triphosphate (ATP), used as a source of chemical energy.' },
   [PARTICLE_TYPES.NUCLEUS]: { size: 240, name: 'Cell Nucleus', category: 'Organelle', description: 'A membrane-bound organelle that contains the cell\'s chromosomes. It controls and regulates the activities of the cell (e.g., growth and metabolism) and carries the genes.' },
+  [PARTICLE_TYPES.BENZENE]: { size: 96, name: 'Benzene', category: 'Molecule', mass: '78.11 g/mol', charge: '0 e', composition: '6 Carbon, 6 Hydrogen', description: 'An organic chemical compound with the molecular formula C₆H₆. It is a natural constituent of crude oil and is one of the elementary petrochemicals.' },
+  [PARTICLE_TYPES.CYSTEINE]: { size: 112, name: 'Cysteine', category: 'Amino Acid', mass: '121.16 g/mol', charge: '0 e', composition: '3 Carbon, 7 Hydrogen, 1 Nitrogen, 2 Oxygen, 1 Sulfur', description: 'An amino acid containing sulfur. It can form disulfide bonds, which are crucial for protein structure.' },
+  [PARTICLE_TYPES.PHENYLALANINE]: { size: 112, name: 'Phenylalanine', category: 'Amino Acid', mass: '165.19 g/mol', charge: '0 e', composition: '9 Carbon, 11 Hydrogen, 1 Nitrogen, 2 Oxygen', description: 'An essential aromatic amino acid. It is a precursor for tyrosine and neurotransmitters like dopamine.' },
+  [PARTICLE_TYPES.FRUCTOSE]: { size: 96, name: 'Fructose', category: 'Molecule / Carbohydrate', mass: '180.16 g/mol', charge: '0 e', composition: '6 Carbon, 12 Hydrogen, 6 Oxygen', description: 'A simple ketonic monosaccharide found in many plants, where it is often bonded to glucose to form the disaccharide sucrose.' },
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -617,6 +633,8 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
       PARTICLE_TYPES.PHOSPHATE,
       PARTICLE_TYPES.GLYCEROL,
       PARTICLE_TYPES.FATTY_ACID,
+      PARTICLE_TYPES.BENZENE,
+      PARTICLE_TYPES.FRUCTOSE,
     ]
   },
   {
@@ -636,6 +654,8 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
       PARTICLE_TYPES.LEUCINE,
       PARTICLE_TYPES.GLYCYLGLYCINE,
       PARTICLE_TYPES.GLYCYL_ALANINE,
+      PARTICLE_TYPES.CYSTEINE,
+      PARTICLE_TYPES.PHENYLALANINE,
     ]
   },
   {

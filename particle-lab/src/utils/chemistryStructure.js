@@ -42,7 +42,11 @@ export const generateGraphSignature = (nodes, edges) => {
       const currentLabel = labels.get(n.id);
       
       const neighborSignatures = neighbors.map(neighbor => {
-        const bondWeight = neighbor.type === 'double' ? '=' : (neighbor.type === 'peptide' ? '~' : '-');
+        let bondWeight = '-';
+        if (neighbor.type === 'double') bondWeight = '=';
+        else if (neighbor.type === 'triple') bondWeight = '#';
+        else if (neighbor.type === 'peptide') bondWeight = '~';
+        
         return bondWeight + labels.get(neighbor.neighborId);
       });
       
