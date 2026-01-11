@@ -117,6 +117,14 @@ export const PARTICLE_TYPES = {
   CYSTEINE: 'cysteine',
   PHENYLALANINE: 'phenylalanine',
   FRUCTOSE: 'fructose',
+  FORMALDEHYDE: 'formaldehyde',
+  ACETYLENE: 'acetylene',
+  HYDROGEN_CYANIDE: 'hydrogen-cyanide',
+  METHANOL: 'methanol',
+  PROPANE: 'propane',
+  BUTANE: 'butane',
+  SULFUR_DIOXIDE: 'sulfur-dioxide',
+  NITROGEN_DIOXIDE: 'nitrogen-dioxide',
 };
 
 export const PARTICLE_COLORS = {
@@ -235,6 +243,14 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.CYSTEINE]: 'bg-yellow-600',
   [PARTICLE_TYPES.PHENYLALANINE]: 'bg-fuchsia-600',
   [PARTICLE_TYPES.FRUCTOSE]: 'bg-pink-400',
+  [PARTICLE_TYPES.FORMALDEHYDE]: 'bg-gray-400',
+  [PARTICLE_TYPES.ACETYLENE]: 'bg-gray-500',
+  [PARTICLE_TYPES.HYDROGEN_CYANIDE]: 'bg-cyan-700',
+  [PARTICLE_TYPES.METHANOL]: 'bg-sky-300',
+  [PARTICLE_TYPES.PROPANE]: 'bg-gray-500',
+  [PARTICLE_TYPES.BUTANE]: 'bg-gray-600',
+  [PARTICLE_TYPES.SULFUR_DIOXIDE]: 'bg-yellow-600',
+  [PARTICLE_TYPES.NITROGEN_DIOXIDE]: 'bg-orange-800',
 };
 
 export const PARTICLE_NAMES = {
@@ -352,6 +368,14 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.CYSTEINE]: 'Cysteine',
   [PARTICLE_TYPES.PHENYLALANINE]: 'Phenylalanine',
   [PARTICLE_TYPES.FRUCTOSE]: 'Fructose',
+  [PARTICLE_TYPES.FORMALDEHYDE]: 'Formaldehyde',
+  [PARTICLE_TYPES.ACETYLENE]: 'Acetylene',
+  [PARTICLE_TYPES.HYDROGEN_CYANIDE]: 'Hydrogen Cyanide',
+  [PARTICLE_TYPES.METHANOL]: 'Methanol',
+  [PARTICLE_TYPES.PROPANE]: 'Propane',
+  [PARTICLE_TYPES.BUTANE]: 'Butane',
+  [PARTICLE_TYPES.SULFUR_DIOXIDE]: 'Sulfur Dioxide',
+  [PARTICLE_TYPES.NITROGEN_DIOXIDE]: 'Nitrogen Dioxide',
 };
 
 export const PARTICLE_INFO = {
@@ -453,6 +477,14 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.CYSTEINE]: { size: 112, name: 'Cysteine', category: 'Amino Acid', mass: '121.16 g/mol', charge: '0 e', composition: '3 Carbon, 7 Hydrogen, 1 Nitrogen, 2 Oxygen, 1 Sulfur', description: 'An amino acid containing sulfur. It can form disulfide bonds, which are crucial for protein structure.' },
   [PARTICLE_TYPES.PHENYLALANINE]: { size: 112, name: 'Phenylalanine', category: 'Amino Acid', mass: '165.19 g/mol', charge: '0 e', composition: '9 Carbon, 11 Hydrogen, 1 Nitrogen, 2 Oxygen', description: 'An essential aromatic amino acid. It is a precursor for tyrosine and neurotransmitters like dopamine.' },
   [PARTICLE_TYPES.FRUCTOSE]: { size: 96, name: 'Fructose', category: 'Molecule / Carbohydrate', mass: '180.16 g/mol', charge: '0 e', composition: '6 Carbon, 12 Hydrogen, 6 Oxygen', description: 'A simple ketonic monosaccharide found in many plants, where it is often bonded to glucose to form the disaccharide sucrose.' },
+  [PARTICLE_TYPES.FORMALDEHYDE]: { size: 96, name: 'Formaldehyde', category: 'Molecule', mass: '30.03 g/mol', charge: '0 e', composition: '1 Carbon, 2 Hydrogen, 1 Oxygen', description: 'A naturally occurring organic compound with the formula CH₂O. It is the simplest aldehyde and is an important precursor to many other materials and chemical compounds.' },
+  [PARTICLE_TYPES.ACETYLENE]: { size: 96, name: 'Acetylene', category: 'Molecule', mass: '26.04 g/mol', charge: '0 e', composition: '2 Carbon, 2 Hydrogen', description: 'The chemical compound with the formula C₂H₂. It is a hydrocarbon and the simplest alkyne. This colorless gas is widely used as a fuel and a chemical building block.' },
+  [PARTICLE_TYPES.HYDROGEN_CYANIDE]: { size: 96, name: 'Hydrogen Cyanide', category: 'Molecule', mass: '27.03 g/mol', charge: '0 e', composition: '1 Hydrogen, 1 Carbon, 1 Nitrogen', description: 'A chemical compound with the formula HCN. It is a colorless, extremely poisonous, and flammable liquid that boils slightly above room temperature.' },
+  [PARTICLE_TYPES.METHANOL]: { size: 96, name: 'Methanol', category: 'Molecule / Alcohol', mass: '32.04 g/mol', charge: '0 e', composition: '1 Carbon, 4 Hydrogen, 1 Oxygen', description: 'Also known as wood alcohol, it is the simplest alcohol. It is a light, volatile, colorless, flammable liquid with a distinctive odor similar to that of ethanol.' },
+  [PARTICLE_TYPES.PROPANE]: { size: 96, name: 'Propane', category: 'Molecule / Alkane', mass: '44.1 g/mol', charge: '0 e', composition: '3 Carbon, 8 Hydrogen', description: 'A three-carbon alkane. It is a gas at standard temperature and pressure, but compressible to a transportable liquid. A by-product of natural gas processing and petroleum refining.' },
+  [PARTICLE_TYPES.BUTANE]: { size: 96, name: 'Butane', category: 'Molecule / Alkane', mass: '58.12 g/mol', charge: '0 e', composition: '4 Carbon, 10 Hydrogen', description: 'An alkane with four carbon atoms. It is a gas at room temperature and atmospheric pressure. Used as a fuel, aerosol propellant, and in the manufacture of other chemicals.' },
+  [PARTICLE_TYPES.SULFUR_DIOXIDE]: { size: 96, name: 'Sulfur Dioxide', category: 'Molecule', mass: '64.066 g/mol', charge: '0 e', composition: '1 Sulfur, 2 Oxygen', description: 'A toxic gas responsible for the smell of burnt matches. It is released naturally by volcanic activity and is produced as a by-product of copper extraction and the burning of fossil fuels contaminated with sulfur.' },
+  [PARTICLE_TYPES.NITROGEN_DIOXIDE]: { size: 96, name: 'Nitrogen Dioxide', category: 'Molecule', mass: '46.0055 g/mol', charge: '0 e', composition: '1 Nitrogen, 2 Oxygen', description: 'A reddish-brown gas above 21.2 °C with a pungent, acrid odor, becomes a yellowish-brown liquid below 21.2 °C, and converts to the colorless dinitrogen tetroxide below -11.2 °C.' },
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -537,6 +569,9 @@ export const PARTICLE_COLOR_MAP = {
   'lime-600': '#4d7c0f',
   'yellow-700': '#a16207',
   'teal-400': '#2dd4bf',
+  'zinc-600': '#52525b',
+  'fuchsia-600': '#c026d3',
+  'orange-800': '#9a3412',
 };
 
 
@@ -635,6 +670,14 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
       PARTICLE_TYPES.FATTY_ACID,
       PARTICLE_TYPES.BENZENE,
       PARTICLE_TYPES.FRUCTOSE,
+      PARTICLE_TYPES.FORMALDEHYDE,
+      PARTICLE_TYPES.ACETYLENE,
+      PARTICLE_TYPES.HYDROGEN_CYANIDE,
+      PARTICLE_TYPES.METHANOL,
+      PARTICLE_TYPES.PROPANE,
+      PARTICLE_TYPES.BUTANE,
+      PARTICLE_TYPES.SULFUR_DIOXIDE,
+      PARTICLE_TYPES.NITROGEN_DIOXIDE,
     ]
   },
   {

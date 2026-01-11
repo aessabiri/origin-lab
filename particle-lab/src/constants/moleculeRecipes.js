@@ -1254,4 +1254,169 @@ export const MOLECULE_RECIPES = [
       ]
     }
   },
+  {
+    type: PARTICLE_TYPES.FORMALDEHYDE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 2,
+    },
+    bonds: {
+      double: 1,
+      single: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ACETYLENE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 2,
+      [PARTICLE_TYPES.HYDROGEN]: 2,
+    },
+    bonds: {
+      triple: 1,
+      single: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'triple' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c2', target: 'h2', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.HYDROGEN_CYANIDE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 1,
+    },
+    bonds: {
+      triple: 1,
+      single: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'n1', type: 'triple' },
+        { source: 'c1', target: 'h1', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.METHANOL,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 4,
+    },
+    bonds: {
+      single: 5,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'o1', type: 'single' },
+        { source: 'o1', target: 'h4', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.SULFUR_DIOXIDE,
+    atoms: {
+      [PARTICLE_TYPES.SULFUR]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      double: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 's1', type: PARTICLE_TYPES.SULFUR },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+      ],
+      edges: [
+        { source: 's1', target: 'o1', type: 'double' },
+        { source: 's1', target: 'o2', type: 'double' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.NITROGEN_DIOXIDE,
+    atoms: {
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 1,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'o1', type: 'double' },
+        { source: 'n1', target: 'o2', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.PROPANE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 3,
+      [PARTICLE_TYPES.HYDROGEN]: 8,
+    },
+    bonds: {
+      single: 10,
+    },
+    // Simplified structure
+  },
+  {
+    type: PARTICLE_TYPES.BUTANE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 4,
+      [PARTICLE_TYPES.HYDROGEN]: 10,
+    },
+    bonds: {
+      single: 13,
+    },
+    // Simplified structure
+  },
 ];

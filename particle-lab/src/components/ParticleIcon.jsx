@@ -15,23 +15,26 @@ const NeoBond = ({ x1, y1, x2, y2, type = 'single' }) => {
   );
 };
 
-const NeoSphere = ({ x, y, r, color = '#9ca3af', label }) => (
-  <g transform={`translate(${x},${y})`}>
-    <defs>
-        <radialGradient id={`sphere-grad-${color.replace('#','')}`} cx="30%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="white" stopOpacity="0.9" />
-            <stop offset="20%" stopColor={color} />
-            <stop offset="100%" stopColor="#000" stopOpacity="0.3" />
-        </radialGradient>
-        <filter id="sphere-shadow">
-            <feDropShadow dx="1" dy="2" stdDeviation="2" floodOpacity="0.3" />
-        </filter>
-    </defs>
-    <circle r={r} fill={color} filter="url(#sphere-shadow)" />
-    <circle r={r} fill={`url(#sphere-grad-${color.replace('#','')})`} opacity="0.9" />
-    {label && <text y="4" textAnchor="middle" fill="white" fontSize={Math.max(10, r*0.8)} fontWeight="bold" style={{ textShadow: '0 1px 2px black' }} pointerEvents="none">{label}</text>}
-  </g>
-);
+const NeoSphere = ({ x, y, r, color, label }) => {
+  const safeColor = color || '#9ca3af';
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <defs>
+          <radialGradient id={`sphere-grad-${safeColor.replace('#','')}`} cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="white" stopOpacity="0.9" />
+              <stop offset="20%" stopColor={safeColor} />
+              <stop offset="100%" stopColor="#000" stopOpacity="0.3" />
+          </radialGradient>
+          <filter id="sphere-shadow">
+              <feDropShadow dx="1" dy="2" stdDeviation="2" floodOpacity="0.3" />
+          </filter>
+      </defs>
+      <circle r={r} fill={safeColor} filter="url(#sphere-shadow)" />
+      <circle r={r} fill={`url(#sphere-grad-${safeColor.replace('#','')})`} opacity="0.9" />
+      {label && <text y="4" textAnchor="middle" fill="white" fontSize={Math.max(10, r*0.8)} fontWeight="bold" style={{ textShadow: '0 1px 2px black' }} pointerEvents="none">{label}</text>}
+    </g>
+  );
+};
 
 const radialGradient = (id, c, opacity = 0.8) => (
     <radialGradient id={id} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
@@ -583,7 +586,7 @@ const HydrochloricAcidIcon = () => (
 
 const CarbonMonoxideIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    <NeoBond x1={40} y1={50} x2={60} y2={50} type="double" /> {/* Triple bond visual trick: thick double */}
+    <NeoBond x1={40} y1={50} x2={60} y2={50} type="triple" />
     <NeoSphere x={40} y={50} r={16} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
     <NeoSphere x={60} y={50} r={16} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
   </svg>
@@ -834,17 +837,6 @@ const DipeptideIcon = ({ Residue1, Residue2 }) => (
 
 const GlycylglycineIcon = () => <DipeptideIcon Residue1={GlycineIcon} Residue2={GlycineIcon} />;
 const GlycylAlanineIcon = () => <DipeptideIcon Residue1={GlycineIcon} Residue2={AlanineIcon} />;
-
-const AyoubIcon = () => (
-  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    <NeoBond x1={50} y1={20} x2={20} y2={80} />
-    <NeoBond x1={50} y1={20} x2={80} y2={80} />
-    <NeoBond x1={35} y1={50} x2={65} y2={50} />
-    <NeoSphere x={50} y={20} r={15} color={PARTICLE_COLOR_MAP['teal-500']} />
-    <NeoSphere x={20} y={80} r={15} color={PARTICLE_COLOR_MAP['teal-500']} />
-    <NeoSphere x={80} y={80} r={15} color={PARTICLE_COLOR_MAP['teal-500']} />
-  </svg>
-);
 
 const AdenineIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
@@ -1505,12 +1497,12 @@ const BenzeneIcon = () => (
     <NeoBond x1={20} y1={65} x2={20} y2={35} type="double" />
     <NeoBond x1={20} y1={35} x2={50} y2={20} />
     
-    <NeoSphere x={50} y={20} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
-    <NeoSphere x={80} y={35} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
-    <NeoSphere x={80} y={65} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
-    <NeoSphere x={50} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
-    <NeoSphere x={20} y={65} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
-    <NeoSphere x={20} y={35} r={10} color={PARTICLE_COLOR_MAP['gray-700']} />
+    <NeoSphere x={50} y={20} r={10} color={PARTICLE_COLOR_MAP['gray-500']} />
+    <NeoSphere x={80} y={35} r={10} color={PARTICLE_COLOR_MAP['gray-500']} />
+    <NeoSphere x={80} y={65} r={10} color={PARTICLE_COLOR_MAP['gray-500']} />
+    <NeoSphere x={50} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-500']} />
+    <NeoSphere x={20} y={65} r={10} color={PARTICLE_COLOR_MAP['gray-500']} />
+    <NeoSphere x={20} y={35} r={10} color={PARTICLE_COLOR_MAP['gray-500']} />
   </svg>
 );
 
@@ -1559,6 +1551,99 @@ const FructoseIcon = () => (
   </svg>
 );
 
+const FormaldehydeIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={50} y2={20} type="double" />
+    <NeoBond x1={50} y1={50} x2={25} y2={75} />
+    <NeoBond x1={50} y1={50} x2={75} y2={75} />
+    <NeoSphere x={50} y={50} r={14} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={50} y={20} r={14} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={25} y={75} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={75} y={75} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+  </svg>
+);
+
+const AcetyleneIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={35} y1={50} x2={65} y2={50} type="triple" />
+    <NeoBond x1={35} y1={50} x2={15} y2={50} />
+    <NeoBond x1={65} y1={50} x2={85} y2={50} />
+    <NeoSphere x={35} y={50} r={14} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={65} y={50} r={14} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={15} y={50} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={85} y={50} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+  </svg>
+);
+
+const HydrogenCyanideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={40} y1={50} x2={70} y2={50} type="triple" />
+    <NeoBond x1={40} y1={50} x2={20} y2={50} />
+    <NeoSphere x={40} y={50} r={14} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={70} y={50} r={14} color={PARTICLE_COLOR_MAP['sky-500']} label="N" />
+    <NeoSphere x={20} y={50} r={10} color={PARTICLE_COLOR_MAP['teal-500']} />
+  </svg>
+);
+
+const MethanolIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={40} y1={50} x2={70} y2={50} />
+    <NeoBond x1={40} y1={50} x2={25} y2={25} />
+    <NeoBond x1={40} y1={50} x2={25} y2={75} />
+    <NeoBond x1={40} y1={50} x2={10} y2={50} />
+    <NeoBond x1={70} y1={50} x2={85} y2={65} />
+    
+    <NeoSphere x={40} y={50} r={14} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={70} y={50} r={14} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={25} y={25} r={8} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={25} y={75} r={8} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={10} y={50} r={8} color={PARTICLE_COLOR_MAP['teal-500']} />
+    <NeoSphere x={85} y={65} r={8} color={PARTICLE_COLOR_MAP['teal-500']} label="H" />
+  </svg>
+);
+
+const PropaneIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={20} y1={60} x2={50} y2={40} />
+    <NeoBond x1={50} y1={40} x2={80} y2={60} />
+    <NeoSphere x={20} y={60} r={12} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={50} y={40} r={12} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={80} y={60} r={12} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+  </svg>
+);
+
+const ButaneIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={15} y1={60} x2={38} y2={40} />
+    <NeoBond x1={38} y1={40} x2={62} y2={60} />
+    <NeoBond x1={62} y1={60} x2={85} y2={40} />
+    <NeoSphere x={15} y={60} r={12} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={38} y={40} r={12} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={62} y={60} r={12} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+    <NeoSphere x={85} y={40} r={12} color={PARTICLE_COLOR_MAP['gray-500']} label="C" />
+  </svg>
+);
+
+const SulfurDioxideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={40} x2={25} y2={70} type="double" />
+    <NeoBond x1={50} y1={40} x2={75} y2={70} type="double" />
+    <NeoSphere x={50} y={40} r={16} color={PARTICLE_COLOR_MAP['yellow-500']} label="S" />
+    <NeoSphere x={25} y={70} r={12} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={75} y={70} r={12} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+  </svg>
+);
+
+const NitrogenDioxideIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={40} x2={25} y2={70} type="double" />
+    <NeoBond x1={50} y1={40} x2={75} y2={70} />
+    <NeoSphere x={50} y={40} r={16} color={PARTICLE_COLOR_MAP['sky-500']} label="N" />
+    <NeoSphere x={25} y={70} r={12} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={75} y={70} r={12} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+  </svg>
+);
+
 const DefaultIcon = ({ hexColor }) => (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <circle cx="50" cy="50" r="45" fill={hexColor} />
@@ -1566,6 +1651,14 @@ const DefaultIcon = ({ hexColor }) => (
       );
 
 const PARTICLE_ICON_MAP = {
+  [PARTICLE_TYPES.METHANOL]: MethanolIcon,
+  [PARTICLE_TYPES.PROPANE]: PropaneIcon,
+  [PARTICLE_TYPES.BUTANE]: ButaneIcon,
+  [PARTICLE_TYPES.SULFUR_DIOXIDE]: SulfurDioxideIcon,
+  [PARTICLE_TYPES.NITROGEN_DIOXIDE]: NitrogenDioxideIcon,
+  [PARTICLE_TYPES.FORMALDEHYDE]: FormaldehydeIcon,
+  [PARTICLE_TYPES.ACETYLENE]: AcetyleneIcon,
+  [PARTICLE_TYPES.HYDROGEN_CYANIDE]: HydrogenCyanideIcon,
   [PARTICLE_TYPES.BENZENE]: BenzeneIcon,
   [PARTICLE_TYPES.CYSTEINE]: CysteineIcon,
   [PARTICLE_TYPES.PHENYLALANINE]: PhenylalanineIcon,
@@ -1641,7 +1734,6 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.RIBOSOME]: RibosomeIcon,
   [PARTICLE_TYPES.MITOCHONDRION]: MitochondrionIcon,
   [PARTICLE_TYPES.NUCLEUS]: NucleusIcon,
-  'ayoub': AyoubIcon, // Directly using the string for the test molecule
   [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
   [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,
   [PARTICLE_TYPES.TRITIUM]: TritiumIcon,

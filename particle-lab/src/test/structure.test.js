@@ -74,4 +74,17 @@ describe('Molecular Structure Logic (Isomerism)', () => {
 
     expect(sigSingle).not.toBe(sigDouble);
   });
+
+  it('should distinguish triple bonds from double bonds', () => {
+    // C-C
+    const nodes = [{ id: '1', type: 'C' }, { id: '2', type: 'C' }];
+    
+    const edgesDouble = [{ source: '1', target: '2', type: 'double' }];
+    const edgesTriple = [{ source: '1', target: '2', type: 'triple' }];
+
+    const sigDouble = generateGraphSignature(nodes, edgesDouble);
+    const sigTriple = generateGraphSignature(nodes, edgesTriple);
+
+    expect(sigDouble).not.toBe(sigTriple);
+  });
 });
