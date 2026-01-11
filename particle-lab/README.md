@@ -8,7 +8,7 @@ The application is divided into three specialized laboratories:
 The original sandbox.
 *   **Mechanics:** Drag-and-drop particle fusion and decay.
 *   **Goal:** Construct atoms from quarks, and simple molecules from atoms.
-*   **Key Features:** Interactive canvas, Decay physics, Goal Paths.
+*   **Key Features:** Interactive canvas, Decay physics, Goal Paths, **Lab Notebook (Unified UI)**.
 
 ## ⚗️ 2. Chemistry Lab (Chemistry)
 A semi-realistic laboratory simulation.
@@ -20,8 +20,9 @@ A semi-realistic laboratory simulation.
     *   **Industrial Processes:** Synthesize Ammonia (Haber Process) or Plastics (Polyethylene).
 
 ## 🧫 3. Biology Lab (Biology)
-*In Development* - "The Petri Dish".
+*Alpha* - "The Petri Dish".
 *   **Mechanics:** Agent-based simulation of cellular life.
+*   **Feature:** **Visual Genome Editor** - Drag-and-drop organelle placement to design custom lifeforms.
 *   **Vision:** Cells consuming nutrients, dividing (Mitosis), and evolving over generations.
 
 ---

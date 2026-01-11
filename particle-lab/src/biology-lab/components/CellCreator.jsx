@@ -1,40 +1,104 @@
 import React, { useState, useMemo } from 'react';
 import { useBioStore } from '../store';
 import { useStore } from '../../store';
-import { PARTICLE_TYPES } from '../../constants/particles';
+import { PARTICLE_TYPES, PARTICLE_COLORS } from '../../constants/particles';
+import ParticleIcon from '../../components/ParticleIcon';
+
+const ORGANELLE_COSTS = {
+  [PARTICLE_TYPES.NUCLEUS]: { energy: 50, bmr: 0.5, name: 'Nucleus', limit: 1, desc: 'Enables complex behavior & large size.' },
+  [PARTICLE_TYPES.MITOCHONDRION]: { energy: 20, bmr: 0.2, name: 'Mitochondrion', limit: 5, desc: 'Boosts speed and energy recovery.' },
+  [PARTICLE_TYPES.RIBOSOME]: { energy: 5, bmr: 0.05, name: 'Ribosome', limit: 20, desc: 'Increases growth rate.' },
+  [PARTICLE_TYPES.MEMBRANE]: { energy: 10, bmr: 0.1, name: 'Vacuole', limit: 3, desc: 'Increases cell storage capacity.' },
+  // Custom type for game logic, mapping to a visual if needed
+  'CHLOROPLAST': { energy: 25, bmr: 0.1, name: 'Chloroplast', limit: 5, desc: 'Enables photosynthesis (Energy from light).', iconType: PARTICLE_TYPES.GLUCOSE } 
+};
 
 const CellCreator = ({ onClose }) => {
   const { addAgent } = useBioStore();
   const { discoveredOrganelles, isSandboxMode } = useStore();
 
-  const hasNucleus = useMemo(() => isSandboxMode || discoveredOrganelles.some(o => o.type === PARTICLE_TYPES.NUCLEUS), [discoveredOrganelles, isSandboxMode]);
-  const hasMitochondria = useMemo(() => isSandboxMode || discoveredOrganelles.some(o => o.type === PARTICLE_TYPES.MITOCHONDRION), [discoveredOrganelles, isSandboxMode]);
-  
-  // Genome State
-  const [name, setName] = useState(hasNucleus ? 'Eukaryote-1' : 'Prokaryote-1');
-  const [diet, setDiet] = useState(0); // 0: Herbivore, 1: Carnivore, 2: Phototroph
-  const [speed, setSpeed] = useState(1.0);
-  const [size, setSize] = useState(10);
-  const [sense, setSense] = useState(100);
+  // State
+  const [name, setName] = useState('New Organism');
   const [color, setColor] = useState('#4ade80');
+  const [placedOrganelles, setPlacedOrganelles] = useState([]);
 
-  // Constraints
-  const maxSpeed = hasMitochondria ? 5 : 2;
-  const maxSize = hasNucleus ? 40 : 15;
-  const maxSense = hasNucleus ? 400 : 150;
+  // Available Organelles (Filtered by discovery)
+  const availableOrganelles = useMemo(() => {
+    const all = [
+      { type: PARTICLE_TYPES.NUCLEUS },
+      { type: PARTICLE_TYPES.MITOCHONDRION },
+      { type: PARTICLE_TYPES.RIBOSOME },
+      { type: PARTICLE_TYPES.MEMBRANE },
+      { type: 'CHLOROPLAST' },
+    ];
+    
+    if (isSandboxMode) return all;
 
-  // Calculate Cost (Basal Metabolic Rate)
-  const bmr = useMemo(() => {
-    let cost = 0;
-    cost += size * size * 0.0005; // Square-Cube law approximation
-    cost += speed * 0.05;         // Movement is expensive
-    cost += sense * 0.001;        // Neural/Sensing cost
-    if (diet === 1) cost *= 1.2; // Carnivores burn faster
-    if (diet === 2) cost *= 0.8; // Plants are efficient but passive
-    return parseFloat(cost.toFixed(2));
-  }, [size, speed, sense, diet]);
+    return all.filter(o => 
+      o.type === 'CHLOROPLAST' ? true : // Always allow simple phototrophs? Or link to something?
+      discoveredOrganelles.some(d => d.type === o.type)
+    );
+  }, [discoveredOrganelles, isSandboxMode]);
+
+  const stats = useMemo(() => {
+    let speed = 1.0;
+    let size = 10;
+    let sense = 50;
+    let diet = 0; // 0: Herbivore, 2: Phototroph
+    let bmr = 0.1; // Base existence cost
+
+    const counts = {};
+
+    placedOrganelles.forEach(o => {
+      const type = o.type;
+      counts[type] = (counts[type] || 0) + 1;
+
+      if (type === PARTICLE_TYPES.NUCLEUS) {
+        size += 10;
+        sense += 100;
+        bmr += ORGANELLE_COSTS[type].bmr;
+      } else if (type === PARTICLE_TYPES.MITOCHONDRION) {
+        speed += 1.5;
+        bmr += ORGANELLE_COSTS[type].bmr;
+      } else if (type === PARTICLE_TYPES.RIBOSOME) {
+        bmr += ORGANELLE_COSTS[type].bmr;
+        // Growth rate logic would go here
+      } else if (type === PARTICLE_TYPES.MEMBRANE) { // Vacuole
+        size += 5;
+        bmr += ORGANELLE_COSTS[type].bmr;
+      } else if (type === 'CHLOROPLAST') {
+        diet = 2; // Phototroph
+        bmr += ORGANELLE_COSTS[type].bmr;
+      }
+    });
+
+    // Penalties for size
+    speed = Math.max(0.5, speed - (size * 0.05));
+
+    return { speed, size, sense, diet, bmr: parseFloat(bmr.toFixed(2)) };
+  }, [placedOrganelles]);
+
+  const handleAddOrganelle = (type) => {
+    const config = ORGANELLE_COSTS[type];
+    const currentCount = placedOrganelles.filter(o => o.type === type).length;
+    
+    if (currentCount >= config.limit) return;
+
+    setPlacedOrganelles([...placedOrganelles, {
+      id: Date.now() + Math.random(),
+      type,
+      x: (Math.random() - 0.5) * 40, // Random placement in cytoplasm
+      y: (Math.random() - 0.5) * 40,
+    }]);
+  };
+
+  const handleRemoveOrganelle = (id) => {
+    setPlacedOrganelles(placedOrganelles.filter(o => o.id !== id));
+  };
 
   const handleCreate = () => {
+    const hasNucleus = placedOrganelles.some(o => o.type === PARTICLE_TYPES.NUCLEUS);
+    
     const newAgent = {
       id: `agent-${Date.now()}`,
       name,
@@ -42,16 +106,17 @@ const CellCreator = ({ onClose }) => {
       y: 300 + (Math.random() - 0.5) * 100,
       vx: 0,
       vy: 0,
-      radius: size,
+      radius: stats.size,
       color: color,
-      energy: 100 + size * 5, // Bigger cells start with more buffer
+      energy: 100 + stats.size * 5,
       genome: {
-        speed,
-        metabolism: bmr, // Store the BMR as the 'metabolism' factor
-        diet,
-        sense,
+        speed: stats.speed,
+        metabolism: stats.bmr,
+        diet: stats.diet,
+        sense: stats.sense,
         resistance: 0,
-        isEukaryote: hasNucleus
+        isEukaryote: hasNucleus,
+        organelles: placedOrganelles.map(o => o.type)
       }
     };
 
@@ -61,115 +126,123 @@ const CellCreator = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-teal-900 border border-teal-700 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex overflow-hidden" onClick={e => e.stopPropagation()}>
         
-        {/* Header */}
-        <div className="p-6 border-b border-teal-800 bg-teal-950 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-white">Genome Editor</h2>
-            <p className="text-teal-400 text-sm">
-              {hasNucleus ? 'Designing Eukaryotic Life' : 'Designing Prokaryotic Life'}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-teal-500 uppercase font-bold">Metabolic Cost</p>
-            <p className={`text-2xl font-mono font-bold ${bmr > 5 ? 'text-red-400' : 'text-green-400'}`}>
-              {bmr} <span className="text-sm text-teal-600">/ tick</span>
-            </p>
-          </div>
+        {/* Left: Palette */}
+        <div className="w-1/4 bg-slate-950 border-r border-slate-800 p-4 flex flex-col gap-4 overflow-y-auto">
+          <h3 className="text-teal-400 font-bold uppercase text-sm tracking-wider">Organelles</h3>
+          {availableOrganelles.map(({ type }) => {
+            const config = ORGANELLE_COSTS[type];
+            const count = placedOrganelles.filter(o => o.type === type).length;
+            const disabled = count >= config.limit;
+
+            return (
+              <button
+                key={type}
+                onClick={() => handleAddOrganelle(type)}
+                disabled={disabled}
+                className={`p-3 rounded-lg border flex items-center gap-3 transition-all ${
+                  disabled 
+                    ? 'border-slate-800 bg-slate-900 opacity-50 cursor-not-allowed' 
+                    : 'border-slate-700 bg-slate-800 hover:bg-slate-700 hover:border-teal-500'
+                }`}
+              >
+                <div className="w-8 h-8 relative">
+                   <ParticleIcon type={config.iconType || type} color={PARTICLE_COLORS[config.iconType || type] || 'bg-white'} />
+                </div>
+                <div className="text-left">
+                  <p className="text-slate-200 font-bold text-sm">{config.name}</p>
+                  <p className="text-slate-500 text-xs">{count}/{config.limit}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="p-6 space-y-6 overflow-y-auto">
-          
-          {/* Unlocked Alerts */}
-          {(!hasNucleus || !hasMitochondria) && (
-            <div className="p-3 bg-amber-900/30 border border-amber-700/50 rounded-lg text-xs text-amber-200">
-              <span className="font-bold">🔒 Evolution Limited:</span> Discover organelles in the Particle Lab to unlock advanced cellular traits.
-              {!hasNucleus && <div>• Nucleus needed for large size and advanced sensing.</div>}
-              {!hasMitochondria && <div>• Mitochondria needed for high burst speeds.</div>}
-            </div>
-          )}
-
-          {/* Identity */}
-          <div>
-            <label className="block text-teal-300 text-xs font-bold uppercase mb-2">Species Name & Color</label>
-            <div className="flex gap-2">
-              <input 
+        {/* Center: Preview */}
+        <div className="flex-1 bg-slate-900 relative flex flex-col items-center justify-center">
+          <div className="absolute top-4 text-center">
+             <input 
                 type="text" 
                 value={name} 
                 onChange={e => setName(e.target.value)}
-                className="flex-1 bg-teal-950 border border-teal-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                className="bg-transparent text-center text-2xl font-bold text-white focus:outline-none border-b border-transparent focus:border-teal-500 pb-1"
               />
-              <input 
-                type="color" 
-                value={color}
-                onChange={e => setColor(e.target.value)}
-                className="w-12 h-12 bg-transparent border-none cursor-pointer"
-              />
-            </div>
           </div>
 
-          {/* Diet Strategy */}
+          <div 
+            className="relative rounded-full transition-all duration-500 ease-out flex items-center justify-center shadow-[0_0_50px_rgba(20,184,166,0.2)]"
+            style={{ 
+              width: `${stats.size * 10}px`, 
+              height: `${stats.size * 10}px`,
+              backgroundColor: color,
+              opacity: 0.8
+            }}
+          >
+            {/* Cell Membrane Visual */}
+            <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
+            
+            {/* Placed Organelles */}
+            {placedOrganelles.map((o, i) => (
+              <div
+                key={o.id}
+                onClick={() => handleRemoveOrganelle(o.id)}
+                className="absolute w-8 h-8 cursor-pointer hover:scale-110 transition-transform"
+                style={{
+                  left: `calc(50% + ${o.x}px - 16px)`,
+                  top: `calc(50% + ${o.y}px - 16px)`,
+                }}
+              >
+                 <ParticleIcon type={ORGANELLE_COSTS[o.type].iconType || o.type} color={PARTICLE_COLORS[ORGANELLE_COSTS[o.type].iconType || o.type] || 'bg-white'} />
+              </div>
+            ))}
+          </div>
+
+          <div className="absolute bottom-8 flex items-center gap-4">
+            <label className="text-xs text-slate-400 font-bold uppercase">Cytoplasm Color</label>
+            <input 
+              type="color" 
+              value={color}
+              onChange={e => setColor(e.target.value)}
+              className="w-8 h-8 rounded cursor-pointer bg-transparent border-none"
+            />
+          </div>
+        </div>
+
+        {/* Right: Stats */}
+        <div className="w-1/4 bg-slate-950 border-l border-slate-800 p-6 flex flex-col justify-between">
           <div>
-            <label className="block text-teal-300 text-xs font-bold uppercase mb-2">Diet Strategy</label>
-            <div className="grid grid-cols-3 gap-2">
-              <button 
-                onClick={() => { setDiet(0); setColor('#4ade80'); }}
-                className={`py-3 rounded-lg border-2 font-bold text-sm transition-all ${diet === 0 ? 'bg-green-900/50 border-green-500 text-green-400' : 'border-teal-800 text-teal-600'}`}
-              >
-                🌿 Herbivore
-              </button>
-              <button 
-                onClick={() => { setDiet(1); setColor('#f87171'); }}
-                className={`py-3 rounded-lg border-2 font-bold text-sm transition-all ${diet === 1 ? 'bg-red-900/50 border-red-500 text-red-400' : 'border-teal-800 text-teal-600'}`}
-              >
-                🥩 Carnivore
-              </button>
-              <button 
-                onClick={() => { setDiet(2); setColor('#facc15'); }}
-                className={`py-3 rounded-lg border-2 font-bold text-sm transition-all ${diet === 2 ? 'bg-yellow-900/50 border-yellow-500 text-yellow-400' : 'border-teal-800 text-teal-600'}`}
-              >
-                ☀️ Phototroph
-              </button>
+            <h3 className="text-teal-400 font-bold uppercase text-sm tracking-wider mb-6">Organism Stats</h3>
+            
+            <div className="space-y-4">
+              <StatRow label="Metabolic Cost" value={stats.bmr} unit="/tick" bad={stats.bmr > 2} />
+              <StatRow label="Speed" value={stats.speed.toFixed(1)} unit="μm/t" />
+              <StatRow label="Size" value={stats.size} unit="μm" />
+              <StatRow label="Sensor Range" value={stats.sense} unit="px" />
+              <StatRow label="Diet" value={stats.diet === 2 ? 'Phototroph' : (stats.diet === 1 ? 'Carnivore' : 'Herbivore')} />
+              <StatRow label="Type" value={stats.size > 20 ? 'Eukaryote' : 'Prokaryote'} />
             </div>
           </div>
 
-          {/* Sliders */}
-          <div className="space-y-4 bg-teal-950/30 p-4 rounded-xl border border-teal-800/50">
-            <GenomeSlider label="Speed" value={speed} min={0.1} max={maxSpeed} step={0.1} set={setSpeed} unit="μm/t" locked={!hasMitochondria} />
-            <GenomeSlider label="Size" value={size} min={5} max={maxSize} step={1} set={setSize} unit="μm" locked={!hasNucleus} />
-            <GenomeSlider label="Sensor Range" value={sense} min={50} max={maxSense} step={10} set={setSense} unit="px" locked={!hasNucleus} />
-          </div>
-
-          {/* Spawn Button */}
           <button
             onClick={handleCreate}
-            className="w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-teal-500 to-emerald-600 text-white shadow-lg hover:shadow-green-500/20 transition-transform active:scale-95"
+            className="w-full py-4 rounded-xl font-bold text-lg bg-teal-600 hover:bg-teal-500 text-white shadow-lg transition-transform active:scale-95"
           >
-            SPAWN ORGANISM
+            Spawn Life
           </button>
         </div>
+
       </div>
     </div>
   );
 };
 
-const GenomeSlider = ({ label, value, min, max, step, set, unit, locked }) => (
-  <div>
-    <div className="flex justify-between mb-1">
-      <label className="text-teal-300 text-xs font-bold uppercase flex items-center gap-1">
-        {label}
-        {locked && value >= max && <span title="Further evolution requires organelle discovery">🔒</span>}
-      </label>
-      <span className="text-white font-mono text-xs">{value} {unit}</span>
-    </div>
-    <input 
-      type="range" 
-      min={min} max={max} step={step} 
-      value={value} 
-      onChange={e => set(parseFloat(e.target.value))}
-      className="w-full h-2 bg-teal-900 rounded-lg appearance-none cursor-pointer accent-teal-500"
-    />
+const StatRow = ({ label, value, unit, bad }) => (
+  <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+    <span className="text-slate-400 text-xs font-bold uppercase">{label}</span>
+    <span className={`font-mono ${bad ? 'text-red-400' : 'text-slate-200'}`}>
+      {value} <span className="text-slate-600 text-xs">{unit}</span>
+    </span>
   </div>
 );
 

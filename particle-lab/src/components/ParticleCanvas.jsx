@@ -7,7 +7,7 @@ import { COMPOUND_PARTICLE_TYPES } from '../recipes.js';
 import PeriodicTable from './PeriodicTable.jsx';
 import ActionToolbar from './ActionToolbar.jsx';
 import ActionMenu from './ActionMenu.jsx';
-import Codex from './Codex.jsx';
+import LabNotebook from './LabNotebook.jsx';
 import { useParticleActions } from '../hooks/useParticleActions.js';
 import { useSelection } from '../hooks/useSelection.js';
 import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
@@ -15,7 +15,7 @@ import { GOAL_PATHS } from '../constants/goalPaths.js';
 import { RECIPES, PARTICLE_CATEGORIES } from '../recipes.js';
 import { useDecay } from '../hooks/useDecay.js';
 import { useStore } from '../store.js';
-import { generateGraphSignature } from '../utils/chemistryStructure.js';
+import { findAssemblableMolecules } from '../utils/moleculeDetection.js';
 
 const MOLECULE_PARTICLE_TYPES = new Set(
   MOLECULE_RECIPES.map(r => r.type)
@@ -52,6 +52,7 @@ const ParticleCanvas = ({ onDragStart }) => {
   const [visualEffects, setVisualEffects] = useState([]);
   const draggedIndexRef = useRef(null);
   const canvasRef = useRef(null);
+  const bondsCanvasRef = useRef(null);
   const goals = useMemo(() => GOAL_PATHS[goalPath] || GOAL_PATHS.medium, [goalPath]);
 
   const allDiscoveredParticles = useMemo(() => {
@@ -89,6 +90,97 @@ const ParticleCanvas = ({ onDragStart }) => {
     y: particles[i]?.y ?? 0,
     scale: particles[i]?.scale ?? 1,
   }), [particles]);
+
+  // --- Bond Rendering Loop ---
+  useEffect(() => {
+    const canvas = bondsCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    const render = () => {
+      if (canvas.width !== canvas.offsetWidth || canvas.height !== canvas.offsetHeight) {
+         canvas.width = canvas.offsetWidth;
+         canvas.height = canvas.offsetHeight;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.lineCap = 'round';
+
+      bonds.forEach(bond => {
+        const idxA = particles.findIndex(p => p.id === bond.particleA_id);
+        const idxB = particles.findIndex(p => p.id === bond.particleB_id);
+        
+        if (idxA === -1 || idxB === -1) return;
+        if (!springs[idxA] || !springs[idxB]) return;
+
+        const xA = springs[idxA].x.get();
+        const yA = springs[idxA].y.get();
+        const xB = springs[idxB].x.get();
+        const yB = springs[idxB].y.get();
+
+        const pA = particles[idxA];
+        const pB = particles[idxB];
+        const sizeA = (COMPOUND_PARTICLE_TYPES.has(pA.type) || MOLECULE_PARTICLE_TYPES.has(pA.type) ? 96 : 64) * uiScale;
+        const sizeB = (COMPOUND_PARTICLE_TYPES.has(pB.type) || MOLECULE_PARTICLE_TYPES.has(pB.type) ? 96 : 64) * uiScale;
+        
+        const cxA = xA + sizeA / 2;
+        const cyA = yA + sizeA / 2;
+        const cxB = xB + sizeB / 2;
+        const cyB = yB + sizeB / 2;
+
+        if (bond.type === 'single') {
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 3;
+           ctx.strokeStyle = 'white';
+           ctx.stroke();
+        } else if (bond.type === 'double') {
+           // Outer
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 10;
+           ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+           ctx.stroke();
+           // Inner
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 4;
+           ctx.strokeStyle = 'white';
+           ctx.stroke();
+        } else if (bond.type === 'triple') {
+           // Outer
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 14;
+           ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+           ctx.stroke();
+           // Inner
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 6;
+           ctx.strokeStyle = 'white';
+           ctx.stroke();
+        } else if (bond.type === 'peptide') {
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 6;
+           ctx.strokeStyle = '#ec4899';
+           ctx.stroke();
+        }
+      });
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+    render();
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [bonds, particles, springs, uiScale]);
 
   const bind = useDrag(({ args: [index], active, offset: [ox, oy], tap }) => {
     if (tap) return;
@@ -242,75 +334,7 @@ const ParticleCanvas = ({ onDragStart }) => {
   }, [particles, selectedParticleIds]);
   
   const assemblableMoleculeIds = useMemo(() => {
-    const assemblableIds = new Set();
-    if (!bonds.length) return assemblableIds;
-
-    const doCountsMatch = (recipeCounts = {}, groupCounts = {}) => {
-      const allKeys = new Set([...Object.keys(recipeCounts), ...Object.keys(groupCounts)]);
-      return Array.from(allKeys).every(key => (recipeCounts[key] || 0) === (groupCounts[key] || 0));
-    };
-
-    const adj = new Map();
-    particles.forEach(p => adj.set(p.id, []));
-    bonds.forEach(bond => {
-      if (adj.has(bond.particleA_id) && adj.has(bond.particleB_id)) {
-        adj.get(bond.particleA_id).push(bond.particleB_id);
-        adj.get(bond.particleB_id).push(bond.particleA_id);
-      }
-    });
-
-    const visited = new Set();
-    for (const particle of particles) {
-      if (!visited.has(particle.id)) {
-        const groupIds = new Set();
-        const queue = [particle.id];
-        visited.add(particle.id);
-
-        while (queue.length > 0) {
-          const currentId = queue.shift();
-          groupIds.add(currentId);
-          (adj.get(currentId) || []).forEach(neighborId => {
-            if (!visited.has(neighborId)) {
-              visited.add(neighborId);
-              queue.push(neighborId);
-            }
-          });
-        }
-
-        const groupBonds = bonds.filter(b => groupIds.has(b.particleA_id) && groupIds.has(b.particleB_id));
-        if (groupBonds.length > 0) {
-          const groupParticles = particles.filter(p => groupIds.has(p.id));
-
-          const atomCounts = groupParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
-          const bondCounts = groupBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
-
-          // Initial check: Counts match
-          const possibleRecipes = MOLECULE_RECIPES.filter(r => doCountsMatch(r.atoms, atomCounts) && doCountsMatch(r.bonds, bondCounts));
-
-          let recipeMatch = null;
-
-          for (const recipe of possibleRecipes) {
-            if (recipe.structure) {
-              const recipeSignature = generateGraphSignature(recipe.structure.nodes, recipe.structure.edges);
-              const userSignature = generateGraphSignature(groupParticles, groupBonds);
-              
-              if (recipeSignature === userSignature) {
-                recipeMatch = recipe;
-                break;
-              }
-            } else {
-              recipeMatch = recipe;
-              break;
-            }
-          }
-
-          if (recipeMatch) {
-            groupIds.forEach(id => assemblableIds.add(id));
-          }
-        }
-      }
-    }
-    return assemblableIds;
+    return findAssemblableMolecules(particles, bonds);
   }, [particles, bonds]);
 
   const handleShowInfo = useCallback((type) => setInfoPanelType(type), [setInfoPanelType]);
@@ -367,6 +391,21 @@ const ParticleCanvas = ({ onDragStart }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [uiScale, particles, setParticles]);
+
+  const notebookTab = useMemo(() => {
+    if (isCodexVisible) return 'Codex';
+    if (isSettingsVisible) return 'Settings';
+    if (isResetConfirmVisible) return 'System';
+    return null;
+  }, [isCodexVisible, isSettingsVisible, isResetConfirmVisible]);
+
+  const isNotebookOpen = !!notebookTab;
+
+  const handleCloseNotebook = () => {
+    setIsCodexVisible(false);
+    setIsSettingsVisible(false);
+    setIsResetConfirmVisible(false);
+  };
 
   return (
     <div
@@ -447,111 +486,10 @@ const ParticleCanvas = ({ onDragStart }) => {
         />
       ))}
 
-      <animated.svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-        {bonds.map(bond => {
-          const particleAIndex = particles.findIndex(p => p.id === bond.particleA_id);
-          const particleBIndex = particles.findIndex(p => p.id === bond.particleB_id);
-
-          if (particleAIndex === -1 || particleBIndex === -1) {
-            return null;
-          }
-
-          const particleA = particles[particleAIndex];
-          const particleB = particles[particleBIndex];
-
-          const springA = springs[particleAIndex];
-          const springB = springs[particleBIndex];
-
-          const sizeA = (COMPOUND_PARTICLE_TYPES.has(particleA.type) || MOLECULE_PARTICLE_TYPES.has(particleA.type) ? 96 : 64) * uiScale;
-          const sizeB = (COMPOUND_PARTICLE_TYPES.has(particleB.type) || MOLECULE_PARTICLE_TYPES.has(particleB.type) ? 96 : 64) * uiScale;
-
-          const centerOffsetA = sizeA / 2;
-          const centerOffsetB = sizeB / 2;
-
-          return (
-            <g key={bond.id}>
-              {/* Base Line */}
-              <animated.line
-                x1={springA.x.to(x => x + centerOffsetA)}
-                y1={springA.y.to(y => y + centerOffsetA)}
-                x2={springB.x.to(x => x + centerOffsetB)}
-                y2={springB.y.to(y => y + centerOffsetB)}
-                stroke={bond.type === 'single' ? 'white' : '#94a3b8'}
-                strokeWidth={bond.type === 'triple' ? 14 : (bond.type === 'double' ? 10 : 3)}
-                strokeLinecap="round"
-                opacity={bond.type === 'single' ? 1 : 0.6}
-              />
-              {/* Inner Line for Double/Triple/Peptide */}
-              {bond.type !== 'single' && (
-                <animated.line
-                  x1={springA.x.to(x => x + centerOffsetA)}
-                  y1={springA.y.to(y => y + centerOffsetA)}
-                  x2={springB.x.to(x => x + centerOffsetB)}
-                  y2={springB.y.to(y => y + centerOffsetB)}
-                  stroke={bond.type === 'peptide' ? '#ec4899' : 'white'}
-                  strokeWidth={bond.type === 'triple' ? 6 : 4}
-                  strokeLinecap="round"
-                />
-              )}
-            </g>
-          );
-        })}
-      </animated.svg>
-
-      {isSettingsVisible && (
-        <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center" onClick={() => setIsSettingsVisible(false)}>
-          <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-80" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-center mb-4">Settings</h3>
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">UI Scale</span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setUiScale(uiScale - 0.1)}
-                  className="w-10 h-10 flex items-center justify-center text-2xl font-bold bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
-                >
-                  -
-                </button>
-                <span className="w-16 text-center font-mono text-lg">{(uiScale * 100).toFixed(0)}%</span>
-                <button
-                  onClick={() => setUiScale(uiScale + 0.1)}
-                  className="w-10 h-10 flex items-center justify-center text-2xl font-bold bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsSettingsVisible(false)}
-              className="w-full mt-6 text-center px-4 py-2 text-white font-bold rounded-lg shadow-lg bg-blue-600 hover:bg-blue-700 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {isResetConfirmVisible && (
-        <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center" onClick={() => setIsResetConfirmVisible(false)}>
-          <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-96" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-center mb-4 text-red-400">Confirm Reset</h3>
-            <p className="text-center text-gray-300 mb-6">Are you sure you want to reset the entire lab? All your discoveries and progress will be lost.</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => setIsResetConfirmVisible(false)}
-                className="px-6 py-2 text-white font-bold rounded-lg shadow-lg bg-gray-600 hover:bg-gray-500 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={executeReset}
-                className="px-6 py-2 text-white font-bold rounded-lg shadow-lg bg-red-700 hover:bg-red-600 transition-colors"
-              >
-                Confirm Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <canvas 
+        ref={bondsCanvasRef} 
+        className="absolute top-0 left-0 w-full h-full pointer-events-none z-0"
+      />
 
       <div className="absolute bottom-4 left-4 z-10">
         {isHintVisible && !isSandboxMode && currentGoalIndex < goals.length && (() => {
@@ -654,9 +592,10 @@ const ParticleCanvas = ({ onDragStart }) => {
         </div>
       )}
 
-      <Codex
-        isVisible={isCodexVisible}
-        onClose={() => setIsCodexVisible(false)}
+      <LabNotebook
+        isOpen={isNotebookOpen}
+        onClose={handleCloseNotebook}
+        initialTab={notebookTab}
         particleCategories={allPossibleParticles}
         discoveredParticles={allDiscoveredParticles}
         onParticleClick={handleShowInfo}

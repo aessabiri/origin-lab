@@ -4,6 +4,15 @@ You are an expert AI developer and the Lead Architect for the upcoming 'Biology 
 
 **Biology Lab** is the third pillar of the Particle Lab application. It focuses on the **Emergent Behavior** of living systems. While the Physics Lab handles the subatomic and the Chemistry Lab handles the molecular, the Biology Lab handles the **Cellular**.
 
+## Current State (Alpha)
+
+The Biology Lab is currently in active development.
+
+*   **Visual Cell Creator:** A drag-and-drop interface (`src/biology-lab/components/CellCreator.jsx`) allows users to design custom organisms.
+    *   **Mechanic:** Users place organelles (Nucleus, Mitochondria, Vacuoles) into a cell membrane.
+    *   **Stats:** The combination of organelles determines the agent's Genome (Speed, Metabolism/BMR, Diet, Size).
+    *   **Simulation:** Clicking "Spawn" adds the custom agent to the Petri Dish via the `addAgent` store action.
+
 ## Vision & Core Mechanics
 
 The Biology Lab should be a **Agent-Based Simulation** (unlike the Tick-Based system of Chemistry or the abstract Sandbox of Particles).

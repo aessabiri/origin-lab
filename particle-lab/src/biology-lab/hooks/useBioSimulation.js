@@ -2,10 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useBioStore } from '../store';
 
 const WORLD_RADIUS = 380;
-const FOOD_VALUE = 50;
-const MITOSIS_THRESHOLD = 200;
-const STARTING_ENERGY = 100;
-const SENSOR_RADIUS = 150;
+const FOOD_VALUE = 20; // Reduced from 50 to balance high spawn rate
+const BASE_PHOTOSYNTHESIS = 0.8;
 
 export const useBioSimulation = () => {
   const {
@@ -27,22 +25,26 @@ export const useBioSimulation = () => {
 
     const tick = (timestamp) => {
       if (!lastFrameTime.current) lastFrameTime.current = timestamp;
-      const deltaTime = timestamp - lastFrameTime.current;
+      // Cap deltaTime to prevent explosion after tab switch
+      const deltaTime = Math.min(timestamp - lastFrameTime.current, 100); 
+      lastFrameTime.current = timestamp;
 
-      if (isRunning && deltaTime > 16) {
-        let nextAgents = [...agents];
+      // Run simulation logic if running
+      if (isRunning) {
+        let nextAgents = [];
         let nextFood = [...foodItems];
         let soupConsumed = 0;
-        const deadAgentIds = new Set(); // Track eaten agents
+        const deadAgentIds = new Set();
+        const newBorns = [];
 
-        // --- 1. Food Spawning ---
+        // --- 1. Food Spawning Logic ---
         foodSpawnTimer.current += deltaTime;
-        if (foodSpawnTimer.current > 100) { 
+        if (foodSpawnTimer.current > 200) { // Spawn every 200ms
            if (soup.glucose > 0) {
              const angle = Math.random() * Math.PI * 2;
              const r = Math.sqrt(Math.random()) * WORLD_RADIUS;
              const newFood = {
-               id: `food-${Date.now()}`,
+               id: `food-${Date.now()}-${Math.random()}`,
                x: 400 + r * Math.cos(angle),
                y: 400 + r * Math.sin(angle),
                energy: FOOD_VALUE
@@ -53,195 +55,200 @@ export const useBioSimulation = () => {
            }
         }
 
-        // --- 2. Agent Logic ---
-        const newBorns = [];
-        const survivingAgents = [];
+        // --- 2. Simulation Step ---
+        // Optimization: Create a simple spatial hash or just simple iteration for < 500 agents
+        
+        for (const agent of agents) {
+          if (deadAgentIds.has(agent.id)) continue;
 
-        nextAgents.forEach(agent => {
-          if (deadAgentIds.has(agent.id)) return;
-
-          let { x, y, vx = 0, vy = 0, energy, genome, radius = 15, id } = agent;
-          const diet = genome.diet; // 0: Herb, 1: Carn, 2: Photo
-          const sensorRadius = genome.sense || 150;
-          const resistance = genome.resistance || 0;
-
-          // --- A. Sensing & Targeting ---
-          let target = null;
-          let targetDist = Infinity;
-
-          if (diet === 1) { // Carnivore
-            nextAgents.forEach(other => {
-              if (other.id === id || deadAgentIds.has(other.id)) return;
-              if (radius > (other.radius || 15) * 1.1) {
-                const dx = other.x - x;
-                const dy = other.y - y;
-                const d = Math.sqrt(dx*dx + dy*dy);
-                if (d < sensorRadius && d < targetDist) {
-                  targetDist = d;
-                  target = other;
-                }
-              }
-            });
-          } else if (diet === 0) { // Herbivore
-            nextFood.forEach(f => {
-              const dx = f.x - x;
-              const dy = f.y - y;
-              const d = Math.sqrt(dx*dx + dy*dy);
-              if (d < sensorRadius && d < targetDist) {
-                targetDist = d;
-                target = f;
-              }
-            });
-          }
-          // Phototrophs (Diet 2) don't target anything.
-
-          // --- B. Physics ---
-          if (target) {
-            const dx = target.x - x;
-            const dy = target.y - y;
-            const len = Math.sqrt(dx*dx + dy*dy);
-            if (len > 0) {
-               vx += (dx / len) * 0.5 * genome.speed;
-               vy += (dy / len) * 0.5 * genome.speed;
-            }
-          } else {
-            // Wander
-            vx += (Math.random() - 0.5) * 0.2 * genome.speed;
-            vy += (Math.random() - 0.5) * 0.2 * genome.speed;
-          }
+          // Create a mutable copy for this tick
+          let a = { ...agent };
+          const genome = a.genome;
           
-          vx *= 0.95;
-          vy *= 0.95;
-          x += vx;
-          y += vy;
+          // Stats
+          const diet = genome.diet; // 0: Herb, 1: Carn, 2: Photo
+          const sense = genome.sense || 100;
+          const speed = genome.speed || 1;
+          const size = a.radius || 10;
+          const bmr = genome.metabolism || 0.1;
 
-          const dx = x - 400;
-          const dy = y - 400;
-          const dist = Math.sqrt(dx*dx + dy*dy);
-          if (dist + radius > WORLD_RADIUS) {
-             const angle = Math.atan2(dy, dx);
-             x = 400 + Math.cos(angle) * (WORLD_RADIUS - radius);
-             y = 400 + Math.sin(angle) * (WORLD_RADIUS - radius);
-             vx *= -0.5;
-             vy *= -0.5;
-          }
+          // --- A. Metabolism ---
+          // Energy loss per tick (approx 60 ticks/sec)
+          // BMR is calculated "per tick" in CellCreator, usually 0.1 - 5.0
+          // We scale it by time to be frame-rate independent
+          const burn = (bmr * (deltaTime / 16)); 
+          a.energy -= burn;
 
-          // --- C. Toxicity ---
-          toxins.forEach(t => {
-            const tx = t.x - x;
-            const ty = t.y - y;
-            const tDist = Math.sqrt(tx*tx + ty*ty);
-            if (tDist < t.radius + radius) {
-               const damage = 5 * (1 - resistance);
-               energy -= Math.max(0, damage);
-            }
-          });
+          // --- B. Movement & Physics ---
+          // Targeting
+          let targetX = null, targetY = null;
+          let minDist = Infinity;
 
-          // --- D. Feeding ---
           if (diet === 1) { // Carnivore
-            nextAgents.forEach(other => {
-              if (other.id === id || deadAgentIds.has(other.id)) return;
-              const dx = other.x - x;
-              const dy = other.y - y;
-              const d = Math.sqrt(dx*dx + dy*dy);
-              if (d < radius + (other.radius || 15) * 0.5 && radius > (other.radius || 15) * 1.1) {
-                 energy += other.energy * 0.8; 
-                 deadAgentIds.add(other.id);
-              }
-            });
+             // Find prey (smaller agents)
+             for (const other of agents) {
+               if (other.id === a.id || deadAgentIds.has(other.id)) continue;
+               if (size > (other.radius || 10) * 1.2) { // Must be 20% larger
+                 const dx = other.x - a.x;
+                 const dy = other.y - a.y;
+                 const d2 = dx*dx + dy*dy;
+                 if (d2 < sense * sense && d2 < minDist) {
+                   minDist = d2;
+                   targetX = other.x;
+                   targetY = other.y;
+                 }
+               }
+             }
           } else if (diet === 0) { // Herbivore
-            const remainingFood = [];
-            nextFood.forEach(f => {
-              const fx = f.x - x;
-              const fy = f.y - y;
-              const fDist = Math.sqrt(fx*fx + fy*fy);
-              if (fDist < radius + 5) { 
-                energy += f.energy;
-              } else {
-                remainingFood.push(f);
-              }
-            });
-            nextFood = remainingFood;
-          } else if (diet === 2) { // Phototroph
-             // Photosynthesis: Gain energy passively
-             // Rate depends on size (surface area)? Or just fixed constant.
-             // Let's say 0.5 per tick. Less than food (20), but constant.
-             energy += 0.5;
+             // Find food
+             for (const f of nextFood) {
+               const dx = f.x - a.x;
+               const dy = f.y - a.y;
+               const d2 = dx*dx + dy*dy;
+               if (d2 < sense * sense && d2 < minDist) {
+                 minDist = d2;
+                 targetX = f.x;
+                 targetY = f.y;
+               }
+             }
           }
 
-          // --- E. Metabolism ---
-          // Use the BMR calculated in CellCreator (genome.metabolism)
-          // Add cost for movement (kinetic energy) and resistance maintenance
-          const movementCost = (Math.abs(vx) + Math.abs(vy)) * (radius * 0.0005); // Bigger cells harder to move
-          const resistanceCost = resistance * 0.005;
-          const burn = genome.metabolism + movementCost + resistanceCost;
-          energy -= burn;
+          // Apply Forces
+          if (targetX !== null) {
+            const angle = Math.atan2(targetY - a.y, targetX - a.x);
+            a.vx += Math.cos(angle) * 0.5 * speed;
+            a.vy += Math.sin(angle) * 0.5 * speed;
+          } else {
+            // Browninan Wander
+            a.vx += (Math.random() - 0.5) * 0.5 * speed;
+            a.vy += (Math.random() - 0.5) * 0.5 * speed;
+          }
 
-          // --- F. Mitosis ---
-          // Threshold scales with size. Big cells need more energy to split.
-          const mitosisCost = 100 + radius * 10;
-          const splitThreshold = mitosisCost * 2; 
+          // Drag / Friction
+          a.vx *= 0.92;
+          a.vy *= 0.92;
 
-          if (energy >= splitThreshold) {
-            energy -= mitosisCost;
-            
-            const mutationRate = 0.1;
-            // Evolve traits
-            const childGenome = {
-              ...genome,
-              speed: Math.max(0.5, genome.speed + (Math.random() - 0.5) * mutationRate),
-              // We don't mutate BMR directly, BMR is a result of traits. 
-              // But for simplicity, we let BMR drift too, representing efficiency mutations.
-              metabolism: Math.max(0.1, genome.metabolism + (Math.random() - 0.5) * mutationRate * 0.1),
-              resistance: Math.min(1, Math.max(0, resistance + (Math.random() - 0.5) * mutationRate)),
+          // Update Position
+          a.x += a.vx;
+          a.y += a.vy;
+
+          // Boundary Constraint (Circular Petri Dish)
+          const dx = a.x - 400;
+          const dy = a.y - 400;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist + size > WORLD_RADIUS) {
+             const angle = Math.atan2(dy, dx);
+             a.x = 400 + Math.cos(angle) * (WORLD_RADIUS - size);
+             a.y = 400 + Math.sin(angle) * (WORLD_RADIUS - size);
+             a.vx *= -0.5;
+             a.vy *= -0.5;
+          }
+
+          // --- C. Feeding Interactions ---
+          if (diet === 2) { // Phototroph
+             // Photosynthesis
+             a.energy += BASE_PHOTOSYNTHESIS * (size / 10); // Bigger leaves = more energy
+          } else if (diet === 0) { // Herbivore
+             // Eat Food
+             const eatenIndices = [];
+             for (let i = 0; i < nextFood.length; i++) {
+               const f = nextFood[i];
+               const fx = f.x - a.x;
+               const fy = f.y - a.y;
+               if (fx*fx + fy*fy < (size + 5)*(size + 5)) {
+                 a.energy += f.energy;
+                 eatenIndices.push(i);
+                 if (a.energy > 500) break; // Cap eating per tick
+               }
+             }
+             // Remove eaten food (filter out descending to avoid index shift issues, or just rebuild)
+             if (eatenIndices.length > 0) {
+               nextFood = nextFood.filter((_, i) => !eatenIndices.includes(i));
+             }
+          } else if (diet === 1) { // Carnivore
+             // Eat Prey
+             for (const other of agents) {
+               if (other.id === a.id || deadAgentIds.has(other.id)) continue;
+               if (size > (other.radius || 10) * 1.2) {
+                 const ox = other.x - a.x;
+                 const oy = other.y - a.y;
+                 if (ox*ox + oy*oy < (size + other.radius) * (size + other.radius) * 0.6) { // Overlap significantly
+                    // Eat it
+                    a.energy += (other.energy * 0.5) + (other.radius * 2); // Gain energy from biomass
+                    deadAgentIds.add(other.id);
+                 }
+               }
+             }
+          }
+
+          // --- D. Toxicity ---
+          // Simple check
+          for (const t of toxins) {
+             const tx = t.x - a.x;
+             const ty = t.y - a.y;
+             if (tx*tx + ty*ty < (t.radius + size)*(t.radius + size)) {
+               a.energy -= 2;
+             }
+          }
+
+          // --- E. Mitosis (Reproduction) ---
+          const splitThreshold = 200 + (size * 5); // Bigger cells need more energy
+          if (a.energy > splitThreshold) {
+             const cost = splitThreshold * 0.6;
+             a.energy -= cost;
+
+             // Mutation
+             const mRate = 0.1;
+             const childGenome = {
+               ...genome,
+               speed: genome.speed * (1 + (Math.random() - 0.5) * mRate),
+               metabolism: genome.metabolism * (1 + (Math.random() - 0.5) * mRate),
+               sense: genome.sense * (1 + (Math.random() - 0.5) * mRate),
+             };
+             
+             const child = {
+               ...a,
+               id: `agent-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+               x: a.x + (Math.random() - 0.5) * size,
+               y: a.y + (Math.random() - 0.5) * size,
+               vx: -a.vx, // Eject
+               vy: -a.vy,
+               energy: cost * 0.8,
+               radius: size * (1 + (Math.random() - 0.5) * 0.05), // Size drift
+               genome: childGenome
+             };
+             newBorns.push(child);
+          }
+
+          // --- F. Death Check ---
+          if (a.energy > 0) {
+            nextAgents.push(a);
+          } else {
+            // Corpse becomes food?
+            const corpse = {
+               id: `corpse-${a.id}`,
+               x: a.x,
+               y: a.y,
+               energy: size * 2 // Biomass energy
             };
-
-            // Mutate Size
-            const childRadius = Math.max(5, radius + (Math.random() - 0.5) * 2);
-
-            const child = {
-              ...agent,
-              id: `agent-${Date.now()}-${Math.random()}`,
-              x: x + (Math.random() - 0.5) * 20,
-              y: y + (Math.random() - 0.5) * 20,
-              energy: mitosisCost, // Give child the cost
-              radius: childRadius,
-              genome: childGenome,
-              color: agent.color, // Inherit color
-            };
-            newBorns.push(child);
+            nextFood.push(corpse);
           }
+        }
 
-          // --- Survival ---
-          if (energy > 0) {
-            // Update state object
-            agent.x = x;
-            agent.y = y;
-            agent.vx = vx;
-            agent.vy = vy;
-            agent.energy = energy;
-            survivingAgents.push(agent);
-          }
-        });
-
-        // --- 3. Update Store ---
-        const survivors = survivingAgents.filter(a => !deadAgentIds.has(a.id));
-        setAgents([...survivors, ...newBorns]);
+        // Filter out eaten agents from nextAgents
+        nextAgents = nextAgents.filter(a => !deadAgentIds.has(a.id));
+        setAgents([...nextAgents, ...newBorns]);
         setFoodItems(nextFood);
+        
         if (soupConsumed > 0) {
           updateSoup({ glucose: Math.max(0, soup.glucose - soupConsumed) });
         }
-
-        lastFrameTime.current = timestamp;
       }
 
       animationFrameId = requestAnimationFrame(tick);
     };
 
-    if (isRunning) {
-      animationFrameId = requestAnimationFrame(tick);
-    }
-
+    animationFrameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animationFrameId);
   }, [isRunning, agents, foodItems, toxins, soup, setAgents, setFoodItems, updateSoup]);
 };
