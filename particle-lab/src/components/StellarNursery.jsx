@@ -24,6 +24,8 @@ const StellarNursery = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [whiteoutOpacity, setWhiteoutOpacity] = useState(0);
+  const [isExploding, setIsExploding] = useState(false);
+  const [showHud, setShowHud] = useState(false); // Controls the final UI fade-in
 
   const currentEra = useMemo(() => {
     if (time < 0) return ERAS.SINGULARITY;
@@ -42,7 +44,13 @@ const StellarNursery = () => {
     visualEffects: [],
     lastFrame: 0,
     plasmaParticles: [],
+    foamParticles: [], 
+    spikes: [], // For the buildup phase
+    auroras: [], // For the whiteout phase
     inflationScale: 1,
+    explosionTime: 0,
+    sequencePhase: 0, // 0: Idle, 1: Appearance, 2: Buildup, 3: Explosion, 4: Whiteout
+    isExploding: false,
   });
 
   const discover = (type) => {
@@ -79,35 +87,30 @@ const StellarNursery = () => {
   };
 
   const handleBigBang = () => {
-    setWhiteoutOpacity(1);
-    setTimeout(() => {
-      triggerBigBang();
-      setTime(1e-60);
-      setIsPlaying(true);
-      setPlaybackSpeed(0.1);
-      
-      simState.current.plasmaParticles = [];
-      for(let i=0; i<300; i++) {
-        simState.current.plasmaParticles.push({
-          x: window.innerWidth / 2,
-          y: window.innerHeight / 2,
-          vx: (Math.random() - 0.5) * 2000, 
-          vy: (Math.random() - 0.5) * 2000,
-          color: ['#ef4444', '#3b82f6', '#22c55e'][Math.floor(Math.random() * 3)],
-          type: 'quark'
-        });
-      }
+    setIsExploding(true);
+    simState.current.isExploding = true;
+    simState.current.sequencePhase = 1; // Start Sequence: Appearance
+    simState.current.explosionTime = 0;
+    
+    // Init Buildup Spikes
+    simState.current.spikes = Array.from({ length: 20 }, (_, i) => ({
+      angle: (i / 20) * Math.PI * 2,
+      length: Math.random() * 50 + 50,
+      color: `hsl(${Math.random() * 360}, 100%, 70%)`
+    }));
 
-      setTimeout(() => {
-        setWhiteoutOpacity(0);
-      }, 100);
-    }, 2000); 
+    // Init Auroras
+    simState.current.auroras = Array.from({ length: 5 }, (_, i) => ({
+        offset: i * 100,
+        speed: 0.5 + Math.random(),
+        color: ['#0ff', '#f0f', '#ff0'][i % 3]
+    }));
+
+    // Foam particles are generated later in Phase 3
   };
 
   useEffect(() => {
     // Init Plasma Visuals for Pre-Bang (Singularity sparks)
-    // Note: The loop handles the singularity rendering using Math.random in draw loop,
-    // but we can prep some data here if needed.
     const width = window.innerWidth;
     const height = window.innerHeight;
     for (let i = 0; i < 50; i++) {
@@ -149,6 +152,7 @@ const StellarNursery = () => {
       const dt = 0.016; 
       let t = timeRef.current;
       
+      // Determine Era
       let era = ERAS.STELLAR;
       if (t < 0) era = ERAS.SINGULARITY;
       else if (t < 1e-40) era = ERAS.INFLATION;
@@ -168,7 +172,180 @@ const StellarNursery = () => {
       ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      if (era === ERAS.SINGULARITY) {
+      // --- CINEMATIC SEQUENCE RENDER LOGIC ---
+
+      if (simState.current.isExploding) {
+          simState.current.explosionTime += dt;
+          const et = simState.current.explosionTime;
+          const cx = canvas.width / 2;
+          const cy = canvas.height / 2;
+          
+          // PHASE 1: APPEARANCE (0s - 2s)
+          // A tiny dot appears. Shockwave ripples out.
+          if (simState.current.sequencePhase === 1) {
+              if (et > 2.0) {
+                  simState.current.sequencePhase = 2; // Next Phase
+              }
+
+              // Initial Shockwave
+              const shockR = et * 200; 
+              ctx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0, 1 - et)})`;
+              ctx.lineWidth = 2;
+              ctx.beginPath(); ctx.arc(cx, cy, shockR, 0, Math.PI*2); ctx.stroke();
+
+              // The Dot (Jiggling)
+              const jitter = Math.random() * 2;
+              ctx.fillStyle = 'white';
+              ctx.shadowColor = 'cyan';
+              ctx.shadowBlur = 20 + Math.sin(et * 10) * 10;
+              ctx.beginPath(); 
+              ctx.arc(cx + (Math.random()-0.5)*jitter, cy + (Math.random()-0.5)*jitter, 4, 0, Math.PI*2); 
+              ctx.fill();
+              ctx.shadowBlur = 0;
+          }
+
+          // PHASE 2: BUILDUP (2s - 5s)
+          // Camera zooms in. Dot grows. Energy Spikes appear.
+          else if (simState.current.sequencePhase === 2) {
+              if (et > 5.0) {
+                  simState.current.sequencePhase = 3; // EXPLOSION
+                  // Init Foam for Phase 3
+                  for(let i=0; i<1000; i++) {
+                      const angle = Math.random() * Math.PI * 2;
+                      const speed = Math.random() * 800 + 200;
+                      simState.current.foamParticles.push({
+                          x: cx, y: cy, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed,
+                          radius: Math.random() * 40 + 10, life: 1.0, turb: Math.random()
+                      });
+                  }
+              }
+
+              const phaseTime = et - 2.0; // 0 to 3
+              
+              // Zoom Effect
+              ctx.save();
+              ctx.translate(cx, cy);
+              const scale = 1 + phaseTime * 2; // Zoom in 6x
+              ctx.scale(scale, scale);
+              ctx.translate(-cx, -cy);
+
+              // Jiggling Dot (Getting angry)
+              const jitter = Math.random() * (2 + phaseTime * 5);
+              ctx.fillStyle = 'white';
+              ctx.shadowColor = phaseTime > 1.5 ? '#f0f' : 'cyan';
+              ctx.shadowBlur = 50 + Math.random() * 50;
+              ctx.beginPath();
+              ctx.arc(cx + (Math.random()-0.5)*jitter, cy + (Math.random()-0.5)*jitter, 5 + phaseTime*2, 0, Math.PI*2);
+              ctx.fill();
+              ctx.shadowBlur = 0;
+
+              // Energy Spikes
+              simState.current.spikes.forEach((spike, i) => {
+                 spike.angle += 0.05 * (i%2===0 ? 1 : -1);
+                 const length = spike.length * (1 + Math.sin(timestamp*0.01 + i)*0.5);
+                 ctx.strokeStyle = spike.color;
+                 ctx.lineWidth = 1 / scale; // Keep thin lines
+                 ctx.globalAlpha = Math.min(1, phaseTime * 0.5);
+                 ctx.beginPath();
+                 ctx.moveTo(cx, cy);
+                 ctx.lineTo(cx + Math.cos(spike.angle)*length, cy + Math.sin(spike.angle)*length);
+                 ctx.stroke();
+                 ctx.globalAlpha = 1;
+              });
+
+              ctx.restore();
+          }
+
+          // PHASE 3: EXPLOSION (5s - 8s)
+          // The Foam Expansion
+          else if (simState.current.sequencePhase === 3) {
+             if (et > 8.0) simState.current.sequencePhase = 4;
+
+             const phaseTime = et - 5.0; // 0 to 3
+             
+             // Camera Shake
+             const shake = Math.max(0, 50 - phaseTime * 10);
+             ctx.save();
+             ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
+             
+             ctx.globalCompositeOperation = 'lighter';
+             simState.current.foamParticles.forEach(p => {
+                  p.x += p.vx * dt;
+                  p.y += p.vy * dt;
+                  p.vx *= 0.95; p.vy *= 0.95; // Drag
+                  
+                  const radius = p.radius * (1 + phaseTime * 2);
+                  const alpha = Math.max(0, 1 - phaseTime/3);
+                  
+                  // Color Shift: White -> Blue -> Red
+                  let color = `rgba(100, 200, 255, ${alpha})`;
+                  if (phaseTime > 1.0) color = `rgba(255, 100, 255, ${alpha})`;
+                  if (phaseTime > 2.0) color = `rgba(255, 100, 100, ${alpha})`;
+
+                  const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+                  grad.addColorStop(0, color);
+                  grad.addColorStop(1, 'rgba(0,0,0,0)');
+                  
+                  ctx.fillStyle = grad;
+                  ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI*2); ctx.fill();
+             });
+             ctx.restore();
+             ctx.globalCompositeOperation = 'source-over';
+          }
+
+          // PHASE 4: WHITEOUT & AURORAS (8s - 11s)
+          // Transition to HUD
+          else if (simState.current.sequencePhase === 4) {
+              if (et > 11.0 && !simState.current.done) {
+                  simState.current.done = true;
+                  // Final Handover
+                  triggerBigBang();
+                  setTime(1e-60);
+                  setIsPlaying(true);
+                  setPlaybackSpeed(0.1);
+                  setIsExploding(false);
+                  simState.current.isExploding = false;
+                  setShowHud(true); // Fade in HUD
+                  
+                   // Init standard plasma for next view
+                  simState.current.plasmaParticles = [];
+                  for(let i=0; i<300; i++) {
+                    simState.current.plasmaParticles.push({
+                      x: cx, y: cy, vx: (Math.random()-0.5)*2000, vy: (Math.random()-0.5)*2000,
+                      color: ['#f00', '#00f', '#0f0'][Math.floor(Math.random()*3)], type: 'quark'
+                    });
+                  }
+              }
+
+              const phaseTime = et - 8.0; // 0 to 3
+              
+              // Whiteout Fade: Goes to 1.0 then back down
+              const whiteAlpha = phaseTime < 0.5 ? phaseTime * 2 : Math.max(0, 1 - (phaseTime-0.5)*0.5);
+              ctx.fillStyle = `rgba(255, 255, 255, ${whiteAlpha})`;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+              // Auroras (Sine Waves)
+              if (phaseTime > 1.0) {
+                 ctx.globalCompositeOperation = 'screen';
+                 simState.current.auroras.forEach((a, i) => {
+                    ctx.strokeStyle = a.color;
+                    ctx.lineWidth = 50;
+                    ctx.globalAlpha = 0.3 * Math.sin(phaseTime);
+                    ctx.beginPath();
+                    for(let x=0; x<canvas.width; x+=10) {
+                        const y = cy + Math.sin(x*0.005 + timestamp*0.001 * a.speed + a.offset)*200;
+                        if (x===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                 });
+                 ctx.globalCompositeOperation = 'source-over';
+                 ctx.globalAlpha = 1;
+              }
+          }
+
+      } else if (era === ERAS.SINGULARITY) {
+
+
          const cx = canvas.width / 2;
          const cy = canvas.height / 2;
          const shakeX = (Math.random() - 0.5) * 10;
@@ -324,7 +501,7 @@ const StellarNursery = () => {
       <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} onClick={handleCanvasClick} className={time > ERAS.STELLAR.start ? "cursor-crosshair" : "cursor-default"} />
       
       {/* Big Bang Button Overlay */}
-      {time < 0 && whiteoutOpacity === 0 && (
+      {time < 0 && whiteoutOpacity === 0 && !isExploding && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40">
            <h1 className="text-6xl font-black mb-8 animate-pulse text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">SINGULARITY DETECTED</h1>
            <p className="text-gray-500 max-w-md mx-auto mb-8 bg-black/50 p-2 rounded backdrop-blur-sm">
@@ -339,20 +516,35 @@ const StellarNursery = () => {
 
       {time >= 0 && (
       <>
-        <div className="absolute top-0 left-0 w-full p-4 pointer-events-none flex justify-between items-start">
-          <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-700 backdrop-blur-md">
-             <h2 className={`text-2xl font-bold ${currentEra.color.replace('bg-', 'text-')}`}>{currentEra.name}</h2>
-             <p className="text-slate-400 text-sm">{currentEra.desc}</p>
-             <p className="text-xl mt-2 font-mono text-white">{formatTime(time)}</p>
-          </div>
+        {/* HUD Container with Fade In */}
+        <div className={`transition-opacity duration-[2000ms] ${showHud ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="absolute top-0 left-0 w-full p-4 pointer-events-none flex justify-between items-start">
+            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-700 backdrop-blur-md shadow-[0_0_20px_rgba(59,130,246,0.5)]">
+                <h2 className={`text-2xl font-bold ${currentEra.color.replace('bg-', 'text-')}`}>{currentEra.name}</h2>
+                <p className="text-slate-400 text-sm">{currentEra.desc}</p>
+                <p className="text-xl mt-2 font-mono text-white">{formatTime(time)}</p>
+            </div>
+            </div>
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-2/3 max-w-3xl bg-slate-900/90 p-6 rounded-2xl border border-slate-700 backdrop-blur-md flex flex-col gap-4 shadow-2xl">
+            <div className="flex items-center gap-4">
+                <button onClick={() => setIsPlaying(!isPlaying)} className={`px-6 py-2 rounded-full font-bold ${isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white transition-colors`}>{isPlaying ? 'PAUSE' : 'PLAY'}</button>
+                <input type="range" min="0.1" max="5" step="0.1" value={playbackSpeed} onChange={e => setPlaybackSpeed(parseFloat(e.target.value))} className="w-full accent-white" />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-widest"><span>Big Bang</span><span>First Light</span><span>Star Formation</span><span>Now</span></div>
+            </div>
         </div>
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-2/3 max-w-3xl bg-slate-900/90 p-6 rounded-2xl border border-slate-700 backdrop-blur-md flex flex-col gap-4">
-           <div className="flex items-center gap-4">
-              <button onClick={() => setIsPlaying(!isPlaying)} className={`px-6 py-2 rounded-full font-bold ${isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white transition-colors`}>{isPlaying ? 'PAUSE' : 'PLAY'}</button>
-              <input type="range" min="0.1" max="5" step="0.1" value={playbackSpeed} onChange={e => setPlaybackSpeed(parseFloat(e.target.value))} className="w-full accent-white" />
-           </div>
-           <div className="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-widest"><span>Big Bang</span><span>First Light</span><span>Star Formation</span><span>Now</span></div>
-        </div>
+
+        {/* Cinematic Time Display (Fades in during Whiteout) */}
+        {showHud && (
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center animate-[fadeIn_3s_ease-out]">
+                 <div className="text-6xl font-black font-mono text-white tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
+                     T + 0.00000s
+                 </div>
+                 <div className="text-blue-400 font-bold tracking-[0.5em] mt-4 uppercase text-sm">
+                     Timeline Initialized
+                 </div>
+             </div>
+        )}
       </>
       )}
     </div>
