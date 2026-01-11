@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useDecay } from '../hooks/useDecay';
 import { useStore } from '../store';
 import { PARTICLE_TYPES } from '../constants/particles';
@@ -24,7 +24,9 @@ describe('useDecay Hook', () => {
     expect(useStore.getState().particles[0].type).toBe(PARTICLE_TYPES.EXCITED_ELECTRON);
 
     // Fast-forward
-    vi.advanceTimersByTime(3000);
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
 
     const particles = useStore.getState().particles;
     const hasElectron = particles.some(p => p.type === PARTICLE_TYPES.ELECTRON);
@@ -42,7 +44,9 @@ describe('useDecay Hook', () => {
 
     renderHook(() => useDecay(triggerRadiationBurst));
 
-    vi.advanceTimersByTime(4000);
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
 
     const particles = useStore.getState().particles;
     const hasProton = particles.some(p => p.type === PARTICLE_TYPES.PROTON);

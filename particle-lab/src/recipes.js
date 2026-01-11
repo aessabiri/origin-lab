@@ -469,14 +469,6 @@ export const RECIPES = [
     },
   },
   {
-    type: PARTICLE_TYPES.CARBON_MONOXIDE,
-    category: PARTICLE_CATEGORIES.MOLECULE,
-    ingredients: {
-      [PARTICLE_TYPES.CARBON]: 1,
-      [PARTICLE_TYPES.OXYGEN]: 1,
-    },
-  },
-  {
     type: PARTICLE_TYPES.HYDROGEN_SULFIDE,
     category: PARTICLE_CATEGORIES.MOLECULE,
     ingredients: {

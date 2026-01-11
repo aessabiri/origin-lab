@@ -400,6 +400,7 @@ const ParticleCanvas = ({ onDragStart }) => {
             onBreakBonds={handleBreakBonds}
             onAddSingleBond={() => handleAddBond('single')}
             onAddDoubleBond={() => handleAddBond('double')}
+            onAddTripleBond={() => handleAddBond('triple')}
             onAddPeptideBond={handleAddPeptideBond}
             canAssemble={selectionInfo.canAssemble}
             canDisassemble={selectionInfo.canDisassemble}
@@ -468,16 +469,31 @@ const ParticleCanvas = ({ onDragStart }) => {
           const centerOffsetB = sizeB / 2;
 
           return (
-            <animated.line
-              key={bond.id}
-              x1={springA.x.to(x => x + centerOffsetA)}
-              y1={springA.y.to(y => y + centerOffsetA)}
-              x2={springB.x.to(x => x + centerOffsetB)}
-              y2={springB.y.to(y => y + centerOffsetB)}
-              stroke="white"
-              strokeWidth={bond.type === 'double' ? 6 : 3}
-              strokeLinecap="round"
-            />
+            <g key={bond.id}>
+              {/* Base Line */}
+              <animated.line
+                x1={springA.x.to(x => x + centerOffsetA)}
+                y1={springA.y.to(y => y + centerOffsetA)}
+                x2={springB.x.to(x => x + centerOffsetB)}
+                y2={springB.y.to(y => y + centerOffsetB)}
+                stroke={bond.type === 'single' ? 'white' : '#94a3b8'}
+                strokeWidth={bond.type === 'triple' ? 14 : (bond.type === 'double' ? 10 : 3)}
+                strokeLinecap="round"
+                opacity={bond.type === 'single' ? 1 : 0.6}
+              />
+              {/* Inner Line for Double/Triple/Peptide */}
+              {bond.type !== 'single' && (
+                <animated.line
+                  x1={springA.x.to(x => x + centerOffsetA)}
+                  y1={springA.y.to(y => y + centerOffsetA)}
+                  x2={springB.x.to(x => x + centerOffsetB)}
+                  y2={springB.y.to(y => y + centerOffsetB)}
+                  stroke={bond.type === 'peptide' ? '#ec4899' : 'white'}
+                  strokeWidth={bond.type === 'triple' ? 6 : 4}
+                  strokeLinecap="round"
+                />
+              )}
+            </g>
           );
         })}
       </animated.svg>

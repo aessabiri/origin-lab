@@ -92,6 +92,25 @@ export const MOLECULE_RECIPES = [
     }
   },
   {
+    type: PARTICLE_TYPES.CARBON_MONOXIDE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+    bonds: {
+      triple: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN }
+      ],
+      edges: [
+        { source: 'c1', target: 'o1', type: 'triple' }
+      ]
+    }
+  },
+  {
     type: PARTICLE_TYPES.GLYCINE,
     atoms: {
       [PARTICLE_TYPES.CARBON]: 2,
@@ -679,7 +698,7 @@ export const MOLECULE_RECIPES = [
       [PARTICLE_TYPES.NITROGEN]: 2,
     },
     bonds: {
-      double: 1, // Approximation for triple
+      triple: 1,
     },
     structure: {
       nodes: [
@@ -687,7 +706,7 @@ export const MOLECULE_RECIPES = [
         { id: 'n2', type: PARTICLE_TYPES.NITROGEN },
       ],
       edges: [
-        { source: 'n1', target: 'n2', type: 'double' },
+        { source: 'n1', target: 'n2', type: 'triple' },
       ]
     }
   },
@@ -1212,5 +1231,27 @@ export const MOLECULE_RECIPES = [
       single: 20,
     },
     // Simplified structure
+  },
+  {
+    type: PARTICLE_TYPES.NITROUS_OXIDE,
+    atoms: {
+      [PARTICLE_TYPES.NITROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+    bonds: {
+      triple: 1,
+      single: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'n2', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN }
+      ],
+      edges: [
+        { source: 'n1', target: 'n2', type: 'triple' },
+        { source: 'n2', target: 'o1', type: 'single' }
+      ]
+    }
   },
 ];

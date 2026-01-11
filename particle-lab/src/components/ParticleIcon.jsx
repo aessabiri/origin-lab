@@ -3,12 +3,17 @@ import { PARTICLE_TYPES, PARTICLE_COLOR_MAP, PARTICLE_COLORS } from '../constant
 
 // --- Helper Components & Functions ---
 
-const NeoBond = ({ x1, y1, x2, y2, type = 'single' }) => (
-  <g>
-    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#94a3b8" strokeWidth={type === 'double' ? 10 : 6} strokeLinecap="round" opacity="0.6" />
-    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth={type === 'double' ? 4 : 2} strokeLinecap="round" opacity="0.8" />
-  </g>
-);
+const NeoBond = ({ x1, y1, x2, y2, type = 'single' }) => {
+  const widthMap = { single: 6, double: 10, triple: 14 };
+  const innerWidthMap = { single: 2, double: 4, triple: 6 };
+  
+  return (
+    <g>
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#94a3b8" strokeWidth={widthMap[type] || 6} strokeLinecap="round" opacity="0.6" />
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth={innerWidthMap[type] || 2} strokeLinecap="round" opacity="0.8" />
+    </g>
+  );
+};
 
 const NeoSphere = ({ x, y, r, color = '#9ca3af', label }) => (
   <g transform={`translate(${x},${y})`}>
@@ -661,8 +666,8 @@ const OzoneIcon = () => (
 
 const NitrousOxideIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    <NeoBond x1={30} y1={50} x2={55} y2={50} type="double" />
-    <NeoBond x1={55} y1={50} x2={80} y2={50} type="double" />
+    <NeoBond x1={30} y1={50} x2={55} y2={50} type="triple" />
+    <NeoBond x1={55} y1={50} x2={80} y2={50} type="single" />
     <NeoSphere x={30} y={50} r={15} color={PARTICLE_COLOR_MAP['sky-500']} label="N" />
     <NeoSphere x={55} y={50} r={15} color={PARTICLE_COLOR_MAP['sky-500']} />
     <NeoSphere x={80} y={50} r={15} color={PARTICLE_COLOR_MAP['red-600']} label="O" />

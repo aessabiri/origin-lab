@@ -8,6 +8,7 @@ const ActionToolbar = ({
   onBreakBonds,
   onAddSingleBond,
   onAddDoubleBond,
+  onAddTripleBond,
   onAddPeptideBond,
   canAssemble,
   canDisassemble,
@@ -44,6 +45,7 @@ const ActionToolbar = ({
           <div className="h-6 w-px bg-gray-600 mx-2"></div>
           <button onClick={onAddSingleBond} title="Create a single bond" className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-sky-600 hover:bg-sky-700">Single Bond</button>
           <button onClick={onAddDoubleBond} title="Create a double bond" className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-sky-600 hover:bg-sky-700">Double Bond</button>
+          <button onClick={onAddTripleBond} title="Create a triple bond" className="px-4 py-2 text-white font-semibold rounded-lg shadow-lg bg-sky-600 hover:bg-sky-700">Triple Bond</button>
         </>
       )}
       {canAddPeptideBond && (

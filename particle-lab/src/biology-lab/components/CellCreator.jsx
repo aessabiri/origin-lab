@@ -1,16 +1,27 @@
 import React, { useState, useMemo } from 'react';
 import { useBioStore } from '../store';
+import { useStore } from '../../store';
+import { PARTICLE_TYPES } from '../../constants/particles';
 
 const CellCreator = ({ onClose }) => {
   const { addAgent } = useBioStore();
+  const { discoveredOrganelles, isSandboxMode } = useStore();
+
+  const hasNucleus = useMemo(() => isSandboxMode || discoveredOrganelles.some(o => o.type === PARTICLE_TYPES.NUCLEUS), [discoveredOrganelles, isSandboxMode]);
+  const hasMitochondria = useMemo(() => isSandboxMode || discoveredOrganelles.some(o => o.type === PARTICLE_TYPES.MITOCHONDRION), [discoveredOrganelles, isSandboxMode]);
   
   // Genome State
-  const [name, setName] = useState('Protocell-1');
+  const [name, setName] = useState(hasNucleus ? 'Eukaryote-1' : 'Prokaryote-1');
   const [diet, setDiet] = useState(0); // 0: Herbivore, 1: Carnivore, 2: Phototroph
-  const [speed, setSpeed] = useState(1.5);
-  const [size, setSize] = useState(15);
-  const [sense, setSense] = useState(150);
+  const [speed, setSpeed] = useState(1.0);
+  const [size, setSize] = useState(10);
+  const [sense, setSense] = useState(100);
   const [color, setColor] = useState('#4ade80');
+
+  // Constraints
+  const maxSpeed = hasMitochondria ? 5 : 2;
+  const maxSize = hasNucleus ? 40 : 15;
+  const maxSense = hasNucleus ? 400 : 150;
 
   // Calculate Cost (Basal Metabolic Rate)
   const bmr = useMemo(() => {
@@ -39,7 +50,8 @@ const CellCreator = ({ onClose }) => {
         metabolism: bmr, // Store the BMR as the 'metabolism' factor
         diet,
         sense,
-        resistance: 0
+        resistance: 0,
+        isEukaryote: hasNucleus
       }
     };
 
@@ -55,7 +67,9 @@ const CellCreator = ({ onClose }) => {
         <div className="p-6 border-b border-teal-800 bg-teal-950 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-white">Genome Editor</h2>
-            <p className="text-teal-400 text-sm">Design a specialized organism.</p>
+            <p className="text-teal-400 text-sm">
+              {hasNucleus ? 'Designing Eukaryotic Life' : 'Designing Prokaryotic Life'}
+            </p>
           </div>
           <div className="text-right">
             <p className="text-xs text-teal-500 uppercase font-bold">Metabolic Cost</p>
@@ -67,6 +81,15 @@ const CellCreator = ({ onClose }) => {
 
         <div className="p-6 space-y-6 overflow-y-auto">
           
+          {/* Unlocked Alerts */}
+          {(!hasNucleus || !hasMitochondria) && (
+            <div className="p-3 bg-amber-900/30 border border-amber-700/50 rounded-lg text-xs text-amber-200">
+              <span className="font-bold">🔒 Evolution Limited:</span> Discover organelles in the Particle Lab to unlock advanced cellular traits.
+              {!hasNucleus && <div>• Nucleus needed for large size and advanced sensing.</div>}
+              {!hasMitochondria && <div>• Mitochondria needed for high burst speeds.</div>}
+            </div>
+          )}
+
           {/* Identity */}
           <div>
             <label className="block text-teal-300 text-xs font-bold uppercase mb-2">Species Name & Color</label>
@@ -109,18 +132,13 @@ const CellCreator = ({ onClose }) => {
                 ☀️ Phototroph
               </button>
             </div>
-            <p className="text-xs text-teal-500 mt-2 italic">
-              {diet === 0 && "Consumes Glucose pellets found in the environment."}
-              {diet === 1 && "Hunts smaller cells. Higher energy cost."}
-              {diet === 2 && "Passively gains energy from light. No movement needed."}
-            </p>
           </div>
 
           {/* Sliders */}
           <div className="space-y-4 bg-teal-950/30 p-4 rounded-xl border border-teal-800/50">
-            <GenomeSlider label="Speed" value={speed} min={0} max={5} step={0.1} set={setSpeed} unit="μm/t" />
-            <GenomeSlider label="Size" value={size} min={5} max={40} step={1} set={setSize} unit="μm" />
-            <GenomeSlider label="Sensor Range" value={sense} min={50} max={400} step={10} set={setSense} unit="px" />
+            <GenomeSlider label="Speed" value={speed} min={0.1} max={maxSpeed} step={0.1} set={setSpeed} unit="μm/t" locked={!hasMitochondria} />
+            <GenomeSlider label="Size" value={size} min={5} max={maxSize} step={1} set={setSize} unit="μm" locked={!hasNucleus} />
+            <GenomeSlider label="Sensor Range" value={sense} min={50} max={maxSense} step={10} set={setSense} unit="px" locked={!hasNucleus} />
           </div>
 
           {/* Spawn Button */}
@@ -136,10 +154,13 @@ const CellCreator = ({ onClose }) => {
   );
 };
 
-const GenomeSlider = ({ label, value, min, max, step, set, unit }) => (
+const GenomeSlider = ({ label, value, min, max, step, set, unit, locked }) => (
   <div>
     <div className="flex justify-between mb-1">
-      <label className="text-teal-300 text-xs font-bold uppercase">{label}</label>
+      <label className="text-teal-300 text-xs font-bold uppercase flex items-center gap-1">
+        {label}
+        {locked && value >= max && <span title="Further evolution requires organelle discovery">🔒</span>}
+      </label>
       <span className="text-white font-mono text-xs">{value} {unit}</span>
     </div>
     <input 

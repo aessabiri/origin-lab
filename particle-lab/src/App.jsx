@@ -3,6 +3,7 @@ import { useStore } from './store.js';
 import ParticleLab from './components/ParticleLab.jsx';
 import ChemistryApp from './chemistry-lab/ChemistryApp.jsx';
 import BiologyApp from './biology-lab/BiologyApp.jsx';
+import StellarNursery from './components/StellarNursery.jsx';
 
 const App = () => {
   const { currentView, setCurrentView } = useStore();
@@ -29,6 +30,12 @@ const App = () => {
           >
             Biology Lab
           </button>
+          <button
+            onClick={() => setCurrentView('space')}
+            className={`px-4 py-2 text-sm font-bold rounded-md transition-colors ${currentView === 'space' ? 'bg-purple-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}
+          >
+            Stellar Nursery
+          </button>
         </div>
       </div>
 
@@ -36,6 +43,7 @@ const App = () => {
         {currentView === 'particle' && <ParticleLab />}
         {currentView === 'chemistry' && <ChemistryApp />}
         {currentView === 'biology' && <BiologyApp />}
+        {currentView === 'space' && <StellarNursery />}
       </div>
     </div>
   );

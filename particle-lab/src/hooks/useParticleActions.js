@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { PARTICLE_CATEGORIES, COMPOSITION_MAP } from '../recipes.js';
+import { PARTICLE_CATEGORIES, FULL_COMPOSITION_MAP } from '../recipes.js';
 import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
 import { PARTICLE_NAMES } from '../constants/particles.js';
@@ -16,6 +16,7 @@ export const useParticleActions = ({
   const setSecondaryParticles = useStore(state => state.setSecondaryParticles);
   const setDiscoveredAtoms = useStore(state => state.setDiscoveredAtoms);
   const setDiscoveredMolecules = useStore(state => state.setDiscoveredMolecules);
+  const setDiscoveredOrganelles = useStore(state => state.setDiscoveredOrganelles);
   const currentGoalIndex = useStore(state => state.currentGoalIndex);
   const setCurrentGoalIndex = useStore(state => state.setCurrentGoalIndex);
   const showMessage = useStore(state => state.showMessage);
@@ -65,7 +66,7 @@ export const useParticleActions = ({
       return;
     }
 
-    const ingredients = particle.composition || COMPOSITION_MAP.get(particle.type);
+    const ingredients = particle.composition || FULL_COMPOSITION_MAP.get(particle.type);
     if (!ingredients) return;
 
     const compositionArray = Array.isArray(ingredients)
@@ -90,7 +91,7 @@ export const useParticleActions = ({
   const getElementaryComposition = useCallback((particleType) => {
     const elementaryParticles = [];
     const recurse = (type) => {
-      const ingredients = COMPOSITION_MAP.get(type);
+      const ingredients = FULL_COMPOSITION_MAP.get(type);
       if (!ingredients) {
         elementaryParticles.push({ type });
         return;
@@ -147,12 +148,14 @@ export const useParticleActions = ({
       [PARTICLE_CATEGORIES.SECONDARY]: setSecondaryParticles,
       [PARTICLE_CATEGORIES.ATOM]: setDiscoveredAtoms,
       [PARTICLE_CATEGORIES.MOLECULE]: setDiscoveredMolecules,
+      [PARTICLE_CATEGORIES.ORGANELLE]: setDiscoveredOrganelles,
     };
 
     const discoveryStateKeyMap = {
       [PARTICLE_CATEGORIES.SECONDARY]: 'secondaryParticles',
       [PARTICLE_CATEGORIES.ATOM]: 'discoveredAtoms',
       [PARTICLE_CATEGORIES.MOLECULE]: 'discoveredMolecules',
+      [PARTICLE_CATEGORIES.ORGANELLE]: 'discoveredOrganelles',
     };
 
     const updater = discoveryUpdaterMap[assemblyRecipe.category];
