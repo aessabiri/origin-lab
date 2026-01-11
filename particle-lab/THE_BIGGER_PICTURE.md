@@ -1,102 +1,97 @@
 # The Bigger Picture: From Singularity to Sentience
 
-**Project Vision:** To build the ultimate scientific simulation game. The goal is to traverse the entire history of the universe—starting from the Big Bang, moving through stellar evolution and chemistry, birthing simple life, and guiding it all the way to complex human intelligence.
+**Project Vision:** To build the ultimate scientific simulation game where the **Stellar Nursery** serves as the central stage for the universe's history.
 
-All systems must be grounded in **Real Science** (Physics, Chemistry, Biology) and connected by a unified **Conservation of Matter** economy.
+The player acts as the Architect of the Universe, guiding it from the Big Bang, through the formation of stars and planets, to the seeding of life on Earth, and finally to the rise of human intelligence.
+
+The three laboratories (Particle, Chemistry, Biology) function as **Engineering Bays** where the player constructs the fundamental building blocks needed to progress the main timeline in the Stellar Nursery.
 
 ---
 
-## 🌌 Phase 1: The Primordial Era (Physics)
+## 🌌 Phase 1: The Primordial Era (Stellar Nursery)
 
-### The "Big Bang" Button
-The simulation begins with nothing. A single button: **[INITIATE BIG BANG]**.
+### The "Big Bang" Event
+The simulation begins in the **Stellar Nursery** view. It is empty. A single button: **[INITIATE BIG BANG]**.
 
 1.  **Inflation & Cooling:**
-    *   Upon clicking, the universe expands exponentially.
-    *   **The Force Split:** The player watches as Gravity, Strong Nuclear, Weak Nuclear, and Electromagnetism separate from the unified field.
-2.  **Quark-Gluon Plasma:**
-    *   The universe is too hot for atoms. The user must manage the "Cooling Rate."
-    *   *Goal:* Bind Quarks into Hadrons (Protons/Neutrons) without them annihilating with Anti-matter.
-3.  **Recombination:**
-    *   Electrons bind to nuclei. The universe becomes transparent. The first **Hydrogen** and **Helium** atoms are born.
+    *   The universe expands. The player manages the cooling rate.
+    *   **The Force Split:** Gravity, Strong Nuclear, Weak Nuclear, and Electromagnetism separate.
+2.  **Matter Formation:**
+    *   Quarks condense into Protons/Neutrons.
+    *   **Particle Lab Integration:** If the player needs specific isotopes (Deuterium, Lithium), they visit the Particle Lab to "blueprint" or "mass produce" them.
+3.  **The First Light:**
+    *   Recombination occurs. The universe becomes transparent. Hydrogen and Helium clouds form.
 
-**Output:** A massive inventory of Hydrogen (75%) and Helium (25%).
+**Output:** Vast nebulae of Hydrogen and Helium in the Stellar Nursery.
 
 ---
 
-## 🌟 Phase 2: The Stellar Era (Astrophysics)
+## 🌟 Phase 2: The Stellar Era & Planet Formation (Stellar Nursery)
 
-The **Stellar Nursery** becomes the engine of creation. You cannot "build" Carbon or Iron; you must *forge* them.
+The player uses gravity to shape the cosmos.
 
 1.  **Star Formation:**
-    *   Use Gravity to collapse Hydrogen clouds into Protostars.
-    *   Manage Mass vs. Lifespan. Massive stars burn fast; small stars burn slow.
-2.  **Nucleosynthesis (The Furnace):**
-    *   **Main Sequence:** Fusion turns H $\to$ He.
-    *   **Red Giant Phase:** Fusion creates **Carbon**, **Nitrogen**, **Oxygen**.
-3.  **Death & Harvest:**
-    *   **Supernovae:** The only source of Heavy Elements (Iron, Gold, Uranium). The player must detonate massive stars to populate the Periodic Table.
-    *   **Black Holes:** Use them to warp spacetime or harvest exotic physics data (Hawking Radiation) to upgrade simulation constants.
+    *   Collapse gas clouds to form Stars.
+    *   **Nucleosynthesis:** Stars fuse H $\to$ He $\to$ C, N, O.
+2.  **Supernovae & Heavy Elements:**
+    *   Detonate massive stars to scatter Iron, Gold, and Uranium into the void.
+    *   **Chemistry Lab Integration:** The player visits the Chemistry Lab to understand how these new elements react and to unlock their usage.
+3.  **Planetary Accretion:**
+    *   Form protoplanetary disks around stable stars (The Sun).
+    *   Accrete dust into rocky planets.
+    *   **Formation of Earth:** Position Earth in the habitable zone.
+    *   **Water Delivery:** Bombard Earth with icy comets to create Oceans.
 
-**Output:** The full Periodic Table of Elements, available for the Chemistry Lab.
-
----
-
-## ⚗️ Phase 3: The Molecular Era (Chemistry)
-
-Using the elements forged in stars, the **Chemistry Lab** acts as the bridge between dead matter and life.
-
-1.  **The Prebiotic Soup:**
-    *   Synthesize simple compounds: Water ($H_2O$), Ammonia ($NH_3$), Methane ($CH_4$).
-2.  **The Miller-Urey Experiment:**
-    *   Apply energy (Lightning/Heat) to the soup to create monomers: **Amino Acids**, **Nucleotides**, **Lipids**, **Sugars**.
-3.  **Polymerization:**
-    *   Combine monomers into polymers: Proteins, RNA strands, Lipid Bilayers.
-
-**Output:** "Nutrient Broth" and Genetic Material (RNA/DNA), exported to the Biology Lab.
+**Output:** A stable Solar System with a water-rich Earth.
 
 ---
 
-## 🧫 Phase 4: The Cellular Era (Micro-Biology)
+## 🧬 Phase 3: The Engineering Phase (The 3 Labs)
 
-The **Biology Lab** (The Petri Dish) takes over.
+With Earth ready, the player must design the "Seed" of life. This happens in the parallel laboratories.
 
-1.  **Abiogenesis:**
-    *   Encapsulate RNA inside Lipid Bilayers to create the first **Protocell**.
-2.  **Evolutionary Mechanics:**
-    *   **Survival:** Agents must maintain ATP levels via Metabolism.
-    *   **Selection:** Only the fastest, most efficient, or most adaptable cells reproduce.
-3.  **The Great Oxygenation Event:**
-    *   Evolve Photosynthesis. Fill the atmosphere with Oxygen (changing the global state for future eras).
-4.  **Endosymbiosis:**
-    *   One cell engulfs another but doesn't digest it $\to$ Creation of **Mitochondria** and **Chloroplasts**. This unlocks Eukaryotic Life (Complex Cells).
+1.  **Particle Lab (Physics):**
+    *   Refine atomic structures and isotopes needed for stable biochemistry.
+2.  **Chemistry Lab (Molecular):**
+    *   Synthesize the "Primordial Soup": Amino Acids, Nucleotides, Lipids.
+    *   *Requirement:* These must be synthesized using elements harvested from the Stellar Era.
+3.  **Biology Lab (The Architect):**
+    *   **Design the LUCA:** Use the Visual Cell Creator to design the **Last Universal Common Ancestor**.
+    *   *Challenge:* Balance metabolism, reproduction rate, and environmental resistance to survive the harsh conditions of early Earth.
+    *   **Complexity Bonus:** The more organelles, efficient metabolism, and genetic adaptability you engineer into the LUCA, the easier the subsequent Evolution Phase will be.
 
-**Output:** Stable, multi-organelle Eukaryotic cells ready for cooperation.
-
----
-
-## 🧠 Phase 5: The Anthropocene Era (Macro-Biology)
-
-**New Module: The Evolutionary Sandbox.**
-
-1.  **Multicellularity:**
-    *   Cells begin to stick together. Specialization occurs (Skin cells, Muscle cells, Neuron cells).
-2.  **Organ Systems:**
-    *   Design systems: Circulatory (transport), Nervous (control), Digestive (energy).
-3.  **The Tree of Life:**
-    *   Guide the organism through environments: Ocean $\to$ Land $\to$ Trees.
-4.  **The Human Goal:**
-    *   Refine the brain. Unlock "Consciousness."
-    *   *Final Challenge:* The human organism must survive and use tools to understand the very universe it came from (closing the loop).
+**Output:** A viable "Seed Organism" (LUCA) stored in the Global Inventory.
 
 ---
 
-## 🔗 The Universal Ledger (Cross-Sharing)
+## 🌍 Phase 4: The Seeding & Evolution (Earth View)
 
-All resources are persistent and conserved.
+The player returns to the **Stellar Nursery**, zooms into **Earth**, and deploys the Seed into the ocean.
 
-*   If you waste all your **Carbon** making diamonds in the Chemistry Lab, you won't have enough to build **Life** in the Biology Lab.
-*   You must go back to the **Stellar Nursery** and blow up more stars to replenish your Carbon stock.
-*   The entire game is a delicate balancing act of entropy and complexity.
+1.  **The Seeding:**
+    *   Place the LUCA into the primordial ocean.
+    *   **Head Start:** A complex LUCA starts with a higher "Evolutionary Potential", allowing it to adapt to land and intelligence faster. A simple seed will require millions of years of grinding to catch up.
+    *   The simulation switches from "Engineering Mode" to "Evolutionary Sandbox Mode".
+2.  **Darwinian Evolution:**
+    *   The LUCA reproduces and mutates.
+    *   The player **cannot** directly edit cells anymore. They can only modify the **Environment** (Temperature, Oxygen levels, Disasters).
+    *   Natural selection drives the population toward complexity.
+3.  **The Great Filter:**
+    *   Guide life through mass extinctions (Ice Ages, Meteor Impacts).
+    *   Evolve Multicellularity, conquest of Land, and development of Brains.
 
-**Summary:** A seamless journey from $t=0$ to $t=13.8 \text{ billion years}$.
+**Output:** A complex, diverse ecosystem on Earth.
+
+---
+
+## 🧠 Phase 5: The Anthropocene Era (Endgame)
+
+1.  **Rise of Intelligence:**
+    *   A species evolves high "Neural Complexity" and "Tool Use".
+2.  **Civilization:**
+    *   The species begins to alter the planet (Agriculture, Cities).
+3.  **The Cycle Completes:**
+    *   The intelligent species discovers the laws of Physics (unlocking the Particle Lab logic for themselves).
+    *   They look up at the stars and understand the Big Bang.
+
+**Goal:** From a single point of energy to a self-aware observer.

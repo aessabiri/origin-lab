@@ -40,7 +40,7 @@ export const useStore = create(
       isResetConfirmVisible: false,
       isPeriodicTableVisible: false,
       message: '',
-      currentView: 'hub', // 'hub', 'particle', 'chemistry', 'biology', 'space'
+      currentView: 'menu', // 'menu', 'hub', 'particle', 'chemistry', 'biology', 'space'
 
       // Actions
       setParticles: (particles) => set({ particles }),

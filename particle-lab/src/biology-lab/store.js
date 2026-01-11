@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useInventory } from '../store/inventory.js';
 
 // Initial Resources available in the "Soup"
 const INITIAL_SOUP = {
@@ -55,36 +56,50 @@ export const useBioStore = create(
 
       // Import from Particle Lab Inventory (Bridge)
       // This will be called when the user "drops" items from the sidebar into the dish
-      importResource: (type, amount) => set((state) => {
-        if (type === 'arsenic') {
-           const newToxins = Array.from({ length: amount }).map((_, i) => ({
-             id: `toxin-${Date.now()}-${i}`,
-             x: 400 + (Math.random() - 0.5) * 400, // Random within dish
-             y: 400 + (Math.random() - 0.5) * 400,
-             radius: 40, // Toxic Zone
-           }));
-           return { toxins: [...state.toxins, ...newToxins] };
+      importResource: (type, amount) => {
+        // 1. Determine Category
+        let category = 'compounds';
+        if (type === 'arsenic' || type === 'hydrogen' || type === 'carbon') { // Basic check
+           category = 'elements';
         }
 
-        // Mapping Particle Types to Bio Resources
-        // This logic might need refinement based on exact particle type strings
-        const resourceMap = {
-          'glucose': 'glucose',
-          'amino_acid': 'aminoAcids', // Generic for now
-          'lipid': 'lipids',
-        };
-        
-        const resourceKey = resourceMap[type];
-        if (resourceKey) {
-          return {
-            soup: {
-              ...state.soup,
-              [resourceKey]: state.soup[resourceKey] + amount
-            }
-          };
+        // 2. Consume from Global Inventory
+        const success = useInventory.getState().consumeResource(category, type, amount);
+        if (!success) {
+           console.warn(`Transfer failed: Insufficient ${type} in Global Inventory.`);
+           return;
         }
-        return state;
-      }),
+
+        set((state) => {
+          if (type === 'arsenic') {
+             const newToxins = Array.from({ length: amount }).map((_, i) => ({
+               id: `toxin-${Date.now()}-${i}`,
+               x: 400 + (Math.random() - 0.5) * 400, // Random within dish
+               y: 400 + (Math.random() - 0.5) * 400,
+               radius: 40, // Toxic Zone
+             }));
+             return { toxins: [...state.toxins, ...newToxins] };
+          }
+
+          // Mapping Particle Types to Bio Resources
+          const resourceMap = {
+            'glucose': 'glucose',
+            'amino_acid': 'aminoAcids', // Generic for now
+            'lipid': 'lipids',
+          };
+          
+          const resourceKey = resourceMap[type];
+          if (resourceKey) {
+            return {
+              soup: {
+                ...state.soup,
+                [resourceKey]: state.soup[resourceKey] + amount
+              }
+            };
+          }
+          return state;
+        });
+      },
 
       resetSimulation: () => set({
         agents: [],

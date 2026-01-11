@@ -5,47 +5,49 @@ This roadmap outlines the technical milestones required to reach the "Bigger Pic
 ---
 
 ## 🟢 Phase 1: Current Foundation (Polishing)
-*Status: In Progress*
+*Status: Completed*
 - [x] **Unified Navigation:** Central Hub for all laboratories.
 - [x] **Rendering Optimization:** Porting Biology and Physics to Canvas for performance.
 - [x] **Life Mechanics:** Implementing Metabolism, Predation, and Mitosis in Biology.
 - [x] **Lab Notebook:** Unified interface for settings, codex, and progress.
-- [ ] **Data Persistence:** Ensure the "Universal Ledger" saves all resources across sessions.
+- [x] **Global Inventory:** "Universal Ledger" tracking resources across all labs.
+- [x] **Big Bang Sequence:** Initial cinematic and resource reset.
 
-## 🟡 Phase 2: The Primordial & Stellar Eras
+## 🟡 Phase 2: The Cosmic & Stellar Stage
 *Status: Up Next*
-- [ ] **The Big Bang:** Cinematic entry-point that generates the initial Quark-Gluon plasma.
-- [ ] **Universal Expansion:** Cooling logic where quarks bind into Protons/Neutrons.
-- [ ] **Stellar Overhaul:**
-    - [ ] Collapsing H/He clouds into Stars.
-    - [ ] **Nucleosynthesis Engine:** Stars convert elements over time based on mass.
-    - [ ] **Supernova Mechanic:** Detonating stars to scatter Carbon, Oxygen, and Iron into the inventory.
-- [ ] **Atmosphere State:** Global state tracking O2, CO2, and N2 levels.
+- [ ] **Stellar Nursery Overhaul:**
+    - [ ] **Nebula Mechanics:** Gas clouds that respond to gravity.
+    - [ ] **Star Formation:** Accreting mass to ignite fusion.
+    - [ ] **Nucleosynthesis:** Converting H/He into heavier elements (Inventory Integration).
+- [ ] **Planetary System:**
+    - [ ] **Accretion Disk:** forming planets from stellar dust.
+    - [ ] **Terraforming Earth:** Comet bombardment to add Water to the planet.
 
-## 🔴 Phase 3: The Prebiotic & Molecular Bridge
+## 🔴 Phase 3: The Engineering Phase (Labs)
 *Status: Planned*
-- [ ] **Reagent Pipeline:** Dynamic "Pantry" in Chemistry Lab fueled by Stellar Nursery harvests.
-- [ ] **Energy Injection:** Adding "Lightning" and "Thermal Vents" to Chemistry to trigger complex organic reactions.
-- [ ] **Monomer Synthesis:** Logic for creating Amino Acids and Nucleotides from C, H, N, O.
-- [ ] **The Biology Export:** Ability to bottle "Nutrient Broth" and "RNA strands" for use in the Biology Lab.
+- [ ] **Chemistry Lab Expansion:**
+    - [ ] Synthesize "Prebiotic Broth" (Amino Acids, Lipids) using elements forged in stars.
+- [ ] **Biology Lab Integration:**
+    - [ ] **The "Seed" Project:** A special mode to design the LUCA (Last Universal Common Ancestor).
+    - [ ] **Complexity Metric:** Calculate a score for the LUCA based on organelles and genome stats to determine evolutionary difficulty.
+    - [ ] **Export to Earth:** Ability to "Freeze" the LUCA design for transport to the Stellar Nursery.
 
-## 🔴 Phase 4: Abiogenesis & Complex Life
+## 🔴 Phase 4: The Evolutionary Sandbox (Earth)
 *Status: Research*
-- [ ] **Lipid Encapsulation:** Creating the first Protocell by combining Lipids and RNA.
-- [ ] **Genetic Mutation 2.0:** More complex DNA strings that define behavioral AI (Aggression, Cooperation).
-- [ ] **Endosymbiosis Event:** Special logic to merge cells into Eukaryotes (Mitochondria/Chloroplast discovery).
-- [ ] **Multicellularity:** Logic for cells to stick together and share energy (The "Colony" update).
+- [ ] **Earth View:** A zoomed-in view of the planet within the Stellar Nursery.
+- [ ] **The Seeding:** Deploying the LUCA into the Earth's ocean.
+- [ ] **Global Simulation:** Running the biology simulation on a planetary scale (using statistical approximation for millions of agents).
+- [ ] **Environmental Controls:** Player modifies Temp/O2/CO2 to drive Natural Selection.
 
 ## 🔴 Phase 5: The Anthropocene Goal
 *Status: Design*
-- [ ] **Organ Systems:** Developing specialized tissues (Muscle, Nerve, Digestion).
-- [ ] **The Environment Map:** Moving from the Petri Dish to a global ecosystem map.
-- [ ] **The Consciousness Metric:** A final "Win Condition" based on neural complexity and tool use.
-- [ ] **Human Emergence:** Guiding the simulation until the first human agent is born.
+- [ ] **Evolution Tree:** Visualization of species diverging from LUCA.
+- [ ] **Intelligence Metric:** Tracking neural complexity.
+- [ ] **Human Emergence:** The final "Win Condition".
 
 ---
 
-## Technical Debt & Performance
-- **Canvas Migration:** Complete the migration of the Physics Lab (`ParticleCanvas`) to full Canvas rendering.
-- **Web Workers:** Move the heavy Physics and Biology logic loops to Web Workers to keep the UI at a buttery 60FPS.
-- **Global Store:** Refactor `src/store.js` to handle the mass balance between all laboratories (The "Universal Ledger").
+## Technical Debt & Architecture
+- **Web Workers:** Move the planetary simulation loop to a worker thread.
+- **Save System:** Persist the state of the Galaxy and Earth.
+- **Zoom Levels:** Seamless transition from Galaxy -> Solar System -> Earth -> Surface.

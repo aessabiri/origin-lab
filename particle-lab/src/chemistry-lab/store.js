@@ -4,6 +4,28 @@ import { MISSIONS, STARTING_CHEMICALS, STARTING_EQUIPMENT } from './data/mission
 import { CHEMICALS } from './data/chemicals';
 import { EQUIPMENT } from './data/equipment';
 import { audioSystem, SFX } from './logic/audio';
+import { useInventory } from '../store/inventory.js';
+
+const getInventoryKey = (chemicalId) => {
+  const map = {
+    'HYDROGEN': 'hydrogen',
+    'HELIUM': 'helium',
+    'CARBON': 'carbon',
+    'NITROGEN': 'nitrogen',
+    'OXYGEN': 'oxygen',
+    'PHOSPHORUS': 'phosphorus',
+    'SULFUR': 'sulfur',
+    'IRON': 'iron',
+    'H2O': 'water',
+    'AMMONIA': 'ammonia',
+    'METHANE': 'methane',
+    'GLUCOSE': 'glucose',
+    'GLYCINE': 'glycine',
+    'ETHANOL': 'ethanol',
+    'CO2': 'co2',
+  };
+  return map[chemicalId];
+};
 
 export const useChemistryStore = create(
   persist(
@@ -185,6 +207,12 @@ export const useChemistryStore = create(
                      newInventory.push(chemId);
                      discovered.push(chemId);
                  }
+                 // Add to Global Inventory
+                 const invKey = getInventoryKey(chemId);
+                 if (invKey) {
+                    const category = ELEMENTARY_IDS.includes(chemId) ? 'elements' : 'compounds'; // Rough guess, or check map
+                    useInventory.getState().addResource(category === 'elements' ? 'elements' : 'compounds', invKey, contents[chemId]); // Simplification
+                 }
              });
 
              if (discovered.length > 0) {
@@ -249,6 +277,22 @@ export const useChemistryStore = create(
       },
 
       addToVessel: (vesselId, chemicalId, amount) => {
+        const state = get();
+        
+        // --- Inventory Check ---
+        if (state.gameMode !== 'sandbox') {
+           const invKey = getInventoryKey(chemicalId);
+           if (invKey) {
+              const category = ['HYDROGEN', 'HELIUM', 'CARBON', 'NITROGEN', 'OXYGEN', 'SULFUR', 'IRON'].includes(chemicalId) ? 'elements' : 'compounds';
+              const success = useInventory.getState().consumeResource(category, invKey, amount);
+              
+              if (!success) {
+                 get().setMessage(`Not enough ${chemicalId} in Global Inventory!`);
+                 return; // Abort
+              }
+           }
+        }
+
         audioSystem.playOneShot(SFX.POUR);
         set((state) => {
           const vessel = state.vessels[vesselId];
@@ -322,6 +366,15 @@ export const useChemistryStore = create(
                newInventory.push(chemId);
                discovered.push(chemId);
              }
+             
+             // --- Add to Global Inventory ---
+             const invKey = getInventoryKey(chemId);
+             if (invKey) {
+                const amount = vessel.contents[chemId];
+                // Simple category check
+                const category = ['HYDROGEN', 'HELIUM', 'CARBON', 'NITROGEN', 'OXYGEN', 'SULFUR', 'IRON'].includes(chemId) ? 'elements' : 'compounds';
+                useInventory.getState().addResource(category, invKey, amount);
+             }
           });
           
           let msg = '';
@@ -331,7 +384,7 @@ export const useChemistryStore = create(
             // Trigger Mission Check
             setTimeout(() => get().checkMissionCompletion(discovered), 0);
           } else {
-            msg = 'Sample collected (already known).';
+            msg = 'Sample collected & stored in Global Inventory.';
           }
 
           return { 

@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
+import { useInventory } from '../store/inventory.js';
+import { useStore } from '../store.js';
 import { PARTICLE_CATEGORIES, FULL_COMPOSITION_MAP } from '../recipes.js';
 import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
 import { PARTICLE_NAMES } from '../constants/particles.js';
-import { useStore } from '../store.js';
 
 export const useParticleActions = ({
   selectionInfo,
@@ -133,6 +134,9 @@ export const useParticleActions = ({
       const bonds = useStore.getState().bonds;
       setBonds(bonds.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
 
+      // --- Inventory Update (Molecules) ---
+      useInventory.getState().addResource('compounds', assemblyRecipe.type, 1);
+
       if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
         showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);
         setCurrentGoalIndex(currentGoalIndex + 1);
@@ -179,6 +183,11 @@ export const useParticleActions = ({
       composition: selectedParticles.map(p => ({ type: p.type, composition: p.composition })),
     });
     setParticles(next);
+
+    // --- Inventory Update (Atoms) ---
+    if (assemblyRecipe.category === PARTICLE_CATEGORIES.ATOM) {
+      useInventory.getState().addResource('elements', assemblyRecipe.type, 1);
+    }
 
     if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
       showMessage(`Goal Complete: ${goals[currentGoalIndex].name}!`);

@@ -5,13 +5,18 @@ import ChemistryApp from './chemistry-lab/ChemistryApp.jsx';
 import BiologyApp from './biology-lab/BiologyApp.jsx';
 import StellarNursery from './components/StellarNursery.jsx';
 import Hub from './components/Hub.jsx';
+import MainMenu from './components/MainMenu.jsx';
 
 const App = () => {
   const { currentView, setCurrentView } = useStore();
 
+  if (currentView === 'menu') {
+    return <MainMenu />;
+  }
+
   return (
     <div className="w-full h-screen flex flex-col font-inter bg-gray-900 text-white">
-      {/* Top Navigation Bar - Always Visible */}
+      {/* Top Navigation Bar */}
       <div className="flex justify-center p-2 bg-gray-800 border-b border-gray-700 z-50">
         <div className="flex gap-2 p-1 bg-gray-900 rounded-lg shadow-lg">
           <button
@@ -21,6 +26,12 @@ const App = () => {
             <span>🏠</span> Home
           </button>
           <div className="w-px bg-gray-700 mx-1"></div>
+          <button
+            onClick={() => setCurrentView('space')}
+            className={`px-4 py-2 text-sm font-bold rounded-md transition-colors ${currentView === 'space' ? 'bg-purple-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}
+          >
+            Stellar Nursery
+          </button>
           <button
             onClick={() => setCurrentView('particle')}
             className={`px-4 py-2 text-sm font-bold rounded-md transition-colors ${currentView === 'particle' ? 'bg-blue-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}
@@ -38,12 +49,6 @@ const App = () => {
             className={`px-4 py-2 text-sm font-bold rounded-md transition-colors ${currentView === 'biology' ? 'bg-teal-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}
           >
             Biology Lab
-          </button>
-          <button
-            onClick={() => setCurrentView('space')}
-            className={`px-4 py-2 text-sm font-bold rounded-md transition-colors ${currentView === 'space' ? 'bg-purple-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}
-          >
-            Stellar Nursery
           </button>
         </div>
       </div>

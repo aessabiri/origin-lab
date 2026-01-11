@@ -1,10 +1,14 @@
 import React, { useMemo } from 'react';
 import { useStore } from '../store';
 import { useBioStore } from '../biology-lab/store';
+import { useChemistryStore } from '../chemistry-lab/store';
+import { useInventory } from '../store/inventory';
 
 const Hub = ({ onNavigate }) => {
-  const { particles, discoveredAtoms, discoveredMolecules } = useStore();
-  const { agents, isRunning } = useBioStore();
+  const { particles, discoveredAtoms, discoveredMolecules, executeReset, setCurrentView } = useStore();
+  const { agents, isRunning, resetSimulation } = useBioStore();
+  const { setGameMode } = useChemistryStore();
+  const { resetUniverse } = useInventory();
 
   const physicsStats = useMemo(() => ({
     particles: particles.length,
@@ -18,15 +22,26 @@ const Hub = ({ onNavigate }) => {
     health: agents.reduce((acc, a) => acc + (a.energy || 0), 0) / (agents.length || 1)
   }), [agents, isRunning]);
 
+  const handleReset = () => {
+    if (window.confirm("WARNING: This will collapse the universe back into a singularity. All progress will be lost. Are you sure?")) {
+      resetUniverse(); // Inventory -> 0
+      executeReset(); // Physics
+      resetSimulation(); // Biology
+      setGameMode('career'); // Chemistry
+      setCurrentView('menu'); // Return to Main Menu
+    }
+  };
+
+  // --- MAIN DASHBOARD ---
   return (
-    <div className="w-full h-full bg-slate-900 text-white p-8 overflow-y-auto">
+    <div className="w-full h-full bg-slate-900 text-white p-8 overflow-y-auto animate-[fadeIn_1s_ease-out]">
       <header className="mb-12 text-center">
         <h1 className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-400 to-purple-500 mb-4">
           PARTICLE LAB
         </h1>
         <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-          Welcome, Architect. Select a laboratory to begin your research.
-          Navigate from the subatomic to the cellular level.
+          Welcome, Architect. The universe is waiting.
+          Select a laboratory to begin your research.
         </p>
       </header>
 
@@ -107,7 +122,7 @@ const Hub = ({ onNavigate }) => {
               <StatRow label="Avg Energy" value={bioStats.health.toFixed(0)} color="text-cyan-400" />
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider">
                 <span className="text-slate-500">Colony Status</span>
-                <span className={isRunning ? 'text-green-400 animate-pulse' : 'text-slate-400'}>
+                <span className="text-slate-400">
                   {bioStats.status}
                 </span>
               </div>
@@ -117,8 +132,14 @@ const Hub = ({ onNavigate }) => {
 
       </div>
 
-      <footer className="mt-16 text-center text-slate-600 text-sm">
+      <footer className="mt-16 text-center text-slate-600 text-sm flex flex-col items-center gap-4">
         <p>Particle Lab v0.1.0 • Built with React & Zustand</p>
+        <button 
+          onClick={handleReset}
+          className="text-red-500/50 hover:text-red-400 text-xs font-bold uppercase tracking-widest border border-red-500/20 hover:border-red-500/50 px-4 py-2 rounded-lg transition-all"
+        >
+          Reset Universe
+        </button>
       </footer>
     </div>
   );

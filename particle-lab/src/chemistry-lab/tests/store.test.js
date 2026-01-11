@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useChemistryStore } from '../store';
+import { useInventory } from '../../store/inventory';
 
 const initialVessels = {
   beaker: { id: 'beaker', name: 'Open Beaker', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 500, status: 'ok', type: 'glass', activeVisual: null },
@@ -9,6 +10,9 @@ const initialVessels = {
 
 describe('Chemistry Lab Store', () => {
   beforeEach(() => {
+    useInventory.setState({
+      compounds: { water: 1000, glucose: 0, ammonia: 0, methane: 0, glycine: 0, lipid: 0, rna: 0, dna: 0 }
+    });
     useChemistryStore.setState({
       inventory: ['H2O', 'NaCl'],
       vessels: JSON.parse(JSON.stringify(initialVessels)),
