@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { updateSimulation } from '../components/stellarLogic';
+import { updateSimulation } from '../components/universeLogic';
 import { PARTICLE_TYPES } from '../constants/particles';
 
-describe('Stellar Nursery Simulation', () => {
+describe('Universe Simulation', () => {
   it('should accelerate particles towards gravity wells', () => {
     const particle = { x: 100, y: 100, vx: 0, vy: 0, mass: 1, type: PARTICLE_TYPES.HYDROGEN };
     const well = { x: 200, y: 100, strength: 5000, life: 1.0 };
@@ -10,7 +10,7 @@ describe('Stellar Nursery Simulation', () => {
     const wells = [well];
     const dt = 0.1;
 
-    updateSimulation(dt, particles, wells, 1000, 1000, vi.fn());
+    updateSimulation(dt, particles, [], wells, 1000, 1000, vi.fn());
 
     // Should accelerate in +x direction
     expect(particle.vx).toBeGreaterThan(0);
@@ -25,7 +25,7 @@ describe('Stellar Nursery Simulation', () => {
     const onDiscover = vi.fn();
     const dt = 0.016;
 
-    updateSimulation(dt, particles, wells, 1000, 1000, onDiscover);
+    updateSimulation(dt, particles, [], wells, 1000, 1000, onDiscover);
 
     // One particle should remain (p1 transformed)
     expect(particles).toHaveLength(1);
@@ -41,7 +41,7 @@ describe('Stellar Nursery Simulation', () => {
     const particles = [p1, p2];
     const onDiscover = vi.fn();
 
-    updateSimulation(0.016, particles, [], 1000, 1000, onDiscover);
+    updateSimulation(0.016, particles, [], [], 1000, 1000, onDiscover);
 
     expect(particles).toHaveLength(1);
     expect(particles[0].type).toBe(PARTICLE_TYPES.CARBON);

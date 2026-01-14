@@ -1,48 +1,62 @@
 # The Bigger Picture: From Singularity to Sentience
 
-**Project Vision:** To build the ultimate scientific simulation game where the **Stellar Nursery** serves as the central stage for the universe's history.
+**Project Vision:** To build the ultimate scientific simulation game where the **Universe** serves as the central stage for the universe's history.
 
 The player acts as the Architect of the Universe, guiding it from the Big Bang, through the formation of stars and planets, to the seeding of life on Earth, and finally to the rise of human intelligence.
 
-The three laboratories (Particle, Chemistry, Biology) function as **Engineering Bays** where the player constructs the fundamental building blocks needed to progress the main timeline in the Stellar Nursery.
+The three laboratories (Particle, Chemistry, Biology) function as **Engineering Bays** where the player constructs the fundamental building blocks needed to progress the main timeline in the Universe.
 
 ---
 
-## 🌌 Phase 1: The Primordial Era (Stellar Nursery)
+## 🌌 Phase 1: The Primordial Era (Cinematic Intro)
 
 ### The "Big Bang" Event
-The simulation begins in the **Stellar Nursery** view. It is empty. A single button: **[INITIATE BIG BANG]**.
+The simulation begins in a **Full Screen Void**. No UI. No Tabs. Just the Singularity.
 
-1.  **Inflation & Cooling:**
-    *   The universe expands. The player manages the cooling rate.
-    *   **The Force Split:** Gravity, Strong Nuclear, Weak Nuclear, and Electromagnetism separate.
-2.  **Matter Formation:**
-    *   Quarks condense into Protons/Neutrons.
-    *   **Particle Lab Integration:** If the player needs specific isotopes (Deuterium, Lithium), they visit the Particle Lab to "blueprint" or "mass produce" them.
-3.  **The First Light:**
-    *   Recombination occurs. The universe becomes transparent. Hydrogen and Helium clouds form.
+1.  **Initiation:**
+    *   The player clicks **[INITIATE]**.
+    *   A cinematic video plays, visualizing: Singularity -> Big Bang -> Inflation -> Quark-Gluon Plasma -> First Light -> Star Formation.
+2.  **The Awakening (Tutorial):**
+    *   As the video fades and the first stars ignite in the Universe view, the **Navigation Interface** gradually fades in.
+    *   **Onboarding:** Helper text guides the player to the different Laboratories (Particle, Chemistry, Biology), explaining their role in the grand design.
+3.  **Simulation Start:**
+    *   The user is left in the **Universe** tab, ready to explore or visit the labs to craft elements.
 
-**Output:** Vast nebulae of Hydrogen and Helium in the Stellar Nursery.
+**Output:** A seamless transition from cinematic storytelling to interactive gameplay.
 
 ---
 
-## 🌟 Phase 2: The Stellar Era & Planet Formation (Stellar Nursery)
+## 🌟 Phase 2: The Cosmic & Stellar Stage (Universe Progression)
 
-The player uses gravity to shape the cosmos.
+The **Universe View** is the central hub for cosmic evolution. Progress here is gated by achievements in the Laboratories.
 
-1.  **Star Formation:**
-    *   Collapse gas clouds to form Stars.
-    *   **Nucleosynthesis:** Stars fuse H $\to$ He $\to$ C, N, O.
-2.  **Supernovae & Heavy Elements:**
-    *   Detonate massive stars to scatter Iron, Gold, and Uranium into the void.
-    *   **Chemistry Lab Integration:** The player visits the Chemistry Lab to understand how these new elements react and to unlock their usage.
-3.  **Planetary Accretion:**
-    *   Form protoplanetary disks around stable stars (The Sun).
-    *   Accrete dust into rocky planets.
-    *   **Formation of Earth:** Position Earth in the habitable zone.
-    *   **Water Delivery:** Bombard Earth with icy comets to create Oceans.
+### Progression Milestones (The Cosmic Button Bar)
+The player interacts with "Shaded Buttons" that unlock sequentially:
 
-**Output:** A stable Solar System with a water-rich Earth.
+1.  **[INITIATE GALAXY FORMATION]**
+    *   **Requirement:** Discover **10 distinct particles** in the Particle Lab.
+    *   **Reward:** Unlocks "Dark Matter" to bind the galaxy together.
+    *   **Visual:** Gas clouds swirl into spiral arms.
+
+2.  **[INITIATE STAR FORMATION]**
+    *   **Requirement:** Galaxy Formed.
+    *   **Action:** Gas pockets collapse into Protostars.
+    *   **Visual:** The galaxy lights up with thousands of points of light.
+
+3.  **[FORM SOLAR SYSTEM]**
+    *   **Requirement:** Stars Ignited.
+    *   **Action:** Select a stable star (The Sun) and accrete a protoplanetary disk.
+    *   **Visual:** A zoomed-in view of debris forming rings around a star.
+
+4.  **[ENTER EARTH]**
+    *   **Requirement:** Solar System Stable.
+    *   **Action:** Zoom into the third rock from the sun.
+    *   **Visual:** Transition from Space View to Planetary View (Magma -> Ocean).
+
+5.  **[PLANT THE SEED]**
+    *   **Requirement:** Create a viable **Cell** in the Biology Lab.
+    *   **Action:** Deposit the engineered organism into Earth's primordial ocean.
+    *   **Result:** Triggers the Evolutionary Simulation (Phase 4).
 
 ---
 
@@ -66,7 +80,7 @@ With Earth ready, the player must design the "Seed" of life. This happens in the
 
 ## 🌍 Phase 4: The Seeding & Evolution (Earth View)
 
-The player returns to the **Stellar Nursery**, zooms into **Earth**, and deploys the Seed into the ocean.
+The player returns to the **Universe**, zooms into **Earth**, and deploys the Seed into the ocean.
 
 1.  **The Seeding:**
     *   Place the LUCA into the primordial ocean.

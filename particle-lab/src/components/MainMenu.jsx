@@ -13,8 +13,8 @@ const MainMenu = () => {
     // Usually a main menu implies a new session or continuing.
     // For now, let's assume it continues unless user resets inside, 
     // BUT user asked for "Start button starts...". 
-    // Let's just navigate to Space. The Big Bang logic will handle the "New Game" feel if energy is 0.
-    setCurrentView('space');
+    // Let's just navigate to Universe. The Big Bang logic will handle the "New Game" feel if energy is 0.
+    setCurrentView('universe');
   };
 
   return (

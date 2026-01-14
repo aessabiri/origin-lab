@@ -14,14 +14,13 @@ This roadmap outlines the technical milestones required to reach the "Bigger Pic
 - [x] **Big Bang Sequence:** Initial cinematic and resource reset.
 
 ## 🟡 Phase 2: The Cosmic & Stellar Stage
-*Status: Up Next*
+*Status: In Progress*
+- [x] **Cinematic Intro:**
+    - [x] Fullscreen video playback for Big Bang sequence.
+    - [x] Seamless transition to simulation.
+    - [x] Onboarding tour for new players.
 - [ ] **Stellar Nursery Overhaul:**
     - [ ] **Nebula Mechanics:** Gas clouds that respond to gravity.
-    - [ ] **Star Formation:** Accreting mass to ignite fusion.
-    - [ ] **Nucleosynthesis:** Converting H/He into heavier elements (Inventory Integration).
-- [ ] **Planetary System:**
-    - [ ] **Accretion Disk:** forming planets from stellar dust.
-    - [ ] **Terraforming Earth:** Comet bombardment to add Water to the planet.
 
 ## 🔴 Phase 3: The Engineering Phase (Labs)
 *Status: Planned*
@@ -30,11 +29,11 @@ This roadmap outlines the technical milestones required to reach the "Bigger Pic
 - [ ] **Biology Lab Integration:**
     - [ ] **The "Seed" Project:** A special mode to design the LUCA (Last Universal Common Ancestor).
     - [ ] **Complexity Metric:** Calculate a score for the LUCA based on organelles and genome stats to determine evolutionary difficulty.
-    - [ ] **Export to Earth:** Ability to "Freeze" the LUCA design for transport to the Stellar Nursery.
+    - [ ] **Export to Earth:** Ability to "Freeze" the LUCA design for transport to the Universe.
 
 ## 🔴 Phase 4: The Evolutionary Sandbox (Earth)
 *Status: Research*
-- [ ] **Earth View:** A zoomed-in view of the planet within the Stellar Nursery.
+- [ ] **Earth View:** A zoomed-in view of the planet within the Universe.
 - [ ] **The Seeding:** Deploying the LUCA into the Earth's ocean.
 - [ ] **Global Simulation:** Running the biology simulation on a planetary scale (using statistical approximation for millions of agents).
 - [ ] **Environmental Controls:** Player modifies Temp/O2/CO2 to drive Natural Selection.

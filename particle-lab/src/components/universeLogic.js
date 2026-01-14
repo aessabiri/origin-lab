@@ -109,6 +109,37 @@ export const updateSimulation = (dt, particles, stars, gravityWells, width, heig
     if (p.y < 0) p.y = height;
     if (p.y > height) p.y = 0;
 
+    // Particle-Particle Interaction (Simple Fusion)
+    for (let j = i - 1; j >= 0; j--) {
+      const p2 = particles[j];
+      const dx = p.x - p2.x;
+      const dy = p.y - p2.y;
+      const distSq = dx*dx + dy*dy;
+      
+      if (distSq < 100) { // Collision
+          if (p.type === PARTICLE_TYPES.HYDROGEN && p2.type === PARTICLE_TYPES.HYDROGEN) {
+              p.type = PARTICLE_TYPES.HELIUM;
+              p.color = '#fbbf24'; // amber-400
+              p.mass = 2;
+              particles.splice(j, 1);
+              if (onDiscover) onDiscover(PARTICLE_TYPES.HELIUM);
+              if (onFusion) onFusion(p.x, p.y, p.color);
+              continue; // Next iteration of outer loop
+          }
+          if (p.type === PARTICLE_TYPES.HELIUM && p2.type === PARTICLE_TYPES.HELIUM) {
+              p.type = PARTICLE_TYPES.CARBON;
+              p.color = '#94a3b8'; // slate-400
+              p.mass = 4;
+              particles.splice(j, 1);
+              if (onDiscover) onDiscover(PARTICLE_TYPES.CARBON);
+              if (onFusion) onFusion(p.x, p.y, p.color);
+              continue;
+          }
+      }
+    }
+
+    if (particles[i] === undefined) continue;
+
     // Star Formation Check (High Density Collision)
     let nearbyMass = 0;
     let nearbyIndices = [];

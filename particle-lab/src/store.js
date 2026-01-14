@@ -29,6 +29,26 @@ export const useStore = create(
       isPeriodicTablePinned: false,
       goalPath: 'medium',
       isSandboxMode: false,
+      introComplete: false,
+      
+      // Global Project Settings
+      globalSettings: {
+        masterVolume: 0.5,
+        musicVolume: 0.3,
+        sfxVolume: 0.8,
+        graphicsQuality: 'high', // 'low', 'medium', 'high'
+        showTooltips: true,
+        reducedMotion: false,
+      },
+      
+      // Universe Progression
+      universeMilestones: {
+        galaxyFormed: false,
+        starsIgnited: false,
+        solarSystemFormed: false,
+        earthEntered: false,
+        lifePlanted: false,
+      },
 
       // UI State
       isPaletteVisible: true,
@@ -40,7 +60,7 @@ export const useStore = create(
       isResetConfirmVisible: false,
       isPeriodicTableVisible: false,
       message: '',
-      currentView: 'menu', // 'menu', 'hub', 'particle', 'chemistry', 'biology', 'space'
+      currentView: 'menu', // 'menu', 'hub', 'particle', 'chemistry', 'biology', 'universe'
 
       // Actions
       setParticles: (particles) => set({ particles }),
@@ -54,6 +74,13 @@ export const useStore = create(
       setIsPeriodicTablePinned: (isPeriodicTablePinned) => set({ isPeriodicTablePinned }),
       setGoalPath: (goalPath) => set({ goalPath }),
       setIsSandboxMode: (isSandboxMode) => set({ isSandboxMode }),
+      setIntroComplete: (introComplete) => set({ introComplete }),
+      setGlobalSettings: (settings) => set((state) => ({ 
+        globalSettings: { ...state.globalSettings, ...settings } 
+      })),
+      setUniverseMilestone: (milestone, value = true) => set((state) => ({
+        universeMilestones: { ...state.universeMilestones, [milestone]: value }
+      })),
 
       // UI Actions
       setIsPaletteVisible: (isPaletteVisible) => set({ isPaletteVisible }),
@@ -98,6 +125,14 @@ export const useStore = create(
           discoveredOrganelles: [],
           currentGoalIndex: 0,
           isResetConfirmVisible: false,
+          introComplete: false,
+          universeMilestones: {
+            galaxyFormed: false,
+            starsIgnited: false,
+            solarSystemFormed: false,
+            earthEntered: false,
+            lifePlanted: false,
+          },
         });
         get().showMessage('Lab has been reset!');
       },
@@ -140,6 +175,9 @@ export const useStore = create(
         isPeriodicTablePinned: state.isPeriodicTablePinned,
         goalPath: state.goalPath,
         isSandboxMode: state.isSandboxMode,
+        introComplete: state.introComplete,
+        globalSettings: state.globalSettings,
+        universeMilestones: state.universeMilestones,
       }),
     }
   )

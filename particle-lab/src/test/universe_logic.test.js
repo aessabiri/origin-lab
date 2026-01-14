@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { updateSimulation, createGasParticle } from '../components/stellarLogic';
+import { updateSimulation, createGasParticle } from '../components/universeLogic';
 import { PARTICLE_TYPES } from '../constants/particles';
 
-describe('Stellar Logic', () => {
+describe('Universe Logic', () => {
   it('should create gas particles correctly', () => {
     const p = createGasParticle(100, 100);
     expect(p.type).toBe(PARTICLE_TYPES.HYDROGEN);

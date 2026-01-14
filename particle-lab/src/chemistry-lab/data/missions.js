@@ -5,9 +5,9 @@ export const MISSIONS = [
     description: 'Let\'s start simple. Create Carbon Dioxide (CO2) by mixing Vinegar and Baking Soda.',
     requirements: { CO2: 1 },
     rewards: {
-      unlockChemicals: ['HYDROGEN', 'OXYGEN'],
+      unlockChemicals: ['HYDROGEN', 'OXYGEN', 'UNIVERSAL_INDICATOR'],
       unlockEquipment: ['flask_volumetric'],
-      message: 'Unlocks: Hydrogen, Oxygen, Reaction Flask'
+      message: 'Unlocks: Hydrogen, Oxygen, Indicator, Reaction Flask'
     },
     hint: {
         vessel: 'Standard Beaker (Open)',

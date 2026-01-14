@@ -20,7 +20,7 @@ A new mode or a separate application based on the "Particle Lab" concept, but fo
 
 ### Expansions
 
-*   **Stellar Nursery & Timeline:** Develop the `StellarNursery.jsx` and `Timeline.jsx` components into full features. The Stellar Nursery could be a place to "grow" stars and observe their life cycles, while the Timeline could be an interactive visualization of the user's journey through the history of the universe.
+*   **Universe & Timeline:** Develop the `Universe.jsx` and `Timeline.jsx` components into full features. The Universe could be a place to "grow" stars and observe their life cycles, while the Timeline could be an interactive visualization of the user's journey through the history of the universe.
 *   **Advanced Chemistry:** Expand the recipe system to include more complex organic molecules, polymers, and even simple proteins. This would provide a deeper crafting system and allow users to explore the building blocks of life.
 *   **Deeper Particle Physics:** Introduce more advanced concepts such as antimatter, different types of quarks and leptons, and the fundamental forces.
 
