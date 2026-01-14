@@ -149,7 +149,18 @@ const Universe = () => {
          ctx.shadowBlur = 0;
       } else if (introComplete) {
          // Run Main Simulation
-         updateSimulation(dt, simState.current.particles, simState.current.stars, simState.current.gravityWells, canvas.width, canvas.height, discover, onFusion, onStarFormation);
+         updateSimulation(
+             dt, 
+             simState.current.particles, 
+             simState.current.stars, 
+             simState.current.gravityWells, 
+             canvas.width, 
+             canvas.height, 
+             discover, 
+             onFusion, 
+             onStarFormation,
+             universeMilestones
+         );
          
          // Render Effects
          for (let i = simState.current.visualEffects.length - 1; i >= 0; i--) {
@@ -158,38 +169,48 @@ const Universe = () => {
          }
 
          // Render Background Stars
-         ctx.fillStyle = 'rgba(17, 24, 39, 0.3)';
+         ctx.fillStyle = 'rgba(2, 6, 23, 0.4)'; // Slate-950 trail
          ctx.fillRect(0, 0, canvas.width, canvas.height);
          
+         ctx.globalCompositeOperation = 'lighter'; // Light additive mode
+
          simState.current.stars.forEach(s => {
-             const grad = ctx.createRadialGradient(s.x, s.y, s.radius*0.2, s.x, s.y, s.radius*2);
+             const grad = ctx.createRadialGradient(s.x, s.y, s.radius*0.1, s.x, s.y, s.radius*3);
              grad.addColorStop(0, s.color);
+             grad.addColorStop(0.2, s.color.replace(')', ', 0.4)').replace('rgb', 'rgba'));
              grad.addColorStop(1, 'rgba(0,0,0,0)');
+             
              ctx.fillStyle = grad;
-             ctx.beginPath(); ctx.arc(s.x, s.y, s.radius*2, 0, Math.PI*2); ctx.fill();
+             ctx.beginPath(); ctx.arc(s.x, s.y, s.radius*3, 0, Math.PI*2); ctx.fill();
+             
+             // Core
              ctx.fillStyle = 'white';
-             ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI*2); ctx.fill();
+             ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.8, 0, Math.PI*2); ctx.fill();
          });
          
          simState.current.gravityWells.forEach(w => {
             const rt = Date.now()/1000;
             const pulse = Math.sin(rt * 5) * 5;
             const radius = Math.max(10, (w.life / w.maxLife) * 40 + pulse);
-            const grad = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, radius + 20);
-            grad.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+            const grad = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, radius + 30);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
             grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.beginPath(); ctx.arc(w.x, w.y, radius+20, 0, Math.PI*2); ctx.fillStyle=grad; ctx.fill();
+            ctx.beginPath(); ctx.arc(w.x, w.y, radius+30, 0, Math.PI*2); ctx.fillStyle=grad; ctx.fill();
          });
 
          simState.current.particles.forEach(p => {
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.type === PARTICLE_TYPES.HYDROGEN ? 2 : 4, 0, Math.PI*2);
-            ctx.fillStyle = p.color; ctx.fill();
+            ctx.beginPath(); 
+            ctx.arc(p.x, p.y, p.type === PARTICLE_TYPES.HYDROGEN ? 1.5 : 3, 0, Math.PI*2);
+            ctx.fillStyle = p.color; 
+            ctx.fill();
          });
          
          simState.current.visualEffects.forEach(fx => {
              ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.radius, 0, Math.PI*2);
              ctx.strokeStyle = fx.color; ctx.stroke();
          });
+
+         ctx.globalCompositeOperation = 'source-over'; // Reset to normal
       }
 
       animationFrameId = requestAnimationFrame(loop);
@@ -214,7 +235,11 @@ const Universe = () => {
   };
 
   return (
-    <div className="w-full h-full relative bg-black overflow-hidden font-mono text-white select-none">
+    <div className="w-full h-full relative bg-[#020617] overflow-hidden font-mono text-white select-none">
+      {/* Cinematic Overlays */}
+      <div className="film-grain" />
+      <div className="absolute inset-0 vignette-overlay z-40" />
+      
       <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} onClick={handleCanvasClick} className={introComplete ? "cursor-crosshair" : "cursor-default"} />
       
       {/* Big Bang Video Player */}

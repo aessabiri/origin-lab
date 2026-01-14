@@ -11,18 +11,42 @@ export const createGasParticle = (width, height) => ({
   life: 100,
 });
 
-export const updateSimulation = (dt, particles, stars, gravityWells, width, height, onDiscover, onFusion, onStarFormation) => {
+export const updateSimulation = (dt, particles, stars, gravityWells, width, height, onDiscover, onFusion, onStarFormation, milestones = {}) => {
+  const cx = width / 2;
+  const cy = height / 2;
+
   // 1. Update Gravity Wells (Player Interaction)
   for (let i = gravityWells.length - 1; i >= 0; i--) {
     gravityWells[i].life -= dt;
     if (gravityWells[i].life <= 0) gravityWells.splice(i, 1);
   }
 
-  // 2. Update Stars
+  // 2. Galaxy Physics (Spiral Force)
+  // If galaxy is formed, apply a global central rotation/pull
+  const isGalaxy = milestones?.galaxyFormed;
+
+  // 3. Update Stars
   for (let s of stars) {
-    // Star Gravity (Pull particles)
-    const pullRadius = Math.sqrt(s.mass) * 20; // Radius grows with mass
-    
+    if (isGalaxy) {
+        // Pull stars into the spiral
+        const dx = cx - s.x;
+        const dy = cy - s.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > 50) {
+            const force = 2000 / (dist + 100);
+            s.vx = (s.vx || 0) + (dx / dist) * force * dt;
+            s.vy = (s.vy || 0) + (dy / dist) * force * dt;
+            
+            // Tangential velocity (Orbit)
+            const tx = -dy / dist;
+            const ty = dx / dist;
+            s.vx += tx * 50 * dt;
+            s.vy += ty * 50 * dt;
+        }
+        s.x += (s.vx || 0) * dt;
+        s.y += (s.vy || 0) * dt;
+    }
+
     // Star Evolution (Nucleosynthesis)
     // Burn H -> He
     const burnRate = s.mass * 0.01 * dt; // Faster burn for bigger stars
@@ -46,9 +70,29 @@ export const updateSimulation = (dt, particles, stars, gravityWells, width, heig
     }
   }
 
-  // 3. Update Particles (Gas)
+  // 4. Update Particles (Gas)
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
+
+    // Apply Galaxy Spiral Force
+    if (isGalaxy) {
+        const dx = cx - p.x;
+        const dy = cy - p.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if (dist > 10) {
+            // Stronger pull towards center
+            const pull = 5000 / (dist + 50);
+            p.vx += (dx / dist) * pull * dt;
+            p.vy += (dy / dist) * pull * dt;
+
+            // Spiral Tangent (The "Swirl")
+            // Velocity perpendicular to the radius
+            const speed = 40; 
+            p.vx += (-dy / dist) * speed * dt;
+            p.vy += (dx / dist) * speed * dt;
+        }
+    }
 
     // Apply Gravity from Wells
     gravityWells.forEach(w => {
@@ -94,58 +138,31 @@ export const updateSimulation = (dt, particles, stars, gravityWells, width, heig
     if (particles[i] === undefined) continue; // Safety if spliced
 
     // Movement
-    const maxV = 50;
+    const maxV = isGalaxy ? 100 : 50;
     if (Math.abs(p.vx) > maxV) p.vx = Math.sign(p.vx) * maxV;
     if (Math.abs(p.vy) > maxV) p.vy = Math.sign(p.vy) * maxV;
 
     p.x += p.vx * dt * 10;
     p.y += p.vy * dt * 10;
-    p.vx *= 0.96;
-    p.vy *= 0.96;
+    
+    // Friction (More in a galaxy to keep it tight)
+    const friction = isGalaxy ? 0.98 : 0.96;
+    p.vx *= friction;
+    p.vy *= friction;
 
-    // Bounds
+    // Bounds (Wrap around)
     if (p.x < 0) p.x = width;
     if (p.x > width) p.x = 0;
     if (p.y < 0) p.y = height;
     if (p.y > height) p.y = 0;
 
-    // Particle-Particle Interaction (Simple Fusion)
-    for (let j = i - 1; j >= 0; j--) {
-      const p2 = particles[j];
-      const dx = p.x - p2.x;
-      const dy = p.y - p2.y;
-      const distSq = dx*dx + dy*dy;
-      
-      if (distSq < 100) { // Collision
-          if (p.type === PARTICLE_TYPES.HYDROGEN && p2.type === PARTICLE_TYPES.HYDROGEN) {
-              p.type = PARTICLE_TYPES.HELIUM;
-              p.color = '#fbbf24'; // amber-400
-              p.mass = 2;
-              particles.splice(j, 1);
-              if (onDiscover) onDiscover(PARTICLE_TYPES.HELIUM);
-              if (onFusion) onFusion(p.x, p.y, p.color);
-              continue; // Next iteration of outer loop
-          }
-          if (p.type === PARTICLE_TYPES.HELIUM && p2.type === PARTICLE_TYPES.HELIUM) {
-              p.type = PARTICLE_TYPES.CARBON;
-              p.color = '#94a3b8'; // slate-400
-              p.mass = 4;
-              particles.splice(j, 1);
-              if (onDiscover) onDiscover(PARTICLE_TYPES.CARBON);
-              if (onFusion) onFusion(p.x, p.y, p.color);
-              continue;
-          }
-      }
-    }
-
-    if (particles[i] === undefined) continue;
-
     // Star Formation Check (High Density Collision)
+    // If galaxy is formed, star formation chance increases significantly in the core
+    const formationChance = isGalaxy ? 0.95 : 0.99;
+    
     let nearbyMass = 0;
     let nearbyIndices = [];
     
-    // Only check if no active wells nearby (avoid artificial clumping)
-    // Simplified: Check neighbors
     for (let j = i - 1; j >= 0; j--) {
       const p2 = particles[j];
       const dx = p.x - p2.x;
@@ -156,11 +173,12 @@ export const updateSimulation = (dt, particles, stars, gravityWells, width, heig
       }
     }
 
-    if (nearbyMass > 5 && Math.random() > 0.99) { // Critical Mass met
+    if (nearbyMass > 5 && Math.random() > formationChance) { 
        // Form Protostar
        const newStar = {
          x: p.x,
          y: p.y,
+         vx: p.vx, vy: p.vy, // Inherit momentum
          mass: nearbyMass + p.mass,
          radius: 10 + Math.sqrt(nearbyMass),
          temperature: 3000,
@@ -172,8 +190,7 @@ export const updateSimulation = (dt, particles, stars, gravityWells, width, heig
        
        // Consume gas
        particles.splice(i, 1);
-       nearbyIndices.forEach(idx => particles.splice(idx, 1)); // This is risky with indices shifting
-       // Better: Mark for deletion or just consume one and let gravity do the rest next frame
+       nearbyIndices.forEach(idx => particles.splice(idx, 1)); 
        
        if (onStarFormation) onStarFormation(newStar);
        break; 

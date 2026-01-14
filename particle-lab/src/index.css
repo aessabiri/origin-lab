@@ -2,6 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Cinematic Post-Processing */
+.vignette-overlay {
+  background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+  pointer-events: none;
+}
+
+.film-grain {
+  position: fixed;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+  opacity: 0.04;
+  pointer-events: none;
+  animation: grain 8s steps(10) infinite;
+  z-index: 45;
+}
+
+@keyframes grain {
+  0%, 100% { transform:translate(0, 0) }
+  10% { transform:translate(-5%, -10%) }
+  20% { transform:translate(-15%, 5%) }
+  30% { transform:translate(7%, -25%) }
+  40% { transform:translate(-5%, 25%) }
+  50% { transform:translate(-15%, 10%) }
+  60% { transform:translate(15%, 0%) }
+  70% { transform:translate(0%, 15%) }
+  80% { transform:translate(3%, 35%) }
+  90% { transform:translate(-10%, 10%) }
+}
+
+/* Kurzgesagt-style Glow */
+.bloom-canvas {
+  filter: blur(4px) brightness(1.5) contrast(1.2);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.particle-glow {
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
 /* simple body reset */
 html, body, #root {
   height: 100%;
