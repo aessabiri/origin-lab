@@ -1,17 +1,37 @@
 import { PARTICLE_TYPES } from '../constants/particles';
 
-export const createGasParticle = (width, height) => ({
-  x: Math.random() * width,
-  y: Math.random() * height,
-  vx: (Math.random() - 0.5) * 20,
-  vy: (Math.random() - 0.5) * 20,
-  mass: 1,
-  type: PARTICLE_TYPES.HYDROGEN,
-  color: '#3b82f6', // blue-500
-  life: 100,
-});
+export const createNebulaParticle = (width, height, offsetX = 0, offsetY = 0) => {
+  // Gaussian-like distribution for Nebula clumps
+  // Summing randoms approximates a normal distribution (Central Limit Theorem)
+  const r = (Math.random() + Math.random() + Math.random()) / 3; 
+  const angle = Math.random() * Math.PI * 2;
+  const dist = Math.random() * 200; // Cloud radius
 
-export const updateSimulation = (dt, particles, stars, gravityWells, width, height, onDiscover, onFusion, onStarFormation, milestones = {}) => {
+  let x, y;
+  
+  if (offsetX === 0 && offsetY === 0) {
+      // Random scatter if no center provided
+      x = Math.random() * width;
+      y = Math.random() * height;
+  } else {
+      // Clumped generation around a center
+      x = offsetX + Math.cos(angle) * dist * r;
+      y = offsetY + Math.sin(angle) * dist * r;
+  }
+
+  return {
+    x,
+    y,
+    vx: (Math.random() - 0.5) * 10, // Slower initial drift for nebulae
+    vy: (Math.random() - 0.5) * 10,
+    mass: 1,
+    type: PARTICLE_TYPES.HYDROGEN,
+    color: '#3b82f6', // blue-500
+    life: 100,
+  };
+};
+
+export const updateSimulation = (dt, particles, stars, gravityWells, planets, width, height, onDiscover, onFusion, onStarFormation, milestones = {}) => {
   const cx = width / 2;
   const cy = height / 2;
 
@@ -22,8 +42,8 @@ export const updateSimulation = (dt, particles, stars, gravityWells, width, heig
   }
 
   // 2. Galaxy Physics (Spiral Force)
-  // If galaxy is formed, apply a global central rotation/pull
   const isGalaxy = milestones?.galaxyFormed;
+  const isSolar = milestones?.solarSystemFormed;
 
   // 3. Update Stars
   for (let s of stars) {
@@ -68,6 +88,28 @@ export const updateSimulation = (dt, particles, stars, gravityWells, width, heig
     if (s.mass > 200 && s.composition.iron > 10) {
        s.unstable = true;
     }
+  }
+  
+  // 3.5 Update Planets (if passed in array)
+  if (planets) {
+      for (let p of planets) {
+          if (p.hostStar) {
+             const s = p.hostStar;
+             // Check if host star still exists (it might have gone supernova)
+             if (!stars.includes(s)) {
+                 p.hostStar = null; // Planet goes rogue
+                 continue;
+             }
+             
+             p.angle += p.speed * dt;
+             p.x = s.x + Math.cos(p.angle) * p.dist;
+             p.y = s.y + Math.sin(p.angle) * p.dist;
+          } else {
+             // Rogue planet drift
+             p.x += (Math.random()-0.5);
+             p.y += (Math.random()-0.5);
+          }
+      }
   }
 
   // 4. Update Particles (Gas)
@@ -125,6 +167,28 @@ export const updateSimulation = (dt, particles, stars, gravityWells, width, heig
          particles.splice(i, 1);
          if (onFusion) onFusion(s.x, s.y, s.color);
          return; // Dead particle
+      }
+
+      // Planet Formation (Accretion Disk)
+      // If Solar System is unlocked, particles near stars might form planets instead of being eaten
+      if (isSolar && dist < s.radius * 4 && dist > s.radius * 1.5) {
+          // Rare chance to form a planet
+          if (Math.random() > 0.99) {
+              if (planets) {
+                  planets.push({
+                      hostStar: s,
+                      dist: dist,
+                      angle: Math.atan2(dy, dx),
+                      speed: (1 + Math.random()) * 0.5, // rad/s
+                      size: 2 + Math.random() * 3,
+                      color: ['#a3e635', '#60a5fa', '#f472b6', '#eab308'][Math.floor(Math.random()*4)], // Earth, Water, Gas, Desert
+                      type: 'planet'
+                  });
+                  particles.splice(i, 1);
+                  if (onFusion) onFusion(p.x, p.y, '#ffffff'); // Re-use fusion flash as "Ignition" visual
+                  return;
+              }
+          }
       }
 
       // Gravity pull

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { updateSimulation, createGasParticle } from '../components/universeLogic';
+import { updateSimulation, createNebulaParticle } from '../components/universeLogic';
 import { PARTICLE_TYPES } from '../constants/particles';
 
 describe('Universe Logic', () => {
   it('should create gas particles correctly', () => {
-    const p = createGasParticle(100, 100);
+    const p = createNebulaParticle(100, 100);
     expect(p.type).toBe(PARTICLE_TYPES.HYDROGEN);
     expect(p.mass).toBe(1);
     expect(p.vx).toBeDefined();
@@ -21,13 +21,14 @@ describe('Universe Logic', () => {
     
     const stars = [];
     const gravityWells = [];
+    const planets = [];
     const onStarFormation = vi.fn();
 
     // Mock Math.random to ensure formation triggers (threshold > 0.99)
     const originalRandom = Math.random;
     Math.random = () => 0.999;
 
-    updateSimulation(0.1, particles, stars, gravityWells, 100, 100, null, null, onStarFormation);
+    updateSimulation(0.1, particles, stars, gravityWells, planets, 100, 100, null, null, onStarFormation);
 
     Math.random = originalRandom;
 
@@ -52,7 +53,7 @@ describe('Universe Logic', () => {
     const p = { x: 50, y: 50, mass: 1, type: PARTICLE_TYPES.HYDROGEN };
     const particles = [p];
 
-    updateSimulation(0.1, particles, stars, [], 100, 100, null, null, null);
+    updateSimulation(0.1, particles, stars, [], [], 100, 100, null, null, null);
 
     expect(particles.length).toBe(0); // Consumed
     expect(star.mass).toBe(11); // Grew
@@ -68,7 +69,7 @@ describe('Universe Logic', () => {
     };
     const stars = [star];
 
-    updateSimulation(1.0, [], stars, [], 100, 100);
+    updateSimulation(1.0, [], stars, [], [], 100, 100);
 
     expect(star.composition.hydrogen).toBeLessThan(100);
     expect(star.composition.helium).toBeGreaterThan(0);

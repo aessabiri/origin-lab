@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { useInventory } from '../store/inventory';
 import { useBioStore } from '../biology-lab/store'; // Import Bio Store
 import { PARTICLE_TYPES } from '../constants/particles';
-import { updateSimulation, createGasParticle } from './universeLogic';
+import { updateSimulation, createNebulaParticle } from './universeLogic';
 
 const ERAS = {
   SINGULARITY: { name: 'The Singularity', end: 0, color: 'text-white', desc: 'Infinite density. Zero volume.' },
@@ -29,6 +29,7 @@ const Universe = () => {
   const simState = useRef({
     particles: [],
     stars: [],
+    planets: [],
     gravityWells: [],
     visualEffects: [],
     lastFrame: 0,
@@ -68,6 +69,25 @@ const Universe = () => {
       showMessage("Supernova! Elements harvested.");
   };
 
+  const populateUniverse = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      
+      // Create 3 major nebulae
+      for(let n=0; n<3; n++) {
+          const cx = Math.random() * w;
+          const cy = Math.random() * h;
+          for(let i=0; i<150; i++) {
+              simState.current.particles.push(createNebulaParticle(w, h, cx, cy));
+          }
+      }
+      
+      // Background scatter
+      for(let i=0; i<100; i++) {
+           simState.current.particles.push(createNebulaParticle(w, h));
+      }
+  };
+
   const handleInitiate = () => {
     setShowVideo(true);
     setTimeout(() => {
@@ -89,13 +109,11 @@ const Universe = () => {
       setPlaybackSpeed(0.5);
 
       // Init Plasma/Quark Soup particles
-      const cx = window.innerWidth / 2;
-      const cy = window.innerHeight / 2;
-      simState.current.plasmaParticles = [];
-      // Generate some stars immediately for the effect
-      for(let i=0; i<300; i++) {
-        simState.current.particles.push(createGasParticle(window.innerWidth, window.innerHeight));
-      }
+      simState.current.particles = [];
+      simState.current.stars = [];
+      simState.current.planets = [];
+      
+      populateUniverse();
   };
 
   const handleCanvasClick = (e) => {
@@ -116,7 +134,8 @@ const Universe = () => {
     }
 
     simState.current.gravityWells.push({ x, y, strength: 15000, life: 15.0, maxLife: 15.0 });
-    for(let i=0; i<10; i++) simState.current.particles.push(createGasParticle(canvasRef.current.width, canvasRef.current.height));
+    // Spawn a mini-nebula at click
+    for(let i=0; i<20; i++) simState.current.particles.push(createNebulaParticle(canvasRef.current.width, canvasRef.current.height, x, y));
   };
 
   // Simulation Loop
@@ -153,7 +172,8 @@ const Universe = () => {
              dt, 
              simState.current.particles, 
              simState.current.stars, 
-             simState.current.gravityWells, 
+             simState.current.gravityWells,
+             simState.current.planets,
              canvas.width, 
              canvas.height, 
              discover, 
@@ -186,6 +206,16 @@ const Universe = () => {
              // Core
              ctx.fillStyle = 'white';
              ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.8, 0, Math.PI*2); ctx.fill();
+         });
+         
+         // Render Planets
+         simState.current.planets.forEach(p => {
+             ctx.beginPath();
+             ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+             ctx.fillStyle = p.color;
+             ctx.fill();
+             
+             // Orbit trail (optional, maybe too expensive)
          });
          
          simState.current.gravityWells.forEach(w => {
