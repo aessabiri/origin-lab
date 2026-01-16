@@ -1,30 +1,33 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useStore } from '../store';
 import { useInventory } from '../store/inventory';
-import { useBioStore } from '../biology-lab/store'; // Import Bio Store
+import { useBioStore } from '../biology-lab/store'; 
 import { PARTICLE_TYPES } from '../constants/particles';
-import { updateSimulation, createNebulaParticle } from './universeLogic';
+import { updateSimulation, createNebulaParticle, triggerInflation, BigBangPhase } from './universeLogic';
 
-const ERAS = {
-  SINGULARITY: { name: 'The Singularity', end: 0, color: 'text-white', desc: 'Infinite density. Zero volume.' },
-  STELLAR: { name: 'Stellar Era', end: 13800000000, color: 'text-blue-300', desc: 'Gravity collapses gas clouds into stars.' },
+const ZOOM_LEVELS = {
+  GALAXY: 0,
+  SOLAR: 1,
+  EARTH: 2
 };
 
 const Universe = () => {
   const canvasRef = useRef(null);
-  const videoRef = useRef(null);
   
   const showMessage = useStore(state => state.showMessage);
   const setDiscoveredAtoms = useStore(state => state.setDiscoveredAtoms);
   const { introComplete, setIntroComplete, universeMilestones, setUniverseMilestone, particles, discoveredAtoms } = useStore();
   const { triggerBigBang } = useInventory();
-  const { agents } = useBioStore(); // Access Bio Agents
+  const { agents } = useBioStore(); 
   
   const [time, setTime] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [showVideo, setShowVideo] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  const [bigBangPhase, setBigBangPhase] = useState(BigBangPhase.PRE_BANG);
+  const [zoomLevel, setZoomLevel] = useState(ZOOM_LEVELS.GALAXY);
+  const [simTime, setSimTime] = useState(0);
 
   const simState = useRef({
     particles: [],
@@ -72,73 +75,97 @@ const Universe = () => {
   const populateUniverse = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      
-      // Create 3 major nebulae
+      simState.current.particles = []; 
       for(let n=0; n<3; n++) {
           const cx = Math.random() * w;
           const cy = Math.random() * h;
-          for(let i=0; i<150; i++) {
-              simState.current.particles.push(createNebulaParticle(w, h, cx, cy));
-          }
+          for(let i=0; i<150; i++) simState.current.particles.push(createNebulaParticle(w, h, cx, cy));
       }
+      for(let i=0; i<100; i++) simState.current.particles.push(createNebulaParticle(w, h));
+  };
+
+  // --- MILESTONE HANDLERS ---
+  const handleGalaxyFormation = () => {
+      setUniverseMilestone('galaxyFormed');
+      showMessage('Galaxy formed! Dark Matter acquired.');
+      // Visual: Massive inward pull
+      simState.current.gravityWells.push({ 
+          x: window.innerWidth/2, y: window.innerHeight/2, strength: 50000, life: 5.0, maxLife: 5.0 
+      });
+  };
+
+  const handleStarFormation = () => {
+      setUniverseMilestone('starsIgnited');
+      showMessage('Stars are igniting across the cosmos!');
+      // Force trigger star formation in dense areas
+      simState.current.particles.forEach(p => {
+          if (Math.random() > 0.8) p.color = '#ffffff'; // Flash
+      });
+  };
+
+  const handleSolarSystem = () => {
+      setUniverseMilestone('solarSystemFormed');
+      showMessage('Entering Solar System...');
       
-      // Background scatter
-      for(let i=0; i<100; i++) {
-           simState.current.particles.push(createNebulaParticle(w, h));
+      // Transition to Solar View
+      setZoomLevel(ZOOM_LEVELS.SOLAR);
+      
+      // Clear Galaxy, Create Sol
+      simState.current.particles = [];
+      simState.current.stars = [{
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          mass: 1000,
+          radius: 50,
+          color: '#fbbf24', // Amber-400
+          composition: { hydrogen: 1000, helium: 0, carbon: 0, iron: 0 },
+          temperature: 5778
+      }];
+      simState.current.planets = [];
+      
+      // Create Protoplanetary Disk
+      for(let i=0; i<200; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = 100 + Math.random() * 300;
+          simState.current.particles.push({
+              x: window.innerWidth/2 + Math.cos(angle) * dist,
+              y: window.innerHeight/2 + Math.sin(angle) * dist,
+              vx: -Math.sin(angle) * 2, // Orbital velocity
+              vy: Math.cos(angle) * 2,
+              mass: 1,
+              type: PARTICLE_TYPES.CARBON, // Dust
+              color: '#a8a29e',
+              life: 100
+          });
       }
+  };
+
+  const handleEnterEarth = () => {
+      setUniverseMilestone('earthEntered');
+      showMessage('Welcome to Earth.');
+      setZoomLevel(ZOOM_LEVELS.EARTH);
   };
 
   const handleInitiate = () => {
-    setShowVideo(true);
-    setTimeout(() => {
-        if (videoRef.current) {
-            videoRef.current.play().catch(e => console.error("Video play failed:", e));
-        }
-    }, 100);
-  };
-
-  const handleVideoEnd = () => {
-      setShowVideo(false);
-      setIntroComplete(true);
-      setShowOnboarding(true);
-      
-      // Initialize Simulation State
-      triggerBigBang();
-      setTime(1e-60);
-      setIsPlaying(true);
-      setPlaybackSpeed(0.5);
-
-      // Init Plasma/Quark Soup particles
-      simState.current.particles = [];
-      simState.current.stars = [];
-      simState.current.planets = [];
-      
-      populateUniverse();
-  };
-
-  const handleCanvasClick = (e) => {
-    if (!introComplete) return; 
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    setBigBangPhase(BigBangPhase.INFLATION);
+    simState.current.particles = triggerInflation(window.innerWidth, window.innerHeight);
+    setSimTime(0);
     
-    const clickedStarIndex = simState.current.stars.findIndex(s => {
-        const dx = s.x - x;
-        const dy = s.y - y;
-        return (dx*dx + dy*dy < s.radius*s.radius * 4); 
-    });
-
-    if (clickedStarIndex !== -1) {
-        detonateStar(clickedStarIndex);
-        return;
-    }
-
-    simState.current.gravityWells.push({ x, y, strength: 15000, life: 15.0, maxLife: 15.0 });
-    // Spawn a mini-nebula at click
-    for(let i=0; i<20; i++) simState.current.particles.push(createNebulaParticle(canvasRef.current.width, canvasRef.current.height, x, y));
+    setTimeout(() => setBigBangPhase(BigBangPhase.PLASMA), 2000);
+    setTimeout(() => setBigBangPhase(BigBangPhase.DARK_AGES), 8000);
+    setTimeout(() => {
+        setBigBangPhase(BigBangPhase.STELLAR);
+        setIntroComplete(true);
+        setShowOnboarding(true);
+        triggerBigBang();
+        setTime(1e-60);
+        setIsPlaying(true);
+        setPlaybackSpeed(0.5);
+        populateUniverse(); 
+    }, 12000);
   };
 
-  // Simulation Loop
+  // --- RENDER LOOP ---
   useEffect(() => {
     let animationFrameId;
     const canvas = canvasRef.current;
@@ -147,107 +174,158 @@ const Universe = () => {
 
     const loop = (timestamp) => {
       const dt = 0.016; 
-      
-      if (isPlaying && introComplete) {
+      if (isPlaying) {
          setTime(t => t + 100000 * playbackSpeed);
+         setSimTime(t => t + dt);
       }
 
-      ctx.fillStyle = 'black';
+      // Clear Canvas
+      ctx.fillStyle = zoomLevel === ZOOM_LEVELS.EARTH ? '#000000' : (bigBangPhase === BigBangPhase.PLASMA ? '#050505' : 'black');
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      if (!introComplete && !showVideo) {
-         // Singularity Idle Animation
-         const cx = canvas.width / 2;
-         const cy = canvas.height / 2;
-         ctx.beginPath();
-         ctx.arc(cx, cy, 10 + Math.sin(timestamp * 0.005) * 2, 0, Math.PI * 2);
-         ctx.fillStyle = 'white';
-         ctx.shadowColor = 'cyan';
-         ctx.shadowBlur = 20 + Math.sin(timestamp * 0.01) * 10;
-         ctx.fill();
-         ctx.shadowBlur = 0;
-      } else if (introComplete) {
-         // Run Main Simulation
-         updateSimulation(
-             dt, 
-             simState.current.particles, 
-             simState.current.stars, 
-             simState.current.gravityWells,
-             simState.current.planets,
-             canvas.width, 
-             canvas.height, 
-             discover, 
-             onFusion, 
-             onStarFormation,
-             universeMilestones
-         );
-         
-         // Render Effects
-         for (let i = simState.current.visualEffects.length - 1; i >= 0; i--) {
-            simState.current.visualEffects[i].life -= dt * 2;
-            if (simState.current.visualEffects[i].life <= 0) simState.current.visualEffects.splice(i, 1);
-         }
-
-         // Render Background Stars
-         ctx.fillStyle = 'rgba(2, 6, 23, 0.4)'; // Slate-950 trail
-         ctx.fillRect(0, 0, canvas.width, canvas.height);
-         
-         ctx.globalCompositeOperation = 'lighter'; // Light additive mode
-
-         simState.current.stars.forEach(s => {
-             const grad = ctx.createRadialGradient(s.x, s.y, s.radius*0.1, s.x, s.y, s.radius*3);
-             grad.addColorStop(0, s.color);
-             grad.addColorStop(0.2, s.color.replace(')', ', 0.4)').replace('rgb', 'rgba'));
-             grad.addColorStop(1, 'rgba(0,0,0,0)');
-             
-             ctx.fillStyle = grad;
-             ctx.beginPath(); ctx.arc(s.x, s.y, s.radius*3, 0, Math.PI*2); ctx.fill();
-             
-             // Core
-             ctx.fillStyle = 'white';
-             ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.8, 0, Math.PI*2); ctx.fill();
-         });
-         
-         // Render Planets
-         simState.current.planets.forEach(p => {
+      if (!introComplete) {
+         // PRE-BANG & BIG BANG CINEMATICS
+         if (bigBangPhase === BigBangPhase.PRE_BANG) {
+             const cx = canvas.width / 2;
+             const cy = canvas.height / 2;
              ctx.beginPath();
-             ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-             ctx.fillStyle = p.color;
+             ctx.arc(cx, cy, 10 + Math.sin(timestamp * 0.005) * 2, 0, Math.PI * 2);
+             ctx.fillStyle = 'white';
+             ctx.shadowColor = 'cyan';
+             ctx.shadowBlur = 20 + Math.sin(timestamp * 0.01) * 10;
              ctx.fill();
+             ctx.shadowBlur = 0;
+         } else {
+             const cinematics = updateSimulation(dt, simState.current.particles, [], [], [], canvas.width, canvas.height, null, null, null, {}, bigBangPhase, simTime);
              
-             // Orbit trail (optional, maybe too expensive)
-         });
-         
-         simState.current.gravityWells.forEach(w => {
-            const rt = Date.now()/1000;
-            const pulse = Math.sin(rt * 5) * 5;
-            const radius = Math.max(10, (w.life / w.maxLife) * 40 + pulse);
-            const grad = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, radius + 30);
-            grad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.beginPath(); ctx.arc(w.x, w.y, radius+30, 0, Math.PI*2); ctx.fillStyle=grad; ctx.fill();
-         });
+             // Apply Cinematic Shake
+             ctx.save();
+             const shakeX = (Math.random() - 0.5) * cinematics.shake;
+             const shakeY = (Math.random() - 0.5) * cinematics.shake;
+             ctx.translate(shakeX, shakeY);
 
-         simState.current.particles.forEach(p => {
-            ctx.beginPath(); 
-            ctx.arc(p.x, p.y, p.type === PARTICLE_TYPES.HYDROGEN ? 1.5 : 3, 0, Math.PI*2);
-            ctx.fillStyle = p.color; 
-            ctx.fill();
-         });
-         
-         simState.current.visualEffects.forEach(fx => {
-             ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.radius, 0, Math.PI*2);
-             ctx.strokeStyle = fx.color; ctx.stroke();
-         });
+             // Render Particles
+             simState.current.particles.forEach(p => {
+                ctx.beginPath(); 
+                const r = bigBangPhase === BigBangPhase.INFLATION ? 4 : 2;
+                ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+                ctx.fillStyle = p.color; 
+                ctx.fill();
+             });
+             
+             ctx.restore();
 
-         ctx.globalCompositeOperation = 'source-over'; // Reset to normal
+             // Exposure Flash
+             if (cinematics.exposure > 0.01) {
+                 ctx.fillStyle = `rgba(255, 255, 255, ${cinematics.exposure})`;
+                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+             }
+         }
+      } else {
+         // --- STELLAR ERA ---
+         if (zoomLevel === ZOOM_LEVELS.GALAXY || zoomLevel === ZOOM_LEVELS.SOLAR) {
+             // Run Physics
+             updateSimulation(
+                 dt, 
+                 simState.current.particles, 
+                 simState.current.stars, 
+                 simState.current.gravityWells,
+                 simState.current.planets,
+                 canvas.width, 
+                 canvas.height, 
+                 discover, 
+                 onFusion, 
+                 onStarFormation,
+                 universeMilestones,
+                 BigBangPhase.STELLAR
+             );
+
+             // Render Stars
+             simState.current.stars.forEach(s => {
+                 const grad = ctx.createRadialGradient(s.x, s.y, s.radius*0.1, s.x, s.y, s.radius*3);
+                 grad.addColorStop(0, s.color);
+                 grad.addColorStop(0.2, s.color.replace(')', ', 0.4)').replace('rgb', 'rgba'));
+                 grad.addColorStop(1, 'rgba(0,0,0,0)');
+                 ctx.fillStyle = grad;
+                 ctx.beginPath(); ctx.arc(s.x, s.y, s.radius*3, 0, Math.PI*2); ctx.fill();
+                 ctx.fillStyle = 'white';
+                 ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.8, 0, Math.PI*2); ctx.fill();
+             });
+
+             // Render Particles
+             simState.current.particles.forEach(p => {
+                ctx.beginPath(); 
+                ctx.arc(p.x, p.y, zoomLevel === ZOOM_LEVELS.SOLAR ? 2 : 1.5, 0, Math.PI*2);
+                ctx.fillStyle = p.color; 
+                ctx.fill();
+             });
+             
+             // Render Planets
+             simState.current.planets.forEach(p => {
+                 ctx.beginPath();
+                 ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                 ctx.fillStyle = p.color;
+                 ctx.fill();
+             });
+
+             // Render Gravity Wells
+             simState.current.gravityWells.forEach(w => {
+                const rt = Date.now()/1000;
+                const radius = Math.max(10, (w.life / w.maxLife) * 40 + Math.sin(rt * 5) * 5);
+                const grad = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, radius + 30);
+                grad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.beginPath(); ctx.arc(w.x, w.y, radius+30, 0, Math.PI*2); ctx.fillStyle=grad; ctx.fill();
+             });
+         }
+         
+         // --- EARTH VIEW ---
+         if (zoomLevel === ZOOM_LEVELS.EARTH) {
+             const cx = canvas.width / 2;
+             const cy = canvas.height / 2;
+             const time = Date.now() / 5000;
+             
+             // Atmosphere Glow
+             const grad = ctx.createRadialGradient(cx, cy, 150, cx, cy, 220);
+             grad.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
+             grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+             ctx.fillStyle = grad;
+             ctx.beginPath(); ctx.arc(cx, cy, 220, 0, Math.PI*2); ctx.fill();
+
+             // Planet Body (Simple Rotation Effect)
+             ctx.save();
+             ctx.beginPath(); ctx.arc(cx, cy, 150, 0, Math.PI*2); ctx.clip();
+             
+             // Ocean
+             ctx.fillStyle = '#1e3a8a'; // Blue-900
+             ctx.fillRect(cx - 150, cy - 150, 300, 300);
+             
+             // Continents (Procedural Noise-ish)
+             ctx.fillStyle = '#15803d'; // Green-700
+             for(let i=0; i<5; i++) {
+                 const offset = (time * 100 + i * 100) % 500 - 100;
+                 ctx.beginPath();
+                 ctx.arc(cx - 150 + offset, cy - 50 + Math.sin(i)*50, 60, 0, Math.PI*2);
+                 ctx.fill();
+             }
+             
+             // Shadow (Day/Night Cycle)
+             const shadowGrad = ctx.createLinearGradient(cx - 150, cy, cx + 150, cy);
+             shadowGrad.addColorStop(0, 'rgba(0,0,0,0.8)');
+             shadowGrad.addColorStop(0.5, 'rgba(0,0,0,0)');
+             shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+             ctx.fillStyle = shadowGrad;
+             ctx.fillRect(cx - 150, cy - 150, 300, 300);
+
+             ctx.restore();
+         }
       }
 
       animationFrameId = requestAnimationFrame(loop);
     };
     animationFrameId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [introComplete, isPlaying, playbackSpeed]); 
+  }, [introComplete, isPlaying, playbackSpeed, bigBangPhase, zoomLevel]); 
 
   const formatTime = (t) => {
     if (t < 0) return "T - ???";
@@ -255,45 +333,22 @@ const Universe = () => {
     return `${(t/1000000000).toFixed(2)} Billion Years`;
   };
 
-  // --- PROGRESSION LOGIC ---
   const unlockCriteria = {
-      galaxy: particles.length + discoveredAtoms.length >= 10,
+      galaxy: true, // Unlocked by default for simulation flow
       star: universeMilestones.galaxyFormed,
       solar: universeMilestones.starsIgnited,
       earth: universeMilestones.solarSystemFormed,
-      life: universeMilestones.earthEntered && agents.length > 0,
+      life: universeMilestones.earthEntered,
   };
 
   return (
     <div className="w-full h-full relative bg-[#020617] overflow-hidden font-mono text-white select-none">
-      {/* Cinematic Overlays */}
       <div className="film-grain" />
       <div className="absolute inset-0 vignette-overlay z-40" />
       
-      <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} onClick={handleCanvasClick} className={introComplete ? "cursor-crosshair" : "cursor-default"} />
+      <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className={introComplete ? "cursor-crosshair" : "cursor-default"} />
       
-      {/* Big Bang Video Player */}
-      {showVideo && (
-        <div className="absolute inset-0 z-[100] bg-black">
-            <video 
-                ref={videoRef}
-                className="w-full h-full object-cover"
-                src="/big_bang.mp4" 
-                onEnded={handleVideoEnd}
-                controls={false}
-                autoPlay
-            />
-            <button 
-                onClick={handleVideoEnd}
-                className="absolute bottom-10 right-10 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white font-bold tracking-widest uppercase transition-all hover:scale-105 z-[101]"
-            >
-                Skip Sequence ↠
-            </button>
-        </div>
-      )}
-
-      {/* Intro Overlay: Singularity */}
-      {!introComplete && !showVideo && (
+      {!introComplete && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40 animate-[fadeIn_2s]">
            <h1 className="text-6xl font-black mb-8 animate-pulse text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">SINGULARITY DETECTED</h1>
            <p className="text-gray-500 max-w-md mx-auto mb-8 bg-black/50 p-2 rounded backdrop-blur-sm">
@@ -306,20 +361,20 @@ const Universe = () => {
         </div>
       )}
 
-      {/* Main HUD & Progression Bar */}
       {introComplete && (
       <div className="animate-[fadeIn_2s_ease-out]">
-        
-        {/* Top Stats */}
         <div className="absolute top-0 left-0 w-full p-4 pointer-events-none flex justify-between items-start mt-16">
             <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-700 backdrop-blur-md shadow-[0_0_20px_rgba(59,130,246,0.5)]">
-                <h2 className="text-2xl font-bold text-blue-300">Stellar Era</h2>
-                <p className="text-slate-400 text-sm">Gravity collapses gas clouds into stars.</p>
+                <h2 className="text-2xl font-bold text-blue-300">
+                    {zoomLevel === ZOOM_LEVELS.GALAXY ? 'Stellar Era' : zoomLevel === ZOOM_LEVELS.SOLAR ? 'Solar System' : 'Planet Earth'}
+                </h2>
+                <p className="text-slate-400 text-sm">
+                    {zoomLevel === ZOOM_LEVELS.GALAXY ? 'Gravity collapses gas clouds into stars.' : zoomLevel === ZOOM_LEVELS.SOLAR ? 'Accretion of planetary bodies.' : 'Awaiting the seed of life.'}
+                </p>
                 <p className="text-xl mt-2 font-mono text-white">{formatTime(time)}</p>
             </div>
         </div>
 
-        {/* Playback Controls */}
         <div className="absolute bottom-8 left-4 bg-slate-900/90 p-4 rounded-2xl border border-slate-700 backdrop-blur-md flex gap-4 shadow-2xl">
             <button onClick={() => setIsPlaying(!isPlaying)} className={`px-4 py-2 rounded-full font-bold ${isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white transition-colors`}>{isPlaying ? 'PAUSE' : 'PLAY'}</button>
             <div className="flex flex-col justify-center">
@@ -328,45 +383,39 @@ const Universe = () => {
             </div>
         </div>
 
-        {/* --- COSMIC MILESTONE BAR --- */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/80 p-2 rounded-full border border-white/10 backdrop-blur-xl flex gap-2 overflow-x-auto max-w-[90vw]">
-            
             <MilestoneButton 
                 label="Galaxy Formation"
                 icon="🌌"
                 active={universeMilestones.galaxyFormed}
                 locked={!unlockCriteria.galaxy}
-                onClick={() => { setUniverseMilestone('galaxyFormed'); showMessage('Galaxy formed! Dark Matter acquired.'); }}
+                onClick={handleGalaxyFormation}
                 tip="Discover 10 Particles to Unlock"
             />
-            
             <MilestoneButton 
                 label="Star Formation"
                 icon="✨"
                 active={universeMilestones.starsIgnited}
                 locked={!unlockCriteria.star}
-                onClick={() => { setUniverseMilestone('starsIgnited'); showMessage('Stars are igniting across the cosmos!'); }}
+                onClick={handleStarFormation}
                 tip="Form a Galaxy first"
             />
-
             <MilestoneButton 
                 label="Solar System"
                 icon="☀️"
                 active={universeMilestones.solarSystemFormed}
                 locked={!unlockCriteria.solar}
-                onClick={() => { setUniverseMilestone('solarSystemFormed'); showMessage('Solar System accreted.'); }}
+                onClick={handleSolarSystem}
                 tip="Wait for Star Formation"
             />
-
             <MilestoneButton 
                 label="Enter Earth"
                 icon="🌍"
                 active={universeMilestones.earthEntered}
                 locked={!unlockCriteria.earth}
-                onClick={() => { setUniverseMilestone('earthEntered'); showMessage('Welcome to Earth.'); }}
+                onClick={handleEnterEarth}
                 tip="Form the Solar System first"
             />
-
             <MilestoneButton 
                 label="Plant Seed"
                 icon="🌱"
@@ -376,10 +425,8 @@ const Universe = () => {
                 tip="Create a Cell in Biology Lab"
                 special
             />
-
         </div>
 
-        {/* Onboarding Tooltip */}
         {showOnboarding && !Object.values(universeMilestones).some(v => v) && (
             <div className="absolute bottom-32 left-1/2 -translate-x-1/2 bg-blue-600 text-white p-6 rounded-xl shadow-2xl max-w-md animate-[bounce_1s_infinite]">
                 <h3 className="text-xl font-bold mb-2">The Cosmos Awaits</h3>
@@ -420,8 +467,6 @@ const MilestoneButton = ({ label, icon, active, locked, onClick, tip, special })
             <span className="font-bold uppercase text-xs tracking-wider whitespace-nowrap">{label}</span>
             {active && <span className="ml-2 text-green-400">✓</span>}
         </button>
-        
-        {/* Tooltip on Hover */}
         {locked && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 p-2 bg-black/90 text-white text-xs text-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 backdrop-blur-md">
                 <span className="text-red-400 font-bold">LOCKED:</span> {tip}

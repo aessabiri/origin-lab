@@ -15,7 +15,7 @@ describe('Universe Logic', () => {
     // Create a dense cluster
     for (let i = 0; i < 10; i++) {
       particles.push({ 
-        x: 50, y: 50, mass: 1, vx: 0, vy: 0, type: PARTICLE_TYPES.HYDROGEN 
+        x: 50, y: 50, mass: 1, vx: 0, vy: 0, type: PARTICLE_TYPES.HYDROGEN, color: '#3b82f6'
       });
     }
     
@@ -50,7 +50,7 @@ describe('Universe Logic', () => {
     const stars = [star];
     
     // Particle inside star radius
-    const p = { x: 50, y: 50, mass: 1, type: PARTICLE_TYPES.HYDROGEN };
+    const p = { x: 50, y: 50, mass: 1, type: PARTICLE_TYPES.HYDROGEN, color: '#3b82f6' };
     const particles = [p];
 
     updateSimulation(0.1, particles, stars, [], [], 100, 100, null, null, null);
