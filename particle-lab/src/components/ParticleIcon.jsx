@@ -1776,8 +1776,14 @@ const PARTICLE_ICON_MAP = {
 
 const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
   const safeColor = typeof color === 'string' ? color : 'bg-gray-400';
-  const token = safeColor.replace('bg-', '');
-  const hexColor = PARTICLE_COLOR_MAP[token] || '#9ca3af';
+  let hexColor = '#9ca3af';
+
+  if (safeColor.startsWith('#')) {
+    hexColor = safeColor;
+  } else {
+    const token = safeColor.replace('bg-', '');
+    hexColor = PARTICLE_COLOR_MAP[token] || '#9ca3af';
+  }
 
   const IconComponent = PARTICLE_ICON_MAP[type] || DefaultIcon;
 

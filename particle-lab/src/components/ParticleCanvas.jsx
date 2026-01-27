@@ -7,7 +7,6 @@ import { COMPOUND_PARTICLE_TYPES } from '../recipes.js';
 import PeriodicTable from './PeriodicTable.jsx';
 import ActionToolbar from './ActionToolbar.jsx';
 import ActionMenu from './ActionMenu.jsx';
-import LabNotebook from './LabNotebook.jsx';
 import { useParticleActions } from '../hooks/useParticleActions.js';
 import { useSelection } from '../hooks/useSelection.js';
 import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
@@ -392,21 +391,6 @@ const ParticleCanvas = ({ onDragStart }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [uiScale, particles, setParticles]);
 
-  const notebookTab = useMemo(() => {
-    if (isCodexVisible) return 'Codex';
-    if (isSettingsVisible) return 'Settings';
-    if (isResetConfirmVisible) return 'System';
-    return null;
-  }, [isCodexVisible, isSettingsVisible, isResetConfirmVisible]);
-
-  const isNotebookOpen = !!notebookTab;
-
-  const handleCloseNotebook = () => {
-    setIsCodexVisible(false);
-    setIsSettingsVisible(false);
-    setIsResetConfirmVisible(false);
-  };
-
   return (
     <div
       {...canvasBind()}
@@ -591,16 +575,6 @@ const ParticleCanvas = ({ onDragStart }) => {
           />
         </div>
       )}
-
-      <LabNotebook
-        isOpen={isNotebookOpen}
-        onClose={handleCloseNotebook}
-        initialTab={notebookTab}
-        particleCategories={allPossibleParticles}
-        discoveredParticles={allDiscoveredParticles}
-        onParticleClick={handleShowInfo}
-        onDragStart={onDragStart}
-      />
 
       {springs.map((props, i) => {
         const particle = particles[i];

@@ -30,6 +30,15 @@ export const useBioStore = create(
       selectedAgentId: null,
       isCellCreatorOpen: false,
 
+      // --- Biotech / Engineering State ---
+      unlockedAminoAcids: [],
+      synthesizedProteins: [],
+      currentCellDesign: {
+        membrane: null,
+        organelles: [],
+        cytoplasm: 'water',
+      },
+
       // --- Actions ---
 
       setAgents: (agents) => set({ agents }),
@@ -53,6 +62,20 @@ export const useBioStore = create(
       setSelectedAgentId: (id) => set({ selectedAgentId: id }),
       
       setIsCellCreatorOpen: (isOpen) => set({ isCellCreatorOpen: isOpen }),
+
+      // Biotech Actions
+      unlockAminoAcid: (id) => set(state => {
+         if (state.unlockedAminoAcids.includes(id)) return state;
+         return { unlockedAminoAcids: [...state.unlockedAminoAcids, id] };
+      }),
+
+      addSynthesizedProtein: (protein) => set(state => ({
+        synthesizedProteins: [...state.synthesizedProteins, protein]
+      })),
+
+      updateCellDesign: (update) => set(state => ({
+        currentCellDesign: { ...state.currentCellDesign, ...update }
+      })),
 
       // Import from Particle Lab Inventory (Bridge)
       // This will be called when the user "drops" items from the sidebar into the dish

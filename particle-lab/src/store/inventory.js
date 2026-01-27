@@ -36,7 +36,17 @@ export const useInventory = create(
         dna: 0,
       },
 
+      // --- Universal Codex (Discovery Tracking) ---
+      // Set of IDs of all things the player has ever seen/created.
+      discoveredItems: [], 
+
       // --- Actions ---
+
+      // Mark an item as discovered (Universal Codex)
+      markDiscovered: (type) => set((state) => {
+        if (state.discoveredItems.includes(type)) return state;
+        return { discoveredItems: [...state.discoveredItems, type] };
+      }),
 
       // Add a newly discovered or synthesized item
       addResource: (category, type, amount = 1) => set((state) => {

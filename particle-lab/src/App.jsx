@@ -7,9 +7,10 @@ import Universe from './components/Universe.jsx';
 import Hub from './components/Hub.jsx';
 import MainMenu from './components/MainMenu.jsx';
 import Navigation from './components/Navigation.jsx';
+import LabNotebook from './components/LabNotebook.jsx';
 
 const App = () => {
-  const { currentView, setCurrentView, introComplete } = useStore();
+  const { currentView, setCurrentView, introComplete, isCodexVisible, setIsCodexVisible } = useStore();
 
   if (currentView === 'menu') {
     return <MainMenu />;
@@ -26,6 +27,8 @@ const App = () => {
         {currentView === 'biology' && <BiologyApp />}
         {currentView === 'universe' && <Universe />}
       </div>
+
+      <LabNotebook isOpen={isCodexVisible} onClose={() => setIsCodexVisible(false)} />
     </div>
   );
 };

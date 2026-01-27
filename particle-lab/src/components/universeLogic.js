@@ -314,7 +314,39 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
       const p2 = particles[j];
       const dx = p.x - p2.x;
       const dy = p.y - p2.y;
-      if (dx*dx + dy*dy < 400) {
+      const distSq = dx*dx + dy*dy;
+
+      // Fusion Logic
+      if (distSq < 100) {
+          if (p.type === PARTICLE_TYPES.HYDROGEN && p2.type === PARTICLE_TYPES.HYDROGEN) {
+              p.type = PARTICLE_TYPES.HELIUM;
+              p.mass = 4;
+              p.color = '#fbbf24';
+              particles.splice(j, 1);
+              if (onDiscover) onDiscover(PARTICLE_TYPES.HELIUM);
+              // Adjust indices for outer loop since we modified array? 
+              // No, 'j' is < 'i', so removing 'j' shifts indices < 'j', but 'i' is > 'j'. 
+              // Wait, removing 'j' shifts everything > 'j' down by 1. 'i' IS > 'j'.
+              // So 'i' needs to be decremented. But we are iterating 'i' downwards?
+              // The outer loop is `for (let i = particles.length - 1; i >= 0; i--)`.
+              // If we remove 'j' (where j < i), the element at 'i' moves to 'i-1'.
+              // So next iteration of outer loop (i--) will skip the element that moved to 'i-1'.
+              // So we must decrement 'i'.
+              i--; 
+              continue;
+          }
+          if (p.type === PARTICLE_TYPES.HELIUM && p2.type === PARTICLE_TYPES.HELIUM) {
+              p.type = PARTICLE_TYPES.CARBON;
+              p.mass = 12;
+              p.color = '#1f2937';
+              particles.splice(j, 1);
+              if (onDiscover) onDiscover(PARTICLE_TYPES.CARBON);
+              i--;
+              continue;
+          }
+      }
+
+      if (distSq < 400) {
          nearbyMass += p2.mass;
          nearbyIndices.push(j);
       }
