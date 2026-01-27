@@ -5,7 +5,7 @@ const CX = 100;
 const CY = 75;
 
 export const MOLECULAR_STRUCTURES = {
-  H2O: {
+  'water': {
     atoms: [
       { x: CX, y: CY, label: 'O', size: 16 },
       { x: CX - 40, y: CY + 30, label: 'H' },
@@ -16,7 +16,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 2 }
     ]
   },
-  CO2: {
+  'carbon-dioxide': {
     atoms: [
       { x: CX, y: CY, label: 'C', size: 14 },
       { x: CX - 50, y: CY, label: 'O', size: 14 },
@@ -27,7 +27,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 2, type: 'double' }
     ]
   },
-  OXYGEN: {
+  'oxygen': {
     atoms: [
       { x: CX - 20, y: CY, label: 'O', size: 16 },
       { x: CX + 20, y: CY, label: 'O', size: 16 }
@@ -36,7 +36,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 1, type: 'double' }
     ]
   },
-  HYDROGEN: {
+  'hydrogen': {
     atoms: [
       { x: CX - 20, y: CY, label: 'H' },
       { x: CX + 20, y: CY, label: 'H' }
@@ -45,7 +45,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 1 }
     ]
   },
-  NITROGEN: {
+  'nitrogen': {
     atoms: [
       { x: CX - 20, y: CY, label: 'N', size: 14 },
       { x: CX + 20, y: CY, label: 'N', size: 14 }
@@ -54,14 +54,14 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 1, type: 'triple' } // We will need to support triple in renderer
     ]
   },
-  NaCl: {
+  'sodium-chloride': {
     labels: [{ x: CX, y: 20, text: 'Ionic Lattice' }, { x: CX - 20, y: CY - 20, text: '+' }, { x: CX + 20, y: CY - 20, text: '-' }],
     atoms: [
       { x: CX - 20, y: CY, label: 'Na', size: 16 },
       { x: CX + 20, y: CY, label: 'Cl', size: 18 }
     ]
   },
-  METHANOL: {
+  'methanol': {
     atoms: [
       { x: CX, y: CY, label: 'C', size: 14 },       // 0
       { x: CX + 40, y: CY, label: 'O', size: 14 },  // 1
@@ -78,7 +78,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 1, to: 5 }
     ]
   },
-  ETHANOL: {
+  'ethanol': {
     atoms: [
       { x: CX - 20, y: CY, label: 'C', size: 14 }, // 0
       { x: CX + 20, y: CY, label: 'C', size: 14 }, // 1
@@ -101,7 +101,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 1, to: 7 }
     ]
   },
-  VINEGAR: {
+  'vinegar': {
     atoms: [
       { x: CX - 20, y: CY + 10, label: 'C', size: 14 }, // 0
       { x: CX + 20, y: CY + 10, label: 'C', size: 14 }, // 1
@@ -120,7 +120,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 6 }
     ]
   },
-  ETHYLENE: {
+  'ethylene': {
     atoms: [
       { x: CX - 20, y: CY, label: 'C', size: 14 },
       { x: CX + 20, y: CY, label: 'C', size: 14 },
@@ -137,7 +137,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 1, to: 5 }
     ]
   },
-  POLYETHYLENE: {
+  'polyethylene': {
     labels: [{ x: CX, y: 30, text: 'Polymer Chain' }],
     // Simplified representation without duplicating tons of atoms
     atoms: [
@@ -163,7 +163,7 @@ export const MOLECULAR_STRUCTURES = {
        ])
     ]
   },
-  AMMONIA: {
+  'ammonia': {
     atoms: [
       { x: CX, y: CY, label: 'N', size: 16 },
       { x: CX, y: CY - 30, label: 'H' },
@@ -174,16 +174,16 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 1 }, { from: 0, to: 2 }, { from: 0, to: 3 }
     ]
   },
-  SULFUR: {
+  'sulfur': {
     labels: [{ x: CX, y: CY, text: 'S₈', fontSize: 40, color: '#FFFF30', fontWeight: 'bold' }]
   },
-  CARBON: {
+  'carbon': {
     labels: [
       { x: CX, y: CY, text: 'C', fontSize: 40, color: '#333', stroke: 'white', fontWeight: 'bold' },
       { x: CX, y: CY + 40, text: 'Graphite / Diamond', fontSize: 10 }
     ]
   },
-  BAKING_SODA: {
+  'baking-soda': {
     labels: [{ x: CX, y: 20, text: 'Ionic Structure' }, { x: CX - 40, y: CY - 20, text: '+' }, { x: CX + 40, y: CY - 40, text: '-' }],
     atoms: [
       { x: CX - 40, y: CY, label: 'Na', size: 16 }, // 0
@@ -199,24 +199,22 @@ export const MOLECULAR_STRUCTURES = {
       { from: 1, to: 4 }
     ]
   },
-  // For metals, we can use a helper function or just static data in the renderer, 
-  // but to keep it data driven, we can define the grid points.
-  IRON: {
+  'iron': {
      labels: [{ x: CX, y: 20, text: 'Metallic Lattice' }],
      atoms: [-30, 0, 30].flatMap(dx => [-30, 0, 30].map(dy => ({ x: CX + dx, y: CY + dy, label: '', color: '#E06633', size: 12 })))
   },
-  STEEL: {
+  'steel': {
      labels: [{ x: CX, y: 20, text: 'Metallic Lattice + Carbon' }],
      atoms: [
         ...[-30, 0, 30].flatMap(dx => [-30, 0, 30].map(dy => ({ x: CX + dx, y: CY + dy, label: '', color: '#E06633', size: 12 }))),
         { x: CX + 15, y: CY + 15, label: '', color: '#333', size: 5 }
      ]
   },
-  MAGNESIUM: {
+  'magnesium': {
      labels: [{ x: CX, y: 20, text: 'Metallic Lattice' }],
      atoms: [-30, 0, 30].flatMap(dx => [-25, 25].map(dy => ({ x: CX + dx + (dy > 0 ? 15 : 0), y: CY + dy, label: '', color: '#8AFF00', size: 14 })))
   },
-  POTASSIUM_PERMANGANATE: {
+  'potassium-permanganate': {
     labels: [{ x: CX - 50, y: CY - 20, text: '+' }, { x: CX + 70, y: CY - 20, text: '-' }],
     atoms: [
       { x: CX - 50, y: CY, label: 'K', size: 16 }, // 0
@@ -233,14 +231,14 @@ export const MOLECULAR_STRUCTURES = {
       { from: 1, to: 5 }
     ]
   },
-  CHLORINE: {
+  'chlorine': {
     atoms: [
       { x: CX - 20, y: CY, label: 'Cl', size: 18 },
       { x: CX + 20, y: CY, label: 'Cl', size: 18 }
     ],
     bonds: [{ from: 0, to: 1 }]
   },
-  SODIUM_HYDROXIDE: {
+  'sodium-hydroxide': {
     labels: [{ x: CX, y: 20, text: 'Ionic' }, { x: CX - 30, y: CY - 20, text: '+' }, { x: CX + 30, y: CY - 20, text: '-' }],
     atoms: [
       { x: CX - 30, y: CY, label: 'Na', size: 16 },
@@ -249,14 +247,14 @@ export const MOLECULAR_STRUCTURES = {
     ],
     bonds: [{ from: 1, to: 2 }]
   },
-  HYDROCHLORIC_ACID: {
+  'hydrochloric-acid': {
     atoms: [
       { x: CX - 20, y: CY, label: 'H' },
       { x: CX + 20, y: CY, label: 'Cl', size: 18 }
     ],
     bonds: [{ from: 0, to: 1 }]
   },
-  NITRIC_ACID: {
+  'nitric-acid': {
     atoms: [
       { x: CX, y: CY, label: 'N', size: 14 }, // 0
       { x: CX - 30, y: CY + 20, label: 'O', size: 12 }, // 1
@@ -271,7 +269,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 3, to: 4 }
     ]
   },
-  ACETONE: {
+  'acetone': {
     atoms: [
       { x: CX, y: CY, label: 'C', size: 14 }, // 0 Center
       { x: CX, y: CY - 30, label: 'O', size: 12 }, // 1 Top
@@ -288,7 +286,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 4, to: 5 }
     ]
   },
-  IRON_OXIDE: {
+  'iron-oxide': {
     labels: [{ x: CX, y: 20, text: 'Crystal Lattice' }],
     atoms: [
       { x: CX - 20, y: CY, label: 'Fe', size: 16 }, // 0
@@ -301,7 +299,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 3 }, { from: 1, to: 3 }
     ]
   },
-  SO2: {
+  'sulfur-dioxide': {
     atoms: [
       { x: CX, y: CY, label: 'S', size: 16 }, // 0
       { x: CX - 30, y: CY + 20, label: 'O', size: 14 }, // 1
@@ -312,7 +310,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 0, to: 2, type: 'double' }
     ]
   },
-  CARBONIC_ACID: {
+  'carbonic-acid': {
     atoms: [
       { x: CX, y: CY, label: 'C', size: 14 }, // 0
       { x: CX, y: CY - 30, label: 'O', size: 12 }, // 1
@@ -327,7 +325,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 2, to: 4 }, { from: 3, to: 5 }
     ]
   },
-  SULFURIC_ACID: {
+  'sulfuric-acid': {
     atoms: [
       { x: CX, y: CY, label: 'S', size: 16 }, // 0
       { x: CX, y: CY - 30, label: 'O', size: 12 }, // 1
@@ -344,7 +342,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 3, to: 5 }, { from: 4, to: 6 }
     ]
   },
-  IRON_SULFIDE: {
+  'iron-sulfide': {
     labels: [{ x: CX, y: 20, text: 'Lattice' }],
     atoms: [
       { x: CX - 20, y: CY, label: 'Fe', size: 16 }, // 0
@@ -352,7 +350,7 @@ export const MOLECULAR_STRUCTURES = {
     ],
     bonds: [{ from: 0, to: 1, type: 'double' }]
   },
-  AMMONIUM_HYDROXIDE: {
+  'ammonium-hydroxide': {
     labels: [{ x: CX, y: 20, text: 'Solution' }, { x: CX - 5, y: CY - 20, text: '+' }, { x: CX + 65, y: CY - 10, text: '-' }],
     atoms: [
       // NH4
@@ -370,7 +368,7 @@ export const MOLECULAR_STRUCTURES = {
       { from: 5, to: 6 }
     ]
   },
-  ETHYL_ACETATE: {
+  'ethyl-acetate': {
     atoms: [
        { x: CX - 10, y: CY, label: 'C', size: 12 }, // 0 Carbonyl C
        { x: CX - 10, y: CY - 25, label: 'O', size: 10 }, // 1 Carbonyl O

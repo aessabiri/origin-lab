@@ -1,5 +1,8 @@
 import React from 'react';
 import { PARTICLE_TYPES, PARTICLE_COLOR_MAP, PARTICLE_COLORS } from '../constants/particles.js';
+import { CHEMICALS } from '../chemistry-lab/data/chemicals';
+import MoleculeStructure from '../chemistry-lab/components/MoleculeStructure';
+import { MOLECULAR_STRUCTURES } from '../chemistry-lab/data/structures';
 
 // --- Helper Components & Functions ---
 
@@ -1794,9 +1797,25 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
     hexColor = PARTICLE_COLOR_MAP[token] || '#9ca3af';
   }
 
-  const IconComponent = PARTICLE_ICON_MAP[type] || GenericMoleculeIcon;
+  // 1. Check for specific Physics/Particle Lab Icon (High Quality / Ball & Stick Handcrafted)
+  const IconComponent = PARTICLE_ICON_MAP[type];
+  if (IconComponent) {
+    return <IconComponent hexColor={hexColor} isCompound={isCompound} />;
+  }
 
-  return <IconComponent hexColor={hexColor} isCompound={isCompound} />;
+  // 2. Check for Molecular Structure (Data-driven Ball & Stick)
+  // This ensures we show atomic structure instead of Flasks/Powders in the Codex
+  if (MOLECULAR_STRUCTURES[type]) {
+    return (
+      <MoleculeStructure 
+        chemicalId={type} 
+        className="w-full h-full" 
+      />
+    );
+  }
+
+  // 3. Ultimate Fallback (Generic Atomic Cluster)
+  return <GenericMoleculeIcon hexColor={hexColor} />;
 };
 
 export default ParticleIcon;

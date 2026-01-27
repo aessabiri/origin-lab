@@ -1,50 +1,19 @@
 import React from 'react';
 import { MOLECULAR_STRUCTURES } from '../data/structures';
+import { NeoSphere, NeoBond } from '../../components/VisualPrimitives';
 
 const ATOM_COLORS = {
   H: '#FFFFFF', // Hydrogen - White
-  C: '#909090', // Carbon - Gray
-  O: '#FF0D0D', // Oxygen - Red
-  N: '#3050F8', // Nitrogen - Blue
-  S: '#FFFF30', // Sulfur - Yellow
-  Cl: '#1FF01F', // Chlorine - Green
-  Na: '#AB5CF2', // Sodium - Purple
-  Fe: '#E06633', // Iron - Orange/Rust
-  Mg: '#8AFF00', // Magnesium - Lime
-  K: '#8F40D4', // Potassium - Violet
-  default: '#DA70D6' // Orchid
-};
-
-const Atom = ({ cx, cy, label, size = 12, color }) => (
-  <g>
-    <circle cx={cx} cy={cy} r={size} fill={color || ATOM_COLORS[label] || ATOM_COLORS.default} stroke="black" strokeWidth="1" />
-    {label && (
-        <text x={cx} y={cy} dy=".3em" textAnchor="middle" fontSize={size} fill="black" fontWeight="bold" fontFamily="Arial">
-            {label}
-        </text>
-    )}
-  </g>
-);
-
-const Bond = ({ x1, y1, x2, y2, type = 'single' }) => {
-  if (type === 'double') {
-    return (
-      <g stroke="white" strokeWidth="3" strokeLinecap="round">
-        <line x1={x1} y1={y1} x2={x2} y2={y2} transform={`translate(0, -2)`} />
-        <line x1={x1} y1={y1} x2={x2} y2={y2} transform={`translate(0, 2)`} />
-      </g>
-    );
-  }
-  if (type === 'triple') {
-    return (
-      <g stroke="white" strokeWidth="3" strokeLinecap="round">
-        <line x1={x1} y1={y1} x2={x2} y2={y2} transform={`translate(0, -3)`} />
-        <line x1={x1} y1={y1} x2={x2} y2={y2} />
-        <line x1={x1} y1={y1} x2={x2} y2={y2} transform={`translate(0, 3)`} />
-      </g>
-    );
-  }
-  return <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth="3" strokeLinecap="round" />;
+  C: '#374151', // Carbon - Gray-700 (Darker for Neo look)
+  O: '#ef4444', // Oxygen - Red-500
+  N: '#3b82f6', // Nitrogen - Blue-500
+  S: '#eab308', // Sulfur - Yellow-500
+  Cl: '#22c55e', // Chlorine - Green-500
+  Na: '#a855f7', // Sodium - Purple-500
+  Fe: '#ea580c', // Iron - Orange-600
+  Mg: '#84cc16', // Magnesium - Lime-500
+  K: '#7c3aed', // Potassium - Violet-600
+  default: '#d946ef' // Fuchsia-500
 };
 
 const MoleculeStructure = ({ chemicalId, className = '' }) => {
@@ -53,11 +22,11 @@ const MoleculeStructure = ({ chemicalId, className = '' }) => {
   // Generic fallback if no structure defined
   if (!structure) {
      return (
-        <div className={`bg-gray-900 rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden ${className}`}>
-           <svg width="100%" height="100%" viewBox="0 0 200 150">
+        <div className={`flex items-center justify-center overflow-hidden ${className}`}>
+           <svg width="100%" height="100%" viewBox="0 0 200 150" className="overflow-visible">
                 <g opacity="0.5">
-                    <circle cx="100" cy="75" r="30" fill="none" stroke="white" strokeDasharray="4 4" />
-                    <text x="100" y="75" fill="white" fontSize="30" textAnchor="middle" alignmentBaseline="middle">?</text>
+                    <circle cx="100" cy="75" r="30" fill="none" stroke="currentColor" strokeDasharray="4 4" className="text-gray-500" />
+                    <text x="100" y="75" fill="currentColor" fontSize="30" textAnchor="middle" alignmentBaseline="middle" className="text-gray-500">?</text>
                 </g>
            </svg>
         </div>
@@ -65,8 +34,8 @@ const MoleculeStructure = ({ chemicalId, className = '' }) => {
   }
 
   return (
-    <div className={`bg-gray-900 rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden ${className}`}>
-      <svg width="100%" height="100%" viewBox="0 0 200 150">
+    <div className={`flex items-center justify-center overflow-hidden ${className}`}>
+      <svg width="100%" height="100%" viewBox="0 0 200 150" className="overflow-visible">
         
         {/* Render Bonds First (so they are behind atoms) */}
         {structure.bonds && structure.bonds.map((bond, idx) => {
@@ -74,24 +43,25 @@ const MoleculeStructure = ({ chemicalId, className = '' }) => {
             const toAtom = structure.atoms[bond.to];
             if (!fromAtom || !toAtom) return null;
             return (
-                <Bond 
+                <NeoBond 
                     key={`bond-${idx}`}
                     x1={fromAtom.x} y1={fromAtom.y}
                     x2={toAtom.x} y2={toAtom.y}
                     type={bond.type}
+                    scale={1.5}
                 />
             );
         })}
 
         {/* Render Atoms */}
         {structure.atoms && structure.atoms.map((atom, idx) => (
-            <Atom 
+            <NeoSphere 
                 key={`atom-${idx}`}
-                cx={atom.x} 
-                cy={atom.y} 
+                x={atom.x} 
+                y={atom.y} 
                 label={atom.label} 
-                size={atom.size}
-                color={atom.color}
+                r={(atom.size || 12) * 1.5}
+                color={atom.color || ATOM_COLORS[atom.label] || ATOM_COLORS.default}
             />
         ))}
 
@@ -105,7 +75,7 @@ const MoleculeStructure = ({ chemicalId, className = '' }) => {
                 fontSize={lbl.fontSize || 10} 
                 fontWeight={lbl.fontWeight || 'normal'}
                 textAnchor="middle"
-                stroke={lbl.stroke || 'none'}
+                style={{ textShadow: '0 1px 2px black' }}
             >
                 {lbl.text}
             </text>

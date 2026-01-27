@@ -1,7 +1,7 @@
 export const CHEMICALS = {
   // --- Elementary (Backbone) ---
-  H2O: {
-    id: 'H2O',
+  'water': {
+    id: 'water',
     name: 'Water',
     formula: 'H₂O',
     color: '#3b82f6', // blue-500
@@ -13,8 +13,8 @@ export const CHEMICALS = {
     meltingPoint: 0,
     ph: 7.0
   },
-  NaCl: {
-    id: 'NaCl',
+  'sodium-chloride': {
+    id: 'sodium-chloride',
     name: 'Salt',
     formula: 'NaCl',
     color: '#f3f4f6', // gray-100
@@ -27,8 +27,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 36
   },
-  VINEGAR: {
-    id: 'VINEGAR',
+  'vinegar': {
+    id: 'vinegar',
     name: 'Vinegar',
     formula: 'CH₃COOH',
     color: '#fbbf24', // amber-400
@@ -40,8 +40,8 @@ export const CHEMICALS = {
     meltingPoint: 16,
     ph: 2.5
   },
-  BAKING_SODA: {
-    id: 'BAKING_SODA',
+  'baking-soda': {
+    id: 'baking-soda',
     name: 'Baking Soda',
     formula: 'NaHCO₃',
     color: '#ffffff',
@@ -54,8 +54,8 @@ export const CHEMICALS = {
     ph: 8.5,
     solubility: 9
   },
-  UNIVERSAL_INDICATOR: {
-    id: 'UNIVERSAL_INDICATOR',
+  'universal-indicator': {
+    id: 'universal-indicator',
     name: 'Universal Indicator',
     formula: 'Solution',
     color: '#22c55e', // green-500 (start neutral)
@@ -67,8 +67,8 @@ export const CHEMICALS = {
     meltingPoint: 0,
     ph: 7.0
   },
-  CARBON: {
-    id: 'CARBON',
+  'carbon': {
+    id: 'carbon',
     name: 'Carbon',
     formula: 'C',
     color: '#1f2937', // gray-800
@@ -81,8 +81,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 0 // Insoluble
   },
-  SULFUR: {
-    id: 'SULFUR',
+  'sulfur': {
+    id: 'sulfur',
     name: 'Sulfur',
     formula: 'S',
     color: '#facc15', // yellow-400
@@ -95,8 +95,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 0
   },
-  IRON: {
-    id: 'IRON',
+  'iron': {
+    id: 'iron',
     name: 'Iron',
     formula: 'Fe',
     color: '#6b7280', // gray-500
@@ -109,8 +109,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 0
   },
-  ETHANOL: {
-    id: 'ETHANOL',
+  'ethanol': {
+    id: 'ethanol',
     name: 'Ethanol',
     formula: 'C₂H₅OH',
     color: '#d1d5db', // gray-300
@@ -122,8 +122,8 @@ export const CHEMICALS = {
     meltingPoint: -114,
     ph: 7.33
   },
-  OXYGEN: {
-    id: 'OXYGEN',
+  'oxygen': {
+    id: 'oxygen',
     name: 'Oxygen',
     formula: 'O₂',
     color: '#93c5fd', // blue-300 (pale)
@@ -135,8 +135,8 @@ export const CHEMICALS = {
     meltingPoint: -218,
     ph: 7.0
   },
-  HYDROGEN: {
-    id: 'HYDROGEN',
+  'hydrogen': {
+    id: 'hydrogen',
     name: 'Hydrogen',
     formula: 'H₂',
     color: '#f87171', // red-400 (glow tint)
@@ -148,8 +148,8 @@ export const CHEMICALS = {
     meltingPoint: -259,
     ph: 7.0
   },
-  NITROGEN: {
-    id: 'NITROGEN',
+  'nitrogen': {
+    id: 'nitrogen',
     name: 'Nitrogen',
     formula: 'N₂',
     color: '#a5b4fc', // indigo-300
@@ -161,8 +161,8 @@ export const CHEMICALS = {
     meltingPoint: -210,
     ph: 7.0
   },
-  MAGNESIUM: {
-    id: 'MAGNESIUM',
+  'magnesium': {
+    id: 'magnesium',
     name: 'Magnesium',
     formula: 'Mg',
     color: '#e5e7eb', // gray-200
@@ -175,8 +175,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 0
   },
-  POTASSIUM_PERMANGANATE: {
-    id: 'POTASSIUM_PERMANGANATE',
+  'potassium-permanganate': {
+    id: 'potassium-permanganate',
     name: 'Potassium Permanganate',
     formula: 'KMnO₄',
     color: '#7e22ce', // purple-700
@@ -191,8 +191,8 @@ export const CHEMICALS = {
   },
 
   // --- Discovered (Intermediate/Complex) ---
-  CHLORINE: {
-    id: 'CHLORINE',
+  'chlorine': {
+    id: 'chlorine',
     name: 'Chlorine',
     formula: 'Cl₂',
     color: '#bef264', // lime-300
@@ -204,8 +204,8 @@ export const CHEMICALS = {
     meltingPoint: -101,
     ph: 4.0
   },
-  SODIUM_HYDROXIDE: {
-    id: 'SODIUM_HYDROXIDE',
+  'sodium-hydroxide': {
+    id: 'sodium-hydroxide',
     name: 'Sodium Hydroxide',
     formula: 'NaOH',
     color: '#f1f5f9', // slate-100 (white pellets)
@@ -218,8 +218,8 @@ export const CHEMICALS = {
     ph: 14.0,
     solubility: 100
   },
-  HYDROCHLORIC_ACID: {
-    id: 'HYDROCHLORIC_ACID',
+  'hydrochloric-acid': {
+    id: 'hydrochloric-acid',
     name: 'Hydrochloric Acid',
     formula: 'HCl',
     color: '#f0fdf4', // green-50 (fuming)
@@ -231,8 +231,8 @@ export const CHEMICALS = {
     meltingPoint: -27,
     ph: 1.0
   },
-  NITRIC_ACID: {
-    id: 'NITRIC_ACID',
+  'nitric-acid': {
+    id: 'nitric-acid',
     name: 'Nitric Acid',
     formula: 'HNO₃',
     color: '#fef08a', // yellow-200
@@ -244,8 +244,8 @@ export const CHEMICALS = {
     meltingPoint: -42,
     ph: 1.0
   },
-  ACETONE: {
-    id: 'ACETONE',
+  'acetone': {
+    id: 'acetone',
     name: 'Acetone',
     formula: 'C₃H₆O',
     color: '#ffffff', // clear
@@ -257,8 +257,8 @@ export const CHEMICALS = {
     meltingPoint: -95,
     ph: 7.0
   },
-  CO2: {
-    id: 'CO2',
+  'carbon-dioxide': {
+    id: 'carbon-dioxide',
     name: 'Carbon Dioxide',
     formula: 'CO₂',
     color: '#9ca3af', // gray-400
@@ -270,8 +270,8 @@ export const CHEMICALS = {
     sublimationPoint: -78,
     ph: 5.5 // Acidic when dissolved
   },
-  IRON_OXIDE: {
-    id: 'IRON_OXIDE',
+  'iron-oxide': {
+    id: 'iron-oxide',
     name: 'Iron Oxide',
     formula: 'Fe₂O₃',
     color: '#7f1d1d', // red-900
@@ -284,8 +284,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 0
   },
-  SO2: {
-    id: 'SO2',
+  'sulfur-dioxide': {
+    id: 'sulfur-dioxide',
     name: 'Sulfur Dioxide',
     formula: 'SO₂',
     color: '#fde047', // yellow-300 (pale gas)
@@ -297,8 +297,8 @@ export const CHEMICALS = {
     meltingPoint: -72,
     ph: 4.5
   },
-  AMMONIA: {
-    id: 'AMMONIA',
+  'ammonia': {
+    id: 'ammonia',
     name: 'Ammonia',
     formula: 'NH₃',
     color: '#bae6fd', // sky-200
@@ -310,8 +310,8 @@ export const CHEMICALS = {
     meltingPoint: -77,
     ph: 11.5
   },
-  CARBONIC_ACID: {
-    id: 'CARBONIC_ACID',
+  'carbonic-acid': {
+    id: 'carbonic-acid',
     name: 'Carbonic Acid',
     formula: 'H₂CO₃',
     color: '#d1fae5', // emerald-100
@@ -323,8 +323,8 @@ export const CHEMICALS = {
     meltingPoint: 0,
     ph: 4.0
   },
-  SULFURIC_ACID: {
-    id: 'SULFURIC_ACID',
+  'sulfuric-acid': {
+    id: 'sulfuric-acid',
     name: 'Sulfuric Acid',
     formula: 'H₂SO₄',
     color: '#fcd34d', // amber-300 (viscous)
@@ -336,8 +336,8 @@ export const CHEMICALS = {
     meltingPoint: 10,
     ph: 0.5
   },
-  IRON_SULFIDE: {
-    id: 'IRON_SULFIDE',
+  'iron-sulfide': {
+    id: 'iron-sulfide',
     name: 'Iron Sulfide',
     formula: 'FeS',
     color: '#4b5563', // gray-600
@@ -350,8 +350,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 0
   },
-  STEEL: {
-    id: 'STEEL',
+  'steel': {
+    id: 'steel',
     name: 'Steel',
     formula: 'Fe-C',
     color: '#94a3b8', // slate-400
@@ -364,8 +364,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 0
   },
-  AMMONIUM_HYDROXIDE: {
-    id: 'AMMONIUM_HYDROXIDE',
+  'ammonium-hydroxide': {
+    id: 'ammonium-hydroxide',
     name: 'Ammonium Hydroxide',
     formula: 'NH₄OH',
     color: '#e0f2fe', // sky-100
@@ -377,8 +377,8 @@ export const CHEMICALS = {
     meltingPoint: -57,
     ph: 10.5
   },
-  ETHYL_ACETATE: {
-    id: 'ETHYL_ACETATE',
+  'ethyl-acetate': {
+    id: 'ethyl-acetate',
     name: 'Ethyl Acetate',
     formula: 'CH₃COOCH₂CH₃',
     color: '#ffffff',
@@ -390,8 +390,8 @@ export const CHEMICALS = {
     meltingPoint: -84,
     ph: 7.0
   },
-  METHANOL: {
-    id: 'METHANOL',
+  'methanol': {
+    id: 'methanol',
     name: 'Methanol',
     formula: 'CH₃OH',
     color: '#f8fafc',
@@ -403,8 +403,8 @@ export const CHEMICALS = {
     meltingPoint: -97,
     ph: 7.0
   },
-  ETHYLENE: {
-    id: 'ETHYLENE',
+  'ethylene': {
+    id: 'ethylene',
     name: 'Ethylene',
     formula: 'C₂H₄',
     color: '#cbd5e1',
@@ -416,8 +416,8 @@ export const CHEMICALS = {
     meltingPoint: -169,
     ph: 7.0
   },
-  POLYETHYLENE: {
-    id: 'POLYETHYLENE',
+  'polyethylene': {
+    id: 'polyethylene',
     name: 'Polyethylene',
     formula: '(C₂H₄)n',
     color: '#f1f5f9',
@@ -430,8 +430,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 0
   },
-  METHANE: {
-    id: 'METHANE',
+  'methane': {
+    id: 'methane',
     name: 'Methane',
     formula: 'CH₄',
     color: '#f1f5f9',
@@ -443,8 +443,8 @@ export const CHEMICALS = {
     meltingPoint: -182,
     ph: 7.0
   },
-  GLUCOSE: {
-    id: 'GLUCOSE',
+  'glucose': {
+    id: 'glucose',
     name: 'Glucose',
     formula: 'C₆H₁₂O₆',
     color: '#ffffff',
@@ -457,8 +457,8 @@ export const CHEMICALS = {
     ph: 7.0,
     solubility: 90
   },
-  GLYCINE: {
-    id: 'GLYCINE',
+  'glycine': {
+    id: 'glycine',
     name: 'Glycine',
     formula: 'C₂H₅NO₂',
     color: '#fdf2f8', // pink-50
@@ -474,8 +474,8 @@ export const CHEMICALS = {
 };
 
 export const ELEMENTARY_IDS = [
-  'H2O', 'NaCl', 'VINEGAR', 'BAKING_SODA', 
-  'CARBON', 'SULFUR', 'IRON', 'ETHANOL', 
-  'OXYGEN', 'HYDROGEN', 'NITROGEN',
-  'MAGNESIUM', 'POTASSIUM_PERMANGANATE', 'UNIVERSAL_INDICATOR'
+  'water', 'sodium-chloride', 'vinegar', 'baking-soda', 
+  'carbon', 'sulfur', 'iron', 'ethanol', 
+  'oxygen', 'hydrogen', 'nitrogen',
+  'magnesium', 'potassium-permanganate', 'universal-indicator'
 ];

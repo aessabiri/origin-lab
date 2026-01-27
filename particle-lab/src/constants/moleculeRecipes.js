@@ -1204,7 +1204,39 @@ export const MOLECULE_RECIPES = [
       single: 12,
       double: 1,
     },
-    // Simplified structure
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 's1', type: PARTICLE_TYPES.SULFUR },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h6', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h7', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c1', target: 'c3', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'h6', type: 'single' },
+        { source: 'c3', target: 's1', type: 'single' },
+        { source: 's1', target: 'h7', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.PHENYLALANINE,
@@ -1218,7 +1250,48 @@ export const MOLECULE_RECIPES = [
       single: 20,
       double: 4,
     },
-    // Simplified structure
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'r1', type: PARTICLE_TYPES.CARBON },
+        { id: 'r2', type: PARTICLE_TYPES.CARBON },
+        { id: 'r3', type: PARTICLE_TYPES.CARBON },
+        { id: 'r4', type: PARTICLE_TYPES.CARBON },
+        { id: 'r5', type: PARTICLE_TYPES.CARBON },
+        { id: 'r6', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 11}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN })),
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c1', target: 'c3', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'h6', type: 'single' },
+        { source: 'c3', target: 'r1', type: 'single' },
+        { source: 'r1', target: 'r2', type: 'double' },
+        { source: 'r2', target: 'r3', type: 'single' },
+        { source: 'r3', target: 'r4', type: 'double' },
+        { source: 'r4', target: 'r5', type: 'single' },
+        { source: 'r5', target: 'r6', type: 'double' },
+        { source: 'r6', target: 'r1', type: 'single' },
+        { source: 'r2', target: 'h7', type: 'single' },
+        { source: 'r3', target: 'h8', type: 'single' },
+        { source: 'r4', target: 'h9', type: 'single' },
+        { source: 'r5', target: 'h10', type: 'single' },
+        { source: 'r6', target: 'h11', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.FRUCTOSE,
@@ -1230,7 +1303,39 @@ export const MOLECULE_RECIPES = [
     bonds: {
       single: 20,
     },
-    // Simplified structure
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON },
+        { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        { id: 'o_ring', type: PARTICLE_TYPES.OXYGEN },
+        ...Array.from({length: 5}, (_, i) => ({ id: `o${i+1}`, type: PARTICLE_TYPES.OXYGEN })),
+        ...Array.from({length: 12}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN })),
+      ],
+      edges: [
+        { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c3', target: 'c4', type: 'single' },
+        { source: 'c4', target: 'c5', type: 'single' },
+        { source: 'c5', target: 'o_ring', type: 'single' },
+        { source: 'o_ring', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'c1', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'single' },
+        // Simplified connectivity
+        { source: 'c1', target: 'o1', type: 'single' }, { source: 'o1', target: 'h1', type: 'single' },
+        { source: 'c2', target: 'o2', type: 'single' }, { source: 'o2', target: 'h2', type: 'single' },
+        { source: 'c3', target: 'o3', type: 'single' }, { source: 'o3', target: 'h3', type: 'single' },
+        { source: 'c4', target: 'o4', type: 'single' }, { source: 'o4', target: 'h4', type: 'single' },
+        { source: 'c6', target: 'o5', type: 'single' }, { source: 'o5', target: 'h5', type: 'single' },
+        { source: 'c1', target: 'h6', type: 'single' }, { source: 'c1', target: 'h7', type: 'single' },
+        { source: 'c3', target: 'h8', type: 'single' },
+        { source: 'c4', target: 'h9', type: 'single' },
+        { source: 'c5', target: 'h10', type: 'single' },
+        { source: 'c6', target: 'h11', type: 'single' }, { source: 'c6', target: 'h12', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.NITROUS_OXIDE,
@@ -1406,7 +1511,26 @@ export const MOLECULE_RECIPES = [
     bonds: {
       single: 10,
     },
-    // Simplified structure
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 8}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN })),
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c2', target: 'h4', type: 'single' },
+        { source: 'c2', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'h6', type: 'single' },
+        { source: 'c3', target: 'h7', type: 'single' },
+        { source: 'c3', target: 'h8', type: 'single' },
+      ]
+    }
   },
   {
     type: PARTICLE_TYPES.BUTANE,
@@ -1417,6 +1541,340 @@ export const MOLECULE_RECIPES = [
     bonds: {
       single: 13,
     },
-    // Simplified structure
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 10}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN })),
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c3', target: 'c4', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c2', target: 'h4', type: 'single' },
+        { source: 'c2', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'h6', type: 'single' },
+        { source: 'c3', target: 'h7', type: 'single' },
+        { source: 'c4', target: 'h8', type: 'single' },
+        { source: 'c4', target: 'h9', type: 'single' },
+        { source: 'c4', target: 'h10', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.SODIUM_HYDROXIDE,
+    atoms: {
+      [PARTICLE_TYPES.SODIUM]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 1,
+    },
+    bonds: {
+      single: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'na1', type: PARTICLE_TYPES.SODIUM },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN }
+      ],
+      edges: [
+        { source: 'na1', target: 'o1', type: 'single' },
+        { source: 'o1', target: 'h1', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.NITRIC_ACID,
+    atoms: {
+      [PARTICLE_TYPES.HYDROGEN]: 1,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 3,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN }
+      ],
+      edges: [
+        { source: 'n1', target: 'o1', type: 'double' },
+        { source: 'n1', target: 'o2', type: 'single' },
+        { source: 'n1', target: 'o3', type: 'single' },
+        { source: 'o3', target: 'h1', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.IRON_OXIDE,
+    atoms: {
+      [PARTICLE_TYPES.IRON]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 6,
+    },
+    structure: {
+      nodes: [
+        { id: 'fe1', type: PARTICLE_TYPES.IRON },
+        { id: 'fe2', type: PARTICLE_TYPES.IRON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN }
+      ],
+      edges: [
+        { source: 'fe1', target: 'o1', type: 'single' },
+        { source: 'fe1', target: 'o2', type: 'single' },
+        { source: 'fe1', target: 'o3', type: 'single' },
+        { source: 'fe2', target: 'o1', type: 'single' },
+        { source: 'fe2', target: 'o2', type: 'single' },
+        { source: 'fe2', target: 'o3', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.IRON_SULFIDE,
+    atoms: {
+      [PARTICLE_TYPES.IRON]: 1,
+      [PARTICLE_TYPES.SULFUR]: 1,
+    },
+    bonds: {
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'fe1', type: PARTICLE_TYPES.IRON },
+        { id: 's1', type: PARTICLE_TYPES.SULFUR }
+      ],
+      edges: [
+        { source: 'fe1', target: 's1', type: 'double' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ETHYLENE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 2,
+      [PARTICLE_TYPES.HYDROGEN]: 4,
+    },
+    bonds: {
+      double: 1,
+      single: 4,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN }
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'double' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c2', target: 'h3', type: 'single' },
+        { source: 'c2', target: 'h4', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.BAKING_SODA,
+    atoms: {
+      [PARTICLE_TYPES.SODIUM]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 1,
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 4,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'na1', type: PARTICLE_TYPES.SODIUM },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN }
+      ],
+      edges: [
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'c1', target: 'o3', type: 'single' },
+        { source: 'o3', target: 'h1', type: 'single' },
+        { source: 'o2', target: 'na1', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.CARBONIC_ACID,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+      [PARTICLE_TYPES.HYDROGEN]: 2,
+    },
+    bonds: {
+      single: 4,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN }
+      ],
+      edges: [
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'c1', target: 'o3', type: 'single' },
+        { source: 'o2', target: 'h1', type: 'single' },
+        { source: 'o3', target: 'h2', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.AMMONIUM_HYDROXIDE,
+    atoms: {
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 5,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+    bonds: {
+      single: 6,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h5', type: PARTICLE_TYPES.HYDROGEN }
+      ],
+      edges: [
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n1', target: 'h3', type: 'single' },
+        { source: 'n1', target: 'h4', type: 'single' },
+        { source: 'n1', target: 'o1', type: 'single' },
+        { source: 'o1', target: 'h5', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ACETONE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 3,
+      [PARTICLE_TYPES.HYDROGEN]: 6,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+    bonds: {
+      single: 8,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        ...Array.from({length: 6}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'c1', type: 'single' },
+        { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c3', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'h6', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ETHYL_ACETATE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 4,
+      [PARTICLE_TYPES.HYDROGEN]: 8,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 11,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 8}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c2', target: 'c1', type: 'single' },
+        { source: 'c2', target: 'o2', type: 'single' },
+        { source: 'o2', target: 'c3', type: 'single' },
+        { source: 'c3', target: 'c4', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c3', target: 'h4', type: 'single' },
+        { source: 'c3', target: 'h5', type: 'single' },
+        { source: 'c4', target: 'h6', type: 'single' },
+        { source: 'c4', target: 'h7', type: 'single' },
+        { source: 'c4', target: 'h8', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.POTASSIUM_PERMANGANATE,
+    atoms: {
+      [PARTICLE_TYPES.POTASSIUM]: 1,
+      [PARTICLE_TYPES.MANGANESE]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 4,
+    },
+    bonds: {
+      single: 2,
+      double: 3,
+    },
+    structure: {
+      nodes: [
+        { id: 'k1', type: PARTICLE_TYPES.POTASSIUM },
+        { id: 'mn1', type: PARTICLE_TYPES.MANGANESE },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o4', type: PARTICLE_TYPES.OXYGEN }
+      ],
+      edges: [
+        { source: 'mn1', target: 'o1', type: 'double' },
+        { source: 'mn1', target: 'o2', type: 'double' },
+        { source: 'mn1', target: 'o3', type: 'double' },
+        { source: 'mn1', target: 'o4', type: 'single' },
+        { source: 'o4', target: 'k1', type: 'single' }
+      ]
+    }
   },
 ];

@@ -2,9 +2,10 @@ import React, { useState, useMemo } from 'react';
 import ParticleIcon from './ParticleIcon';
 import InfoPanel from './InfoPanel';
 import { useInventory } from '../store/inventory';
+import { useStore } from '../store';
 import { getUniversalCodexData, getUniversalItemInfo } from '../utils/codexData';
 
-const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = false }) => {
+const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = false, onDragStateChange }) => {
   const [showAll, setShowAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -12,6 +13,8 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
   
   // Universal Inventory - The single source of truth
   const discoveredItems = useInventory(state => state.discoveredItems);
+  const isSandboxMode = useStore(state => state.isSandboxMode);
+  
   const discoveredSet = useMemo(() => new Set(discoveredItems), [discoveredItems]);
 
   // Unified Data Source
@@ -21,6 +24,28 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
   const categoryNames = useMemo(() => {
     return ['All', ...particleCategories.map(cat => cat.name)];
   }, [particleCategories]);
+
+  const handleDragStart = (e, particleType) => {
+    // 1. Set data for generic drop targets (like ParticleCanvas)
+    e.dataTransfer.setData('text/plain', JSON.stringify({ type: particleType }));
+    e.dataTransfer.effectAllowed = 'copy';
+    
+    // 2. Call parent handler if provided (for specific UI effects like showMessage)
+    if (onDragStart) {
+      onDragStart(e, { type: particleType });
+    }
+
+    // 3. Notify parent to hide (allows dropping on underlying canvas)
+    if (onDragStateChange) {
+      setTimeout(() => onDragStateChange(true), 0);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (onDragStateChange) {
+      onDragStateChange(false);
+    }
+  };
 
   const filteredCategories = useMemo(() => {
     let categories = particleCategories;
@@ -115,24 +140,25 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
             <h3 className="text-2xl font-bold text-amber-300 mb-4 border-b-2 border-gray-700 pb-2">{category.name}</h3>
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-6">
               {category.particles.map(particleType => {
-                const isDiscovered = showAll || discoveredSet.has(particleType);
+                const isDiscovered = isSandboxMode || showAll || discoveredSet.has(particleType);
                 const info = getUniversalItemInfo(particleType);
                 
                 return (
                   <div
                     key={particleType}
-                    draggable={isDiscovered}
-                    onDragStart={(e) => isDiscovered && onDragStart && onDragStart(e, { type: particleType })}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-300 ${isDiscovered ? 'cursor-grab hover:bg-gray-700' : 'cursor-default'}`}
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(e, particleType)}
+                    onDragEnd={handleDragEnd}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-300 ${isDiscovered ? 'cursor-grab hover:bg-gray-700' : 'cursor-default opacity-50 hover:opacity-100'}`}
                     onClick={() => isDiscovered && onParticleClick && onParticleClick(particleType)}
                     onDoubleClick={() => isDiscovered && setSelectedInfoParticle(particleType)}
-                    title={isDiscovered ? "Double-click for info" : ""}
+                    title={isDiscovered ? "Double-click for info" : "Undiscovered"}
                   >
                     <div className={`relative w-20 h-20 ${isDiscovered ? '' : 'opacity-20'}`}>
                       <ParticleIcon type={particleType} color={info.color} />
                     </div>
                     <p className={`mt-2 text-center text-sm font-semibold ${isDiscovered ? 'text-white' : 'text-gray-500'}`}>
-                      {isDiscovered ? info.name : '???'}
+                      {isDiscovered ? info.name : '???'} 
                     </p>
                   </div>
                 );
@@ -158,7 +184,6 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
       )}
     </div>
   );
-
   if (isEmbedded) return content;
 
   return (
@@ -168,4 +193,4 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
   );
 };
 
-export default Codex;
+export default React.memo(Codex);

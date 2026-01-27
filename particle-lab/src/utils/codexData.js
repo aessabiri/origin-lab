@@ -16,20 +16,9 @@ export const getUniversalCodexData = () => {
     domain: bioCategories.includes(cat.name) ? 'biology' : 'physics'
   }));
 
-  // 2. Add Chemistry Lab Chemicals
+  // 2. Merge Chemistry Lab Chemicals into "Molecules"
+  const moleculesCategory = rawCategories.find(c => c.name === 'Molecules');
   
-  const chemistryCategory = {
-    name: 'Lab Chemicals',
-    domain: 'chemistry',
-    particles: []
-  };
-
-  const complexMolecules = {
-    name: 'Synthesized Molecules',
-    domain: 'chemistry',
-    particles: []
-  };
-
   // Build a set of existing names to prevent duplicates (e.g., 'Water' in both Physics and Chemistry)
   const existingNames = new Set();
   rawCategories.forEach(cat => {
@@ -38,22 +27,18 @@ export const getUniversalCodexData = () => {
           if (info) existingNames.add(info.name.toLowerCase());
       });
   });
-
-  Object.values(CHEMICALS).forEach(chem => {
-    // Skip if this chemical name already exists in the Physics/Standard list
-    if (existingNames.has(chem.name.toLowerCase())) return;
-
-    if (chem.formula && chem.formula.includes('C') && chem.formula.length > 5) {
-        complexMolecules.particles.push(chem.id);
-    } else {
-        chemistryCategory.particles.push(chem.id);
+  
+    if (moleculesCategory) {
+      Object.values(CHEMICALS).forEach(chem => {
+        // Skip if this chemical name already exists in the Physics/Standard list
+        if (existingNames.has(chem.name.toLowerCase())) return;
+        
+        // Explicitly skip iron and steel as requested by user (should be in Atoms or elsewhere)
+        if (chem.id === 'iron' || chem.id === 'steel') return;
+  
+        moleculesCategory.particles.push(chem.id);
+      });
     }
-  });
-
-  // Add the new categories
-  if (chemistryCategory.particles.length > 0) categories.push(chemistryCategory);
-  if (complexMolecules.particles.length > 0) categories.push(complexMolecules);
-
   return categories;
 };
 

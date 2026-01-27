@@ -1,10 +1,17 @@
 import React from 'react';
+import MoleculeStructure from './MoleculeStructure';
+import { MOLECULAR_STRUCTURES } from '../data/structures';
 
-const ChemicalIcon = ({ color, state, formula, iconType, className = '' }) => {
+const ChemicalIcon = ({ id, color, state, formula, iconType, className = '' }) => {
+  // If we have a molecular structure defined, use the Ball-and-Stick model
+  if (id && MOLECULAR_STRUCTURES[id]) {
+      return <MoleculeStructure chemicalId={id} className={`bg-transparent border-none ${className}`} />;
+  }
+
   const wrapperStyle = `relative flex items-center justify-center w-16 h-16 transition-transform hover:scale-105 ${className}`;
   
   // Use a sanitized ID for gradients to avoid special character issues
-  const gradId = `grad-${formula.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-${(formula || 'chem').replace(/[^a-zA-Z0-9]/g, '')}`;
 
   const renderIcon = () => {
     // If no iconType is provided, fallback to state
