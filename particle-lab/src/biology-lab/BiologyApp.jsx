@@ -7,6 +7,7 @@ import BioSidebar from './components/BioSidebar';
 import ProteinFolder from './components/ProteinFolder';
 import CellBuilder from './components/CellBuilder';
 import BioModeSelector from './components/BioModeSelector';
+import BioLabInventory from './components/BioLabInventory';
 import { useStore } from '../store';
 
 const MODE_THEMES = {
@@ -69,6 +70,26 @@ const MODE_THEMES = {
     statValueInactive: 'text-amber-400',
     controlsBorder: 'border-amber-600',
     controlsBg: 'bg-amber-800 hover:bg-amber-700',
+  },
+  inventory: {
+    bg: 'bg-slate-950',
+    textPrimary: 'text-slate-100',
+    sidebarBg: 'bg-slate-950/80',
+    borderColor: 'border-slate-800',
+    headerText: 'text-slate-500',
+    itemHover: 'hover:bg-slate-900/30 hover:text-slate-200',
+    itemActive: 'bg-slate-900/60 text-white',
+    itemInactive: 'text-slate-400',
+    highlight: 'bg-slate-400',
+    shadow: 'shadow-[0_0_10px_rgba(148,163,184,0.5)]',
+    labelActive: 'text-slate-100',
+    labelInactive: 'text-slate-300',
+    descText: 'text-slate-500/80',
+    statLabel: 'text-slate-500/70',
+    statValueActive: 'text-slate-200',
+    statValueInactive: 'text-slate-400',
+    controlsBorder: 'border-slate-600',
+    controlsBg: 'bg-slate-800 hover:bg-slate-700',
   }
 };
 
@@ -136,6 +157,21 @@ const BiologyApp = () => {
             </div>
             <div className="flex-1 relative bg-amber-950/40 border-x border-b border-amber-500/30 rounded-b-xl backdrop-blur-sm overflow-hidden">
                <CellBuilder />
+            </div>
+          </div>
+        )}
+
+        {/* Bio Inventory Mode: Full Screen Storage */}
+        {viewMode === 'inventory' && (
+          <div className="w-full h-full flex flex-col p-6 animate-fadeIn">
+             <div className="flex justify-between items-end border-b border-slate-500/30 pb-4 mb-4">
+               <div>
+                 <h2 className="text-3xl font-black tracking-widest text-slate-400">MOLECULAR STORAGE</h2>
+                 <p className="text-slate-500/60 font-mono text-sm">INVENTORY MANAGEMENT // v2.0.1</p>
+               </div>
+            </div>
+            <div className="flex-1 relative bg-slate-900/20 rounded-2xl border border-slate-500/30 backdrop-blur-sm overflow-hidden">
+               <BioLabInventory />
             </div>
           </div>
         )}

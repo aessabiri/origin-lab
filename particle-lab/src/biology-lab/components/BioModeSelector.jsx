@@ -52,6 +52,16 @@ const BioModeSelector = ({ currentMode, setMode, theme }) => {
         { label: 'Organelles', value: currentCellDesign.organelles.length },
         { label: 'Membrane', value: currentCellDesign.membrane ? 'Ready' : 'Pending' }
       ]
+    },
+    {
+      id: 'inventory',
+      label: 'Bio-Storage',
+      icon: '📦',
+      description: 'Manage Resources',
+      stats: [
+        { label: 'Soup Volume', value: 'Check' },
+        { label: 'Global Items', value: 'Access' }
+      ]
     }
   ];
 

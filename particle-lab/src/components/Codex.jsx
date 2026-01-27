@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import ParticleIcon from './ParticleIcon';
+import InfoPanel from './InfoPanel';
 import { useInventory } from '../store/inventory';
 import { getUniversalCodexData, getUniversalItemInfo } from '../utils/codexData';
 
 const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = false }) => {
   const [showAll, setShowAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterMode, setFilterMode] = useState('all'); // 'all', 'physics', 'chemistry', 'biology'
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedInfoParticle, setSelectedInfoParticle] = useState(null);
   
   // Universal Inventory - The single source of truth
   const discoveredItems = useInventory(state => state.discoveredItems);
@@ -15,12 +17,17 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
   // Unified Data Source
   const particleCategories = useMemo(() => getUniversalCodexData(), []);
 
+  // Extract unique category names for tabs
+  const categoryNames = useMemo(() => {
+    return ['All', ...particleCategories.map(cat => cat.name)];
+  }, [particleCategories]);
+
   const filteredCategories = useMemo(() => {
     let categories = particleCategories;
 
-    // 1. Filter by Domain (Lab Source)
-    if (filterMode !== 'all') {
-      categories = categories.filter(cat => cat.domain === filterMode);
+    // 1. Filter by Category Tab
+    if (selectedCategory !== 'All') {
+      categories = categories.filter(cat => cat.name === selectedCategory);
     }
 
     // 2. Filter by Search Term
@@ -36,12 +43,12 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
     }
 
     return categories;
-  }, [searchTerm, particleCategories, filterMode]);
+  }, [searchTerm, particleCategories, selectedCategory]);
 
   if (!isVisible && !isEmbedded) return null;
 
   const content = (
-    <div className={`bg-gray-800/90 ${!isEmbedded ? 'border-2 border-gray-700 rounded-2xl shadow-2xl w-full max-w-6xl h-full max-h-[90vh]' : 'h-full'} flex flex-col`}>
+    <div className={`bg-gray-800/90 ${!isEmbedded ? 'border-2 border-gray-700 rounded-2xl shadow-2xl w-full max-w-6xl h-full max-h-[90vh]' : 'h-full'} flex flex-col relative`}>
       <div className="flex flex-col gap-4 p-6 border-b border-gray-700 shrink-0">
         
         {/* Header & Search */}
@@ -84,19 +91,19 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
           </div>
         </div>
 
-        {/* Filter Toolbar */}
-        <div className="flex gap-2">
-           {['all', 'physics', 'chemistry', 'biology'].map(mode => (
+        {/* Category Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+           {categoryNames.map(cat => (
              <button
-               key={mode}
-               onClick={() => setFilterMode(mode)}
-               className={`px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider transition-all border ${
-                 filterMode === mode 
-                   ? 'bg-amber-500 border-amber-500 text-gray-900 shadow-md transform scale-105' 
+               key={cat}
+               onClick={() => setSelectedCategory(cat)}
+               className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider transition-all border ${
+                 selectedCategory === cat 
+                   ? 'bg-amber-500 border-amber-500 text-gray-900 shadow-md' 
                    : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white'
                }`}
              >
-               {mode}
+               {cat}
              </button>
            ))}
         </div>
@@ -118,6 +125,8 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
                     onDragStart={(e) => isDiscovered && onDragStart && onDragStart(e, { type: particleType })}
                     className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-300 ${isDiscovered ? 'cursor-grab hover:bg-gray-700' : 'cursor-default'}`}
                     onClick={() => isDiscovered && onParticleClick && onParticleClick(particleType)}
+                    onDoubleClick={() => isDiscovered && setSelectedInfoParticle(particleType)}
+                    title={isDiscovered ? "Double-click for info" : ""}
                   >
                     <div className={`relative w-20 h-20 ${isDiscovered ? '' : 'opacity-20'}`}>
                       <ParticleIcon type={particleType} color={info.color} />
@@ -132,6 +141,21 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
           </div>
         ))}
       </div>
+      
+      {/* Info Panel Overlay */}
+      {selectedInfoParticle && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
+             {/* We wrap InfoPanel in a div to ensure it fits within the Codex if embedded, 
+                 though InfoPanel is typically fixed. For this specific request "in the codex",
+                 we might want to force it to render *over* the Codex content but perhaps 
+                 constrained if needed. However, InfoPanel component usually uses fixed positioning. 
+                 Let's check InfoPanel implementation again. It uses fixed inset-0.
+                 If we want it 'in' the codex, we might need to modify InfoPanel or just let it overlay everything.
+                 Given the user asked "in the codex I want an info card to appear", a modal overlay (InfoPanel) is standard behavior.
+             */}
+             <InfoPanel particleType={selectedInfoParticle} onClose={() => setSelectedInfoParticle(null)} />
+          </div>
+      )}
     </div>
   );
 

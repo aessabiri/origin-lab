@@ -30,7 +30,19 @@ export const getUniversalCodexData = () => {
     particles: []
   };
 
+  // Build a set of existing names to prevent duplicates (e.g., 'Water' in both Physics and Chemistry)
+  const existingNames = new Set();
+  rawCategories.forEach(cat => {
+      cat.particles.forEach(pType => {
+          const info = PARTICLE_INFO[pType];
+          if (info) existingNames.add(info.name.toLowerCase());
+      });
+  });
+
   Object.values(CHEMICALS).forEach(chem => {
+    // Skip if this chemical name already exists in the Physics/Standard list
+    if (existingNames.has(chem.name.toLowerCase())) return;
+
     if (chem.formula && chem.formula.includes('C') && chem.formula.length > 5) {
         complexMolecules.particles.push(chem.id);
     } else {
@@ -39,8 +51,8 @@ export const getUniversalCodexData = () => {
   });
 
   // Add the new categories
-  categories.push(chemistryCategory);
-  categories.push(complexMolecules);
+  if (chemistryCategory.particles.length > 0) categories.push(chemistryCategory);
+  if (complexMolecules.particles.length > 0) categories.push(complexMolecules);
 
   return categories;
 };

@@ -1644,11 +1644,20 @@ const NitrogenDioxideIcon = () => (
   </svg>
 );
 
-const DefaultIcon = ({ hexColor }) => (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <circle cx="50" cy="50" r="45" fill={hexColor} />
-        </svg>
-      );
+const GenericMoleculeIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Generic 3-atom molecule */}
+    <NeoBond x1={50} y1={50} x2={25} y2={70} />
+    <NeoBond x1={50} y1={50} x2={75} y2={70} />
+    
+    {/* Central Atom (The Chemical's Identity Color) */}
+    <NeoSphere x={50} y={50} r={18} color={hexColor} />
+    
+    {/* Generic Side Atoms */}
+    <NeoSphere x={25} y={70} r={12} color="#e2e8f0" />
+    <NeoSphere x={75} y={70} r={12} color="#e2e8f0" />
+  </svg>
+);
 
 const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.METHANOL]: MethanolIcon,
@@ -1785,7 +1794,7 @@ const ParticleIcon = ({ type, color = 'bg-gray-400', isCompound = false }) => {
     hexColor = PARTICLE_COLOR_MAP[token] || '#9ca3af';
   }
 
-  const IconComponent = PARTICLE_ICON_MAP[type] || DefaultIcon;
+  const IconComponent = PARTICLE_ICON_MAP[type] || GenericMoleculeIcon;
 
   return <IconComponent hexColor={hexColor} isCompound={isCompound} />;
 };
