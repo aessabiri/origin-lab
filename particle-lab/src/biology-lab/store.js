@@ -73,6 +73,33 @@ export const useBioStore = create(
         synthesizedProteins: [...state.synthesizedProteins, protein]
       })),
 
+      addOrganelleToDesign: (organelle) => set(state => {
+        if (state.currentCellDesign.organelles.length >= 6) return state;
+        return {
+          currentCellDesign: {
+            ...state.currentCellDesign,
+            organelles: [...state.currentCellDesign.organelles, { ...organelle, id: Date.now() + Math.random() }]
+          }
+        };
+      }),
+
+      removeOrganelleFromDesign: (id) => set(state => ({
+        currentCellDesign: {
+          ...state.currentCellDesign,
+          organelles: state.currentCellDesign.organelles.filter(o => o.id !== id)
+        }
+      })),
+
+      addProteinToDesign: (protein) => set(state => {
+        if (state.currentCellDesign.organelles.length >= 6) return state;
+        return {
+          currentCellDesign: {
+            ...state.currentCellDesign,
+            organelles: [...state.currentCellDesign.organelles, { ...protein, isProtein: true, id: Date.now() + Math.random() }]
+          }
+        };
+      }),
+
       updateCellDesign: (update) => set(state => ({
         currentCellDesign: { ...state.currentCellDesign, ...update }
       })),
