@@ -23,16 +23,8 @@ const ActionMenu = ({
     onClose();
   };
 
-  const handleSandboxClick = () => {
-    onToggleSandbox();
-    onClose();
-  };
-
   return (
     <div className="absolute bottom-full mb-2 flex flex-col gap-2 w-48" onClick={e => e.stopPropagation()}>
-      <button onClick={handleSandboxClick} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-teal-600 hover:bg-teal-500 transition-colors">
-        {isSandbox ? 'Exit Sandbox' : 'Enter Sandbox'}
-      </button>
       <button onClick={() => setIsRoadToDnaVisible(prev => !prev)} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">
         Road to DNA
       </button>

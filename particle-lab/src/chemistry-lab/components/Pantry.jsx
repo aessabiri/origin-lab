@@ -29,7 +29,7 @@ const Pantry = () => {
   };
 
   return (
-    <div className="w-full h-64 bg-gray-900 border-t border-gray-800 z-20">
+    <div className="w-full h-full bg-gray-900 border-t border-gray-800 z-20">
        <ResourceExchange 
          labName="Chemistry Lab"
          onImport={handleImport}

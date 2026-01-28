@@ -8,13 +8,15 @@ export const getUniversalCodexData = () => {
   // 1. Deep clone the constant to avoid mutation
   const groups = JSON.parse(JSON.stringify(CODEX_PARTICLES_BY_CATEGORY));
   
-  // 2. Build a set of existing names to prevent duplicates
+  // 2. Build a set of existing names and IDs to prevent duplicates
   // We need to traverse: Group -> Subcategory -> Particles
   const existingNames = new Set();
+  const existingIds = new Set();
   
   groups.forEach(group => {
     group.subcategories.forEach(sub => {
       sub.particles.forEach(pType => {
+        existingIds.add(pType);
         const info = PARTICLE_INFO[pType];
         if (info) existingNames.add(info.name.toLowerCase());
       });
@@ -36,8 +38,8 @@ export const getUniversalCodexData = () => {
       }
 
       Object.values(CHEMICALS).forEach(chem => {
-          // Skip if this chemical name already exists in the Physics/Standard list
-          if (existingNames.has(chem.name.toLowerCase())) return;
+          // Skip if this chemical ID or name already exists in the Physics/Standard list
+          if (existingIds.has(chem.id) || existingNames.has(chem.name.toLowerCase())) return;
           
           // Explicitly skip iron/steel duplicates if they exist as atoms (Iron is in Atomic->Elements)
           if (chem.id === 'iron' || chem.id === 'steel') return;

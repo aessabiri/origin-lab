@@ -7,12 +7,6 @@ import ParticleIcon from '../particle-lab/components/ParticleIcon.jsx';
 /**
  * Universal Resource Exchange Component
  * Allows importing items from the Global Inventory into a specific Lab.
- * 
- * @param {string} labName - Name of the lab (displayed in UI)
- * @param {function} onImport - Callback(itemId, amount) when user imports
- * @param {Array<string>} allowedCategories - List of categories allowed (e.g. ['Atomic', 'Molecular'])
- * @param {Array<string>} excludedCategories - List of categories banned (e.g. ['Fundamental'])
- * @param {Array<string>} excludedTypes - Specific particle types to ban (e.g. ['oxygen-gas'])
  */
 const ResourceExchange = ({ 
   labName, 
@@ -43,7 +37,7 @@ const ResourceExchange = ({
          sub.particles.forEach(type => {
             // Check: (Discovered OR Sandbox) AND Not Excluded
             if ((isSandboxMode || discoveredSet.has(type)) && !excludedSet.has(type)) {
-               validItems.push({ type, group: group.name, sub: sub.name });
+               validItems.push({ type, group: group.name, sub: sub.name, info: getUniversalItemInfo(type) });
             }
          });
       });
@@ -56,117 +50,96 @@ const ResourceExchange = ({
   const filteredItems = useMemo(() => {
     if (!searchTerm) return availableItems;
     return availableItems.filter(item => 
-       getUniversalItemInfo(item.type).name.toLowerCase().includes(searchTerm.toLowerCase())
+       item.info.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [availableItems, searchTerm]);
 
-  const handleImport = () => {
-    if (selectedId && amount > 0) {
-      onImport(selectedId, amount);
-      // Optional: Visual feedback or toast
-    }
+  const handleImport = (e, type, amt) => {
+    e.stopPropagation();
+    onImport(type, amt || amount);
   };
 
   const selectedInfo = selectedId ? getUniversalItemInfo(selectedId) : null;
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 text-white rounded-xl overflow-hidden border border-gray-700 shadow-2xl">
+    <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800 shadow-xl overflow-hidden">
+      
       {/* Header */}
-      <div className="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">
-            {labName} Import
-          </h3>
-          <p className="text-xs text-gray-400">Global Inventory Access</p>
-        </div>
-        <div className="relative">
+      <div className="shrink-0 p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm z-10">
+        <h3 className="text-lg font-bold text-slate-200 mb-1">{labName}</h3>
+        <p className="text-xs text-slate-500 mb-4">Select items to instantiate</p>
+        
+        <div className="relative group">
            <input 
              type="text" 
-             placeholder="Search items..." 
+             placeholder="Filter storage..." 
              value={searchTerm}
              onChange={e => setSearchTerm(e.target.value)}
-             className="bg-gray-900 border border-gray-600 rounded px-3 py-1 text-sm focus:outline-none focus:border-blue-500 w-40"
+             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors pl-9"
            />
+           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors">🔍</span>
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* List */}
-        <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 sm:grid-cols-4 gap-3 content-start">
-           {filteredItems.length === 0 ? (
-             <div className="col-span-full text-center text-gray-500 mt-10 italic">
-               No compatible items discovered yet.
-             </div>
-           ) : (
-             filteredItems.map(({ type }) => {
-               const info = getUniversalItemInfo(type);
+      {/* Grid */}
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+         {filteredItems.length === 0 ? (
+           <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-2">
+             <div className="text-4xl opacity-50">📦</div>
+             <p className="text-sm">Storage Empty</p>
+             <p className="text-xs opacity-50">Discover items to fill</p>
+           </div>
+         ) : (
+           <div className="grid grid-cols-2 gap-3">
+             {filteredItems.map(({ type, info }) => {
                const isSelected = selectedId === type;
                return (
-                 <button
+                 <div
                    key={type}
-                   onClick={() => setSelectedId(type)}
-                   className={`flex flex-col items-center p-2 rounded-lg border transition-all ${
+                   onClick={() => setSelectedId(isSelected ? null : type)}
+                   className={`relative flex flex-col items-center p-3 rounded-xl border transition-all cursor-pointer group ${
                      isSelected 
-                       ? 'bg-blue-900/40 border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]' 
-                       : 'bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-gray-500'
+                       ? 'bg-blue-900/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.1)]' 
+                       : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600'
                    }`}
                  >
-                   <div className="w-10 h-10 mb-2">
+                   {/* Icon */}
+                   <div className="w-12 h-12 mb-2 transition-transform group-hover:scale-105">
                      <ParticleIcon type={type} color={info.color} />
                    </div>
-                   <span className="text-xs font-medium text-center truncate w-full">{info.name}</span>
-                 </button>
-               );
-             })
-           )}
-        </div>
+                   
+                   {/* Name */}
+                   <span className="text-xs font-semibold text-center text-slate-300 leading-tight line-clamp-2 min-h-[2.5em] w-full">
+                     {info.name}
+                   </span>
 
-        {/* Sidebar / Actions */}
-        <div className="w-64 bg-gray-800/50 border-l border-gray-700 p-4 flex flex-col gap-4">
-           {selectedId ? (
-             <>
-               <div className="flex flex-col items-center p-4 bg-gray-900 rounded-lg border border-gray-600">
-                  <div className="w-20 h-20 mb-3">
-                    <ParticleIcon type={selectedId} color={selectedInfo.color} />
-                  </div>
-                  <h4 className="font-bold text-center text-blue-300">{selectedInfo.name}</h4>
-                  <p className="text-xs text-gray-400 text-center mt-1">{selectedInfo.description}</p>
-               </div>
-
-               <div className="space-y-2">
-                 <label className="text-xs font-bold text-gray-400 uppercase">Amount to Import</label>
-                 <div className="flex items-center gap-2">
-                   <input 
-                     type="range" 
-                     min="1" max="100" 
-                     value={amount} 
-                     onChange={e => setAmount(parseInt(e.target.value))}
-                     className="flex-1 accent-blue-500 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                   />
-                   <input 
-                     type="number" 
-                     min="1" 
-                     value={amount} 
-                     onChange={e => setAmount(Math.max(1, parseInt(e.target.value) || 1))}
-                     className="w-16 bg-gray-900 border border-gray-600 rounded px-2 py-1 text-right text-sm font-mono"
-                   />
+                   {/* Quick Import Overlay (visible on hover or selection) */}
+                   <div className={`absolute inset-0 bg-slate-900/90 rounded-xl flex flex-col items-center justify-center p-2 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 hover:opacity-100 pointer-events-none hover:pointer-events-auto'}`}>
+                      <button 
+                        onClick={(e) => handleImport(e, type, 1)}
+                        className="w-full py-1.5 mb-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded shadow-lg active:scale-95 transition-transform"
+                      >
+                        + Add 1
+                      </button>
+                      <button 
+                        onClick={(e) => handleImport(e, type, 10)}
+                        className="w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded shadow active:scale-95 transition-transform"
+                      >
+                        + Add 10
+                      </button>
+                   </div>
                  </div>
-               </div>
+               );
+             })}
+           </div>
+         )}
+      </div>
 
-               <button 
-                 onClick={handleImport}
-                 className="mt-auto w-full py-3 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-500 hover:to-teal-500 text-white font-bold rounded-lg shadow-lg transform transition-transform active:scale-95 flex items-center justify-center gap-2"
-               >
-                 <span>📥</span> Import
-               </button>
-             </>
-           ) : (
-             <div className="flex flex-col items-center justify-center h-full text-gray-500 text-center">
-               <span className="text-4xl mb-2">👈</span>
-               <p className="text-sm">Select an item to import</p>
-             </div>
-           )}
-        </div>
+      {/* Footer Info */}
+      <div className="shrink-0 p-3 border-t border-slate-800 bg-slate-900 text-center">
+         <p className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">
+            {isSandboxMode ? 'SANDBOX MODE ACTIVE' : 'STANDARD MODE'}
+         </p>
       </div>
     </div>
   );

@@ -141,6 +141,9 @@ export const PARTICLE_TYPES = {
   POLYETHYLENE: 'polyethylene',
   POTASSIUM_PERMANGANATE: 'potassium-permanganate',
   HYDROGEN_FLUORIDE: 'hydrogen-fluoride',
+  STEEL: 'steel',
+  VINEGAR: 'vinegar',
+  UNIVERSAL_INDICATOR: 'universal-indicator',
 };
 
 export const PARTICLE_COLORS = {
@@ -267,6 +270,13 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.BUTANE]: 'bg-gray-600',
   [PARTICLE_TYPES.SULFUR_DIOXIDE]: 'bg-yellow-600',
   [PARTICLE_TYPES.NITROGEN_DIOXIDE]: 'bg-orange-800',
+  [PARTICLE_TYPES.ETHYL_ACETATE]: 'bg-slate-200',
+  [PARTICLE_TYPES.POLYETHYLENE]: 'bg-slate-300',
+  [PARTICLE_TYPES.POTASSIUM_PERMANGANATE]: 'bg-purple-700',
+  [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: 'bg-green-200',
+  [PARTICLE_TYPES.STEEL]: 'bg-slate-500',
+  [PARTICLE_TYPES.VINEGAR]: 'bg-amber-200',
+  [PARTICLE_TYPES.UNIVERSAL_INDICATOR]: 'bg-gradient-to-r from-red-500 via-green-500 to-purple-500',
 };
 
 export const PARTICLE_NAMES = {
@@ -392,6 +402,9 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.BUTANE]: 'Butane',
   [PARTICLE_TYPES.SULFUR_DIOXIDE]: 'Sulfur Dioxide',
   [PARTICLE_TYPES.NITROGEN_DIOXIDE]: 'Nitrogen Dioxide',
+  [PARTICLE_TYPES.STEEL]: 'Steel',
+  [PARTICLE_TYPES.VINEGAR]: 'Vinegar',
+  [PARTICLE_TYPES.UNIVERSAL_INDICATOR]: 'Universal Indicator',
 };
 
 export const PARTICLE_INFO = {
@@ -534,6 +547,9 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.ETHYL_ACETATE]: { size: 96, name: 'Ethyl Acetate', category: 'Molecule', mass: '88.11 g/mol', charge: '0 e', composition: '4 Carbon, 8 Hydrogen, 2 Oxygen', description: 'Sweet smelling ester.' },
   [PARTICLE_TYPES.POTASSIUM_PERMANGANATE]: { size: 96, name: 'Potassium Permanganate', category: 'Ionic Compound', mass: '158.034 g/mol', charge: '0 e', composition: '1 Potassium, 1 Manganese, 4 Oxygen', description: 'Strong oxidizer.' },
   [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: { size: 96, name: 'Hydrogen Fluoride', category: 'Molecule / Acid', mass: '20.01 g/mol', charge: '0 e', composition: '1 Hydrogen, 1 Fluorine', description: 'Corrosive gas/liquid.' },
+  [PARTICLE_TYPES.STEEL]: { size: 96, name: 'Steel', category: 'Alloy', mass: 'Variable', charge: '0 e', composition: 'Iron, Carbon', description: 'A hard, strong, grey or bluish-grey alloy of iron with carbon and usually other elements.' },
+  [PARTICLE_TYPES.VINEGAR]: { size: 96, name: 'Vinegar', category: 'Solution', mass: 'Variable', charge: '0 e', composition: 'Acetic Acid, Water', description: 'A liquid consisting of about 5–20% acetic acid, water, and other trace chemicals.' },
+  [PARTICLE_TYPES.UNIVERSAL_INDICATOR]: { size: 96, name: 'Universal Indicator', category: 'Solution', mass: 'Variable', charge: '0 e', composition: 'Mixture', description: 'A pH indicator made of a solution of several compounds that exhibits several smooth color changes over a wide range of pH values.' },
 };
 
 export const PARTICLE_COLOR_MAP = {

@@ -30,9 +30,11 @@ export const useStore = create(
       // --- Global UI State ---
       currentView: 'universe', // 'menu', 'hub', 'particle', 'chemistry', 'biology', 'universe'
       isCodexVisible: false,
+      isSandboxMode: false,
       message: '',
 
       // --- Actions ---
+      setIsSandboxMode: (isSandboxMode) => set({ isSandboxMode }),
       setDiscoveredAtoms: (discoveredAtoms) => set({ discoveredAtoms }),
       setDiscoveredMolecules: (discoveredMolecules) => set({ discoveredMolecules }),
       setDiscoveredOrganelles: (discoveredOrganelles) => set({ discoveredOrganelles }),

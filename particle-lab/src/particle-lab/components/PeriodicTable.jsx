@@ -21,13 +21,13 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
 
     if (isPlaceholder) {
       return (
-        <div className="w-16 h-16 rounded-md flex items-center justify-center bg-gray-600 text-gray-400 text-xs">
+        <div className="w-16 h-20 rounded-md flex items-center justify-center bg-gray-600 text-gray-400 text-xs">
           {placeholderText}
         </div>
       );
     }
 
-    if (!type) return <div key={`empty-${Math.random()}`} className="w-16 h-16" />;
+    if (!type) return <div key={`empty-${Math.random()}`} className="w-16 h-20" />;
 
     return (
       <div
@@ -35,12 +35,16 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
         draggable={isDiscovered}
         onDragStart={(e) => isDiscovered && onDragStart(e, particle)}
         onClick={() => isDiscovered && onParticleClick(type)}
-        className={`relative w-16 h-16 rounded-md flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? PARTICLE_COLORS[type] : 'bg-gray-700'} ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300' : 'cursor-default'}`}
+        className={`relative w-16 h-20 rounded-md flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? PARTICLE_COLORS[type] : 'bg-gray-700'} ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300' : 'cursor-default'}`}
       >
-        <div className={`absolute inset-0 flex flex-col items-center justify-center p-1 transition-all duration-300 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`} style={{ fontSize: '0.75rem' }}>
-          <span className="font-bold">{atomicNumber}</span>
-          <span className="text-xl font-black">{PARTICLE_NAMES[type].substring(0, 2)}</span>
-          <span className="truncate w-full text-center">{PARTICLE_NAMES[type]}</span>
+        <div className={`absolute inset-0 flex flex-col items-center justify-between py-1.5 transition-all duration-300 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`} style={{ fontSize: '0.7rem' }}>
+          <span className="font-bold opacity-70 leading-none">{atomicNumber}</span>
+          <span className="text-xl font-black leading-none">{PARTICLE_NAMES[type].substring(0, 2)}</span>
+          <div className="w-full px-0.5 overflow-hidden">
+            <p className="text-[9px] font-bold leading-tight text-center break-words uppercase tracking-tighter">
+              {PARTICLE_NAMES[type]}
+            </p>
+          </div>
         </div>
         {!isDiscovered && (
           <div className="absolute inset-0 flex items-center justify-center">

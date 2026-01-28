@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useStore } from '../store';
 
 const MILESTONES = [
   {
@@ -103,6 +104,9 @@ export const useProgressionStore = create(
       
       // Actions
       addXp: (amount) => set(state => {
+        // Pause progression in Sandbox Mode
+        if (useStore.getState().isSandboxMode) return state;
+
         const newXp = state.xp + amount;
         // Simple leveling curve: Level * 1000
         const levelUp = newXp >= state.level * 1000;
@@ -113,6 +117,8 @@ export const useProgressionStore = create(
       }),
 
       completeMilestone: (id) => {
+        if (useStore.getState().isSandboxMode) return;
+
         const { completedMilestones, addXp } = get();
         if (completedMilestones.includes(id)) return;
         

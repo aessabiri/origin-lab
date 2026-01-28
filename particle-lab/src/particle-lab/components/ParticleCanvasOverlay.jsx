@@ -37,11 +37,11 @@ const ParticleCanvasOverlay = ({
   isPeriodicTablePinned
 }) => {
   // Global Stores
-  const { setIsCodexVisible } = useStore();
+  const { setIsCodexVisible, isSandboxMode, setIsSandboxMode } = useStore();
   const {
     currentGoalIndex,
     goalPath,
-    isSandboxMode,
+    // isSandboxMode, // REMOVED local
     isPaletteVisible, setIsPaletteVisible,
     isHintVisible,
     isActionMenuVisible, setIsActionMenuVisible,
@@ -51,10 +51,16 @@ const ParticleCanvasOverlay = ({
     openExclusive,
     handleReset,
     handleSetGoalPath,
-    handleToggleSandbox,
+    handleToggleSandbox: localHandleToggleSandbox, // Rename to avoid conflict if we used it directly
     setIsPeriodicTablePinned,
     setIsPeriodicTableVisible
   } = useParticleStore();
+
+  const handleToggleSandbox = () => {
+    setIsSandboxMode(!isSandboxMode);
+    // Optional: Keep local sync if needed, but better to rely on global
+    // useParticleStore.getState().setIsSandboxMode(!isSandboxMode); 
+  };
 
   const goals = useMemo(() => GOAL_PATHS[goalPath] || GOAL_PATHS.medium, [goalPath]);
 
