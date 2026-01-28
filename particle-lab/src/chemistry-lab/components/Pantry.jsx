@@ -29,7 +29,7 @@ const INVENTORY_TO_CHEMICAL_MAP = {
 const Pantry = () => {
   const setInspectedChemical = useChemistryStore(state => state.setInspectedChemical);
   const gameMode = useChemistryStore(state => state.gameMode);
-  const { elements, compounds } = useInventory();
+  const { elements, compounds, discoveredItems } = useInventory();
   const [activeTab, setActiveTab] = useState('elementary');
 
   const handleDragStart = (e, chemicalId) => {
@@ -38,20 +38,22 @@ const Pantry = () => {
 
   const inventoryItems = useMemo(() => {
     const items = [];
+    const discoveredSet = new Set(discoveredItems);
+
     // Process Elements
-    Object.entries(elements).forEach(([key, count]) => {
-      if (count > 0 && INVENTORY_TO_CHEMICAL_MAP[key]) {
-        items.push({ id: INVENTORY_TO_CHEMICAL_MAP[key], count });
+    Object.keys(elements).forEach((key) => {
+      if ((elements[key] > 0 || discoveredSet.has(key)) && INVENTORY_TO_CHEMICAL_MAP[key]) {
+        items.push({ id: INVENTORY_TO_CHEMICAL_MAP[key], count: Infinity });
       }
     });
     // Process Compounds
-    Object.entries(compounds).forEach(([key, count]) => {
-      if (count > 0 && INVENTORY_TO_CHEMICAL_MAP[key]) {
-        items.push({ id: INVENTORY_TO_CHEMICAL_MAP[key], count });
+    Object.keys(compounds).forEach((key) => {
+      if ((compounds[key] > 0 || discoveredSet.has(key)) && INVENTORY_TO_CHEMICAL_MAP[key]) {
+        items.push({ id: INVENTORY_TO_CHEMICAL_MAP[key], count: Infinity });
       }
     });
     return items;
-  }, [elements, compounds]);
+  }, [elements, compounds, discoveredItems]);
 
   const displayedChemicals = useMemo(() => {
     if (gameMode === 'sandbox') {
@@ -102,7 +104,7 @@ const Pantry = () => {
             </div>
           )}
           
-          {filteredChemicals.map(({ id: chemId, count }) => {
+          {filteredChemicals.map(({ id: chemId }) => {
             const chem = CHEMICALS[chemId];
             if (!chem) return null;
             
@@ -126,11 +128,9 @@ const Pantry = () => {
                 </div>
                 <p className="text-xs text-center text-gray-300 font-medium group-hover:text-white w-full truncate px-1">{chem.name}</p>
                 
-                {gameMode !== 'sandbox' && (
-                  <span className="absolute top-1 right-1 bg-gray-700 text-xs text-amber-400 px-1.5 py-0.5 rounded-full font-mono border border-gray-600">
-                    x{count}
-                  </span>
-                )}
+                <span className="absolute top-1 right-1 text-[8px] text-amber-500/50 font-black uppercase tracking-tighter">
+                  Infinite
+                </span>
               </div>
             );
           })}

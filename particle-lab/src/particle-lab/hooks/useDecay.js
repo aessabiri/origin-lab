@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { PARTICLE_TYPES } from '../constants/particles.js';
-import { useStore } from '../store.js';
+import { PARTICLE_TYPES } from '../../constants/particles.js';
+import { useParticleStore } from '../store.js';
 
 export const useDecay = (triggerRadiationBurst) => {
-  const particles = useStore(state => state.particles);
-  const setParticles = useStore(state => state.setParticles);
-  const showMessage = useStore(state => state.showMessage);
+  const particles = useParticleStore(state => state.particles);
+  const setParticles = useParticleStore(state => state.setParticles);
+  const showMessage = useParticleStore(state => state.showMessage);
   const decayTimeouts = useRef([]);
 
   useEffect(() => {
@@ -15,7 +15,7 @@ export const useDecay = (triggerRadiationBurst) => {
     particles.forEach(p => {
       if (p.type === PARTICLE_TYPES.EXCITED_ELECTRON) {
         const timeoutId = setTimeout(() => {
-          const currentParticles = useStore.getState().particles;
+          const currentParticles = useParticleStore.getState().particles;
           const particleToDecay = currentParticles.find(part => part.id === p.id);
           if (!particleToDecay) return;
 
@@ -35,7 +35,7 @@ export const useDecay = (triggerRadiationBurst) => {
         decayTimeouts.current.push(timeoutId);
       } else if (p.type === PARTICLE_TYPES.DECAYING_NEUTRON) {
         const timeoutId = setTimeout(() => {
-          const currentParticles = useStore.getState().particles;
+          const currentParticles = useParticleStore.getState().particles;
           const particleToDecay = currentParticles.find(part => part.id === p.id);
           if (!particleToDecay) return;
 

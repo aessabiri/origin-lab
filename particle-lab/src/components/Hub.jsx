@@ -1,16 +1,19 @@
 import React, { useMemo } from 'react';
 import { useStore } from '../store';
+import { useParticleStore } from '../particle-lab/store';
 import { useBioStore } from '../biology-lab/store';
 import { useChemistryStore } from '../chemistry-lab/store';
 import { useInventory } from '../store/inventory';
 
 const Hub = ({ onNavigate }) => {
   const { 
-    particles, discoveredAtoms, discoveredMolecules, 
+    discoveredAtoms, discoveredMolecules, 
     executeReset, setCurrentView, setIntroComplete,
     globalSettings, setGlobalSettings,
     openExclusive
   } = useStore();
+  
+  const particles = useParticleStore(state => state.particles);
   
   const { agents, isRunning, resetSimulation } = useBioStore();
   const { setGameMode } = useChemistryStore();
@@ -41,7 +44,7 @@ const Hub = ({ onNavigate }) => {
       resetSimulation(); // Biology
       setGameMode('career'); // Chemistry
       setIntroComplete(false); // Reset Intro
-      setCurrentView('menu'); // Return to Main Menu
+      setCurrentView('universe'); // Return to Universe View
     }
   };
 

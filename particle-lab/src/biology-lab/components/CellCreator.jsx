@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useBioStore } from '../store';
 import { useStore } from '../../store';
 import { PARTICLE_TYPES, PARTICLE_COLORS } from '../../constants/particles';
-import ParticleIcon from '../../components/ParticleIcon';
+import ParticleIcon from '../../particle-lab/components/ParticleIcon.jsx';
 
 const ORGANELLE_COSTS = {
   [PARTICLE_TYPES.NUCLEUS]: { energy: 50, bmr: 0.5, name: 'Nucleus', limit: 1, desc: 'Enables complex behavior & large size.' },

@@ -1,8 +1,8 @@
 import React from 'react';
-import { PARTICLE_TYPES, PARTICLE_COLOR_MAP, PARTICLE_COLORS } from '../constants/particles.js';
-import { CHEMICALS } from '../chemistry-lab/data/chemicals';
-import MoleculeStructure from '../chemistry-lab/components/MoleculeStructure';
-import { MOLECULAR_STRUCTURES } from '../chemistry-lab/data/structures';
+import { PARTICLE_TYPES, PARTICLE_COLOR_MAP, PARTICLE_COLORS } from '../../constants/particles.js';
+import { CHEMICALS } from '../../chemistry-lab/data/chemicals';
+import MoleculeStructure from '../../chemistry-lab/components/MoleculeStructure.jsx';
+import { MOLECULAR_STRUCTURES } from '../../chemistry-lab/data/structures.js';
 
 // --- Helper Components & Functions ---
 

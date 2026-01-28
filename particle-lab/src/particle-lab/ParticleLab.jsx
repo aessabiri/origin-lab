@@ -1,12 +1,13 @@
 import React, { useCallback } from 'react';
-import ParticleCanvas from './ParticleCanvas';
-import LabSidebar from './LabSidebar';
-import InfoPanel from './InfoPanel';
-import { PARTICLE_NAMES } from '../constants/particles';
-import { useStore } from '../store';
+import ParticleCanvas from './components/ParticleCanvas.jsx';
+import LabSidebar from './components/LabSidebar.jsx';
+import InfoPanel from './components/InfoPanel.jsx';
+import ExchangeHub from './components/ExchangeHub.jsx';
+import { PARTICLE_NAMES } from '../constants/particles.js';
+import { useParticleStore } from './store.js';
 
 const ParticleLab = () => {
-  const { showMessage, infoPanelType, setInfoPanelType } = useStore();
+  const { showMessage, infoPanelType, setInfoPanelType } = useParticleStore();
 
   const handleDragStart = useCallback((e, particle) => {
     e.dataTransfer.setData('text/plain', JSON.stringify({ type: particle.type }));
@@ -22,6 +23,7 @@ const ParticleLab = () => {
       <div className="relative z-60">
         <InfoPanel particleType={infoPanelType} onClose={handleCloseInfo} />
       </div>
+      <ExchangeHub />
     </div>
   );
 };

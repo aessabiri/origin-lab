@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { PARTICLE_TYPES, PARTICLE_INFO, PARTICLE_COLORS } from '../constants/particles';
 import { REACTIONS } from '../chemistry-lab/data/reactions';
 import { CHEMICALS } from '../chemistry-lab/data/chemicals';
-import ParticleIcon from './ParticleIcon';
+import ParticleIcon from '../particle-lab/components/ParticleIcon.jsx';
 import ChemicalIcon from '../chemistry-lab/components/ChemicalIcon';
-import InfoPanel from './InfoPanel';
+import InfoPanel from '../particle-lab/components/InfoPanel.jsx';
 
 const Tutorials = () => {
   const [activeTab, setActiveTab] = useState('physics');

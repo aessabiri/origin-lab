@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import ParticleIcon from './ParticleIcon';
-import InfoPanel from './InfoPanel';
+import ParticleIcon from '../particle-lab/components/ParticleIcon.jsx';
+import InfoPanel from '../particle-lab/components/InfoPanel.jsx';
 import { useInventory } from '../store/inventory';
 import { useStore } from '../store';
 import { getUniversalCodexData, getUniversalItemInfo } from '../utils/codexData';

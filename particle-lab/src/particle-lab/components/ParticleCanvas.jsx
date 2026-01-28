@@ -2,18 +2,19 @@ import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react'
 import { useSprings, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import ParticleIcon from './ParticleIcon.jsx';
-import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, CODEX_PARTICLES_BY_CATEGORY, PARTICLE_INFO, elementaryParticleGroups } from '../constants/particles.js';
-import { COMPOUND_PARTICLE_TYPES } from '../recipes.js';
+import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, CODEX_PARTICLES_BY_CATEGORY, PARTICLE_INFO, elementaryParticleGroups } from '../../constants/particles.js';
+import { COMPOUND_PARTICLE_TYPES } from '../../recipes.js';
 import PeriodicTable from './PeriodicTable.jsx';
 import ActionToolbar from './ActionToolbar.jsx';
 import ActionMenu from './ActionMenu.jsx';
 import { useParticleActions } from '../hooks/useParticleActions.js';
 import { useSelection } from '../hooks/useSelection.js';
-import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
-import { GOAL_PATHS } from '../constants/goalPaths.js';
-import { RECIPES, PARTICLE_CATEGORIES } from '../recipes.js';
+import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
+import { GOAL_PATHS } from '../../constants/goalPaths.js';
+import { RECIPES, PARTICLE_CATEGORIES } from '../../recipes.js';
 import { useDecay } from '../hooks/useDecay.js';
-import { useStore } from '../store.js';
+import { useStore } from '../../store.js';
+import { useParticleStore } from '../store.js';
 import { findAssemblableMolecules } from '../utils/moleculeDetection.js';
 
 const MOLECULE_PARTICLE_TYPES = new Set(
@@ -21,6 +22,7 @@ const MOLECULE_PARTICLE_TYPES = new Set(
 );
 
 const ParticleCanvas = ({ onDragStart }) => {
+  const { isCodexVisible, setIsCodexVisible } = useStore();
   const {
     particles, setParticles,
     bonds, setBonds,
@@ -33,7 +35,6 @@ const ParticleCanvas = ({ onDragStart }) => {
     goalPath,
     isSandboxMode,
     isPaletteVisible, setIsPaletteVisible,
-    isCodexVisible, setIsCodexVisible,
     isHintVisible,
     isActionMenuVisible, setIsActionMenuVisible,
     isSettingsVisible, setIsSettingsVisible,
@@ -46,7 +47,7 @@ const ParticleCanvas = ({ onDragStart }) => {
     handleEmptyCanvas,
     setInfoPanelType,
     setCurrentGoalIndex
-  } = useStore();
+  } = useParticleStore();
 
   const [visualEffects, setVisualEffects] = useState([]);
   const draggedIndexRef = useRef(null);
@@ -521,9 +522,10 @@ const ParticleCanvas = ({ onDragStart }) => {
           isVisible={isActionMenuVisible}
           onClose={() => setIsActionMenuVisible(false)}
           onSetGoalPath={handleSetGoalPath}
-          onOpenCodex={() => openExclusive('isCodexVisible', 'isCodexVisible')}
+          onOpenCodex={() => { setIsCodexVisible(true); setIsActionMenuVisible(false); }}
           onOpenPeriodicTable={() => openExclusive('isPeriodicTableVisible', 'isPeriodicTableVisible')}
           onOpenSettings={() => openExclusive('isSettingsVisible', 'isSettingsVisible')}
+          onOpenExchange={() => openExclusive('isExchangeHubVisible', 'isExchangeHubVisible')}
           onEmptyCanvas={() => { handleEmptyCanvas(); setIsActionMenuVisible(false); }}
           onReset={() => { handleReset(); setIsActionMenuVisible(false); }}
           onToggleSandbox={handleToggleSandbox}
@@ -616,6 +618,23 @@ const ParticleCanvas = ({ onDragStart }) => {
           </animated.div>
         );
       })}
+
+      <div className="absolute bottom-4 right-4 flex flex-col gap-3 z-30">
+        <button
+          onClick={() => openExclusive('isPeriodicTableVisible', 'isPeriodicTableVisible')}
+          className="w-12 h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 border-2 border-indigo-400"
+          title="Periodic Table"
+        >
+          <span className="text-2xl">📊</span>
+        </button>
+        <button
+          onClick={() => { setIsCodexVisible(true); setIsActionMenuVisible(false); }}
+          className="w-12 h-12 bg-amber-600 hover:bg-amber-500 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 border-2 border-amber-400"
+          title="Universal Codex"
+        >
+          <span className="text-2xl">📖</span>
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getUniversalItemInfo } from '../utils/codexData';
+import { getUniversalItemInfo } from '../../utils/codexData.js';
 
 const InfoRow = ({ label, value }) => {
   if (!value) return null;

@@ -7,6 +7,7 @@ const ActionMenu = ({
   onOpenCodex,
   onOpenPeriodicTable,
   onOpenSettings,
+  onOpenExchange,
   onEmptyCanvas,
   onReset,
   onToggleSandbox,
@@ -42,6 +43,7 @@ const ActionMenu = ({
           <button onClick={() => handleSetGoalPath('slow')} className="w-full text-left px-3 py-2 text-sm text-white font-semibold rounded-md bg-gray-600 hover:bg-gray-500 transition-colors">» Slow</button>
         </div>
       )}
+      <button onClick={onOpenExchange} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-amber-700 hover:bg-amber-600 transition-colors border border-amber-500/50">Universal Exchange</button>
       <button onClick={onOpenCodex} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Particle Codex</button>
       <button onClick={onOpenPeriodicTable} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Periodic Table</button>
       <button onClick={onOpenSettings} className="w-full text-left px-4 py-3 text-white font-semibold rounded-lg shadow-lg bg-gray-700 hover:bg-gray-600 transition-colors">Settings</button>

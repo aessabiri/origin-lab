@@ -1,26 +1,25 @@
 import { useCallback } from 'react';
-import { useInventory } from '../store/inventory.js';
-import { useStore } from '../store.js';
-import { PARTICLE_CATEGORIES, FULL_COMPOSITION_MAP } from '../recipes.js';
-import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
-import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
-import { PARTICLE_NAMES } from '../constants/particles.js';
+import { useInventory } from '../../store/inventory.js';
+import { useParticleStore } from '../store.js';
+import { PARTICLE_CATEGORIES, FULL_COMPOSITION_MAP } from '../../recipes.js';
+import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
+import { POLYPEPTIDE_RECIPES } from '../../constants/polypeptideRecipes.js';
+import { PARTICLE_NAMES } from '../../constants/particles.js';
 
 export const useParticleActions = ({
   selectionInfo,
   goals,
   setSelectedParticleIds,
 }) => {
-  const particles = useStore(state => state.particles);
-  const setParticles = useStore(state => state.setParticles);
-  const setBonds = useStore(state => state.setBonds);
-  const setSecondaryParticles = useStore(state => state.setSecondaryParticles);
-  const setDiscoveredAtoms = useStore(state => state.setDiscoveredAtoms);
-  const setDiscoveredMolecules = useStore(state => state.setDiscoveredMolecules);
-  const setDiscoveredOrganelles = useStore(state => state.setDiscoveredOrganelles);
-  const currentGoalIndex = useStore(state => state.currentGoalIndex);
-  const setCurrentGoalIndex = useStore(state => state.setCurrentGoalIndex);
-  const showMessage = useStore(state => state.showMessage);
+  const particles = useParticleStore(state => state.particles);
+  const setParticles = useParticleStore(state => state.setParticles);
+  const setBonds = useParticleStore(state => state.setBonds);
+  const setSecondaryParticles = useParticleStore(state => state.setSecondaryParticles);
+  const setDiscoveredAtoms = useParticleStore(state => state.setDiscoveredAtoms);
+  const setDiscoveredMolecules = useParticleStore(state => state.setDiscoveredMolecules);
+  const currentGoalIndex = useParticleStore(state => state.currentGoalIndex);
+  const setCurrentGoalIndex = useParticleStore(state => state.setCurrentGoalIndex);
+  const showMessage = useParticleStore(state => state.showMessage);
 
   const disassembleParticle = useCallback((particleId, particleIndex) => {
     const particle = particles[particleIndex];
@@ -114,7 +113,7 @@ export const useParticleActions = ({
     const combinedIds = new Set(selectedParticles.map(p => p.id));
 
     if (isMoleculeAssembly || isPolypeptideAssembly) {
-      const discoveredMolecules = useStore.getState().discoveredMolecules;
+      const discoveredMolecules = useParticleStore.getState().discoveredMolecules;
       if (!discoveredMolecules.some(m => m.type === assemblyRecipe.type)) {
         setDiscoveredMolecules([...discoveredMolecules, { id: assemblyRecipe.type, type: assemblyRecipe.type, discoveredAt: Date.now() }]);
       }
@@ -131,11 +130,13 @@ export const useParticleActions = ({
       };
 
       setParticles([...particles.filter(p => !combinedIds.has(p.id)), newMolecule]);
-      const bonds = useStore.getState().bonds;
+      const bonds = useParticleStore.getState().bonds;
       setBonds(bonds.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
 
       // --- Inventory Update (Molecules) ---
       useInventory.getState().addResource('compounds', assemblyRecipe.type, 1);
+      // Mark as discovered in Inventory as well
+      useInventory.getState().markDiscovered(assemblyRecipe.type);
 
       if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
         showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);
@@ -152,20 +153,18 @@ export const useParticleActions = ({
       [PARTICLE_CATEGORIES.SECONDARY]: setSecondaryParticles,
       [PARTICLE_CATEGORIES.ATOM]: setDiscoveredAtoms,
       [PARTICLE_CATEGORIES.MOLECULE]: setDiscoveredMolecules,
-      [PARTICLE_CATEGORIES.ORGANELLE]: setDiscoveredOrganelles,
     };
 
     const discoveryStateKeyMap = {
       [PARTICLE_CATEGORIES.SECONDARY]: 'secondaryParticles',
       [PARTICLE_CATEGORIES.ATOM]: 'discoveredAtoms',
       [PARTICLE_CATEGORIES.MOLECULE]: 'discoveredMolecules',
-      [PARTICLE_CATEGORIES.ORGANELLE]: 'discoveredOrganelles',
     };
 
     const updater = discoveryUpdaterMap[assemblyRecipe.category];
     if (updater) {
       const stateKey = discoveryStateKeyMap[assemblyRecipe.category];
-      const currentDiscovered = useStore.getState()[stateKey];
+      const currentDiscovered = useParticleStore.getState()[stateKey];
       if (currentDiscovered && !currentDiscovered.some(p => p.type === assemblyRecipe.type)) {
         updater([...currentDiscovered, { id: assemblyRecipe.type, type: assemblyRecipe.type, discoveredAt: Date.now() }]);
       }
@@ -187,6 +186,7 @@ export const useParticleActions = ({
     // --- Inventory Update (Atoms) ---
     if (assemblyRecipe.category === PARTICLE_CATEGORIES.ATOM) {
       useInventory.getState().addResource('elements', assemblyRecipe.type, 1);
+      useInventory.getState().markDiscovered(assemblyRecipe.type);
     }
 
     if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {

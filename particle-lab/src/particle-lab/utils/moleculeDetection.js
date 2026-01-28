@@ -1,5 +1,5 @@
 import { generateGraphSignature } from './chemistryStructure.js';
-import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
+import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
 
 /**
  * Checks if two count objects match exactly.

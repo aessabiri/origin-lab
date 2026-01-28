@@ -5,8 +5,8 @@ import {
   ISOTOPE_AND_SPECIAL_LIST,
   LANTHANIDE_SERIES,
   ACTINIDE_SERIES
-} from '../constants/periodicTableLayout.js';
-import { PARTICLE_NAMES, PARTICLE_COLORS } from '../constants/particles.js';
+} from '../../constants/periodicTableLayout.js';
+import { PARTICLE_NAMES, PARTICLE_COLORS } from '../../constants/particles.js';
 import ParticleIcon from './ParticleIcon.jsx';
 
 const PeriodicTable = ({ discoveredParticles, onDragStart, onClose, onParticleClick, isPinned, onPinToggle, ...props }) => {

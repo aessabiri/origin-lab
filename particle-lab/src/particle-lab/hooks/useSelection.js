@@ -1,14 +1,14 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { RECIPES, COMPOUND_PARTICLE_TYPES } from '../recipes.js';
-import { MOLECULE_RECIPES } from '../constants/moleculeRecipes.js';
-import { POLYPEPTIDE_RECIPES } from '../constants/polypeptideRecipes.js';
-import { useStore } from '../store.js';
+import { RECIPES, COMPOUND_PARTICLE_TYPES } from '../../recipes.js';
+import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
+import { POLYPEPTIDE_RECIPES } from '../../constants/polypeptideRecipes.js';
+import { useParticleStore } from '../store.js';
 import { generateGraphSignature } from '../utils/chemistryStructure.js';
 
 export const useSelection = ({ canvasRef }) => {
-  const particles = useStore(state => state.particles);
-  const bonds = useStore(state => state.bonds);
+  const particles = useParticleStore(state => state.particles);
+  const bonds = useParticleStore(state => state.bonds);
   const MOLECULE_PARTICLE_TYPES = useMemo(() => new Set(MOLECULE_RECIPES.map(r => r.type)), []);
 
   const [selectedParticleIds, setSelectedParticleIds] = useState(new Set());
