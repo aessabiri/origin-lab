@@ -1877,4 +1877,34 @@ export const MOLECULE_RECIPES = [
       ]
     }
   },
+  {
+    type: PARTICLE_TYPES.POLYETHYLENE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.HYDROGEN]: 12,
+    },
+    bonds: {
+      single: 17, // Chain
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON }, { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON }, { id: 'c4', type: PARTICLE_TYPES.CARBON },
+        { id: 'c5', type: PARTICLE_TYPES.CARBON }, { id: 'c6', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 12}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'single' }, { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c3', target: 'c4', type: 'single' }, { source: 'c4', target: 'c5', type: 'single' },
+        { source: 'c5', target: 'c6', type: 'single' },
+        // Hydrogens attached to chain
+        { source: 'c1', target: 'h1', type: 'single' }, { source: 'c1', target: 'h2', type: 'single' }, { source: 'c1', target: 'h3', type: 'single' },
+        { source: 'c2', target: 'h4', type: 'single' }, { source: 'c2', target: 'h5', type: 'single' },
+        { source: 'c3', target: 'h6', type: 'single' }, { source: 'c3', target: 'h7', type: 'single' },
+        { source: 'c4', target: 'h8', type: 'single' }, { source: 'c4', target: 'h9', type: 'single' },
+        { source: 'c5', target: 'h10', type: 'single' }, { source: 'c5', target: 'h11', type: 'single' },
+        { source: 'c6', target: 'h12', type: 'single' }
+      ]
+    }
+  },
 ];

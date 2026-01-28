@@ -5,41 +5,49 @@ import { CHEMICALS } from '../chemistry-lab/data/chemicals';
 const isParticleLabId = (id) => Object.values(PARTICLE_TYPES).includes(id);
 
 export const getUniversalCodexData = () => {
-  // 1. Start with the existing Particle Lab categories (Physics)
-  // We clone it to avoid mutating the original constant and add Domain tags
-  const rawCategories = JSON.parse(JSON.stringify(CODEX_PARTICLES_BY_CATEGORY));
+  // 1. Deep clone the constant to avoid mutation
+  const groups = JSON.parse(JSON.stringify(CODEX_PARTICLES_BY_CATEGORY));
   
-  const bioCategories = ['Organelles', 'Lipids', 'Nucleotides', 'Amino Acids & Polypeptides', 'Nucleic Acids'];
-
-  const categories = rawCategories.map(cat => ({
-    ...cat,
-    domain: bioCategories.includes(cat.name) ? 'biology' : 'physics'
-  }));
-
-  // 2. Merge Chemistry Lab Chemicals into "Molecules"
-  const moleculesCategory = rawCategories.find(c => c.name === 'Molecules');
-  
-  // Build a set of existing names to prevent duplicates (e.g., 'Water' in both Physics and Chemistry)
+  // 2. Build a set of existing names to prevent duplicates
+  // We need to traverse: Group -> Subcategory -> Particles
   const existingNames = new Set();
-  rawCategories.forEach(cat => {
-      cat.particles.forEach(pType => {
-          const info = PARTICLE_INFO[pType];
-          if (info) existingNames.add(info.name.toLowerCase());
+  
+  groups.forEach(group => {
+    group.subcategories.forEach(sub => {
+      sub.particles.forEach(pType => {
+        const info = PARTICLE_INFO[pType];
+        if (info) existingNames.add(info.name.toLowerCase());
       });
+    });
   });
+
+  // 3. Inject Chemistry Lab Chemicals into "Molecular" -> "Simple Molecules"
+  const molecularGroup = groups.find(g => g.name === 'Molecular');
   
-    if (moleculesCategory) {
+  if (molecularGroup) {
+      // Find or create 'Lab Chemicals' subcategory if we want separate, 
+      // or just merge into 'Simple Molecules'
+      let targetSub = molecularGroup.subcategories.find(s => s.name === 'Simple Molecules');
+      
+      // If for some reason it's missing (shouldn't be), fallback or create
+      if (!targetSub) {
+          targetSub = { name: 'Lab Chemicals', particles: [] };
+          molecularGroup.subcategories.push(targetSub);
+      }
+
       Object.values(CHEMICALS).forEach(chem => {
-        // Skip if this chemical name already exists in the Physics/Standard list
-        if (existingNames.has(chem.name.toLowerCase())) return;
-        
-        // Explicitly skip iron and steel as requested by user (should be in Atoms or elsewhere)
-        if (chem.id === 'iron' || chem.id === 'steel') return;
-  
-        moleculesCategory.particles.push(chem.id);
+          // Skip if this chemical name already exists in the Physics/Standard list
+          if (existingNames.has(chem.name.toLowerCase())) return;
+          
+          // Explicitly skip iron/steel duplicates if they exist as atoms (Iron is in Atomic->Elements)
+          if (chem.id === 'iron' || chem.id === 'steel') return;
+
+          // Add to the list
+          targetSub.particles.push(chem.id);
       });
-    }
-  return categories;
+  }
+
+  return groups;
 };
 
 // Unified Info Getter

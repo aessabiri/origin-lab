@@ -9,14 +9,14 @@ import {
 import { PARTICLE_NAMES, PARTICLE_COLORS } from '../../constants/particles.js';
 import ParticleIcon from './ParticleIcon.jsx';
 
-const PeriodicTable = ({ discoveredParticles, onDragStart, onClose, onParticleClick, isPinned, onPinToggle, ...props }) => {
+const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClose, onParticleClick, isPinned, onPinToggle, ...props }) => {
   // We don't check for isVisible here, as it's handled by the parent with conditional rendering
 
   const discoveredSet = new Set(discoveredParticles.map(p => p.type));
 
   const renderCell = (atomicNumber, isPlaceholder = false, placeholderText = '') => {
     const type = ATOMIC_NUMBER_TO_TYPE[atomicNumber];
-    const isDiscovered = type ? discoveredSet.has(type) : false;
+    const isDiscovered = isSandboxMode || (type ? discoveredSet.has(type) : false);
     const particle = type ? { id: type, type } : null;
 
     if (isPlaceholder) {
@@ -52,7 +52,7 @@ const PeriodicTable = ({ discoveredParticles, onDragStart, onClose, onParticleCl
   };
 
   const renderSpecialParticle = (type) => {
-    const isDiscovered = discoveredSet.has(type);
+    const isDiscovered = isSandboxMode || discoveredSet.has(type);
     const particle = { id: type, type };
 
     return (

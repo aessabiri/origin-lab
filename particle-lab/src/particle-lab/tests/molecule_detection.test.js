@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { findAssemblableMolecules } from '../utils/moleculeDetection';
-import { PARTICLE_TYPES } from '../constants/particles';
+import { PARTICLE_TYPES } from '../../constants/particles';
 
 describe('Molecule Detection Logic', () => {
   it('should detect a simple water molecule', () => {

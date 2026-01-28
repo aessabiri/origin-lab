@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useParticleActions } from '../hooks/useParticleActions';
-import { useStore } from '../store';
-import { PARTICLE_TYPES } from '../constants/particles';
-import { PARTICLE_CATEGORIES } from '../recipes';
+import { useParticleStore as useStore } from '../store';
+import { PARTICLE_TYPES } from '../../constants/particles';
+import { PARTICLE_CATEGORIES } from '../../recipes';
 
 describe('Organelle Assembly Tests', () => {
   beforeEach(() => {

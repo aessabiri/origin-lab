@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useStore } from '../store';
+import { useParticleStore as useStore } from '../store';
 
 describe('Particle Lab Store', () => {
   beforeEach(() => {

@@ -90,15 +90,59 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
 
 
 
-  useEffect(() => {
+    useEffect(() => {
 
-    if (isOpen && initialTab) {
 
-      setActiveTab(initialTab);
 
-    }
+      if (isOpen && initialTab) {
 
-  }, [isOpen, initialTab]);
+
+
+        setActiveTab(initialTab);
+
+
+
+      }
+
+
+
+      
+
+
+
+      const handleKeyDown = (e) => {
+
+
+
+        if (e.key === 'Escape' && isOpen) {
+
+
+
+          onClose();
+
+
+
+        }
+
+
+
+      };
+
+
+
+  
+
+
+
+      window.addEventListener('keydown', handleKeyDown);
+
+
+
+      return () => window.removeEventListener('keydown', handleKeyDown);
+
+
+
+    }, [isOpen, initialTab, onClose]);
 
 
 

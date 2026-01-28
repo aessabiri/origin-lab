@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useParticleActions } from '../hooks/useParticleActions';
-import { useStore } from '../store';
-import { PARTICLE_TYPES } from '../constants/particles';
+import { useParticleStore as useStore } from '../store';
+import { PARTICLE_TYPES } from '../../constants/particles';
 
 describe('useParticleActions Hook', () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateGraphSignature } from '../utils/chemistryStructure';
-import { PARTICLE_TYPES } from '../constants/particles';
+import { PARTICLE_TYPES } from '../../constants/particles';
 
 describe('Molecular Structure Logic (Isomerism)', () => {
   

@@ -8,6 +8,7 @@ import Hub from './components/Hub.jsx';
 import Tutorials from './components/Tutorials.jsx';
 import Navigation from './components/Navigation.jsx';
 import LabNotebook from './components/LabNotebook.jsx';
+import GameProgress from './components/GameProgress.jsx';
 
 const App = () => {
   const { currentView, setCurrentView, introComplete, isCodexVisible, setIsCodexVisible } = useStore();
@@ -18,6 +19,7 @@ const App = () => {
 
       <div className="flex-1 overflow-hidden relative">
         {currentView === 'hub' && <Hub onNavigate={setCurrentView} />}
+        {currentView === 'progress' && <GameProgress />}
         {currentView === 'particle' && <ParticleLab />}
         {currentView === 'chemistry' && <ChemistryApp />}
         {currentView === 'biology' && <BiologyApp />}

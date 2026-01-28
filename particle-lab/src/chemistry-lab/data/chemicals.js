@@ -479,3 +479,37 @@ export const ELEMENTARY_IDS = [
   'oxygen', 'hydrogen', 'nitrogen',
   'magnesium', 'potassium-permanganate', 'universal-indicator'
 ];
+
+export const INVENTORY_TO_CHEMICAL_MAP = {
+  // Elements
+  'hydrogen': 'hydrogen',
+  'carbon': 'carbon',
+  'nitrogen': 'nitrogen',
+  'oxygen': 'oxygen',
+  'sulfur': 'sulfur',
+  'iron': 'iron',
+  'magnesium': 'magnesium',
+  
+  // Compounds
+  'water': 'water',
+  'ammonia': 'ammonia',
+  'methane': 'methane',
+  'glucose': 'glucose',
+  'glycine': 'glycine',
+  'ethanol': 'ethanol',
+  'carbon-dioxide': 'carbon-dioxide',
+  'sodium-chloride': 'sodium-chloride',
+  'baking-soda': 'baking-soda',
+  'vinegar': 'vinegar', // Acetic acid
+  'acetone': 'acetone',
+  'methanol': 'methanol',
+  'ethylene': 'ethylene',
+  'polyethylene': 'polyethylene',
+  'sulfuric-acid': 'sulfuric-acid',
+  'nitric-acid': 'nitric-acid',
+  'hydrochloric-acid': 'hydrochloric-acid',
+  'iron-oxide': 'iron-oxide',
+  'iron-sulfide': 'iron-sulfide',
+  'potassium-permanganate': 'potassium-permanganate',
+  'ethyl-acetate': 'ethyl-acetate',
+};

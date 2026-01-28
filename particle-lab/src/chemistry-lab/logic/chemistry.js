@@ -1,20 +1,21 @@
 import { REACTIONS } from '../data/reactions';
 import { PHYSICS_CONSTANTS } from '../data/constants';
 import { CHEMICALS } from '../data/chemicals';
+import { getCandidateReactions } from './reactionRegistry';
 
 // Helper to calculate dissolved vs precipitate
 export const calculatePrecipitates = (contents, temp) => {
     // 1. Identify Solvent (Simplified: Max Liquid Volume, usually H2O)
     // We assume Water is the main solvent for now.
-    const waterVol = contents['H2O'] || 0;
-    const ethanolVol = contents['ETHANOL'] || 0;
+    const waterVol = contents['water'] || 0;
+    const ethanolVol = contents['ethanol'] || 0;
     const totalSolvent = waterVol + ethanolVol;
 
     const dissolved = {};
     const precipitates = {};
 
     Object.entries(contents).forEach(([id, amount]) => {
-        if (id === 'H2O' || id === 'ETHANOL') {
+        if (id === 'water' || id === 'ethanol') {
             dissolved[id] = amount;
             return;
         }
@@ -74,10 +75,13 @@ export const processReactions = (vessel, timeSpeed) => {
     const { dissolved } = calculatePrecipitates(vessel.contents, vessel.temp);
     
     // Fallback: If no solvent, reaction happens with raw materials (e.g. Iron + Sulfur powder)
-    const hasSolvent = (vessel.contents['H2O'] || 0) > 0 || (vessel.contents['ETHANOL'] || 0) > 0;
+    const hasSolvent = (vessel.contents['water'] || 0) > 0 || (vessel.contents['ethanol'] || 0) > 0;
     const availableIngredients = hasSolvent ? dissolved : vessel.contents;
 
-    for (const reaction of REACTIONS) {
+    // Optimization: Only check relevant reactions
+    const candidates = getCandidateReactions(availableIngredients);
+
+    for (const reaction of candidates) {
         const tempOk = vessel.temp >= (reaction.conditions.tempMin || -Infinity) && 
                        vessel.temp <= (reaction.conditions.tempMax || Infinity);
         const pressureOk = vessel.pressure >= (reaction.conditions.pressureMin || -Infinity) &&
@@ -185,7 +189,7 @@ export const calculateMixtureColor = (contents, currentPH) => {
         let weight = amount;
         
         // Handle Universal Indicator
-        if (id === 'UNIVERSAL_INDICATOR') {
+        if (id === 'universal-indicator') {
              weight = amount * 50; // Boost visibility (simulate high extinction coefficient)
              if (currentPH < 4) color = '#ef4444'; // Red
              else if (currentPH < 6) color = '#f97316'; // Orange

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useDecay } from '../hooks/useDecay';
-import { useStore } from '../store';
-import { PARTICLE_TYPES } from '../constants/particles';
+import { useParticleStore as useStore } from '../store';
+import { PARTICLE_TYPES } from '../../constants/particles';
 
 describe('useDecay Hook', () => {
   beforeEach(() => {

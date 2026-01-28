@@ -66,7 +66,11 @@ export const PARTICLE_TYPES = {
   DECAYING_NEUTRON: 'decaying-neutron',
   CARBON_DIOXIDE: 'carbon-dioxide',
   SODIUM_CHLORIDE: 'sodium-chloride',
+  SODIUM_HYDROXIDE: 'sodium-hydroxide',
   HYDROCHLORIC_ACID: 'hydrochloric-acid',
+  NITRIC_ACID: 'nitric-acid',
+  IRON_OXIDE: 'iron-oxide',
+  IRON_SULFIDE: 'iron-sulfide',
   CARBON_MONOXIDE: 'carbon-monoxide',
   HYDROGEN_SULFIDE: 'hydrogen-sulfide',
   HYDROGEN_PEROXIDE: 'hydrogen-peroxide',
@@ -83,6 +87,14 @@ export const PARTICLE_TYPES = {
   ALANINE: 'alanine',
   GLYCYL_ALANINE: 'glycyl-alanine',
   ETHANOL: 'ethanol',
+  ETHYLENE: 'ethylene',
+  BAKING_SODA: 'baking-soda',
+  CARBONIC_ACID: 'carbonic-acid',
+  AMMONIUM_HYDROXIDE: 'ammonium-hydroxide',
+  ACETONE: 'acetone',
+  METHANOL: 'methanol',
+  PROPANE: 'propane',
+  BUTANE: 'butane',
   SULFURIC_ACID: 'sulfuric-acid',
   ADENINE: 'adenine',
   GUANINE: 'guanine',
@@ -125,6 +137,10 @@ export const PARTICLE_TYPES = {
   BUTANE: 'butane',
   SULFUR_DIOXIDE: 'sulfur-dioxide',
   NITROGEN_DIOXIDE: 'nitrogen-dioxide',
+  ETHYL_ACETATE: 'ethyl-acetate',
+  POLYETHYLENE: 'polyethylene',
+  POTASSIUM_PERMANGANATE: 'potassium-permanganate',
+  HYDROGEN_FLUORIDE: 'hydrogen-fluoride',
 };
 
 export const PARTICLE_COLORS = {
@@ -502,7 +518,22 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.PROPANE]: { size: 96, name: 'Propane', category: 'Molecule / Alkane', mass: '44.1 g/mol', charge: '0 e', composition: '3 Carbon, 8 Hydrogen', description: 'A three-carbon alkane. It is a gas at standard temperature and pressure, but compressible to a transportable liquid. A by-product of natural gas processing and petroleum refining.' },
   [PARTICLE_TYPES.BUTANE]: { size: 96, name: 'Butane', category: 'Molecule / Alkane', mass: '58.12 g/mol', charge: '0 e', composition: '4 Carbon, 10 Hydrogen', description: 'An alkane with four carbon atoms. It is a gas at room temperature and atmospheric pressure. Used as a fuel, aerosol propellant, and in the manufacture of other chemicals.' },
   [PARTICLE_TYPES.SULFUR_DIOXIDE]: { size: 96, name: 'Sulfur Dioxide', category: 'Molecule', mass: '64.066 g/mol', charge: '0 e', composition: '1 Sulfur, 2 Oxygen', description: 'A toxic gas responsible for the smell of burnt matches. It is released naturally by volcanic activity and is produced as a by-product of copper extraction and the burning of fossil fuels contaminated with sulfur.' },
-  [PARTICLE_TYPES.NITROGEN_DIOXIDE]: { size: 96, name: 'Nitrogen Dioxide', category: 'Molecule', mass: '46.0055 g/mol', charge: '0 e', composition: '1 Nitrogen, 2 Oxygen', description: 'A reddish-brown gas above 21.2 °C with a pungent, acrid odor, becomes a yellowish-brown liquid below 21.2 °C, and converts to the colorless dinitrogen tetroxide below -11.2 °C.' },
+  [PARTICLE_TYPES.NITROGEN_DIOXIDE]: { size: 96, name: 'Nitrogen Dioxide', category: 'Molecule', mass: '46.0055 g/mol', charge: '0 e', composition: '1 Nitrogen, 2 Oxygen', description: 'A reddish-brown gas above 21.2 °C with a pungent, acrid odor.' },
+  [PARTICLE_TYPES.ETHYLENE]: { size: 96, name: 'Ethylene', category: 'Molecule', mass: '28.05 g/mol', charge: '0 e', composition: '2 Carbon, 4 Hydrogen', description: 'A hydrocarbon formula C₂H₄. A colorless flammable gas.' },
+  [PARTICLE_TYPES.POLYETHYLENE]: { size: 112, name: 'Polyethylene', category: 'Polymer', mass: 'Variable', charge: '0 e', composition: 'Carbon, Hydrogen chain', description: 'The most common plastic in use today. Linear polymer of Ethylene.' },
+  [PARTICLE_TYPES.BAKING_SODA]: { size: 96, name: 'Baking Soda', category: 'Ionic Compound', mass: '84.007 g/mol', charge: '0 e', composition: '1 Sodium, 1 Hydrogen, 1 Carbon, 3 Oxygen', description: 'Sodium bicarbonate (NaHCO₃).' },
+  [PARTICLE_TYPES.CARBONIC_ACID]: { size: 96, name: 'Carbonic Acid', category: 'Molecule / Acid', mass: '62.03 g/mol', charge: '0 e', composition: '1 Carbon, 2 Hydrogen, 3 Oxygen', description: 'A chemical compound with the chemical formula H₂CO₃.' },
+  [PARTICLE_TYPES.AMMONIUM_HYDROXIDE]: { size: 96, name: 'Ammonium Hydroxide', category: 'Molecule / Base', mass: '35.04 g/mol', charge: '0 e', composition: '1 Nitrogen, 5 Hydrogen, 1 Oxygen', description: 'Ammonia water.' },
+  [PARTICLE_TYPES.ACETONE]: { size: 96, name: 'Acetone', category: 'Molecule', mass: '58.08 g/mol', charge: '0 e', composition: '3 Carbon, 6 Hydrogen, 1 Oxygen', description: 'The organic compound with the formula (CH₃)₂CO.' },
+  [PARTICLE_TYPES.METHANOL]: { size: 96, name: 'Methanol', category: 'Molecule / Alcohol', mass: '32.04 g/mol', charge: '0 e', composition: '1 Carbon, 4 Hydrogen, 1 Oxygen', description: 'Wood alcohol.' },
+  [PARTICLE_TYPES.PROPANE]: { size: 96, name: 'Propane', category: 'Molecule / Alkane', mass: '44.1 g/mol', charge: '0 e', composition: '3 Carbon, 8 Hydrogen', description: 'A three-carbon alkane.' },
+  [PARTICLE_TYPES.BUTANE]: { size: 96, name: 'Butane', category: 'Molecule / Alkane', mass: '58.12 g/mol', charge: '0 e', composition: '4 Carbon, 10 Hydrogen', description: 'A four-carbon alkane.' },
+  [PARTICLE_TYPES.NITRIC_ACID]: { size: 96, name: 'Nitric Acid', category: 'Molecule / Acid', mass: '63.01 g/mol', charge: '0 e', composition: '1 Hydrogen, 1 Nitrogen, 3 Oxygen', description: 'A highly corrosive mineral acid.' },
+  [PARTICLE_TYPES.IRON_OXIDE]: { size: 96, name: 'Iron Oxide', category: 'Ionic Compound', mass: '159.69 g/mol', charge: '0 e', composition: '2 Iron, 3 Oxygen', description: 'Rust.' },
+  [PARTICLE_TYPES.IRON_SULFIDE]: { size: 96, name: 'Iron Sulfide', category: 'Ionic Compound', mass: '87.91 g/mol', charge: '0 e', composition: '1 Iron, 1 Sulfur', description: 'Pyrite-like.' },
+  [PARTICLE_TYPES.ETHYL_ACETATE]: { size: 96, name: 'Ethyl Acetate', category: 'Molecule', mass: '88.11 g/mol', charge: '0 e', composition: '4 Carbon, 8 Hydrogen, 2 Oxygen', description: 'Sweet smelling ester.' },
+  [PARTICLE_TYPES.POTASSIUM_PERMANGANATE]: { size: 96, name: 'Potassium Permanganate', category: 'Ionic Compound', mass: '158.034 g/mol', charge: '0 e', composition: '1 Potassium, 1 Manganese, 4 Oxygen', description: 'Strong oxidizer.' },
+  [PARTICLE_TYPES.HYDROGEN_FLUORIDE]: { size: 96, name: 'Hydrogen Fluoride', category: 'Molecule / Acid', mass: '20.01 g/mol', charge: '0 e', composition: '1 Hydrogen, 1 Fluorine', description: 'Corrosive gas/liquid.' },
 };
 
 export const PARTICLE_COLOR_MAP = {
@@ -594,157 +625,208 @@ export const PARTICLE_COLOR_MAP = {
 
 
 export const CODEX_PARTICLES_BY_CATEGORY = [
-  { name: 'Quarks', particles: [PARTICLE_TYPES.UP_QUARK, PARTICLE_TYPES.DOWN_QUARK, PARTICLE_TYPES.CHARM_QUARK, PARTICLE_TYPES.STRANGE_QUARK, PARTICLE_TYPES.TOP_QUARK, PARTICLE_TYPES.BOTTOM_QUARK] },
-  { name: 'Anti-Quarks', particles: [PARTICLE_TYPES.ANTI_UP_QUARK, PARTICLE_TYPES.ANTI_DOWN_QUARK, PARTICLE_TYPES.ANTI_CHARM_QUARK] },
-  { name: 'Leptons', particles: [PARTICLE_TYPES.ELECTRON, PARTICLE_TYPES.ELECTRON_NEUTRINO] },
-  { name: 'Anti-Leptons', particles: [PARTICLE_TYPES.ELECTRON_ANTINEUTRINO] },
-  { name: 'Bosons', particles: [PARTICLE_TYPES.PHOTON, PARTICLE_TYPES.GLUON, PARTICLE_TYPES.W_BOSON, PARTICLE_TYPES.Z_BOSON] },
   {
-    name: 'Hadrons & Secondary',
-    particles: [
-      PARTICLE_TYPES.PROTON,
-      PARTICLE_TYPES.NEUTRON,
-      PARTICLE_TYPES.PION_PLUS,
-      PARTICLE_TYPES.PION_MINUS,
-      PARTICLE_TYPES.LAMBDA_BARYON,
-      PARTICLE_TYPES.J_PSI_MESON,
-      PARTICLE_TYPES.EXCITED_ELECTRON,
-      PARTICLE_TYPES.DECAYING_NEUTRON,
+    name: 'Fundamental',
+    subcategories: [
+      { name: 'Quarks', particles: [PARTICLE_TYPES.UP_QUARK, PARTICLE_TYPES.DOWN_QUARK, PARTICLE_TYPES.CHARM_QUARK, PARTICLE_TYPES.STRANGE_QUARK, PARTICLE_TYPES.TOP_QUARK, PARTICLE_TYPES.BOTTOM_QUARK] },
+      { name: 'Anti-Quarks', particles: [PARTICLE_TYPES.ANTI_UP_QUARK, PARTICLE_TYPES.ANTI_DOWN_QUARK, PARTICLE_TYPES.ANTI_CHARM_QUARK] },
+      { name: 'Leptons', particles: [PARTICLE_TYPES.ELECTRON, PARTICLE_TYPES.ELECTRON_NEUTRINO] },
+      { name: 'Anti-Leptons', particles: [PARTICLE_TYPES.ELECTRON_ANTINEUTRINO] },
+      { name: 'Bosons', particles: [PARTICLE_TYPES.PHOTON, PARTICLE_TYPES.GLUON, PARTICLE_TYPES.W_BOSON, PARTICLE_TYPES.Z_BOSON] },
     ]
   },
   {
-    name: 'Atoms',
-    particles: [
-      PARTICLE_TYPES.HYDROGEN,
-      PARTICLE_TYPES.DEUTERIUM,
-      PARTICLE_TYPES.TRITIUM,
-      PARTICLE_TYPES.HELIUM,
-      PARTICLE_TYPES.LITHIUM,
-      PARTICLE_TYPES.BERYLLIUM,
-      PARTICLE_TYPES.BORON,
-      PARTICLE_TYPES.CARBON,
-      PARTICLE_TYPES.NITROGEN,
-      PARTICLE_TYPES.OXYGEN,
-      PARTICLE_TYPES.FLUORINE,
-      PARTICLE_TYPES.NEON,
-      PARTICLE_TYPES.SODIUM,
-      PARTICLE_TYPES.MAGNESIUM,
-      PARTICLE_TYPES.ALUMINIUM,
-      PARTICLE_TYPES.SILICON,
-      PARTICLE_TYPES.PHOSPHORUS,
-      PARTICLE_TYPES.SULFUR,
-      PARTICLE_TYPES.CHLORINE,
-      PARTICLE_TYPES.ARGON,
-      PARTICLE_TYPES.POTASSIUM,
-      PARTICLE_TYPES.CALCIUM,
-      PARTICLE_TYPES.SCANDIUM,
-      PARTICLE_TYPES.TITANIUM,
-      PARTICLE_TYPES.VANADIUM,
-      PARTICLE_TYPES.CHROMIUM,
-      PARTICLE_TYPES.MANGANESE,
-      PARTICLE_TYPES.IRON,
-      PARTICLE_TYPES.COBALT,
-      PARTICLE_TYPES.NICKEL,
-      PARTICLE_TYPES.COPPER,
-      PARTICLE_TYPES.ZINC,
-      PARTICLE_TYPES.GALLIUM,
-      PARTICLE_TYPES.GERMANIUM,
-      PARTICLE_TYPES.ARSENIC,
-      PARTICLE_TYPES.SELENIUM,
-      PARTICLE_TYPES.BROMINE,
-      PARTICLE_TYPES.KRYPTON,
+    name: 'Atomic',
+    subcategories: [
+      {
+        name: 'Hadrons',
+        particles: [
+          PARTICLE_TYPES.PROTON,
+          PARTICLE_TYPES.NEUTRON,
+          PARTICLE_TYPES.PION_PLUS,
+          PARTICLE_TYPES.PION_MINUS,
+          PARTICLE_TYPES.LAMBDA_BARYON,
+          PARTICLE_TYPES.J_PSI_MESON,
+          PARTICLE_TYPES.EXCITED_ELECTRON,
+          PARTICLE_TYPES.DECAYING_NEUTRON,
+        ]
+      },
+      {
+        name: 'Elements',
+        particles: [
+          PARTICLE_TYPES.HYDROGEN,
+          PARTICLE_TYPES.HELIUM,
+          PARTICLE_TYPES.LITHIUM,
+          PARTICLE_TYPES.BERYLLIUM,
+          PARTICLE_TYPES.BORON,
+          PARTICLE_TYPES.CARBON,
+          PARTICLE_TYPES.NITROGEN,
+          PARTICLE_TYPES.OXYGEN,
+          PARTICLE_TYPES.FLUORINE,
+          PARTICLE_TYPES.NEON,
+          PARTICLE_TYPES.SODIUM,
+          PARTICLE_TYPES.MAGNESIUM,
+          PARTICLE_TYPES.ALUMINIUM,
+          PARTICLE_TYPES.SILICON,
+          PARTICLE_TYPES.PHOSPHORUS,
+          PARTICLE_TYPES.SULFUR,
+          PARTICLE_TYPES.CHLORINE,
+          PARTICLE_TYPES.ARGON,
+          PARTICLE_TYPES.POTASSIUM,
+          PARTICLE_TYPES.CALCIUM,
+          PARTICLE_TYPES.SCANDIUM,
+          PARTICLE_TYPES.TITANIUM,
+          PARTICLE_TYPES.VANADIUM,
+          PARTICLE_TYPES.CHROMIUM,
+          PARTICLE_TYPES.MANGANESE,
+          PARTICLE_TYPES.IRON,
+          PARTICLE_TYPES.COBALT,
+          PARTICLE_TYPES.NICKEL,
+          PARTICLE_TYPES.COPPER,
+          PARTICLE_TYPES.ZINC,
+          PARTICLE_TYPES.GALLIUM,
+          PARTICLE_TYPES.GERMANIUM,
+          PARTICLE_TYPES.ARSENIC,
+          PARTICLE_TYPES.SELENIUM,
+          PARTICLE_TYPES.BROMINE,
+          PARTICLE_TYPES.KRYPTON,
+        ]
+      },
+      {
+        name: 'Isotopes',
+        particles: [
+          PARTICLE_TYPES.DEUTERIUM,
+          PARTICLE_TYPES.TRITIUM,
+        ]
+      }
     ]
   },
   {
-    name: 'Molecules',
-    particles: [
-      PARTICLE_TYPES.WATER,
-      PARTICLE_TYPES.METHANE,
-      PARTICLE_TYPES.AMMONIA,
-      PARTICLE_TYPES.CARBON_DIOXIDE,
-      PARTICLE_TYPES.OZONE,
-      PARTICLE_TYPES.HYDROGEN_PEROXIDE,
-      PARTICLE_TYPES.HYDROCHLORIC_ACID,
-      PARTICLE_TYPES.HYDROGEN_SULFIDE,
-      PARTICLE_TYPES.NITROUS_OXIDE,
-      PARTICLE_TYPES.CARBON_MONOXIDE,
-      PARTICLE_TYPES.SODIUM_CHLORIDE,
-      PARTICLE_TYPES.SILICON_DIOXIDE,
-      PARTICLE_TYPES.ETHANOL,
-      PARTICLE_TYPES.SULFURIC_ACID,
-      PARTICLE_TYPES.GLUCOSE,
-      PARTICLE_TYPES.ADENINE,
-      PARTICLE_TYPES.GUANINE,
-      PARTICLE_TYPES.CYTOSINE,
-      PARTICLE_TYPES.THYMINE,
-      PARTICLE_TYPES.NITROGEN_GAS,
-      PARTICLE_TYPES.OXYGEN_GAS,
-      PARTICLE_TYPES.ACETIC_ACID,
-      PARTICLE_TYPES.URACIL,
-      PARTICLE_TYPES.DEOXYRIBOSE,
-      PARTICLE_TYPES.RIBOSE,
-      PARTICLE_TYPES.PHOSPHATE,
-      PARTICLE_TYPES.GLYCEROL,
-      PARTICLE_TYPES.FATTY_ACID,
-      PARTICLE_TYPES.BENZENE,
-      PARTICLE_TYPES.FRUCTOSE,
-      PARTICLE_TYPES.FORMALDEHYDE,
-      PARTICLE_TYPES.ACETYLENE,
-      PARTICLE_TYPES.HYDROGEN_CYANIDE,
-      PARTICLE_TYPES.METHANOL,
-      PARTICLE_TYPES.PROPANE,
-      PARTICLE_TYPES.BUTANE,
-      PARTICLE_TYPES.SULFUR_DIOXIDE,
-      PARTICLE_TYPES.NITROGEN_DIOXIDE,
+    name: 'Molecular',
+    subcategories: [
+      {
+        name: 'Simple Molecules',
+        particles: [
+          PARTICLE_TYPES.WATER,
+          PARTICLE_TYPES.METHANE,
+          PARTICLE_TYPES.AMMONIA,
+          PARTICLE_TYPES.CARBON_DIOXIDE,
+          PARTICLE_TYPES.OZONE,
+          PARTICLE_TYPES.HYDROGEN_PEROXIDE,
+          PARTICLE_TYPES.HYDROCHLORIC_ACID,
+          PARTICLE_TYPES.HYDROGEN_SULFIDE,
+          PARTICLE_TYPES.NITROUS_OXIDE,
+          PARTICLE_TYPES.CARBON_MONOXIDE,
+          PARTICLE_TYPES.SODIUM_CHLORIDE,
+          PARTICLE_TYPES.SILICON_DIOXIDE,
+          PARTICLE_TYPES.NITROGEN_GAS,
+          PARTICLE_TYPES.OXYGEN_GAS,
+          PARTICLE_TYPES.SULFUR_DIOXIDE,
+          PARTICLE_TYPES.NITROGEN_DIOXIDE,
+          PARTICLE_TYPES.HYDROGEN_FLUORIDE,
+          PARTICLE_TYPES.BAKING_SODA,
+          PARTICLE_TYPES.IRON_OXIDE,
+          PARTICLE_TYPES.IRON_SULFIDE,
+          PARTICLE_TYPES.POTASSIUM_PERMANGANATE,
+        ]
+      },
+      {
+        name: 'Organic Solvents & Fuels',
+        particles: [
+          PARTICLE_TYPES.ETHANOL,
+          PARTICLE_TYPES.METHANOL,
+          PARTICLE_TYPES.ACETIC_ACID,
+          PARTICLE_TYPES.ACETONE,
+          PARTICLE_TYPES.ETHYL_ACETATE,
+          PARTICLE_TYPES.FORMALDEHYDE,
+          PARTICLE_TYPES.ACETYLENE,
+          PARTICLE_TYPES.HYDROGEN_CYANIDE,
+          PARTICLE_TYPES.BENZENE,
+          PARTICLE_TYPES.ETHYLENE,
+          PARTICLE_TYPES.PROPANE,
+          PARTICLE_TYPES.BUTANE,
+        ]
+      },
+      {
+        name: 'Acids',
+        particles: [
+          PARTICLE_TYPES.SULFURIC_ACID,
+          PARTICLE_TYPES.NITRIC_ACID,
+          PARTICLE_TYPES.CARBONIC_ACID,
+        ]
+      },
+      {
+        name: 'Polymers',
+        particles: [
+          PARTICLE_TYPES.POLYETHYLENE,
+        ]
+      }
     ]
   },
   {
-    name: 'Nucleic Acids',
-    particles: [
-      PARTICLE_TYPES.DNA,
-      PARTICLE_TYPES.RNA,
+    name: 'Biochemistry',
+    subcategories: [
+      {
+        name: 'Sugars',
+        particles: [
+          PARTICLE_TYPES.GLUCOSE,
+          PARTICLE_TYPES.FRUCTOSE,
+          PARTICLE_TYPES.DEOXYRIBOSE,
+          PARTICLE_TYPES.RIBOSE,
+        ]
+      },
+      {
+        name: 'Amino Acids',
+        particles: [
+          PARTICLE_TYPES.GLYCINE,
+          PARTICLE_TYPES.SERINE,
+          PARTICLE_TYPES.ALANINE,
+          PARTICLE_TYPES.VALINE,
+          PARTICLE_TYPES.LEUCINE,
+          PARTICLE_TYPES.CYSTEINE,
+          PARTICLE_TYPES.PHENYLALANINE,
+        ]
+      },
+      {
+        name: 'Nucleotides',
+        particles: [
+          PARTICLE_TYPES.ATP,
+          PARTICLE_TYPES.ADENINE,
+          PARTICLE_TYPES.GUANINE,
+          PARTICLE_TYPES.CYTOSINE,
+          PARTICLE_TYPES.THYMINE,
+          PARTICLE_TYPES.URACIL,
+          PARTICLE_TYPES.NUCLEOTIDE_A,
+          PARTICLE_TYPES.NUCLEOTIDE_T,
+          PARTICLE_TYPES.NUCLEOTIDE_G,
+          PARTICLE_TYPES.NUCLEOTIDE_C,
+          PARTICLE_TYPES.NUCLEOTIDE_U,
+          PARTICLE_TYPES.PHOSPHATE,
+        ]
+      },
+      {
+        name: 'Complex Bios',
+        particles: [
+          PARTICLE_TYPES.GLYCYLGLYCINE,
+          PARTICLE_TYPES.GLYCYL_ALANINE,
+          PARTICLE_TYPES.LIPID,
+          PARTICLE_TYPES.GLYCEROL,
+          PARTICLE_TYPES.FATTY_ACID,
+          PARTICLE_TYPES.DNA,
+          PARTICLE_TYPES.RNA,
+        ]
+      },
+      {
+        name: 'Organelles',
+        particles: [
+          PARTICLE_TYPES.MEMBRANE,
+          PARTICLE_TYPES.RIBOSOME,
+          PARTICLE_TYPES.MITOCHONDRION,
+          PARTICLE_TYPES.NUCLEUS,
+        ]
+      },
     ]
-  },
-  {
-    name: 'Amino Acids & Polypeptides',
-    particles: [
-      PARTICLE_TYPES.GLYCINE,
-      PARTICLE_TYPES.SERINE,
-      PARTICLE_TYPES.ALANINE,
-      PARTICLE_TYPES.VALINE,
-      PARTICLE_TYPES.LEUCINE,
-      PARTICLE_TYPES.GLYCYLGLYCINE,
-      PARTICLE_TYPES.GLYCYL_ALANINE,
-      PARTICLE_TYPES.CYSTEINE,
-      PARTICLE_TYPES.PHENYLALANINE,
-    ]
-  },
-  {
-    name: 'Nucleotides',
-    particles: [
-      PARTICLE_TYPES.ATP,
-      PARTICLE_TYPES.NUCLEOTIDE_A,
-      PARTICLE_TYPES.NUCLEOTIDE_T,
-      PARTICLE_TYPES.NUCLEOTIDE_G,
-      PARTICLE_TYPES.NUCLEOTIDE_C,
-      PARTICLE_TYPES.NUCLEOTIDE_U,
-    ]
-  },
-  {
-    name: 'Lipids',
-    particles: [
-      PARTICLE_TYPES.LIPID,
-    ]
-  },
-  {
-    name: 'Organelles',
-    particles: [
-      PARTICLE_TYPES.MEMBRANE,
-      PARTICLE_TYPES.RIBOSOME,
-      PARTICLE_TYPES.MITOCHONDRION,
-      PARTICLE_TYPES.NUCLEUS,
-    ]
-  },
+  }
 ];
 
 export const elementaryParticleGroups = {
