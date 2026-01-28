@@ -14,7 +14,7 @@ const App = () => {
   const { currentView, setCurrentView, introComplete, isCodexVisible, setIsCodexVisible } = useStore();
 
   return (
-    <div className="w-full h-screen flex flex-col font-inter bg-gray-900 text-white">
+    <div className="w-full h-screen flex flex-row font-inter bg-gray-900 text-white overflow-hidden">
       <Navigation />
 
       <div className="flex-1 overflow-hidden relative">
