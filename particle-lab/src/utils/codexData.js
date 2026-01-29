@@ -1,24 +1,30 @@
-import { PARTICLE_TYPES, PARTICLE_INFO, CODEX_PARTICLES_BY_CATEGORY, PARTICLE_COLORS } from '../constants/particles';
+import { CODEX_PARTICLES_BY_CATEGORY } from '../constants/particles';
 import { CHEMICALS } from '../chemistry-lab/data/chemicals';
+import { getMatterInfo } from '../constants/matterRegistry';
 
 // Helper to check if an ID is a Particle/Atom defined in the Particle Lab
-const isParticleLabId = (id) => Object.values(PARTICLE_TYPES).includes(id);
+// const isParticleLabId = (id) => Object.values(PARTICLE_TYPES).includes(id);
+
+// Cache for the expensive codex structure generation
+let cachedCodexData = null;
 
 export const getUniversalCodexData = () => {
+  if (cachedCodexData) return cachedCodexData;
+
   // 1. Deep clone the constant to avoid mutation
   const groups = JSON.parse(JSON.stringify(CODEX_PARTICLES_BY_CATEGORY));
   
-  // 2. Build a set of existing names and IDs to prevent duplicates
-  // We need to traverse: Group -> Subcategory -> Particles
-  const existingNames = new Set();
+  // 2. We need to inject Chemistry items that might not be in the constant list
+  // The MatterRegistry has everything, but CODEX_PARTICLES_BY_CATEGORY defines the *order* and *grouping*.
+  // We'll stick to the existing strategy: Inject unknown chemicals into "Simple Molecules"
+  // to preserve the handcrafted layout of the Codex.
+
   const existingIds = new Set();
   
   groups.forEach(group => {
     group.subcategories.forEach(sub => {
       sub.particles.forEach(pType => {
         existingIds.add(pType);
-        const info = PARTICLE_INFO[pType];
-        if (info) existingNames.add(info.name.toLowerCase());
       });
     });
   });
@@ -37,50 +43,25 @@ export const getUniversalCodexData = () => {
           molecularGroup.subcategories.push(targetSub);
       }
 
-      Object.values(CHEMICALS).forEach(chem => {
-          // Skip if this chemical ID or name already exists in the Physics/Standard list
-          if (existingIds.has(chem.id) || existingNames.has(chem.name.toLowerCase())) return;
+      Object.keys(CHEMICALS).forEach(chemId => {
+          // Skip if this chemical ID already exists in the Physics/Standard list
+          if (existingIds.has(chemId)) return;
           
           // Explicitly skip iron/steel duplicates if they exist as atoms (Iron is in Atomic->Elements)
-          if (chem.id === 'iron' || chem.id === 'steel') return;
+          if (chemId === 'iron' || chemId === 'steel') return;
 
           // Add to the list
-          targetSub.particles.push(chem.id);
+          targetSub.particles.push(chemId);
       });
   }
 
+  cachedCodexData = groups;
   return groups;
 };
 
-// Unified Info Getter
+// Cache for item info to avoid re-spreading/creating objects constantly
+// Note: MatterRegistry is already efficient, but caching at the component boundary (CodexItem) 
+// is even better. We'll keep this simple alias for compatibility.
 export const getUniversalItemInfo = (id) => {
-  // 1. Try Particle Lab Info
-  if (PARTICLE_INFO[id]) {
-    return {
-      ...PARTICLE_INFO[id],
-      color: PARTICLE_COLORS[id] || 'bg-gray-500',
-      source: 'Physics'
-    };
-  }
-
-  // 2. Try Chemistry Lab Info
-  if (CHEMICALS[id]) {
-    const chem = CHEMICALS[id];
-    return {
-      name: chem.name,
-      category: 'Chemical',
-      description: chem.description,
-      mass: chem.formula, // Using formula as mass/comp equivalent for display
-      charge: `pH ${chem.ph}`,
-      color: chem.color, // These are hex codes, might need handling
-      source: 'Chemistry',
-      isChemical: true // Flag for the renderer
-    };
-  }
-
-  return {
-    name: 'Unknown',
-    description: 'No data available.',
-    color: 'bg-gray-800'
-  };
+  return getMatterInfo(id);
 };

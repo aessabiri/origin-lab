@@ -1,16 +1,104 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import ParticleIcon from '../particle-lab/components/ParticleIcon.jsx';
 import InfoPanel from '../particle-lab/components/InfoPanel.jsx';
 import { useInventory } from '../store/inventory';
 import { useStore } from '../store';
 import { getUniversalCodexData, getUniversalItemInfo } from '../utils/codexData';
 
+// --- Memoized Child Components for Performance ---
+
+const CodexItem = React.memo(({ 
+  particleType, 
+  isDiscovered, 
+  onDragStart, 
+  onDragEnd, 
+  onClick, 
+  onDoubleClick 
+}) => {
+  // Memoize info lookup per item to avoid recalculating on parent re-renders
+  const info = useMemo(() => getUniversalItemInfo(particleType), [particleType]);
+
+  const handleDragStart = useCallback((e) => {
+    if (isDiscovered) {
+      onDragStart(e, particleType);
+    }
+  }, [isDiscovered, onDragStart, particleType]);
+
+  return (
+    <div
+      draggable={isDiscovered}
+      onDragStart={handleDragStart}
+      onDragEnd={onDragEnd}
+      className={`
+        relative group flex flex-col items-center p-3 rounded-xl transition-all duration-200
+        ${isDiscovered 
+          ? 'bg-gray-700/50 hover:bg-gray-700 cursor-grab active:cursor-grabbing border border-transparent hover:border-gray-500' 
+          : 'bg-gray-800/30 opacity-40 grayscale cursor-not-allowed border border-dashed border-gray-700'}
+      `}
+      onClick={() => isDiscovered && onClick && onClick(particleType)}
+      onDoubleClick={() => isDiscovered && onDoubleClick(particleType)}
+    >
+      <div className="w-16 h-16 mb-2 relative transform group-hover:scale-110 transition-transform duration-200">
+        <ParticleIcon type={particleType} color={info.color} />
+      </div>
+      <span className={`text-[10px] font-bold text-center leading-tight ${isDiscovered ? 'text-gray-300 group-hover:text-white' : 'text-gray-600'}`}>
+        {isDiscovered ? info.name : '???'}
+      </span>
+      
+      {/* Tooltip */}
+      {isDiscovered && (
+        <div className="absolute opacity-0 group-hover:opacity-100 bottom-full mb-2 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50 transition-opacity">
+          Double-click for Info
+        </div>
+      )}
+    </div>
+  );
+});
+
+const CodexCategory = React.memo(({ 
+  sub, 
+  particles, 
+  discoveredSet, 
+  isSandboxMode, 
+  showAll, 
+  onDragStart, 
+  onDragEnd, 
+  onParticleClick, 
+  onParticleDoubleClick 
+}) => {
+  if (particles.length === 0) return null;
+
+  return (
+    <div className="bg-gray-800/40 rounded-xl p-5 border border-gray-700/50">
+      <h4 className="text-lg font-bold text-amber-400/80 mb-4 uppercase tracking-wider text-xs">{sub.name}</h4>
+      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
+        {particles.map(particleType => {
+          const isDiscovered = isSandboxMode || showAll || discoveredSet.has(particleType);
+          
+          return (
+            <CodexItem
+              key={particleType}
+              particleType={particleType}
+              isDiscovered={isDiscovered}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              onClick={onParticleClick}
+              onDoubleClick={onParticleDoubleClick}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+
+// --- Main Component ---
+
 const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = false, onDragStateChange }) => {
   const [showAll, setShowAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Use "All" as default main tab, or the first real category
   const [selectedGroup, setSelectedGroup] = useState('All');
+  const [selectedInfoParticle, setSelectedInfoParticle] = useState(null);
   
   // Universal Inventory
   const discoveredItems = useInventory(state => state.discoveredItems);
@@ -18,7 +106,7 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
   
   const discoveredSet = useMemo(() => new Set(discoveredItems), [discoveredItems]);
 
-  // Unified Data Source - Now nested
+  // Unified Data Source
   const particleGroups = useMemo(() => getUniversalCodexData(), []);
 
   // Main Group Tabs
@@ -26,18 +114,49 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
     return ['All', ...particleGroups.map(g => g.name)];
   }, [particleGroups]);
 
-  const handleDragStart = (e, particleType) => {
+  // Optimized Filtering Logic
+  // This runs only when search, group, or source data changes, NOT on every render.
+  const visibleGroups = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    
+    return particleGroups.map(group => {
+      // 1. Filter by Group Selection
+      if (selectedGroup !== 'All' && group.name !== selectedGroup) return null;
+
+      // 2. Filter Subcategories
+      const filteredSubcategories = group.subcategories.map(sub => {
+        const filteredParticles = sub.particles.filter(p => {
+          if (!term) return true;
+          // Note: accessing getUniversalItemInfo here is unavoidable for search, 
+          // but we do it inside useMemo so it's cached until inputs change.
+          const info = getUniversalItemInfo(p);
+          return info.name.toLowerCase().includes(term);
+        });
+
+        return { ...sub, particles: filteredParticles };
+      }).filter(sub => sub.particles.length > 0);
+
+      if (filteredSubcategories.length === 0) return null;
+
+      return { ...group, subcategories: filteredSubcategories };
+    }).filter(Boolean); // Remove null groups
+
+  }, [particleGroups, selectedGroup, searchTerm]);
+
+  // --- Handlers ---
+
+  const handleDragStartWrapper = useCallback((e, particleType) => {
     e.dataTransfer.setData('text/plain', JSON.stringify({ type: particleType }));
     e.dataTransfer.effectAllowed = 'copy';
     if (onDragStart) onDragStart(e, { type: particleType });
     if (onDragStateChange) setTimeout(() => onDragStateChange(true), 0);
-  };
+  }, [onDragStart, onDragStateChange]);
 
-  const handleDragEnd = () => {
+  const handleDragEndWrapper = useCallback(() => {
     if (onDragStateChange) onDragStateChange(false);
-  };
+  }, [onDragStateChange]);
 
-  const [selectedInfoParticle, setSelectedInfoParticle] = useState(null);
+  // --- Render ---
 
   const content = (
     <div className={`bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full flex flex-col relative overflow-hidden ${!isEmbedded ? 'max-w-6xl h-full max-h-[90vh]' : 'h-full border-0 shadow-none rounded-none'}`}>
@@ -97,81 +216,34 @@ const Codex = ({ isVisible, onClose, onParticleClick, onDragStart, isEmbedded = 
 
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-6 bg-gray-900/50">
-            {particleGroups
-              .filter(group => selectedGroup === 'All' || group.name === selectedGroup)
-              .map(group => (
-                <div key={group.name} className="mb-10 animate-fadeIn">
-                  {selectedGroup === 'All' && (
-                    <h3 className="text-2xl font-bold text-gray-200 mb-6 border-b border-gray-700 pb-2">{group.name}</h3>
-                  )}
-                  
-                  {/* Subcategories */}
-                  <div className="space-y-8">
-                    {group.subcategories.map(sub => {
-                      // Search Filter
-                      const filteredParticles = sub.particles.filter(p => {
-                        if (!searchTerm) return true;
-                        const info = getUniversalItemInfo(p);
-                        return info.name.toLowerCase().includes(searchTerm.toLowerCase());
-                      });
-
-                      if (filteredParticles.length === 0) return null;
-
-                      return (
-                        <div key={sub.name} className="bg-gray-800/40 rounded-xl p-5 border border-gray-700/50">
-                          <h4 className="text-lg font-bold text-amber-400/80 mb-4 uppercase tracking-wider text-xs">{sub.name}</h4>
-                          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
-                            {filteredParticles.map(particleType => {
-                              const isDiscovered = isSandboxMode || showAll || discoveredSet.has(particleType);
-                              const info = getUniversalItemInfo(particleType);
-                              
-                              return (
-                                <div
-                                  key={particleType}
-                                  draggable={isDiscovered}
-                                  onDragStart={(e) => isDiscovered && handleDragStart(e, particleType)}
-                                  onDragEnd={handleDragEnd}
-                                  className={`
-                                    relative group flex flex-col items-center p-3 rounded-xl transition-all duration-200
-                                    ${isDiscovered 
-                                      ? 'bg-gray-700/50 hover:bg-gray-700 cursor-grab active:cursor-grabbing border border-transparent hover:border-gray-500' 
-                                      : 'bg-gray-800/30 opacity-40 grayscale cursor-not-allowed border border-dashed border-gray-700'}
-                                  `}
-                                  onClick={() => isDiscovered && onParticleClick && onParticleClick(particleType)}
-                                  onDoubleClick={() => isDiscovered && setSelectedInfoParticle(particleType)}
-                                >
-                                  <div className="w-16 h-16 mb-2 relative transform group-hover:scale-110 transition-transform duration-200">
-                                    <ParticleIcon type={particleType} color={info.color} />
-                                  </div>
-                                  <span className={`text-[10px] font-bold text-center leading-tight ${isDiscovered ? 'text-gray-300 group-hover:text-white' : 'text-gray-600'}`}>
-                                    {isDiscovered ? info.name : '???'}
-                                  </span>
-                                  
-                                  {/* Tooltip */}
-                                  {isDiscovered && (
-                                    <div className="absolute opacity-0 group-hover:opacity-100 bottom-full mb-2 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                                      Double-click for Info
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+            {visibleGroups.map(group => (
+              <div key={group.name} className="mb-10 animate-fadeIn">
+                {selectedGroup === 'All' && (
+                  <h3 className="text-2xl font-bold text-gray-200 mb-6 border-b border-gray-700 pb-2">{group.name}</h3>
+                )}
+                
+                {/* Subcategories */}
+                <div className="space-y-8">
+                  {group.subcategories.map(sub => (
+                    <CodexCategory
+                      key={sub.name}
+                      sub={sub}
+                      particles={sub.particles}
+                      discoveredSet={discoveredSet}
+                      isSandboxMode={isSandboxMode}
+                      showAll={showAll}
+                      onDragStart={handleDragStartWrapper}
+                      onDragEnd={handleDragEndWrapper}
+                      onParticleClick={onParticleClick}
+                      onParticleDoubleClick={setSelectedInfoParticle}
+                    />
+                  ))}
                 </div>
-              ))
-            }
+              </div>
+            ))}
             
             {/* Empty State */}
-            {particleGroups.every(g => 
-               (selectedGroup === 'All' || g.name === selectedGroup) && 
-               g.subcategories.every(sub => 
-                 sub.particles.filter(p => !searchTerm || getUniversalItemInfo(p).name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0
-               )
-            ) && (
+            {visibleGroups.length === 0 && (
               <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                 <span className="text-4xl mb-2">🔍</span>
                 <p>No particles found matching "{searchTerm}"</p>

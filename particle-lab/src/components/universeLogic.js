@@ -1,5 +1,52 @@
 import { PARTICLE_TYPES } from '../constants/particles';
 
+// --- Spatial Hash for O(1) Collision Detection ---
+class SpatialHash {
+  constructor(cellSize) {
+    this.cellSize = cellSize;
+    this.grid = new Map();
+  }
+
+  _getKey(x, y) {
+    // Bitwise floor is slightly faster for positive numbers, Math.floor safe for all
+    return `${Math.floor(x / this.cellSize)},${Math.floor(y / this.cellSize)}`;
+  }
+
+  insert(entity) {
+    const key = this._getKey(entity.x, entity.y);
+    let cell = this.grid.get(key);
+    if (!cell) {
+      cell = [];
+      this.grid.set(key, cell);
+    }
+    cell.push(entity);
+  }
+
+  // Returns array of potential neighbors
+  query(x, y) {
+    const key = this._getKey(x, y);
+    // Return neighbors from this cell and the 8 surrounding cells for full coverage
+    // Optimization: Just checking current cell is often enough if cell size > interaction radius * 2
+    // But for accuracy, we check 3x3 grid around the point.
+    
+    // Simplified 3x3 query:
+    const cx = Math.floor(x / this.cellSize);
+    const cy = Math.floor(y / this.cellSize);
+    const found = [];
+
+    for (let i = cx - 1; i <= cx + 1; i++) {
+      for (let j = cy - 1; j <= cy + 1; j++) {
+        const k = `${i},${j}`;
+        const cell = this.grid.get(k);
+        if (cell) {
+           for (let m = 0; m < cell.length; m++) found.push(cell[m]);
+        }
+      }
+    }
+    return found;
+  }
+}
+
 export const BigBangPhase = {
   PRE_BANG: 0,
   INFLATION: 1,    // 0s-2s: Explosion
@@ -32,6 +79,7 @@ export const createNebulaParticle = (width, height, offsetX = 0, offsetY = 0) =>
     type: PARTICLE_TYPES.HYDROGEN,
     color: '#3b82f6', 
     life: 100,
+    dead: false // New flag for optimization
   };
 };
 
@@ -53,7 +101,8 @@ export const triggerInflation = (width, height) => {
             mass: 1,
             type: 'QUARK', // Abstract type for now
             color: '#ffffff',
-            life: 100
+            life: 100,
+            dead: false
         });
     }
     return particles;
@@ -74,28 +123,21 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
 
   // --- BIG BANG PHYSICS OVERRIDES ---
   if (bigBangPhase < BigBangPhase.STELLAR) {
-      
       // Calculate Cinematics based on Phase & Time
       if (bigBangPhase === BigBangPhase.INFLATION) {
-          // 0s - 2s: THE EXPLOSION
           const progress = Math.min(1, simTime / 2); // 0 to 1
-          
-          cinematics.exposure = Math.max(0, 1 - progress); // Flash fade
-          cinematics.shake = (1 - progress) * 50; // Violent shake fading out
-          cinematics.zoom = 1 + (1-progress) * 2; // Rapid zoom out
+          cinematics.exposure = Math.max(0, 1 - progress); 
+          cinematics.shake = (1 - progress) * 50; 
+          cinematics.zoom = 1 + (1-progress) * 2; 
           cinematics.colorShift = (1-progress) * 20;
-          cinematics.shockwave = progress * 2000; // Expanding ring radius
+          cinematics.shockwave = progress * 2000; 
       } 
       else if (bigBangPhase === BigBangPhase.PLASMA) {
-          // 2s - 8s: THE SOUP
-          // Constant low-level vibration
           cinematics.shake = 2;
-          cinematics.exposure = 0.2 + Math.sin(simTime * 10) * 0.1; // Pulsing light
+          cinematics.exposure = 0.2 + Math.sin(simTime * 10) * 0.1;
           cinematics.colorShift = 5;
       }
       else if (bigBangPhase === BigBangPhase.DARK_AGES) {
-          // 8s - 12s: COOLING
-          // Everything fades
           cinematics.exposure = 0;
           cinematics.shake = 0;
       }
@@ -104,39 +146,25 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
           p.x += p.vx * dt;
           p.y += p.vy * dt;
 
-          if (bigBangPhase === BigBangPhase.INFLATION) {
-             // Pure radial expansion
-             // Add "Light Speed" stretching visual in renderer, but physics is simple
-          } 
-          else if (bigBangPhase === BigBangPhase.PLASMA) {
-             // Chaos: Random Jitter
+          if (bigBangPhase === BigBangPhase.PLASMA) {
              p.vx += (Math.random() - 0.5) * 5000 * dt;
              p.vy += (Math.random() - 0.5) * 5000 * dt;
-             
-             // High Friction to stop the initial explosion eventually
              p.vx *= 0.95;
              p.vy *= 0.95;
-
-             // Color flicker (High Energy)
              const colors = ['#00ffff', '#ff00ff', '#ffffff', '#ffff00'];
              p.color = colors[Math.floor(Math.random() * colors.length)];
           } 
           else if (bigBangPhase === BigBangPhase.DARK_AGES) {
-             // Cooling: High Friction
              p.vx *= 0.90;
              p.vy *= 0.90;
-             
-             // Fade to black/blue
-             // Particles turn into "Protostellar Dust" (Dark Blue/Purple)
              const brightness = Math.max(0.1, 1 - ((simTime - 8) / 4));
              p.color = `rgba(30, 58, 138, ${brightness})`; 
           }
 
-          // Bounce off walls during Big Bang to keep matter in view
           if (p.x < 0 || p.x > width) p.vx *= -1;
           if (p.y < 0 || p.y > height) p.vy *= -1;
       }
-      return cinematics; // RETURN CONFIG FOR RENDERER
+      return cinematics;
   }
 
   // --- NORMAL PHYSICS (STELLAR ERA) ---
@@ -147,11 +175,10 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
     if (gravityWells[i].life <= 0) gravityWells.splice(i, 1);
   }
 
-  // 2. Galaxy Physics
   const isGalaxy = milestones?.galaxyFormed;
   const isSolar = milestones?.solarSystemFormed;
 
-  // 3. Update Stars
+  // 2. Update Stars
   for (let s of stars) {
     if (isGalaxy) {
         const dx = cx - s.x;
@@ -190,7 +217,7 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
     }
   }
   
-  // 3.5 Update Planets
+  // 3. Update Planets
   if (planets) {
       for (let p of planets) {
           if (p.hostStar) {
@@ -209,13 +236,15 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
       }
   }
 
-  // 4. Update Particles (Gas)
-  for (let i = particles.length - 1; i >= 0; i--) {
+  // 4. Update Particles (Gas) with Spatial Hash
+  const hash = new SpatialHash(20); // Cell size 20 (interaction range ~10-20)
+  
+  // First pass: Move & Hash
+  for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
-    
-    // Ensure particle color is reset if coming from Dark Ages
-    if (p.color.startsWith('rgba')) p.color = '#3b82f6';
+    if (p.dead) continue;
 
+    // A. Physics Movement
     if (isGalaxy) {
         const dx = cx - p.x;
         const dy = cy - p.y;
@@ -248,6 +277,7 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
       const dy = s.y - p.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
       
+      // Star Accretion
       if (dist < s.radius) {
          s.mass += p.mass;
          if (p.type === PARTICLE_TYPES.HYDROGEN) s.composition.hydrogen++;
@@ -256,11 +286,12 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
          
          s.radius = Math.min(100, 10 + Math.sqrt(s.mass));
          
-         particles.splice(i, 1);
+         p.dead = true; // Mark for removal
          if (onFusion) onFusion(s.x, s.y, s.color);
          return; 
       }
 
+      // Planet Formation
       if (isSolar && dist < s.radius * 4 && dist > s.radius * 1.5) {
           if (Math.random() > 0.99) {
               if (planets) {
@@ -273,7 +304,7 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
                       color: ['#a3e635', '#60a5fa', '#f472b6', '#eab308'][Math.floor(Math.random()*4)],
                       type: 'planet'
                   });
-                  particles.splice(i, 1);
+                  p.dead = true;
                   if (onFusion) onFusion(p.x, p.y, '#ffffff');
                   return;
               }
@@ -287,7 +318,7 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
       }
     });
 
-    if (particles[i] === undefined) continue; 
+    if (p.dead) continue;
 
     const maxV = isGalaxy ? 100 : 50;
     if (Math.abs(p.vx) > maxV) p.vx = Math.sign(p.vx) * maxV;
@@ -300,85 +331,97 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
     p.vx *= friction;
     p.vy *= friction;
 
+    // Wrap
     if (p.x < 0) p.x = width;
     if (p.x > width) p.x = 0;
     if (p.y < 0) p.y = height;
     if (p.y > height) p.y = 0;
 
-    const formationChance = isGalaxy ? 0.95 : 0.99;
-    
+    // Insert into Hash
+    hash.insert(p);
+  }
+
+  // Second pass: Collision & Fusion via Hash
+  const formationChance = isGalaxy ? 0.95 : 0.99;
+
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    if (p.dead) continue;
+
+    const neighbors = hash.query(p.x, p.y);
     let nearbyMass = 0;
-    let nearbyIndices = [];
-    
-    for (let j = i - 1; j >= 0; j--) {
-      const p2 = particles[j];
-      const dx = p.x - p2.x;
-      const dy = p.y - p2.y;
-      const distSq = dx*dx + dy*dy;
+    let fuseList = [];
 
-      // Fusion Logic
-      if (distSq < 100) {
-          if (p.type === PARTICLE_TYPES.HYDROGEN && p2.type === PARTICLE_TYPES.HYDROGEN) {
-              p.type = PARTICLE_TYPES.HELIUM;
-              p.mass = 4;
-              p.color = '#fbbf24';
-              particles.splice(j, 1);
-              if (onDiscover) onDiscover(PARTICLE_TYPES.HELIUM);
-              // Adjust indices for outer loop since we modified array? 
-              // No, 'j' is < 'i', so removing 'j' shifts indices < 'j', but 'i' is > 'j'. 
-              // Wait, removing 'j' shifts everything > 'j' down by 1. 'i' IS > 'j'.
-              // So 'i' needs to be decremented. But we are iterating 'i' downwards?
-              // The outer loop is `for (let i = particles.length - 1; i >= 0; i--)`.
-              // If we remove 'j' (where j < i), the element at 'i' moves to 'i-1'.
-              // So next iteration of outer loop (i--) will skip the element that moved to 'i-1'.
-              // So we must decrement 'i'.
-              i--; 
-              continue;
-          }
-          if (p.type === PARTICLE_TYPES.HELIUM && p2.type === PARTICLE_TYPES.HELIUM) {
-              p.type = PARTICLE_TYPES.CARBON;
-              p.mass = 12;
-              p.color = '#1f2937';
-              particles.splice(j, 1);
-              if (onDiscover) onDiscover(PARTICLE_TYPES.CARBON);
-              i--;
-              continue;
-          }
-      }
+    for (let j = 0; j < neighbors.length; j++) {
+        const p2 = neighbors[j];
+        if (p2 === p || p2.dead) continue;
 
-      if (distSq < 400) {
-         nearbyMass += p2.mass;
-         nearbyIndices.push(j);
-      }
+        const dx = p.x - p2.x;
+        const dy = p.y - p2.y;
+        const distSq = dx*dx + dy*dy;
+
+        // Fusion Range
+        if (distSq < 100) {
+            // H + H -> He
+            if (p.type === PARTICLE_TYPES.HYDROGEN && p2.type === PARTICLE_TYPES.HYDROGEN) {
+                p.type = PARTICLE_TYPES.HELIUM;
+                p.mass = 4;
+                p.color = '#fbbf24';
+                p2.dead = true; // Consumed
+                if (onDiscover) onDiscover(PARTICLE_TYPES.HELIUM);
+                break; // State changed, move to next particle
+            }
+            // He + He -> C
+            if (p.type === PARTICLE_TYPES.HELIUM && p2.type === PARTICLE_TYPES.HELIUM) {
+                p.type = PARTICLE_TYPES.CARBON;
+                p.mass = 12;
+                p.color = '#1f2937';
+                p2.dead = true; // Consumed
+                if (onDiscover) onDiscover(PARTICLE_TYPES.CARBON);
+                break;
+            }
+        }
+
+        // Star Formation Range (Gravity accumulation)
+        if (distSq < 400) {
+            nearbyMass += p2.mass;
+            fuseList.push(p2);
+        }
     }
 
-    if (nearbyMass > 5 && Math.random() > formationChance) { 
-       const newStar = {
-         x: p.x,
-         y: p.y,
-         vx: p.vx, vy: p.vy, 
-         mass: nearbyMass + p.mass,
-         radius: 10 + Math.sqrt(nearbyMass),
-         temperature: 3000,
-         color: '#fef08a', 
-         composition: { hydrogen: nearbyMass * 0.8, helium: nearbyMass * 0.2, carbon: 0, iron: 0 },
-         unstable: false
-       };
-       stars.push(newStar);
-       
-       particles.splice(i, 1);
-       nearbyIndices.forEach(idx => particles.splice(idx, 1)); 
-       
-              if (onStarFormation) onStarFormation(newStar);
-       
-              break; 
-       
-           }
-       
-         }
-       
-         return cinematics;
-       
-       };
+    // Check Star Formation
+    if (!p.dead && nearbyMass > 5 && Math.random() > formationChance) { 
+        const newStar = {
+            x: p.x,
+            y: p.y,
+            vx: p.vx, vy: p.vy, 
+            mass: nearbyMass + p.mass,
+            radius: 10 + Math.sqrt(nearbyMass),
+            temperature: 3000,
+            color: '#fef08a', 
+            composition: { hydrogen: nearbyMass * 0.8, helium: nearbyMass * 0.2, carbon: 0, iron: 0 },
+            unstable: false
+        };
+        stars.push(newStar);
+        
+        p.dead = true; // Main particle consumed
+        fuseList.forEach(fp => fp.dead = true); // Neighbors consumed
+        
+        if (onStarFormation) onStarFormation(newStar);
+    }
+  }
+
+  // Cleanup Dead Particles (Efficient Swap-Removal or Filtering)
+  // Filtering is O(N) which is fine.
+  let aliveIndex = 0;
+  for (let i = 0; i < particles.length; i++) {
+      if (!particles[i].dead) {
+          particles[aliveIndex++] = particles[i];
+      }
+  }
+  particles.length = aliveIndex;
+
+  return cinematics;
+};
        
        

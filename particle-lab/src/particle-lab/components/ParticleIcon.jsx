@@ -4,6 +4,12 @@ import { CHEMICALS } from '../../chemistry-lab/data/chemicals';
 import MoleculeStructure from '../../chemistry-lab/components/MoleculeStructure.jsx';
 import { MOLECULAR_STRUCTURES } from '../../chemistry-lab/data/structures.js';
 
+// --- Organelle Image Assets ---
+import membraneImg from '../../icons/cell_membrane.png';
+import nucleusImg from '../../icons/cell_nucleus.png';
+import mitochondriaImg from '../../icons/mitochondria.png';
+import ribosomeImg from '../../icons/ribosome.png';
+
 // --- Helper Components & Functions ---
 
 const NeoBond = ({ x1, y1, x2, y2, type = 'single' }) => {
@@ -1348,43 +1354,28 @@ const LipidIcon = () => (
 );
 
 const MembraneIcon = () => {
-  const cols = 15;
   return (
     <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-      {/* Dense Phospholipid Bilayer */}
-      {Array.from({ length: cols }).map((_, i) => {
-        const x = 5 + i * 6.5;
-        return (
-          <g key={i}>
-            {/* Tails - Chains of small spheres */}
-            <line x1={x} y1={30} x2={x} y2={48} stroke="#a8a29e" strokeWidth="1" />
-            <NeoSphere x={x} y={34} r={1.5} color="#a8a29e" />
-            <NeoSphere x={x} y={39} r={1.5} color="#a8a29e" />
-            <NeoSphere x={x} y={44} r={1.5} color="#a8a29e" />
-            
-            <line x1={x} y1={70} x2={x} y2={52} stroke="#a8a29e" strokeWidth="1" />
-            <NeoSphere x={x} y={66} r={1.5} color="#a8a29e" />
-            <NeoSphere x={x} y={61} r={1.5} color="#a8a29e" />
-            <NeoSphere x={x} y={56} r={1.5} color="#a8a29e" />
-
-            {/* Heads */}
-            <NeoSphere x={x} y={30} r={3.5} color={PARTICLE_COLOR_MAP['orange-300']} />
-            <NeoSphere x={x} y={70} r={3.5} color={PARTICLE_COLOR_MAP['orange-300']} />
-          </g>
-        );
-      })}
+      <defs>
+        <pattern id="membrane-heads" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+           <circle cx="5" cy="5" r="3.5" fill={PARTICLE_COLOR_MAP['orange-300']} />
+        </pattern>
+      </defs>
       
-      {/* Transmembrane Protein - Dense Cluster */}
+      {/* Background Tails Area */}
+      <rect x="0" y="30" width="100" height="40" fill="#a8a29e" opacity="0.2" />
+      <path d="M 0 35 L 100 35 M 0 45 L 100 45 M 0 55 L 100 55 M 0 65 L 100 65" stroke="#a8a29e" strokeWidth="1" opacity="0.4" strokeDasharray="4 2" />
+
+      {/* Lipid Heads Top */}
+      <rect x="0" y="26" width="100" height="8" fill="url(#membrane-heads)" />
+      
+      {/* Lipid Heads Bottom */}
+      <rect x="0" y="66" width="100" height="8" fill="url(#membrane-heads)" />
+      
+      {/* Transmembrane Protein */}
       <g transform="translate(70, 50)">
-         {Array.from({ length: 12 }).map((_, i) => (
-            <NeoSphere 
-              key={`p-${i}`} 
-              x={Math.sin(i)*6} 
-              y={Math.cos(i * 0.8)*25} 
-              r={4} 
-              color={PARTICLE_COLOR_MAP['green-500']} 
-            />
-         ))}
+         <ellipse cx="0" cy="0" rx="12" ry="22" fill={PARTICLE_COLOR_MAP['green-500']} />
+         <ellipse cx="0" cy="0" rx="8" ry="15" fill={PARTICLE_COLOR_MAP['green-400']} />
       </g>
     </svg>
   );
@@ -1392,143 +1383,52 @@ const MembraneIcon = () => {
 
 const RibosomeIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    {/* mRNA Strand */}
-    <path d="M 0 65 Q 50 80 100 65" stroke="#fb923c" strokeWidth="1" fill="none" opacity="0.5" />
-    {Array.from({length: 20}).map((_, i) => (
-       <NeoSphere key={`rna-${i}`} x={i*5} y={65 + Math.sin(i/3)*8} r={2} color={PARTICLE_COLOR_MAP['orange-500']} />
-    ))}
-
-    {/* Small Subunit - Dense Cloud */}
-    <g transform="translate(50, 75)">
-        {Array.from({length: 25}).map((_, i) => {
-            const r = 15 * Math.sqrt(Math.random());
-            const theta = Math.random() * 2 * Math.PI;
-            return <NeoSphere key={`s-${i}`} x={r * Math.cos(theta) * 1.5} y={r * Math.sin(theta)} r={3} color={PARTICLE_COLOR_MAP['red-400']} />
-        })}
-    </g>
-
-    {/* Large Subunit - Dense Cloud */}
-    <g transform="translate(50, 40)">
-        {Array.from({length: 40}).map((_, i) => {
-            const r = 20 * Math.sqrt(Math.random());
-            const theta = Math.random() * 2 * Math.PI;
-            return <NeoSphere key={`l-${i}`} x={r * Math.cos(theta) * 1.2} y={r * Math.sin(theta)} r={3.5} color={PARTICLE_COLOR_MAP['red-600']} />
-        })}
-    </g>
+    {/* Large Subunit */}
+    <ellipse cx="50" cy="45" rx="35" ry="25" fill={PARTICLE_COLOR_MAP['red-600']} />
+    {/* Small Subunit */}
+    <ellipse cx="50" cy="70" rx="25" ry="15" fill={PARTICLE_COLOR_MAP['red-400']} />
+    {/* mRNA groove hint */}
+    <path d="M 20 62 Q 50 72 80 62" stroke="white" strokeWidth="2" strokeOpacity="0.3" fill="none" />
   </svg>
 );
 
 const MitochondrionIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    {/* Dense Background Atomic Noise */}
-    <g opacity="0.3">
-      {Array.from({length: 60}).map((_, i) => (
-        <NeoSphere key={i} x={20 + Math.random()*60} y={30 + Math.random()*40} r={1.5} color={PARTICLE_COLOR_MAP['gray-400']} />
-      ))}
-    </g>
-
-    {/* The Internal "Jungle" of Cristae - Hundreds of tiny connected points */}
-    <g>
-      {Array.from({length: 80}).map((_, i) => {
-        const x = 20 + (i % 10) * 8 + Math.sin(i) * 5;
-        const y = 25 + Math.floor(i / 10) * 6 + Math.cos(i) * 3;
-        const nextX = x + (Math.random() - 0.5) * 10;
-        const nextY = y + (Math.random() - 0.5) * 10;
-        return (
-          <React.Fragment key={i}>
-            <line x1={x} y1={y} x2={nextX} y2={nextY} stroke="#94a3b8" strokeWidth="0.5" opacity="0.4" />
-            <NeoSphere x={x} y={y} r={1.2} color={PARTICLE_COLOR_MAP['orange-400']} />
-          </React.Fragment>
-        );
-      })}
-    </g>
-
-    {/* Swarm of Miniaturized Molecules */}
-    {Array.from({length: 12}).map((_, i) => (
-      <g key={`atp-${i}`} transform={`translate(${25 + Math.random()*50}, ${30 + Math.random()*40}) scale(0.06)`}>
-        <ATPIcon />
-      </g>
-    ))}
-    {Array.from({length: 6}).map((_, i) => (
-      <g key={`nadh-${i}`} transform={`translate(${30 + Math.random()*40}, ${35 + Math.random()*30}) scale(0.05) rotate(${Math.random()*360})`}>
-        <NADHIcon />
-      </g>
-    ))}
-    {Array.from({length: 4}).map((_, i) => (
-      <g key={`rna-${i}`} transform={`translate(${20 + Math.random()*60}, ${25 + Math.random()*50}) scale(0.04) rotate(${Math.random()*360})`}>
-        <RNAIcon />
-      </g>
-    ))}
-    <g transform="translate(45, 45) scale(0.08) rotate(45)"> <DNAIcon /> </g>
+    {/* Outer Membrane */}
+    <rect x="15" y="20" width="70" height="60" rx="30" fill={PARTICLE_COLOR_MAP['orange-200']} stroke={PARTICLE_COLOR_MAP['orange-600']} strokeWidth="3" />
     
-    {/* Surface Protein Machinery (Tiny Ribosomes) */}
-    {Array.from({length: 15}).map((_, i) => (
-      <g key={`ribo-${i}`} transform={`translate(${10 + Math.random()*80}, ${20 + Math.random()*60}) scale(0.03)`}>
-        <RibosomeIcon />
-      </g>
-    ))}
+    {/* Inner Membrane (Cristae) - Simplified Path */}
+    <path 
+      d="M 30 35 C 40 35, 40 65, 30 65 M 45 35 C 55 35, 55 65, 45 65 M 60 35 C 70 35, 70 65, 60 65" 
+      stroke={PARTICLE_COLOR_MAP['orange-500']} 
+      strokeWidth="3" 
+      fill="none" 
+      strokeLinecap="round"
+    />
+    
+    {/* Matrix Granules - Static */}
+    <circle cx="38" cy="40" r="2.5" fill={PARTICLE_COLOR_MAP['orange-800']} opacity="0.6" />
+    <circle cx="52" cy="60" r="2.5" fill={PARTICLE_COLOR_MAP['orange-800']} opacity="0.6" />
+    <circle cx="65" cy="45" r="2.5" fill={PARTICLE_COLOR_MAP['orange-800']} opacity="0.6" />
   </svg>
 );
 
 const NucleusIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    {/* Double Envelope - Dense ring of tiny atoms */}
-    <g opacity="0.4">
-      {Array.from({length: 120}).map((_, i) => {
-        const angle = (i / 120) * Math.PI * 2;
-        const x = 50 + 46 * Math.cos(angle);
-        const y = 50 + 46 * Math.sin(angle);
-        return <NeoSphere key={i} x={x} y={y} r={1.5} color={PARTICLE_COLOR_MAP['indigo-600']} />;
-      })}
-    </g>
-
-    {/* Dense Chromatin Jungle - Hundreds of tiny DNA/RNA fragments and atoms */}
-    <g>
-      {Array.from({length: 150}).map((_, i) => {
-        const r = Math.random() * 38;
-        const theta = Math.random() * 2 * Math.PI;
-        const x = 50 + r * Math.cos(theta);
-        const y = 50 + r * Math.sin(theta);
-        return (
-          <React.Fragment key={i}>
-            {Math.random() > 0.7 && <line x1={x} y1={y} x2={x + (Math.random()-0.5)*8} y2={y + (Math.random()-0.5)*8} stroke="#4f46e5" strokeWidth="0.3" opacity="0.3" />}
-            <NeoSphere x={x} y={y} r={1} color={PARTICLE_COLOR_MAP['blue-500']} />
-          </React.Fragment>
-        );
-      })}
-    </g>
-
-    {/* The Core Swarm (Miniature DNA/RNA Cluster) */}
-    <g transform="translate(50, 50)">
-       {Array.from({length: 15}).map((_, i) => {
-          const angle = Math.random() * Math.PI * 2;
-          const dist = Math.random() * 20;
-          return (
-            <g key={i} transform={`translate(${dist * Math.cos(angle)}, ${dist * Math.sin(angle)}) scale(0.05) rotate(${Math.random()*360})`}>
-               {Math.random() > 0.5 ? <DNAIcon /> : <RNAIcon />}
-            </g>
-          );
-       })}
-    </g>
-
-    {/* Active Transcription Sites */}
-    {Array.from({length: 8}).map((_, i) => (
-      <g key={`trans-${i}`} transform={`translate(${30 + Math.random()*40}, ${30 + Math.random()*40}) scale(0.04)`}>
-        <RNAIcon />
-      </g>
-    ))}
-
-    {/* Pore Complex Nodes */}
-    {Array.from({length: 12}).map((_, i) => {
-        const angle = (i / 12) * Math.PI * 2;
-        const x = 50 + 46 * Math.cos(angle);
-        const y = 50 + 46 * Math.sin(angle);
-        return (
-          <g key={`pore-${i}`} transform={`translate(${x}, ${y}) scale(0.04)`}>
-             <RibosomeIcon />
-          </g>
-        );
-    })}
+    {/* Nuclear Envelope */}
+    <circle cx="50" cy="50" r="45" fill={PARTICLE_COLOR_MAP['indigo-100']} stroke={PARTICLE_COLOR_MAP['indigo-600']} strokeWidth="3" strokeDasharray="8 4" />
+    
+    {/* Chromatin Texture (Static Gradient/Noise representation) */}
+    <circle cx="50" cy="50" r="38" fill={PARTICLE_COLOR_MAP['indigo-200']} opacity="0.5" />
+    
+    {/* Nucleolus */}
+    <circle cx="60" cy="40" r="12" fill={PARTICLE_COLOR_MAP['indigo-800']} opacity="0.8" />
+    
+    {/* Nuclear Pores (Simplified) */}
+    <circle cx="95" cy="50" r="3" fill={PARTICLE_COLOR_MAP['indigo-700']} />
+    <circle cx="5" cy="50" r="3" fill={PARTICLE_COLOR_MAP['indigo-700']} />
+    <circle cx="50" cy="95" r="3" fill={PARTICLE_COLOR_MAP['indigo-700']} />
+    <circle cx="50" cy="5" r="3" fill={PARTICLE_COLOR_MAP['indigo-700']} />
   </svg>
 );
 
@@ -2052,6 +1952,17 @@ const GenericMoleculeIcon = ({ hexColor }) => (
   </svg>
 );
 
+// --- Organelle PNG Wrapper Components ---
+const PngIcon = ({ src, alt }) => (
+  <img src={src} alt={alt} className="w-full h-full object-contain pointer-events-none" />
+);
+
+const MembranePngIcon = () => <PngIcon src={membraneImg} alt="Membrane" />;
+const NucleusPngIcon = () => <PngIcon src={nucleusImg} alt="Nucleus" />;
+const MitochondriaPngIcon = () => <PngIcon src={mitochondriaImg} alt="Mitochondria" />;
+const RibosomePngIcon = () => <PngIcon src={ribosomeImg} alt="Ribosome" />;
+
+
 const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.METHANOL]: MethanolIcon,
   [PARTICLE_TYPES.PROPANE]: PropaneIcon,
@@ -2154,10 +2065,10 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.LIPID]: LipidIcon,
   [PARTICLE_TYPES.DNA]: DNAIcon,
   [PARTICLE_TYPES.RNA]: RNAIcon,
-  [PARTICLE_TYPES.MEMBRANE]: MembraneIcon,
-  [PARTICLE_TYPES.RIBOSOME]: RibosomeIcon,
-  [PARTICLE_TYPES.MITOCHONDRION]: MitochondrionIcon,
-  [PARTICLE_TYPES.NUCLEUS]: NucleusIcon,
+  [PARTICLE_TYPES.MEMBRANE]: MembranePngIcon,
+  [PARTICLE_TYPES.RIBOSOME]: RibosomePngIcon,
+  [PARTICLE_TYPES.MITOCHONDRION]: MitochondriaPngIcon,
+  [PARTICLE_TYPES.NUCLEUS]: NucleusPngIcon,
   [PARTICLE_TYPES.HYDROGEN]: HydrogenIcon,
   [PARTICLE_TYPES.DEUTERIUM]: DeuteriumIcon,
   [PARTICLE_TYPES.TRITIUM]: TritiumIcon,
