@@ -5,6 +5,7 @@ import { PARTICLE_CATEGORIES, FULL_COMPOSITION_MAP } from '../../recipes.js';
 import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../../constants/polypeptideRecipes.js';
 import { PARTICLE_NAMES } from '../../constants/particles.js';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry.js';
 
 export const useParticleActions = ({
   selectionInfo,
@@ -15,8 +16,6 @@ export const useParticleActions = ({
   const setParticles = useParticleStore(state => state.setParticles);
   const setBonds = useParticleStore(state => state.setBonds);
   const setSecondaryParticles = useParticleStore(state => state.setSecondaryParticles);
-  const setDiscoveredAtoms = useParticleStore(state => state.setDiscoveredAtoms);
-  const setDiscoveredMolecules = useParticleStore(state => state.setDiscoveredMolecules);
   const currentGoalIndex = useParticleStore(state => state.currentGoalIndex);
   const setCurrentGoalIndex = useParticleStore(state => state.setCurrentGoalIndex);
   const showMessage = useParticleStore(state => state.showMessage);
@@ -112,12 +111,15 @@ export const useParticleActions = ({
     const { assemblyRecipe, selectedParticles, isMoleculeAssembly, isPolypeptideAssembly } = selectionInfo;
     const combinedIds = new Set(selectedParticles.map(p => p.id));
 
-    if (isMoleculeAssembly || isPolypeptideAssembly) {
-      const discoveredMolecules = useParticleStore.getState().discoveredMolecules;
-      if (!discoveredMolecules.some(m => m.type === assemblyRecipe.type)) {
-        setDiscoveredMolecules([...discoveredMolecules, { id: assemblyRecipe.type, type: assemblyRecipe.type, discoveredAt: Date.now() }]);
-      }
+    // Common Discovery Logic
+    const def = MATTER_DEFINITIONS[assemblyRecipe.type];
+    if (def) {
+       useInventory.getState().markDiscovered(assemblyRecipe.type);
+       // Add 1 unit to inventory
+       useInventory.getState().addResource(def.inventoryCategory || 'compounds', def.inventoryId || assemblyRecipe.type, 1);
+    }
 
+    if (isMoleculeAssembly || isPolypeptideAssembly) {
       const centerX = selectedParticles.reduce((sum, p) => sum + p.x, 0) / selectedParticles.length;
       const centerY = selectedParticles.reduce((sum, p) => sum + p.y, 0) / selectedParticles.length;
 
@@ -133,11 +135,6 @@ export const useParticleActions = ({
       const bonds = useParticleStore.getState().bonds;
       setBonds(bonds.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
 
-      // --- Inventory Update (Molecules) ---
-      useInventory.getState().addResource('compounds', assemblyRecipe.type, 1);
-      // Mark as discovered in Inventory as well
-      useInventory.getState().markDiscovered(assemblyRecipe.type);
-
       if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
         showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);
         setCurrentGoalIndex(currentGoalIndex + 1);
@@ -149,25 +146,13 @@ export const useParticleActions = ({
       return;
     }
 
-    const discoveryUpdaterMap = {
-      [PARTICLE_CATEGORIES.SECONDARY]: setSecondaryParticles,
-      [PARTICLE_CATEGORIES.ATOM]: setDiscoveredAtoms,
-      [PARTICLE_CATEGORIES.MOLECULE]: setDiscoveredMolecules,
-    };
-
-    const discoveryStateKeyMap = {
-      [PARTICLE_CATEGORIES.SECONDARY]: 'secondaryParticles',
-      [PARTICLE_CATEGORIES.ATOM]: 'discoveredAtoms',
-      [PARTICLE_CATEGORIES.MOLECULE]: 'discoveredMolecules',
-    };
-
-    const updater = discoveryUpdaterMap[assemblyRecipe.category];
-    if (updater) {
-      const stateKey = discoveryStateKeyMap[assemblyRecipe.category];
-      const currentDiscovered = useParticleStore.getState()[stateKey];
-      if (currentDiscovered && !currentDiscovered.some(p => p.type === assemblyRecipe.type)) {
-        updater([...currentDiscovered, { id: assemblyRecipe.type, type: assemblyRecipe.type, discoveredAt: Date.now() }]);
-      }
+    // For Subatomic/Atomic Assembly
+    if (assemblyRecipe.category === PARTICLE_CATEGORIES.SECONDARY) {
+        // Secondary particles are local only (Physics transient states)
+        const currentDiscovered = useParticleStore.getState().secondaryParticles;
+        if (!currentDiscovered.some(p => p.type === assemblyRecipe.type)) {
+             setSecondaryParticles([...currentDiscovered, { id: assemblyRecipe.type, type: assemblyRecipe.type, discoveredAt: Date.now() }]);
+        }
     }
 
     const next = particles.filter(p => !combinedIds.has(p.id));
@@ -183,12 +168,6 @@ export const useParticleActions = ({
     });
     setParticles(next);
 
-    // --- Inventory Update (Atoms) ---
-    if (assemblyRecipe.category === PARTICLE_CATEGORIES.ATOM) {
-      useInventory.getState().addResource('elements', assemblyRecipe.type, 1);
-      useInventory.getState().markDiscovered(assemblyRecipe.type);
-    }
-
     if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
       showMessage(`Goal Complete: ${goals[currentGoalIndex].name}!`);
       setCurrentGoalIndex(currentGoalIndex + 1);
@@ -196,7 +175,7 @@ export const useParticleActions = ({
       showMessage(`${PARTICLE_NAMES[assemblyRecipe.type]} formed!`);
     }
     setSelectedParticleIds(new Set());
-  }, [selectionInfo, showMessage, currentGoalIndex, setCurrentGoalIndex, setParticles, setSecondaryParticles, setDiscoveredAtoms, setDiscoveredMolecules, setSelectedParticleIds, particles, setBonds, goals]);
+  }, [selectionInfo, showMessage, currentGoalIndex, setCurrentGoalIndex, setParticles, setSecondaryParticles, setSelectedParticleIds, particles, setBonds, goals]);
 
   const handleDisassemble = useCallback(() => {
     if (!selectionInfo.canDisassemble) return;

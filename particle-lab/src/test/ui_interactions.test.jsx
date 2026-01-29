@@ -51,17 +51,17 @@ describe('UI Interactions', () => {
     it('should toggle Pantry Sidebar visibility', () => {
       render(<ChemistryApp />);
       
-      // Initially, the Pantry sidebar has width 0 (hidden) but is in DOM.
-      // We can check the toggle button state or aria-label.
+      // Initially, the Pantry sidebar is open (default state)
+      // Check the toggle button state or aria-label.
       
-      const toggleButton = screen.getByLabelText('Open Pantry');
+      const toggleButton = screen.getByLabelText('Close Sidebar');
       expect(toggleButton).toBeInTheDocument();
       
-      // Click to open
+      // Click to close
       fireEvent.click(toggleButton);
       
-      // Button label should switch to 'Close Pantry'
-      expect(screen.getByLabelText('Close Pantry')).toBeInTheDocument();
+      // Button label should switch to 'Open Sidebar'
+      expect(screen.getByLabelText('Open Sidebar')).toBeInTheDocument();
     });
   });
 

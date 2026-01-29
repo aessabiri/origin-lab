@@ -33,7 +33,7 @@ describe('Global Inventory Store', () => {
     expect(useInventory.getState().discoveredItems).toHaveLength(1);
   });
 
-  it('should consume a resource if available', () => {
+  it('should consume a resource if available (infinite mode)', () => {
     const { addResource, consumeResource } = useInventory.getState();
     
     addResource('compounds', 'water', 10);
@@ -41,18 +41,17 @@ describe('Global Inventory Store', () => {
     const success = consumeResource('compounds', 'water', 4);
     
     expect(success).toBe(true);
-    expect(useInventory.getState().compounds['water']).toBe(6);
+    // In infinite mode, the quantity does NOT decrease
+    expect(useInventory.getState().compounds['water']).toBe(10);
   });
 
-  it('should fail to consume if insufficient', () => {
-    const { addResource, consumeResource } = useInventory.getState();
+  it('should fail to consume if not discovered/instantiated', () => {
+    const { consumeResource } = useInventory.getState();
     
-    addResource('compounds', 'water', 2);
-    
+    // Water has not been added
     const success = consumeResource('compounds', 'water', 5);
     
     expect(success).toBe(false);
-    expect(useInventory.getState().compounds['water']).toBe(2); // Unchanged
   });
 
   it('should transmute elements', () => {

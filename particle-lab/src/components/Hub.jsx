@@ -5,13 +5,15 @@ import { useBioStore } from '../biology-lab/store';
 import { useChemistryStore } from '../chemistry-lab/store';
 import { useInventory } from '../store/inventory';
 import { useProgressionStore } from '../store/progressionStore';
+import { useDiscoveredMatter } from '../hooks/useDiscoveredMatter';
 
 const Hub = ({ onNavigate }) => {
   const { 
-    discoveredAtoms, discoveredMolecules, 
     executeReset, setCurrentView, setIntroComplete,
     isSandboxMode, setIsSandboxMode
   } = useStore();
+  
+  const { discoveredAtoms, discoveredMolecules } = useDiscoveredMatter();
   
   const { xp, level, completedMilestones } = useProgressionStore();
   const particles = useParticleStore(state => state.particles);

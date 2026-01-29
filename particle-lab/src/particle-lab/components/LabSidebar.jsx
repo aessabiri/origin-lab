@@ -2,9 +2,11 @@ import React from 'react';
 import { useParticleStore } from '../store.js';
 import ParticleIcon from './ParticleIcon.jsx';
 import { elementaryParticleGroups, PARTICLE_COLORS, PARTICLE_NAMES } from '../../constants/particles.js';
+import { useDiscoveredMatter } from '../../hooks/useDiscoveredMatter.js';
 
 const LabSidebar = ({ onDragStart }) => {
-  const { isPaletteVisible, uiScale, discoveredMolecules } = useParticleStore();
+  const { isPaletteVisible, uiScale } = useParticleStore();
+  const { discoveredMolecules } = useDiscoveredMatter();
 
   return (
     <div className={`flex flex-col bg-gradient-to-b from-gray-800 to-slate-900 rounded-2xl shadow-xl overflow-y-auto transition-all duration-300 ease-in-out

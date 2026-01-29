@@ -29,6 +29,12 @@ export const useBioSimulation = () => {
     let animationFrameId;
 
     const tick = (timestamp) => {
+      // Throttle to ~30 FPS (33ms)
+      if (timestamp - lastFrameTime.current < 33) {
+        animationFrameId = requestAnimationFrame(tick);
+        return;
+      }
+
       if (!lastFrameTime.current) lastFrameTime.current = timestamp;
       const deltaTime = Math.min(timestamp - lastFrameTime.current, 100); 
       lastFrameTime.current = timestamp;

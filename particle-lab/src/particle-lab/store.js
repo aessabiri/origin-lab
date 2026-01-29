@@ -10,10 +10,7 @@ export const useParticleStore = create(
       secondaryParticles: [],
       
       // --- Discovery/Progression (Local Scope) ---
-      // We keep a local copy of "discovered" items for the sidebar/palette to reference quickly,
-      // but the "Universal Inventory" is the source of truth for what is available to IMPORT.
-      discoveredAtoms: [],
-      discoveredMolecules: [],
+      // Discovery is now tracked via useInventory (Universal Ledger).
       
       // --- Goals/Tutorials ---
       currentGoalIndex: 0,
@@ -37,9 +34,6 @@ export const useParticleStore = create(
       setParticles: (particles) => set({ particles }),
       setBonds: (bonds) => set({ bonds }),
       setSecondaryParticles: (secondaryParticles) => set({ secondaryParticles }),
-      
-      setDiscoveredAtoms: (discoveredAtoms) => set({ discoveredAtoms }),
-      setDiscoveredMolecules: (discoveredMolecules) => set({ discoveredMolecules }),
       
       setCurrentGoalIndex: (index) => set({ currentGoalIndex: index }),
       setGoalPath: (path) => set({ goalPath: path }),
@@ -83,8 +77,6 @@ export const useParticleStore = create(
           particles: [],
           bonds: [],
           secondaryParticles: [],
-          discoveredAtoms: [],
-          discoveredMolecules: [],
           currentGoalIndex: 0,
           isResetConfirmVisible: false,
         });
@@ -118,8 +110,6 @@ export const useParticleStore = create(
         particles: state.particles,
         bonds: state.bonds,
         secondaryParticles: state.secondaryParticles,
-        discoveredAtoms: state.discoveredAtoms,
-        discoveredMolecules: state.discoveredMolecules,
         currentGoalIndex: state.currentGoalIndex,
         goalPath: state.goalPath,
         uiScale: state.uiScale,

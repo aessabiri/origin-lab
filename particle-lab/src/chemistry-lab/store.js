@@ -5,27 +5,7 @@ import { CHEMICALS } from './data/chemicals';
 import { EQUIPMENT } from './data/equipment';
 import { audioSystem, SFX } from './logic/audio';
 import { useInventory } from '../store/inventory.js';
-
-const getInventoryKey = (chemicalId) => {
-  const map = {
-    'HYDROGEN': 'hydrogen',
-    'HELIUM': 'helium',
-    'CARBON': 'carbon',
-    'NITROGEN': 'nitrogen',
-    'OXYGEN': 'oxygen',
-    'PHOSPHORUS': 'phosphorus',
-    'SULFUR': 'sulfur',
-    'IRON': 'iron',
-    'H2O': 'water',
-    'AMMONIA': 'ammonia',
-    'METHANE': 'methane',
-    'GLUCOSE': 'glucose',
-    'GLYCINE': 'glycine',
-    'ETHANOL': 'ethanol',
-    'CO2': 'co2',
-  };
-  return map[chemicalId];
-};
+import { MATTER_DEFINITIONS } from '../constants/matterRegistry.js';
 
 export const useChemistryStore = create(
   persist(
@@ -225,10 +205,9 @@ export const useChemistryStore = create(
                      discovered.push(chemId);
                  }
                  // Add to Global Inventory
-                 const invKey = getInventoryKey(chemId);
-                 if (invKey) {
-                    const category = ELEMENTARY_IDS.includes(chemId) ? 'elements' : 'compounds'; // Rough guess, or check map
-                    useInventory.getState().addResource(category === 'elements' ? 'elements' : 'compounds', invKey, contents[chemId]); // Simplification
+                 const def = MATTER_DEFINITIONS[chemId];
+                 if (def && def.inventoryId) {
+                    useInventory.getState().addResource(def.inventoryCategory || 'compounds', def.inventoryId, contents[chemId]);
                  }
              });
 
@@ -382,12 +361,10 @@ export const useChemistryStore = create(
              }
              
              // --- Add to Global Inventory ---
-             const invKey = getInventoryKey(chemId);
-             if (invKey) {
+             const def = MATTER_DEFINITIONS[chemId];
+             if (def && def.inventoryId) {
                 const amount = vessel.contents[chemId];
-                // Simple category check
-                const category = ['HYDROGEN', 'HELIUM', 'CARBON', 'NITROGEN', 'OXYGEN', 'SULFUR', 'IRON'].includes(chemId) ? 'elements' : 'compounds';
-                useInventory.getState().addResource(category, invKey, amount);
+                useInventory.getState().addResource(def.inventoryCategory || 'compounds', def.inventoryId, amount);
              }
           });
           

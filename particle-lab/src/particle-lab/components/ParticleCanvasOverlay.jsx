@@ -34,7 +34,10 @@ const ParticleCanvasOverlay = ({
   
   // Visuals
   isPeriodicTableVisible,
-  isPeriodicTablePinned
+  isPeriodicTablePinned,
+  
+  // Data
+  discoveredAtoms = []
 }) => {
   // Global Stores
   const { setIsCodexVisible, isSandboxMode, setIsSandboxMode } = useStore();
@@ -66,21 +69,14 @@ const ParticleCanvasOverlay = ({
 
   // --- Helper for Periodic Table Data ---
   const discoveredParticlesForPeriodicTable = useMemo(() => {
-    // We access the store directly here to avoid passing huge arrays as props
-    const state = useParticleStore.getState();
-    const { isSandboxMode, secondaryParticles, discoveredAtoms } = state;
+    const secondaryParticles = useParticleStore.getState().secondaryParticles || [];
+    
     if (isSandboxMode) {
-      // In sandbox, we just need to know what exists in general? 
-      // Actually, let's keep the logic consistent with original.
-      // Ideally this data logic belongs in a hook, but for the UI overlay it's fine here or passed down.
-      // We'll rely on the parent logic if we want strictly "dumb" UI, but accessing store is pragmatic.
-      // Let's re-use the logic if we can, or just grab from store.
-      // Ideally, the parent passes this data.
-      return []; // Placeholder if we don't pass it.
+      return []; 
     } else {
       return [...secondaryParticles, ...discoveredAtoms];
     }
-  }, []);
+  }, [isSandboxMode, discoveredAtoms]);
 
   return (
     <div className="absolute inset-0 pointer-events-none">
@@ -250,7 +246,7 @@ const ParticleCanvasOverlay = ({
           <PeriodicTable
             onClose={() => setIsPeriodicTableVisible(false)}
             // Pass discovered atoms from global state logic or simpler store access
-            discoveredParticles={useParticleStore.getState().discoveredAtoms || []}
+            discoveredParticles={discoveredParticlesForPeriodicTable}
             isSandboxMode={isSandboxMode}
             onDragStart={onDragStart}
             onParticleClick={onShowInfo}

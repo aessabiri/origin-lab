@@ -218,6 +218,116 @@ export const CHEMICALS = {
     ph: 14.0,
     solubility: 100
   },
+  'carbon-monoxide': {
+    id: 'carbon-monoxide',
+    name: 'Carbon Monoxide',
+    formula: 'CO',
+    color: '#4b5563', // gray-600
+    state: 'gas',
+    density: 0.0012,
+    description: 'Toxic, colorless, odorless gas.',
+    iconType: 'cylinder',
+    boilingPoint: -191,
+    meltingPoint: -205,
+    ph: 7.0
+  },
+  'phosphorus': {
+    id: 'phosphorus',
+    name: 'Phosphorus',
+    formula: 'P',
+    color: '#ef4444', // red-500
+    state: 'solid',
+    density: 1.82,
+    description: 'Highly reactive non-metal.',
+    iconType: 'powder',
+    boilingPoint: 280,
+    meltingPoint: 44,
+    ph: 7.0,
+    solubility: 0
+  },
+  'fluorine': {
+    id: 'fluorine',
+    name: 'Fluorine',
+    formula: 'F₂',
+    color: '#bef264', // lime-300
+    state: 'gas',
+    density: 0.0017,
+    description: 'Extremely reactive pale yellow gas.',
+    iconType: 'cylinder',
+    boilingPoint: -188,
+    meltingPoint: -219,
+    ph: 7.0
+  },
+  'arsenic': {
+    id: 'arsenic',
+    name: 'Arsenic',
+    formula: 'As',
+    color: '#a855f7', // purple-500
+    state: 'solid',
+    density: 5.72,
+    description: 'Toxic metalloid.',
+    iconType: 'rock',
+    boilingPoint: 614, // Sublimation
+    meltingPoint: 817,
+    ph: 7.0,
+    solubility: 0
+  },
+  'sodium': {
+    id: 'sodium',
+    name: 'Sodium',
+    formula: 'Na',
+    color: '#8b5cf6', // violet-500
+    state: 'solid',
+    density: 0.97,
+    description: 'Highly reactive alkali metal.',
+    iconType: 'bar',
+    boilingPoint: 883,
+    meltingPoint: 98,
+    ph: 7.0,
+    solubility: 0
+  },
+  'potassium': {
+    id: 'potassium',
+    name: 'Potassium',
+    formula: 'K',
+    color: '#a78bfa', // violet-400
+    state: 'solid',
+    density: 0.86,
+    description: 'Extremely reactive alkali metal.',
+    iconType: 'bar',
+    boilingPoint: 759,
+    meltingPoint: 63,
+    ph: 7.0,
+    solubility: 0
+  },
+  'manganese': {
+    id: 'manganese',
+    name: 'Manganese',
+    formula: 'Mn',
+    color: '#fecdd3', // rose-300
+    state: 'solid',
+    density: 7.21,
+    description: 'Hard brittle silver metal.',
+    iconType: 'bar',
+    boilingPoint: 2061,
+    meltingPoint: 1246,
+    ph: 7.0,
+    solubility: 0
+  },
+  'silicon': {
+    id: 'silicon',
+    name: 'Silicon',
+    formula: 'Si',
+    color: '#78716c', // stone-500
+    state: 'solid',
+    density: 2.33,
+    description: 'Metalloid used in electronics.',
+    iconType: 'rock',
+    boilingPoint: 3265,
+    meltingPoint: 1414,
+    ph: 7.0,
+    solubility: 0
+  },
   'hydrochloric-acid': {
     id: 'hydrochloric-acid',
     name: 'Hydrochloric Acid',

@@ -17,6 +17,7 @@ import { useDecay } from '../hooks/useDecay.js';
 import { useStore } from '../../store.js';
 import { useParticleStore } from '../store.js';
 import { findAssemblableMolecules } from '../utils/moleculeDetection.js';
+import { useDiscoveredMatter } from '../../hooks/useDiscoveredMatter.js';
 
 const MOLECULE_PARTICLE_TYPES = new Set(
   MOLECULE_RECIPES.map(r => r.type)
@@ -28,8 +29,6 @@ const ParticleCanvas = ({ onDragStart }) => {
     particles, setParticles,
     bonds, setBonds,
     secondaryParticles,
-    discoveredAtoms,
-    discoveredMolecules,
     currentGoalIndex,
     uiScale, setUiScale,
     isPeriodicTablePinned, setIsPeriodicTablePinned,
@@ -49,6 +48,8 @@ const ParticleCanvas = ({ onDragStart }) => {
     setInfoPanelType,
     setCurrentGoalIndex
   } = useParticleStore();
+
+  const { discoveredAtoms, discoveredMolecules } = useDiscoveredMatter();
 
   const [visualEffects, setVisualEffects] = useState([]);
   const draggedIndexRef = useRef(null);
@@ -509,6 +510,9 @@ const ParticleCanvas = ({ onDragStart }) => {
         
         isPeriodicTableVisible={isPeriodicTableVisible}
         isPeriodicTablePinned={isPeriodicTablePinned}
+        
+        // PASS NEW PROPS
+        discoveredAtoms={discoveredAtoms}
       />
     </div>
   );

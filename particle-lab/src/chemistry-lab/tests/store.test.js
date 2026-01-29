@@ -14,41 +14,43 @@ describe('Chemistry Lab Store', () => {
       compounds: { water: 1000, glucose: 0, ammonia: 0, methane: 0, glycine: 0, lipid: 0, rna: 0, dna: 0 }
     });
     useChemistryStore.setState({
-      inventory: ['H2O', 'NaCl'],
+      inventory: ['water', 'sodium-chloride'],
+      localInventory: { 'water': 100, 'sodium-chloride': 100, 'vinegar': 100, 'baking-soda': 100 },
       vessels: JSON.parse(JSON.stringify(initialVessels)),
       message: '',
       timeSpeed: 1,
-      isFumeHoodOn: false
+      isFumeHoodOn: false,
+      gameMode: 'sandbox' // Bypass local inventory checks for store-specific tests
     });
   });
 
   it('should initialize with default state', () => {
     const state = useChemistryStore.getState();
-    expect(state.inventory).toContain('H2O');
+    expect(state.inventory).toContain('water');
     expect(state.vessels.beaker.status).toBe('ok');
     expect(state.isFumeHoodOn).toBe(false);
   });
 
   it('should add chemicals to vessel', () => {
     const { addToVessel } = useChemistryStore.getState();
-    addToVessel('beaker', 'H2O', 100);
+    addToVessel('beaker', 'water', 100);
     
     const vessel = useChemistryStore.getState().vessels.beaker;
-    expect(vessel.contents['H2O']).toBe(100);
+    expect(vessel.contents['water']).toBe(100);
   });
 
   it('should accumulate chemicals', () => {
     const { addToVessel } = useChemistryStore.getState();
-    addToVessel('beaker', 'H2O', 50);
-    addToVessel('beaker', 'H2O', 50);
+    addToVessel('beaker', 'water', 50);
+    addToVessel('beaker', 'water', 50);
     
     const vessel = useChemistryStore.getState().vessels.beaker;
-    expect(vessel.contents['H2O']).toBe(100);
+    expect(vessel.contents['water']).toBe(100);
   });
 
   it('should clear vessel', () => {
     const { addToVessel, clearVessel } = useChemistryStore.getState();
-    addToVessel('beaker', 'NaCl', 50);
+    addToVessel('beaker', 'sodium-chloride', 50);
     clearVessel('beaker');
     
     const vessel = useChemistryStore.getState().vessels.beaker;
@@ -102,15 +104,15 @@ describe('Chemistry Lab Store', () => {
     const { addToVessel, transmuteContents } = useChemistryStore.getState();
     // Simulate: A + B -> C
     // Add A and B
-    addToVessel('beaker', 'VINEGAR', 10);
-    addToVessel('beaker', 'BAKING_SODA', 10);
+    addToVessel('beaker', 'vinegar', 10);
+    addToVessel('beaker', 'baking-soda', 10);
     
-    // Transmute 5 of each to 5 of CO2
-    transmuteContents('beaker', { VINEGAR: 5, BAKING_SODA: 5 }, { CO2: 5 });
+    // Transmute 5 of each to 5 of carbon-dioxide
+    transmuteContents('beaker', { 'vinegar': 5, 'baking-soda': 5 }, { 'carbon-dioxide': 5 });
     
     const contents = useChemistryStore.getState().vessels.beaker.contents;
-    expect(contents['VINEGAR']).toBe(5);
-    expect(contents['BAKING_SODA']).toBe(5);
-    expect(contents['CO2']).toBe(5);
+    expect(contents['vinegar']).toBe(5);
+    expect(contents['baking-soda']).toBe(5);
+    expect(contents['carbon-dioxide']).toBe(5);
   });
 });

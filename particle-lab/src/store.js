@@ -5,8 +5,7 @@ export const useStore = create(
   persist(
     (set, get) => ({
       // --- Global Progression (Achievements/Codex) ---
-      discoveredAtoms: [],
-      discoveredMolecules: [],
+      // Discovery is now tracked via useInventory (Universal Ledger)
       discoveredOrganelles: [],
       universeMilestones: {
         galaxyFormed: false,
@@ -35,8 +34,6 @@ export const useStore = create(
 
       // --- Actions ---
       setIsSandboxMode: (isSandboxMode) => set({ isSandboxMode }),
-      setDiscoveredAtoms: (discoveredAtoms) => set({ discoveredAtoms }),
-      setDiscoveredMolecules: (discoveredMolecules) => set({ discoveredMolecules }),
       setDiscoveredOrganelles: (discoveredOrganelles) => set({ discoveredOrganelles }),
       
       setIntroComplete: (introComplete) => set({ introComplete }),
@@ -64,8 +61,6 @@ export const useStore = create(
       // Legacy Reset (Global)
       executeReset: () => {
         set({
-          discoveredAtoms: [],
-          discoveredMolecules: [],
           discoveredOrganelles: [],
           introComplete: false,
           universeMilestones: {
@@ -82,8 +77,6 @@ export const useStore = create(
     {
       name: 'particle-lab-global-store',
       partialize: (state) => ({
-        discoveredAtoms: state.discoveredAtoms,
-        discoveredMolecules: state.discoveredMolecules,
         discoveredOrganelles: state.discoveredOrganelles,
         introComplete: state.introComplete,
         globalSettings: state.globalSettings,

@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { REACTIONS } from '../data/reactions';
-import { CHEMICALS } from '../data/chemicals';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 
 describe('Chemistry Data Integrity', () => {
   it('should have valid chemicals for all reaction inputs', () => {
     REACTIONS.forEach((reaction, index) => {
       Object.keys(reaction.inputs).forEach(chemId => {
-        expect(CHEMICALS[chemId], `Reaction #${index} input ${chemId} not found in CHEMICALS`).toBeDefined();
+        expect(MATTER_DEFINITIONS[chemId], `Reaction #${index} input ${chemId} not found in Matter Registry`).toBeDefined();
       });
     });
   });
@@ -14,7 +14,7 @@ describe('Chemistry Data Integrity', () => {
   it('should have valid chemicals for all reaction outputs', () => {
     REACTIONS.forEach((reaction, index) => {
       Object.keys(reaction.outputs).forEach(chemId => {
-        expect(CHEMICALS[chemId], `Reaction #${index} output ${chemId} not found in CHEMICALS`).toBeDefined();
+        expect(MATTER_DEFINITIONS[chemId], `Reaction #${index} output ${chemId} not found in Matter Registry`).toBeDefined();
       });
     });
   });

@@ -4,6 +4,8 @@ import { useInventory } from '../store/inventory';
 import { useBioStore } from '../biology-lab/store'; 
 import { PARTICLE_TYPES } from '../constants/particles';
 import { updateSimulation, createNebulaParticle, triggerInflation, BigBangPhase } from './universeLogic';
+import { useDiscoveredMatter } from '../hooks/useDiscoveredMatter';
+import { MATTER_DEFINITIONS } from '../constants/matterRegistry';
 
 const ZOOM_LEVELS = {
   GALAXY: 0,
@@ -15,8 +17,8 @@ const Universe = () => {
   const canvasRef = useRef(null);
   
   const showMessage = useStore(state => state.showMessage);
-  const setDiscoveredAtoms = useStore(state => state.setDiscoveredAtoms);
-  const { introComplete, setIntroComplete, universeMilestones, setUniverseMilestone, particles, discoveredAtoms } = useStore();
+  const { introComplete, setIntroComplete, universeMilestones, setUniverseMilestone, particles } = useStore();
+  const { discoveredAtoms } = useDiscoveredMatter();
   const { triggerBigBang } = useInventory();
   const { agents } = useBioStore(); 
   
@@ -40,9 +42,13 @@ const Universe = () => {
   });
 
   const discover = (type) => {
-    const currentList = useStore.getState().discoveredAtoms;
-    if (!currentList.some(a => a.type === type)) {
-        setDiscoveredAtoms([...currentList, { id: type, type, discoveredAt: Date.now() }]);
+    const inventory = useInventory.getState();
+    if (!inventory.discoveredItems.includes(type)) {
+        inventory.markDiscovered(type);
+        const def = MATTER_DEFINITIONS[type];
+        if (def) {
+            inventory.addResource(def.inventoryCategory || 'elements', def.inventoryId || type, 1);
+        }
         showMessage(`Stellar Discovery: ${type}!`);
     }
   };

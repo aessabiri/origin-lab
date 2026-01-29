@@ -1,5 +1,5 @@
 import { PARTICLE_TYPES, PARTICLE_INFO, PARTICLE_COLORS } from './particles';
-import { CHEMICALS } from '../chemistry-lab/data/chemicals';
+import { CHEMICALS, ELEMENTARY_IDS } from '../chemistry-lab/data/chemicals';
 
 // --- The Unified Matter Registry ---
 // Single Source of Truth for all matter in the universe.
@@ -7,8 +7,17 @@ import { CHEMICALS } from '../chemistry-lab/data/chemicals';
 
 export const MATTER_DEFINITIONS = {};
 
+// Helper to determine Inventory Category
+const determineCategory = (id, info, source) => {
+  if (info.category?.includes('Quark')) return 'quarks';
+  if (source === 'Physics' && info.category === 'Atom') return 'elements';
+  if (ELEMENTARY_IDS.includes(id)) return 'elements';
+  return 'compounds'; // Default to compound/molecule
+};
+
 // 1. Ingest Physics Definitions
 Object.entries(PARTICLE_INFO).forEach(([id, info]) => {
+  const category = determineCategory(id, info, 'Physics');
   MATTER_DEFINITIONS[id] = {
     id: id,
     name: info.name,
@@ -19,7 +28,9 @@ Object.entries(PARTICLE_INFO).forEach(([id, info]) => {
     composition: info.composition,
     color: PARTICLE_COLORS[id] || 'bg-gray-500',
     source: 'Physics',
-    type: 'particle' // Differentiator
+    type: 'particle', // Differentiator
+    inventoryId: id, // Default 1:1 mapping
+    inventoryCategory: category
   };
 });
 
@@ -31,6 +42,7 @@ Object.entries(CHEMICALS).forEach(([id, info]) => {
   // We'll merge them.
   
   const existing = MATTER_DEFINITIONS[id] || {};
+  const category = determineCategory(id, info, 'Chemistry');
   
   MATTER_DEFINITIONS[id] = {
     ...existing,
@@ -50,7 +62,9 @@ Object.entries(CHEMICALS).forEach(([id, info]) => {
     boilingPoint: info.boilingPoint,
     ph: info.ph,
     solubility: info.solubility,
-    isChemical: true // Flag for renderers
+    isChemical: true, // Flag for renderers
+    inventoryId: id,
+    inventoryCategory: category
   };
 });
 

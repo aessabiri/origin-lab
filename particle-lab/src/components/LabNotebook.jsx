@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Codex from './Codex';
 import { useStore } from '../store';
 import { PARTICLE_NAMES } from '../constants/particles';
+import { useDiscoveredMatter } from '../hooks/useDiscoveredMatter';
 
 const TABS = {
   CODEX: 'Codex',
@@ -76,15 +77,11 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
 
     currentGoalIndex,
 
-    discoveredAtoms,
-
-    discoveredMolecules,
-
     currentView
 
   } = useStore();
 
-
+  const { discoveredAtoms, discoveredMolecules } = useDiscoveredMatter();
 
   const theme = THEME_MAP[currentView] || THEME_MAP.particle;
 
