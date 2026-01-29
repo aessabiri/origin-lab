@@ -21,6 +21,7 @@ export const useBioStore = create(
       soup: { ...INITIAL_SOUP },
       foodItems: [],
       toxins: [],
+      worldSize: { width: 800, height: 800 },
       
       // Simulation Status
       isRunning: false,
@@ -44,6 +45,7 @@ export const useBioStore = create(
       setAgents: (agents) => set({ agents }),
       setFoodItems: (foodItems) => set({ foodItems }),
       setToxins: (toxins) => set({ toxins }),
+      setWorldSize: (width, height) => set({ worldSize: { width, height } }),
       
       updateAgent: (id, updates) => set((state) => ({
         agents: state.agents.map(a => a.id === id ? { ...a, ...updates } : a)
@@ -70,8 +72,8 @@ export const useBioStore = create(
 
         const luca = {
           id: 'LUCA',
-          x: 400, // Center of world
-          y: 400,
+          x: state.worldSize.width / 2, // Center of world
+          y: state.worldSize.height / 2,
           vx: 0, 
           vy: 0,
           radius: 15 + (design.organelles.length * 2),

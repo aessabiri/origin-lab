@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useStore } from '../store';
+import { QUESTS } from '../constants/quests';
 
 const MILESTONES = [
   {
@@ -101,6 +102,7 @@ export const useProgressionStore = create(
       xp: 0,
       level: 1,
       completedMilestones: ['big_bang'],
+      completedQuests: [],
       
       // Actions
       addXp: (amount) => set(state => {
@@ -129,12 +131,46 @@ export const useProgressionStore = create(
         }
       },
 
-      checkMilestones: (inventory) => {
-         // This can be called periodically to auto-complete based on inventory
-         // For now, manual completion or event-triggered is safer
+      completeQuest: (id) => {
+        if (useStore.getState().isSandboxMode) return;
+        const { completedQuests, addXp } = get();
+        if (completedQuests.includes(id)) return;
+
+        const quest = QUESTS.find(q => q.id === id);
+        if (quest) {
+            set({ completedQuests: [...completedQuests, id] });
+            addXp(quest.rewards.xp);
+            // Optional: Trigger global notification here
+        }
+      },
+
+      checkProgress: (discoveredItems) => {
+         const state = get();
+         if (useStore.getState().isSandboxMode) return;
+
+         // Check Quests
+         QUESTS.forEach(quest => {
+             if (state.completedQuests.includes(quest.id)) return;
+             
+             // Check if all requirements are met
+             // Requirements are { 'ITEM_ID': count }
+             // Since 'discoveredItems' is just a list of IDs, we just check existence for now.
+             // (We switched to Infinite Supply, so existence IS the requirement)
+             
+             const reqs = Object.keys(quest.requirements);
+             const isMet = reqs.every(reqId => {
+                 if (reqId === 'LUCA_SURVIVAL') return false; // Manual trigger only
+                 return discoveredItems.includes(reqId);
+             });
+
+             if (isMet) {
+                 state.completeQuest(quest.id);
+             }
+         });
       },
       
       getMilestones: () => MILESTONES,
+      getQuests: () => QUESTS,
     }),
     {
       name: 'progression-storage',

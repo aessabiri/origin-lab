@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { useBioStore } from '../store';
 import { SpatialHash } from '../utils/spatialHash';
 
-const WORLD_RADIUS = 380;
 const FOOD_VALUE = 20; 
 const BASE_PHOTOSYNTHESIS = 0.8;
 
@@ -13,6 +12,7 @@ export const useBioSimulation = () => {
     soup,
     foodItems,
     toxins,
+    worldSize,
     setAgents,
     setFoodItems,
     updateSoup
@@ -40,6 +40,10 @@ export const useBioSimulation = () => {
         const eatenFoodIds = new Set(); // Track eaten food by ID to avoid O(N) splicing
         const newBorns = [];
         const newFoodStack = []; // Food spawned this tick
+        
+        const cx = worldSize.width / 2;
+        const cy = worldSize.height / 2;
+        const radius = Math.min(worldSize.width, worldSize.height) / 2 - 20;
 
         // --- 0. Rebuild Spatial Hashes ---
         agentHash.current.clear();
@@ -54,16 +58,14 @@ export const useBioSimulation = () => {
         if (foodSpawnTimer.current > 200) { 
            if (soup.glucose > 0) {
              const angle = Math.random() * Math.PI * 2;
-             const r = Math.sqrt(Math.random()) * WORLD_RADIUS;
+             const r = Math.sqrt(Math.random()) * radius;
              const newFood = {
                id: `food-${Date.now()}-${Math.random()}`,
-               x: 400 + r * Math.cos(angle),
-               y: 400 + r * Math.sin(angle),
+               x: cx + r * Math.cos(angle),
+               y: cy + r * Math.sin(angle),
                energy: FOOD_VALUE
              };
              newFoodStack.push(newFood);
-             // Also insert new food into hash so it can be eaten immediately? 
-             // Or wait next frame. Waiting next frame is safer/simpler.
              
              soupConsumed += 1;
              foodSpawnTimer.current = 0;
@@ -143,13 +145,13 @@ export const useBioSimulation = () => {
           a.y += a.vy;
 
           // Boundary
-          const dx = a.x - 400;
-          const dy = a.y - 400;
+          const dx = a.x - cx;
+          const dy = a.y - cy;
           const dist = Math.sqrt(dx*dx + dy*dy);
-          if (dist + size > WORLD_RADIUS) {
+          if (dist + size > radius) {
              const angle = Math.atan2(dy, dx);
-             a.x = 400 + Math.cos(angle) * (WORLD_RADIUS - size);
-             a.y = 400 + Math.sin(angle) * (WORLD_RADIUS - size);
+             a.x = cx + Math.cos(angle) * (radius - size);
+             a.y = cy + Math.sin(angle) * (radius - size);
              a.vx *= -0.5;
              a.vy *= -0.5;
           }
@@ -260,5 +262,5 @@ export const useBioSimulation = () => {
 
     animationFrameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isRunning, agents, foodItems, toxins, soup, setAgents, setFoodItems, updateSoup]);
+  }, [isRunning, agents, foodItems, toxins, soup, worldSize, setAgents, setFoodItems, updateSoup]);
 };

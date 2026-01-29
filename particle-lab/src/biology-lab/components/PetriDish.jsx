@@ -4,6 +4,7 @@ import { drawAgent, drawFood } from '../utils/renderer';
 
 const PetriDish = () => {
   const canvasRef = useRef(null);
+  const setWorldSize = useBioStore(state => state.setWorldSize);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -21,15 +22,10 @@ const PetriDish = () => {
       ctx.fillStyle = 'rgba(19, 78, 74, 0.25)'; // teal-900 with fade
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // --- Draw Grid (Subtle) ---
-      // Optional: Skip grid in high perf mode?
-
       // --- Draw Food ---
-      // Batch draw setup for food?
       foodItems.forEach(food => drawFood(ctx, food, time));
 
       // --- Draw Toxins (Gas Cloud) ---
-      // Optimization: Only draw if count is low or draw simpler circles
       toxins.forEach(t => {
         if (isHighPerformanceMode) {
            ctx.beginPath();
@@ -69,11 +65,12 @@ const PetriDish = () => {
         const { width, height } = entry.contentRect;
         canvas.width = width;
         canvas.height = height;
+        setWorldSize(width, height);
       }
     });
     resizeObserver.observe(canvas.parentNode);
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [setWorldSize]);
 
   return (
     <canvas ref={canvasRef} className="w-full h-full block cursor-crosshair" />

@@ -1,7 +1,5 @@
 import React from 'react';
 import Vessel from './Vessel';
-import MissionTracker from './MissionTracker';
-import MissionHint from './MissionHint';
 import { useChemistryStore } from '../store';
 
 const Workstation = () => {
@@ -36,10 +34,6 @@ const Workstation = () => {
        {/* Background Lab Accents */}
        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
        
-       {/* Mission Tracker (Overlay) */}
-       <MissionTracker />
-       <MissionHint />
-
        {/* Fume Hood Visual Effect */}
        {isFumeHoodOn && (
          <div className="absolute inset-0 pointer-events-none z-20">

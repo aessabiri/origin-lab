@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useBioStore } from './store';
 import { useBioSimulation } from './hooks/useBioSimulation';
-import PetriDish from './components/PetriDish';
+import IncubationChamber from './components/IncubationChamber';
 import BioSidebar from './components/BioSidebar';
 import ProteinFolder from './components/ProteinFolder';
 import CellBuilder from './components/CellBuilder';
@@ -117,76 +117,12 @@ const BiologyApp = () => {
         
         {/* Simulation Mode: The Incubation Chamber */}
         {viewMode === 'simulation' && (
-          <div className="flex-1 w-full h-full flex items-center justify-center p-8 relative overflow-hidden bg-[#050505]">
-             
-             {/* Machine Chassis */}
-             <div className="relative w-[90vh] aspect-square bg-[#1a1a1a] rounded-[3rem] border-8 border-[#2a2a2a] shadow-2xl flex flex-col overflow-hidden">
-                
-                {/* Top Control Panel */}
-                <div className="h-24 bg-[#111] border-b-4 border-[#333] flex justify-between items-center px-8 shadow-md z-20">
-                   <div className="flex items-center gap-4">
-                      <div className={`w-4 h-4 rounded-full ${isRunning ? 'bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]' : 'bg-red-900'}`}></div>
-                      <div className="flex flex-col">
-                         <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Chamber_Status</span>
-                         <span className={`text-lg font-mono font-bold ${isRunning ? 'text-green-500' : 'text-zinc-600'}`}>
-                            {isRunning ? 'LIFE_DETECTED' : 'STANDBY'}
-                         </span>
-                      </div>
-                   </div>
-                   
-                   {/* Data Screen */}
-                   <div className="w-64 h-16 bg-black border-2 border-zinc-800 rounded flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 bg-green-500/5 scanline pointer-events-none"></div>
-                      <div className="text-center">
-                         <span className="text-[8px] font-mono text-green-700 block">INTERNAL_TEMP: 37.0°C</span>
-                         <span className="text-[8px] font-mono text-green-700 block">FLUID_PH: 7.4</span>
-                         <span className="text-[8px] font-mono text-green-700 block">AGENTS: {agents.length}</span>
-                      </div>
-                   </div>
-                </div>
-
-                {/* Main Tank Viewport */}
-                <div className="flex-1 relative bg-[#081a1a] shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] overflow-hidden">
-                   {/* Fluid Effect */}
-                   <div className="absolute inset-0 bg-gradient-to-b from-teal-900/10 to-teal-900/30 pointer-events-none z-10"></div>
-                   
-                   {/* The Simulation Canvas */}
-                   <PetriDish />
-
-                   {/* Glass Reflection */}
-                   <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-20 rounded-b-[2.5rem]"></div>
-                </div>
-
-                {/* Bottom Control Deck */}
-                <div className="h-32 bg-[#111] border-t-4 border-[#333] flex items-center justify-center gap-8 relative z-30">
-                   {/* Inject Button */}
-                   <button 
-                    onClick={hasDesign ? injectLuca : () => setViewMode('assembly')}
-                    className={`
-                      relative group px-8 py-4 bg-[#1a1a1a] rounded-lg border-2 border-black shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_5px_10px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none transition-all
-                      ${hasDesign ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}
-                    `}
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-b ${hasDesign ? 'from-amber-600/20 to-transparent' : 'from-red-900/20 to-transparent'} rounded-lg opacity-0 group-hover:opacity-100 transition-opacity`}></div>
-                    <div className="flex flex-col items-center gap-1">
-                       <span className={`text-2xl filter drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] ${hasDesign ? 'text-amber-500' : 'text-zinc-600'}`}>
-                          {hasDesign ? '⚡' : '🚫'}
-                       </span>
-                       <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${hasDesign ? 'text-amber-500' : 'text-zinc-600'}`}>
-                          {hasDesign ? 'INJECT SEQUENCE' : 'NO_DESIGN'}
-                       </span>
-                    </div>
-                  </button>
-
-                  <div className="flex flex-col gap-2">
-                     <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-green-500 animate-pulse" style={{ width: isRunning ? '100%' : '0%' }}></div>
-                     </div>
-                     <span className="text-[8px] font-mono text-zinc-600 text-center">SEQUENCE_PROGRESS</span>
-                  </div>
-                </div>
-             </div>
-          </div>
+          <IncubationChamber 
+            onInject={injectLuca}
+            hasDesign={hasDesign}
+            isRunning={isRunning}
+            agents={agents}
+          />
         )}
 
         {/* Protein Folding Mode: Full Screen Interface */}

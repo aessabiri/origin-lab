@@ -6,22 +6,19 @@ import { calculatePH, calculateMixtureColor, calculatePrecipitates } from '../lo
 import QuantityModal from './QuantityModal';
 import Condenser from './Condenser';
 import VesselVisuals from './VesselVisuals';
-import AnalogueDial from './AnalogueDial';
+import VesselControls from './VesselControls';
+import VesselMonitor from './VesselMonitor';
 
 const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
   const vessel = useChemistryStore(state => state.vessels[id]);
   const addToVessel = useChemistryStore(state => state.addToVessel);
-  const setVesselControl = useChemistryStore(state => state.setVesselControl);
-  const clearVessel = useChemistryStore(state => state.clearVessel);
   const bottleVessel = useChemistryStore(state => state.bottleVessel);
   const repairVessel = useChemistryStore(state => state.repairVessel);
   const upgradeVessel = useChemistryStore(state => state.upgradeVessel);
-  const toggleVesselLid = useChemistryStore(state => state.toggleVesselLid);
 
   const [modalState, setModalState] = useState({ isOpen: false, chemicalId: null });
   const [showUpgradeMenu, setShowUpgradeMenu] = useState(false);
-  const breakVessel = useChemistryStore(state => state.breakVessel); 
-
+  
   const currentStats = VESSEL_STATS[vessel.type || (id === 'chamber' ? 'reinforced' : 'glass')] || VESSEL_STATS.glass;
 
   const handleDrop = (e) => {
@@ -172,39 +169,14 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
       )}
       
       <div className="flex flex-col items-center gap-2 relative">
-        {/* THE DIGITAL SCREEN */}
-        <div className="bg-gray-900 border-2 border-gray-700 rounded-lg p-2 w-full mb-2 shadow-lg relative overflow-hidden group min-w-[220px]">
-            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-white/5 to-transparent pointer-events-none" />
-            
-            <div className="flex justify-between items-end border-b border-gray-800 pb-1 mb-1">
-                <span className="text-[10px] text-gray-500 font-mono uppercase">MONITOR-0{id.length}</span>
-                <div className="flex items-center gap-2">
-                     <button 
-                        onClick={() => setShowUpgradeMenu(true)}
-                        className="text-gray-600 hover:text-amber-400 transition-colors"
-                        title="Configure Vessel"
-                    >
-                        ⚙️
-                    </button>
-                    <div className={`w-1.5 h-1.5 rounded-full ${vessel.temp > 100 ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
-                </div>
-            </div>
-            
-            <div className="flex flex-col">
-                <span className="text-xs text-cyan-400 font-mono truncate tracking-tight h-4">{mixtureName}</span>
-                <div className="flex justify-between items-end mt-1">
-                    <span className={`text-lg font-bold font-mono ${vessel.temp > 100 ? 'text-red-400' : 'text-white'}`}>
-                        {vessel.temp}°C
-                    </span>
-                    <div className="flex flex-col items-end">
-                        <span className="text-xs text-gray-500 font-mono">{totalVolume}ml</span>
-                        <span className={`text-xs font-mono font-bold ${phValue < 3 ? 'text-red-400' : phValue > 11 ? 'text-purple-400' : 'text-green-400'}`}>
-                           pH {phValue.toFixed(2)}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <VesselMonitor 
+            id={id}
+            vessel={vessel}
+            totalVolume={totalVolume}
+            phValue={phValue}
+            mixtureName={mixtureName}
+            onConfigure={() => setShowUpgradeMenu(true)}
+        />
 
         {/* Cable */}
         <div className="w-1 h-4 bg-gray-700 absolute top-[76px] z-0"></div>
@@ -302,52 +274,12 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
               {hasCondenser && <Condenser connectedVesselId={id} />}
           </div>
 
-          {/* Controls */}
-          <div className="w-full space-y-3 mt-2 bg-gray-900/50 p-2 rounded-lg">
-            <button 
-                onClick={() => toggleVesselLid(id)}
-                className={`w-full py-1 text-xs font-bold rounded transition-colors ${vessel.isOpen ? 'bg-green-900/30 text-green-400 border border-green-800' : 'bg-red-900/30 text-red-400 border border-red-800'}`}
-            >
-                {vessel.isOpen ? 'OPEN LID' : 'SEALED'}
-            </button>
-
-            <div className="flex gap-4 justify-center py-2">
-                {hasTempControl && (
-                    <AnalogueDial 
-                        label="TEMP" 
-                        value={vessel.targetTemp || 20} 
-                        min={0} 
-                        max={currentStats.maxTemp + 200}
-                        unit="°C"
-                        color="#ef4444" // red-500
-                        onChange={(val) => setVesselControl(id, 'targetTemp', val)}
-                    />
-                )}
-                
-                {/* Pressure Dial (Always show pressure even if not controllable, for safety feedback) */}
-                <AnalogueDial 
-                    label="PRESS" 
-                    value={vessel.pressure} 
-                    min={0} 
-                    max={currentStats.maxPress + 50} 
-                    unit="atm"
-                    color="#a855f7" // purple-500
-                    disabled={true} // Physics controls this
-                />
-            </div>
-
-            <button 
-                onClick={() => clearVessel(id)} 
-                className="text-xs text-red-400 hover:text-red-300 w-full text-center hover:bg-red-900/20 py-1 rounded transition-colors"
-            >
-                Dump Contents
-            </button>
-            
-            {/* Equipment Type Label */}
-            <div className="text-[10px] text-gray-500 text-center font-mono uppercase tracking-widest pt-1 border-t border-gray-700">
-                {currentStats.name}
-            </div>
-          </div>
+          <VesselControls 
+            id={id}
+            hasTempControl={hasTempControl}
+            vessel={vessel}
+            currentStats={currentStats}
+          />
         </div>
       </div>
     </>

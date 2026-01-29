@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useProgressionStore } from './progressionStore';
 
 // The Universal Ledger
 // Tracks the total mass/count of every substance in the simulation.
@@ -73,7 +74,12 @@ export const useInventory = create(
       // Mark an item as discovered (Universal Codex)
       markDiscovered: (type) => set((state) => {
         if (state.discoveredItems.includes(type)) return state;
-        return { discoveredItems: [...state.discoveredItems, type] };
+        const newDiscovered = [...state.discoveredItems, type];
+        
+        // Notify Progression
+        setTimeout(() => useProgressionStore.getState().checkProgress(newDiscovered), 0);
+        
+        return { discoveredItems: newDiscovered };
       }),
 
       // Add a newly discovered or synthesized item
@@ -84,6 +90,8 @@ export const useInventory = create(
         let newDiscovered = state.discoveredItems;
         if (!newDiscovered.includes(type)) {
             newDiscovered = [...newDiscovered, type];
+            // Notify Progression
+            setTimeout(() => useProgressionStore.getState().checkProgress(newDiscovered), 0);
         }
 
         if (!target) {
