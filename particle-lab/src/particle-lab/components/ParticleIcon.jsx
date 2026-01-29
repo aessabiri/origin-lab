@@ -1418,77 +1418,119 @@ const RibosomeIcon = () => (
   </svg>
 );
 
-const MitochondrionIcon = () => {
-  const outerMembrane = Array.from({length: 50}).map((_, i) => {
-      const angle = (i / 50) * Math.PI * 2;
-      return { x: 50 + 42 * Math.cos(angle), y: 50 + 32 * Math.sin(angle) };
-  });
+const MitochondrionIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Dense Background Atomic Noise */}
+    <g opacity="0.3">
+      {Array.from({length: 60}).map((_, i) => (
+        <NeoSphere key={i} x={20 + Math.random()*60} y={30 + Math.random()*40} r={1.5} color={PARTICLE_COLOR_MAP['gray-400']} />
+      ))}
+    </g>
 
-  return (
-    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-        {/* Outer Membrane Chain */}
-        {outerMembrane.map((pos, i) => (
-            <NeoSphere key={`om-${i}`} x={pos.x} y={pos.y} r={2.5} color={PARTICLE_COLOR_MAP['orange-700']} />
-        ))}
+    {/* The Internal "Jungle" of Cristae - Hundreds of tiny connected points */}
+    <g>
+      {Array.from({length: 80}).map((_, i) => {
+        const x = 20 + (i % 10) * 8 + Math.sin(i) * 5;
+        const y = 25 + Math.floor(i / 10) * 6 + Math.cos(i) * 3;
+        const nextX = x + (Math.random() - 0.5) * 10;
+        const nextY = y + (Math.random() - 0.5) * 10;
+        return (
+          <React.Fragment key={i}>
+            <line x1={x} y1={y} x2={nextX} y2={nextY} stroke="#94a3b8" strokeWidth="0.5" opacity="0.4" />
+            <NeoSphere x={x} y={y} r={1.2} color={PARTICLE_COLOR_MAP['orange-400']} />
+          </React.Fragment>
+        );
+      })}
+    </g>
 
-        {/* Dense Internal Web (Cristae) */}
-        <g>
-            {Array.from({length: 40}).map((_, i) => {
-                // Procedural zig-zag paths
-                const row = Math.floor(i / 10);
-                const col = i % 10;
-                const x = 20 + col * 6 + (Math.random() * 4);
-                const y = 25 + row * 15 + (col % 2 === 0 ? 5 : -5);
-                return <NeoSphere key={`in-${i}`} x={x} y={y} r={2} color={PARTICLE_COLOR_MAP['orange-400']} />
-            })}
-        </g>
+    {/* Swarm of Miniaturized Molecules */}
+    {Array.from({length: 12}).map((_, i) => (
+      <g key={`atp-${i}`} transform={`translate(${25 + Math.random()*50}, ${30 + Math.random()*40}) scale(0.06)`}>
+        <ATPIcon />
+      </g>
+    ))}
+    {Array.from({length: 6}).map((_, i) => (
+      <g key={`nadh-${i}`} transform={`translate(${30 + Math.random()*40}, ${35 + Math.random()*30}) scale(0.05) rotate(${Math.random()*360})`}>
+        <NADHIcon />
+      </g>
+    ))}
+    {Array.from({length: 4}).map((_, i) => (
+      <g key={`rna-${i}`} transform={`translate(${20 + Math.random()*60}, ${25 + Math.random()*50}) scale(0.04) rotate(${Math.random()*360})`}>
+        <RNAIcon />
+      </g>
+    ))}
+    <g transform="translate(45, 45) scale(0.08) rotate(45)"> <DNAIcon /> </g>
+    
+    {/* Surface Protein Machinery (Tiny Ribosomes) */}
+    {Array.from({length: 15}).map((_, i) => (
+      <g key={`ribo-${i}`} transform={`translate(${10 + Math.random()*80}, ${20 + Math.random()*60}) scale(0.03)`}>
+        <RibosomeIcon />
+      </g>
+    ))}
+  </svg>
+);
 
-        {/* Matrix Particles */}
-        {Array.from({length: 15}).map((_, i) => (
-            <NeoSphere key={`mat-${i}`} x={30 + Math.random()*40} y={30 + Math.random()*40} r={1.5} color="#fef3c7" />
-        ))}
-    </svg>
-  );
-};
+const NucleusIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Double Envelope - Dense ring of tiny atoms */}
+    <g opacity="0.4">
+      {Array.from({length: 120}).map((_, i) => {
+        const angle = (i / 120) * Math.PI * 2;
+        const x = 50 + 46 * Math.cos(angle);
+        const y = 50 + 46 * Math.sin(angle);
+        return <NeoSphere key={i} x={x} y={y} r={1.5} color={PARTICLE_COLOR_MAP['indigo-600']} />;
+      })}
+    </g>
 
-const NucleusIcon = () => {
-  // Dense Envelope Ring
-  const envelope = Array.from({length: 60}).map((_, i) => {
-      const angle = (i / 60) * Math.PI * 2;
-      if (i % 15 >= 13) return null; // Pores
-      return { x: 50 + 46 * Math.cos(angle), y: 50 + 46 * Math.sin(angle) };
-  }).filter(Boolean);
+    {/* Dense Chromatin Jungle - Hundreds of tiny DNA/RNA fragments and atoms */}
+    <g>
+      {Array.from({length: 150}).map((_, i) => {
+        const r = Math.random() * 38;
+        const theta = Math.random() * 2 * Math.PI;
+        const x = 50 + r * Math.cos(theta);
+        const y = 50 + r * Math.sin(theta);
+        return (
+          <React.Fragment key={i}>
+            {Math.random() > 0.7 && <line x1={x} y1={y} x2={x + (Math.random()-0.5)*8} y2={y + (Math.random()-0.5)*8} stroke="#4f46e5" strokeWidth="0.3" opacity="0.3" />}
+            <NeoSphere x={x} y={y} r={1} color={PARTICLE_COLOR_MAP['blue-500']} />
+          </React.Fragment>
+        );
+      })}
+    </g>
 
-  return (
-    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-        {/* Envelope */}
-        {envelope.map((pos, i) => (
-            <NeoSphere key={`env-${i}`} x={pos.x} y={pos.y} r={2.5} color={PARTICLE_COLOR_MAP['indigo-600']} />
-        ))}
+    {/* The Core Swarm (Miniature DNA/RNA Cluster) */}
+    <g transform="translate(50, 50)">
+       {Array.from({length: 15}).map((_, i) => {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = Math.random() * 20;
+          return (
+            <g key={i} transform={`translate(${dist * Math.cos(angle)}, ${dist * Math.sin(angle)}) scale(0.05) rotate(${Math.random()*360})`}>
+               {Math.random() > 0.5 ? <DNAIcon /> : <RNAIcon />}
+            </g>
+          );
+       })}
+    </g>
 
-        {/* Inner Chromatin Web */}
-        <g>
-            {Array.from({length: 80}).map((_, i) => {
-                const r = Math.random() * 35;
-                const theta = Math.random() * 2 * Math.PI;
-                // Spiral distortion
-                const x = 50 + r * Math.cos(theta + r*0.1);
-                const y = 50 + r * Math.sin(theta + r*0.1);
-                return <NeoSphere key={`chr-${i}`} x={x} y={y} r={1.5 + Math.random()} color={PARTICLE_COLOR_MAP['blue-500']} />
-            })}
-        </g>
+    {/* Active Transcription Sites */}
+    {Array.from({length: 8}).map((_, i) => (
+      <g key={`trans-${i}`} transform={`translate(${30 + Math.random()*40}, ${30 + Math.random()*40}) scale(0.04)`}>
+        <RNAIcon />
+      </g>
+    ))}
 
-        {/* Nucleolus Core */}
-        <g transform="translate(50, 50)">
-            {Array.from({length: 20}).map((_, i) => {
-                 const r = Math.random() * 10;
-                 const theta = Math.random() * 2 * Math.PI;
-                 return <NeoSphere key={`nuc-${i}`} x={r * Math.cos(theta)} y={r * Math.sin(theta)} r={2.5} color={PARTICLE_COLOR_MAP['indigo-900']} />
-            })}
-        </g>
-    </svg>
-  );
-};
+    {/* Pore Complex Nodes */}
+    {Array.from({length: 12}).map((_, i) => {
+        const angle = (i / 12) * Math.PI * 2;
+        const x = 50 + 46 * Math.cos(angle);
+        const y = 50 + 46 * Math.sin(angle);
+        return (
+          <g key={`pore-${i}`} transform={`translate(${x}, ${y}) scale(0.04)`}>
+             <RibosomeIcon />
+          </g>
+        );
+    })}
+  </svg>
+);
 
 const BenzeneIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
