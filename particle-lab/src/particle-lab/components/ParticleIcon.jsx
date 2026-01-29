@@ -1647,6 +1647,354 @@ const NitrogenDioxideIcon = () => (
   </svg>
 );
 
+const HistidineIcon = () => (
+  <NeoAminoAcid name="His" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-10} />
+      {/* Imidazole Ring */}
+      <NeoBond x1={0} y1={-10} x2={-10} y2={-18} />
+      <NeoBond x1={-10} y1={-18} x2={0} y2={-28} type="double" />
+      <NeoBond x1={0} y1={-28} x2={10} y2={-18} />
+      <NeoBond x1={10} y1={-18} x2={0} y2={-10} type="double" />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-10} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-10} y={-18} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+      <NeoSphere x={0} y={-28} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-18} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+    </g>
+  } />
+);
+
+const IsoleucineIcon = () => (
+  <NeoAminoAcid name="Ile" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={-10} y2={-10} />
+      <NeoBond x1={-10} y1={-10} x2={-10} y2={-22} />
+      <NeoBond x1={-10} y1={-10} x2={5} y2={-15} />
+      <NeoSphere x={0} y={0} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-10} y={-10} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-10} y={-22} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={5} y={-15} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    </g>
+  } />
+);
+
+const LysineIcon = () => (
+  <NeoAminoAcid name="Lys" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-10} />
+      <NeoBond x1={0} y1={-10} x2={10} y2={-15} />
+      <NeoBond x1={10} y1={-15} x2={10} y2={-25} />
+      <NeoBond x1={10} y1={-25} x2={0} y2={-30} />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-10} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-15} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-25} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-30} r={9} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+    </g>
+  } />
+);
+
+const MethionineIcon = () => (
+  <NeoAminoAcid name="Met" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-12} />
+      <NeoBond x1={0} y1={-12} x2={10} y2={-18} />
+      <NeoBond x1={10} y1={-18} x2={10} y2={-30} />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-12} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-18} r={9} color={PARTICLE_COLOR_MAP['yellow-500']} label="S" />
+      <NeoSphere x={10} y={-30} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    </g>
+  } />
+);
+
+const ThreonineIcon = () => (
+  <NeoAminoAcid name="Thr" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={-12} y2={-8} />
+      <NeoBond x1={0} y1={0} x2={12} y2={-8} />
+      <NeoSphere x={0} y={0} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-12} y={-8} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={12} y={-8} r={10} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    </g>
+  } />
+);
+
+const TryptophanIcon = () => (
+  <NeoAminoAcid name="Trp" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-10} />
+      {/* Indole Simplified: 5-ring fused to 6-ring */}
+      <NeoBond x1={0} y1={-10} x2={-12} y2={-15} />
+      <NeoBond x1={-12} y1={-15} x2={-8} y2={-28} />
+      <NeoBond x1={-8} y1={-28} x2={5} y2={-25} type="double" />
+      <NeoBond x1={5} y1={-25} x2={0} y2={-10} />
+      <NeoBond x1={5} y1={-25} x2={18} y2={-25} />
+      <NeoBond x1={18} y1={-25} x2={22} y2={-12} type="double" />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-10} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-12} y={-15} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+      <NeoSphere x={-8} y={-28} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={5} y={-25} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={18} y={-25} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    </g>
+  } />
+);
+
+const ArginineIcon = () => (
+  <NeoAminoAcid name="Arg" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-10} />
+      <NeoBond x1={0} y1={-10} x2={10} y2={-15} />
+      <NeoBond x1={10} y1={-15} x2={10} y2={-25} />
+      <NeoBond x1={10} y1={-25} x2={0} y2={-30} />
+      {/* Guanidino Group */}
+      <NeoBond x1={0} y1={-30} x2={-10} y2={-35} />
+      <NeoBond x1={-10} y1={-35} x2={-20} y2={-30} type="double" />
+      <NeoBond x1={-10} y1={-35} x2={-10} y2={-45} />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-10} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-15} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-25} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-30} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+      <NeoSphere x={-10} y={-35} r={9} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
+      <NeoSphere x={-20} y={-30} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+      <NeoSphere x={-10} y={-45} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+    </g>
+  } />
+);
+
+const AsparagineIcon = () => (
+  <NeoAminoAcid name="Asn" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-12} />
+      <NeoBond x1={0} y1={-12} x2={10} y2={-18} />
+      <NeoBond x1={10} y1={-18} x2={20} y2={-12} type="double" />
+      <NeoBond x1={10} y1={-18} x2={10} y2={-30} />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-12} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-18} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={20} y={-12} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+      <NeoSphere x={10} y={-30} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+    </g>
+  } />
+);
+
+const AsparticAcidIcon = () => (
+  <NeoAminoAcid name="Asp" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-12} />
+      <NeoBond x1={0} y1={-12} x2={10} y2={-18} />
+      <NeoBond x1={10} y1={-18} x2={20} y2={-12} type="double" />
+      <NeoBond x1={10} y1={-18} x2={10} y2={-30} />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-12} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-18} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={20} y={-12} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+      <NeoSphere x={10} y={-30} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    </g>
+  } />
+);
+
+const GlutamicAcidIcon = () => (
+  <NeoAminoAcid name="Glu" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-10} />
+      <NeoBond x1={0} y1={-10} x2={10} y2={-15} />
+      <NeoBond x1={10} y1={-15} x2={10} y2={-25} />
+      <NeoBond x1={10} y1={-25} x2={20} y2={-30} type="double" />
+      <NeoBond x1={10} y1={-25} x2={0} y2={-30} />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-10} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-15} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-25} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={20} y={-30} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+      <NeoSphere x={0} y={-30} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    </g>
+  } />
+);
+
+const GlutamineIcon = () => (
+  <NeoAminoAcid name="Gln" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-10} />
+      <NeoBond x1={0} y1={-10} x2={10} y2={-15} />
+      <NeoBond x1={10} y1={-15} x2={10} y2={-25} />
+      <NeoBond x1={10} y1={-25} x2={20} y2={-30} type="double" />
+      <NeoBond x1={10} y1={-25} x2={0} y2={-30} />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-10} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-15} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-25} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={20} y={-30} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+      <NeoSphere x={0} y={-30} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+    </g>
+  } />
+);
+
+const ProlineIcon = () => (
+  <NeoAminoAcid name="Pro" rGroupNode={
+    <g>
+      {/* Proline ring is unique, it connects back to the N of the backbone */}
+      {/* Visualizing the 5-membered ring specifically */}
+      <NeoBond x1={0} y1={0} x2={-15} y2={-10} />
+      <NeoBond x1={-15} y1={-10} x2={-25} y2={15} />
+      <NeoBond x1={-25} y1={15} x2={-30} y2={40} />
+      {/* This -30, 40 point would roughly overlap with the backbone N at -30, 40 relative to Ca */}
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-15} y={-10} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-25} y={15} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+    </g>
+  } />
+);
+
+const TyrosineIcon = () => (
+  <NeoAminoAcid name="Tyr" rGroupNode={
+    <g>
+      <NeoBond x1={0} y1={0} x2={0} y2={-10} />
+      {/* Phenol Ring */}
+      <NeoBond x1={0} y1={-10} x2={-10} y2={-18} />
+      <NeoBond x1={-10} y1={-18} x2={-10} y2={-30} type="double" />
+      <NeoBond x1={-10} y1={-30} x2={0} y2={-38} />
+      <NeoBond x1={0} y1={-38} x2={10} y2={-30} type="double" />
+      <NeoBond x1={10} y1={-30} x2={10} y2={-18} />
+      <NeoBond x1={10} y1={-18} x2={0} y2={-10} type="double" />
+      {/* OH group */}
+      <NeoBond x1={0} y1={-38} x2={0} y2={-50} />
+      <NeoSphere x={0} y={0} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-10} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-10} y={-18} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={-10} y={-30} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-38} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-30} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={10} y={-18} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+      <NeoSphere x={0} y={-50} r={9} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    </g>
+  } />
+);
+
+const PhosphoricAcidIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={50} y2={25} type="double" />
+    <NeoBond x1={50} y1={50} x2={25} y2={50} />
+    <NeoBond x1={50} y1={50} x2={75} y2={50} />
+    <NeoBond x1={50} y1={50} x2={50} y2={75} />
+    <NeoSphere x={50} y={50} r={16} color={PARTICLE_COLOR_MAP['yellow-500']} label="P" />
+    <NeoSphere x={50} y={25} r={12} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={25} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={75} y={50} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={50} y={75} r={12} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
+
+const UreaIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={50} y2={25} type="double" />
+    <NeoBond x1={50} y1={50} x2={25} y2={65} />
+    <NeoBond x1={50} y1={50} x2={75} y2={65} />
+    <NeoSphere x={50} y={50} r={14} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
+    <NeoSphere x={50} y={25} r={14} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={25} y={65} r={12} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+    <NeoSphere x={75} y={65} r={12} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+  </svg>
+);
+
+const PyruvateIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={30} y1={50} x2={50} y2={50} />
+    <NeoBond x1={50} y1={50} x2={70} y2={50} />
+    <NeoBond x1={50} y1={50} x2={50} y2={25} type="double" />
+    <NeoBond x1={70} y1={50} x2={85} y2={35} type="double" />
+    <NeoBond x1={70} y1={50} x2={85} y2={65} />
+    <NeoSphere x={30} y={50} r={12} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
+    <NeoSphere x={50} y={50} r={12} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={70} y={50} r={12} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={50} y={25} r={10} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={85} y={35} r={10} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={85} y={65} r={10} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
+
+const CitricAcidIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={50} y1={50} x2={50} y2={30} />
+    <NeoBond x1={50} y1={50} x2={30} y2={60} />
+    <NeoBond x1={50} y1={50} x2={70} y2={60} />
+    <NeoSphere x={50} y={50} r={12} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
+    {/* Simplified 3 carboxyl groups */}
+    <NeoSphere x={50} y={30} r={10} color={PARTICLE_COLOR_MAP['red-600']} label="O" />
+    <NeoSphere x={30} y={60} r={10} color={PARTICLE_COLOR_MAP['red-600']} />
+    <NeoSphere x={70} y={60} r={10} color={PARTICLE_COLOR_MAP['red-600']} />
+  </svg>
+);
+
+const PhospholipidIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    {/* Head */}
+    <NeoBond x1={50} y1={30} x2={50} y2={50} />
+    <NeoSphere x={50} y={30} r={18} color={PARTICLE_COLOR_MAP['yellow-500']} label="P" />
+    {/* Tails */}
+    <path d="M 40 50 L 35 70 L 40 90" stroke="#94a3b8" strokeWidth="4" fill="none" />
+    <path d="M 60 50 L 65 70 L 60 90" stroke="#94a3b8" strokeWidth="4" fill="none" />
+    <NeoSphere x={40} y={50} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+    <NeoSphere x={60} y={50} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
+  </svg>
+);
+
+const CelluloseIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <g transform="scale(0.8) translate(10, 10)">
+        <NeoBond x1={20} y1={50} x2={50} y2={50} />
+        <NeoBond x1={50} y1={50} x2={80} y2={50} />
+        <NeoSphere x={20} y={50} r={12} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={50} y={50} r={12} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={80} y={50} r={12} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <path d="M 10 50 L 90 50" stroke="#10b981" strokeWidth="2" strokeDasharray="4 2" opacity="0.5" />
+    </g>
+  </svg>
+);
+
+const NADHIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <NeoBond x1={30} y1={40} x2={50} y2={25} />
+    <NeoBond x1={50} y1={25} x2={70} y2={40} />
+    <NeoBond x1={50} y1={25} x2={50} y2={10} />
+    <NeoSphere x={30} y={40} r={12} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+    <NeoSphere x={50} y={25} r={14} color={PARTICLE_COLOR_MAP['gray-800']} label="C" />
+    <NeoSphere x={70} y={40} r={12} color={PARTICLE_COLOR_MAP['blue-600']} />
+    <NeoSphere x={50} y={10} r={8} color={PARTICLE_COLOR_MAP['yellow-300']} label="e-" />
+  </svg>
+);
+
+const CholesterolIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <g transform="translate(10, 10) scale(0.8)">
+        {/* Simplified 4-ring steroid skeleton */}
+        <rect x="20" y="40" width="20" height="20" rx="2" stroke="#94a3b8" strokeWidth="4" fill="none" />
+        <rect x="40" y="40" width="20" height="20" rx="2" stroke="#94a3b8" strokeWidth="4" fill="none" />
+        <rect x="40" y="20" width="20" height="20" rx="2" stroke="#94a3b8" strokeWidth="4" fill="none" />
+        <path d="M 60 40 L 75 30 L 85 45" stroke="#94a3b8" strokeWidth="4" fill="none" />
+        <NeoSphere x={20} y={50} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="OH" />
+    </g>
+  </svg>
+);
+
+const HemeIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <circle cx="50" cy="50" r="35" stroke="#be123c" strokeWidth="4" fill="none" strokeDasharray="10 5" />
+    <NeoBond x1="50" y1="50" x2="50" y2="25" />
+    <NeoBond x1="50" y1="50" x2="25" y2="50" />
+    <NeoBond x1="50" y1="50" x2="75" y2="50" />
+    <NeoBond x1="50" y1="50" x2="50" y2="75" />
+    <NeoSphere x={50} y={50} r={16} color={PARTICLE_COLOR_MAP['orange-900']} label="Fe" />
+    <NeoSphere x={50} y={25} r={8} color={PARTICLE_COLOR_MAP['blue-600']} label="N" />
+    <NeoSphere x={25} y={50} r={8} color={PARTICLE_COLOR_MAP['blue-600']} />
+    <NeoSphere x={75} y={50} r={8} color={PARTICLE_COLOR_MAP['blue-600']} />
+    <NeoSphere x={50} y={75} r={8} color={PARTICLE_COLOR_MAP['blue-600']} />
+  </svg>
+);
+
 const GenericMoleculeIcon = ({ hexColor }) => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
     {/* Generic 3-atom molecule */}
@@ -1674,6 +2022,28 @@ const PARTICLE_ICON_MAP = {
   [PARTICLE_TYPES.BENZENE]: BenzeneIcon,
   [PARTICLE_TYPES.CYSTEINE]: CysteineIcon,
   [PARTICLE_TYPES.PHENYLALANINE]: PhenylalanineIcon,
+  [PARTICLE_TYPES.HISTIDINE]: HistidineIcon,
+  [PARTICLE_TYPES.ISOLEUCINE]: IsoleucineIcon,
+  [PARTICLE_TYPES.LYSINE]: LysineIcon,
+  [PARTICLE_TYPES.METHIONINE]: MethionineIcon,
+  [PARTICLE_TYPES.THREONINE]: ThreonineIcon,
+  [PARTICLE_TYPES.TRYPTOPHAN]: TryptophanIcon,
+  [PARTICLE_TYPES.ARGININE]: ArginineIcon,
+  [PARTICLE_TYPES.ASPARAGINE]: AsparagineIcon,
+  [PARTICLE_TYPES.ASPARTIC_ACID]: AsparticAcidIcon,
+  [PARTICLE_TYPES.GLUTAMIC_ACID]: GlutamicAcidIcon,
+  [PARTICLE_TYPES.GLUTAMINE]: GlutamineIcon,
+  [PARTICLE_TYPES.PROLINE]: ProlineIcon,
+  [PARTICLE_TYPES.TYROSINE]: TyrosineIcon,
+  [PARTICLE_TYPES.PHOSPHORIC_ACID]: PhosphoricAcidIcon,
+  [PARTICLE_TYPES.CITRIC_ACID]: CitricAcidIcon,
+  [PARTICLE_TYPES.UREA]: UreaIcon,
+  [PARTICLE_TYPES.PYRUVATE]: PyruvateIcon,
+  [PARTICLE_TYPES.PHOSPHOLIPID]: PhospholipidIcon,
+  [PARTICLE_TYPES.CELLULOSE]: CelluloseIcon,
+  [PARTICLE_TYPES.NADH]: NADHIcon,
+  [PARTICLE_TYPES.CHOLESTEROL]: CholesterolIcon,
+  [PARTICLE_TYPES.HEME]: HemeIcon,
   [PARTICLE_TYPES.FRUCTOSE]: FructoseIcon,
   [PARTICLE_TYPES.UP_QUARK]: UpQuarkIcon,
   [PARTICLE_TYPES.DOWN_QUARK]: DownQuarkIcon,

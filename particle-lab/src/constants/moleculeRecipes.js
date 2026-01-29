@@ -1294,6 +1294,802 @@ export const MOLECULE_RECIPES = [
     }
   },
   {
+    type: PARTICLE_TYPES.HISTIDINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.HYDROGEN]: 9,
+      [PARTICLE_TYPES.NITROGEN]: 3,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 17,
+      double: 3,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN }, // Amino
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },   // Alpha
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },   // Carboxyl
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },   // Beta
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },   // Gamma
+        { id: 'nd1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'cd2', type: PARTICLE_TYPES.CARBON },
+        { id: 'ce1', type: PARTICLE_TYPES.CARBON },
+        { id: 'ne2', type: PARTICLE_TYPES.NITROGEN },
+        ...Array.from({length: 9}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'nd1', type: 'single' },
+        { source: 'cg', target: 'cd2', type: 'double' },
+        { source: 'nd1', target: 'ce1', type: 'double' },
+        { source: 'cd2', target: 'ne2', type: 'single' },
+        { source: 'ce1', target: 'ne2', type: 'single' },
+        // Hydrogens (simplified map to match counts and basic valence)
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'nd1', target: 'h7', type: 'single' },
+        { source: 'cd2', target: 'h8', type: 'single' },
+        { source: 'ce1', target: 'h9', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ISOLEUCINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.HYDROGEN]: 13,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 21,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg1', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg2', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd1', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 13}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg1', type: 'single' },
+        { source: 'cb', target: 'cg2', type: 'single' },
+        { source: 'cg1', target: 'cd1', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' },
+        { source: 'cg1', target: 'h6', type: 'single' }, { source: 'cg1', target: 'h7', type: 'single' },
+        { source: 'cg2', target: 'h8', type: 'single' }, { source: 'cg2', target: 'h9', type: 'single' }, { source: 'cg2', target: 'h10', type: 'single' },
+        { source: 'cd1', target: 'h11', type: 'single' }, { source: 'cd1', target: 'h12', type: 'single' }, { source: 'cd1', target: 'h13', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.LYSINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.HYDROGEN]: 14,
+      [PARTICLE_TYPES.NITROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 23,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd', type: PARTICLE_TYPES.CARBON },
+        { id: 'ce', type: PARTICLE_TYPES.CARBON },
+        { id: 'nz', type: PARTICLE_TYPES.NITROGEN },
+        ...Array.from({length: 14}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'cd', type: 'single' },
+        { source: 'cd', target: 'ce', type: 'single' },
+        { source: 'ce', target: 'nz', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'cg', target: 'h7', type: 'single' }, { source: 'cg', target: 'h8', type: 'single' },
+        { source: 'cd', target: 'h9', type: 'single' }, { source: 'cd', target: 'h10', type: 'single' },
+        { source: 'ce', target: 'h11', type: 'single' }, { source: 'ce', target: 'h12', type: 'single' },
+        { source: 'nz', target: 'h13', type: 'single' }, { source: 'nz', target: 'h14', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.METHIONINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 5,
+      [PARTICLE_TYPES.HYDROGEN]: 11,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+      [PARTICLE_TYPES.SULFUR]: 1,
+    },
+    bonds: {
+      single: 19,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'sd', type: PARTICLE_TYPES.SULFUR },
+        { id: 'ce', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 11}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'sd', type: 'single' },
+        { source: 'sd', target: 'ce', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'cg', target: 'h7', type: 'single' }, { source: 'cg', target: 'h8', type: 'single' },
+        { source: 'ce', target: 'h9', type: 'single' }, { source: 'ce', target: 'h10', type: 'single' }, { source: 'ce', target: 'h11', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.THREONINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 4,
+      [PARTICLE_TYPES.HYDROGEN]: 9,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 16,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'og1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cg2', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 9}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'og1', type: 'single' },
+        { source: 'cb', target: 'cg2', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' },
+        { source: 'og1', target: 'h6', type: 'single' },
+        { source: 'cg2', target: 'h7', type: 'single' }, { source: 'cg2', target: 'h8', type: 'single' }, { source: 'cg2', target: 'h9', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.TRYPTOPHAN,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 11,
+      [PARTICLE_TYPES.HYDROGEN]: 12,
+      [PARTICLE_TYPES.NITROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 23,
+      double: 5,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd1', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd2', type: PARTICLE_TYPES.CARBON },
+        { id: 'ne1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ce2', type: PARTICLE_TYPES.CARBON },
+        { id: 'ce3', type: PARTICLE_TYPES.CARBON },
+        { id: 'cz2', type: PARTICLE_TYPES.CARBON },
+        { id: 'cz3', type: PARTICLE_TYPES.CARBON },
+        { id: 'ch2', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 12}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'cd1', type: 'double' },
+        { source: 'cd1', target: 'ne1', type: 'single' },
+        { source: 'ne1', target: 'ce2', type: 'single' },
+        { source: 'ce2', target: 'cd2', type: 'double' },
+        { source: 'cd2', target: 'cg', type: 'single' },
+        { source: 'ce2', target: 'cz2', type: 'single' },
+        { source: 'cz2', target: 'ch2', type: 'double' },
+        { source: 'ch2', target: 'cz3', type: 'single' },
+        { source: 'cz3', target: 'ce3', type: 'double' },
+        { source: 'ce3', target: 'cd2', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'cd1', target: 'h7', type: 'single' },
+        { source: 'ne1', target: 'h8', type: 'single' },
+        { source: 'cz2', target: 'h9', type: 'single' },
+        { source: 'ch2', target: 'h10', type: 'single' },
+        { source: 'cz3', target: 'h11', type: 'single' },
+        { source: 'ce3', target: 'h12', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ARGININE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.HYDROGEN]: 14,
+      [PARTICLE_TYPES.NITROGEN]: 4,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 24,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd', type: PARTICLE_TYPES.CARBON },
+        { id: 'ne', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'cz', type: PARTICLE_TYPES.CARBON },
+        { id: 'nh1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'nh2', type: PARTICLE_TYPES.NITROGEN },
+        ...Array.from({length: 14}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'cd', type: 'single' },
+        { source: 'cd', target: 'ne', type: 'single' },
+        { source: 'ne', target: 'cz', type: 'single' },
+        { source: 'cz', target: 'nh1', type: 'double' },
+        { source: 'cz', target: 'nh2', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'cg', target: 'h7', type: 'single' }, { source: 'cg', target: 'h8', type: 'single' },
+        { source: 'cd', target: 'h9', type: 'single' }, { source: 'cd', target: 'h10', type: 'single' },
+        { source: 'ne', target: 'h11', type: 'single' },
+        { source: 'nh1', target: 'h12', type: 'single' },
+        { source: 'nh2', target: 'h13', type: 'single' }, { source: 'nh2', target: 'h14', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ASPARAGINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 4,
+      [PARTICLE_TYPES.HYDROGEN]: 8,
+      [PARTICLE_TYPES.NITROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 14,
+      double: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'od1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'nd2', type: PARTICLE_TYPES.NITROGEN },
+        ...Array.from({length: 8}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'od1', type: 'double' },
+        { source: 'cg', target: 'nd2', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'nd2', target: 'h7', type: 'single' }, { source: 'nd2', target: 'h8', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.ASPARTIC_ACID,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 4,
+      [PARTICLE_TYPES.HYDROGEN]: 7,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 4,
+    },
+    bonds: {
+      single: 13,
+      double: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'od1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'od2', type: PARTICLE_TYPES.OXYGEN },
+        ...Array.from({length: 7}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'od1', type: 'double' },
+        { source: 'cg', target: 'od2', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'od2', target: 'h7', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.GLUTAMIC_ACID,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 5,
+      [PARTICLE_TYPES.HYDROGEN]: 9,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 4,
+    },
+    bonds: {
+      single: 16,
+      double: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd', type: PARTICLE_TYPES.CARBON },
+        { id: 'oe1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'oe2', type: PARTICLE_TYPES.OXYGEN },
+        ...Array.from({length: 9}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'cd', type: 'single' },
+        { source: 'cd', target: 'oe1', type: 'double' },
+        { source: 'cd', target: 'oe2', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'cg', target: 'h7', type: 'single' }, { source: 'cg', target: 'h8', type: 'single' },
+        { source: 'oe2', target: 'h9', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.GLUTAMINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 5,
+      [PARTICLE_TYPES.HYDROGEN]: 10,
+      [PARTICLE_TYPES.NITROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 17,
+      double: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd', type: PARTICLE_TYPES.CARBON },
+        { id: 'oe1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'ne2', type: PARTICLE_TYPES.NITROGEN },
+        ...Array.from({length: 10}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'cd', type: 'single' },
+        { source: 'cd', target: 'oe1', type: 'double' },
+        { source: 'cd', target: 'ne2', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'cg', target: 'h7', type: 'single' }, { source: 'cg', target: 'h8', type: 'single' },
+        { source: 'ne2', target: 'h9', type: 'single' }, { source: 'ne2', target: 'h10', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.PROLINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 5,
+      [PARTICLE_TYPES.HYDROGEN]: 9,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+    bonds: {
+      single: 16,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd', type: PARTICLE_TYPES.CARBON },
+        ...Array.from({length: 9}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'cd', type: 'single' },
+        { source: 'cd', target: 'n1', type: 'single' }, // Cyclic
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'ca', target: 'h2', type: 'single' },
+        { source: 'o2', target: 'h3', type: 'single' },
+        { source: 'cb', target: 'h4', type: 'single' }, { source: 'cb', target: 'h5', type: 'single' },
+        { source: 'cg', target: 'h6', type: 'single' }, { source: 'cg', target: 'h7', type: 'single' },
+        { source: 'cd', target: 'h8', type: 'single' }, { source: 'cd', target: 'h9', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.TYROSINE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 9,
+      [PARTICLE_TYPES.HYDROGEN]: 11,
+      [PARTICLE_TYPES.NITROGEN]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 21,
+      double: 4,
+    },
+    structure: {
+      nodes: [
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'ca', type: PARTICLE_TYPES.CARBON },
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'cb', type: PARTICLE_TYPES.CARBON },
+        { id: 'cg', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd1', type: PARTICLE_TYPES.CARBON },
+        { id: 'cd2', type: PARTICLE_TYPES.CARBON },
+        { id: 'ce1', type: PARTICLE_TYPES.CARBON },
+        { id: 'ce2', type: PARTICLE_TYPES.CARBON },
+        { id: 'cz', type: PARTICLE_TYPES.CARBON },
+        { id: 'oh', type: PARTICLE_TYPES.OXYGEN },
+        ...Array.from({length: 11}, (_, i) => ({ id: `h${i+1}`, type: PARTICLE_TYPES.HYDROGEN }))
+      ],
+      edges: [
+        { source: 'n1', target: 'ca', type: 'single' },
+        { source: 'ca', target: 'c1', type: 'single' },
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'o2', type: 'single' },
+        { source: 'ca', target: 'cb', type: 'single' },
+        { source: 'cb', target: 'cg', type: 'single' },
+        { source: 'cg', target: 'cd1', type: 'double' },
+        { source: 'cd1', target: 'ce1', type: 'single' },
+        { source: 'ce1', target: 'cz', type: 'double' },
+        { source: 'cz', target: 'ce2', type: 'single' },
+        { source: 'ce2', target: 'cd2', type: 'double' },
+        { source: 'cd2', target: 'cg', type: 'single' },
+        { source: 'cz', target: 'oh', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' }, { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'ca', target: 'h3', type: 'single' },
+        { source: 'o2', target: 'h4', type: 'single' },
+        { source: 'cb', target: 'h5', type: 'single' }, { source: 'cb', target: 'h6', type: 'single' },
+        { source: 'cd1', target: 'h7', type: 'single' },
+        { source: 'ce1', target: 'h8', type: 'single' },
+        { source: 'ce2', target: 'h9', type: 'single' },
+        { source: 'cd2', target: 'h10', type: 'single' },
+        { source: 'oh', target: 'h11', type: 'single' }
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.PHOSPHORIC_ACID,
+    atoms: {
+      [PARTICLE_TYPES.PHOSPHORUS]: 1,
+      [PARTICLE_TYPES.OXYGEN]: 4,
+      [PARTICLE_TYPES.HYDROGEN]: 3,
+    },
+    bonds: {
+      single: 6,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'p1', type: PARTICLE_TYPES.PHOSPHORUS },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o4', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'p1', target: 'o1', type: 'double' },
+        { source: 'p1', target: 'o2', type: 'single' },
+        { source: 'p1', target: 'o3', type: 'single' },
+        { source: 'p1', target: 'o4', type: 'single' },
+        { source: 'o2', target: 'h1', type: 'single' },
+        { source: 'o3', target: 'h2', type: 'single' },
+        { source: 'o4', target: 'h3', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.UREA,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 1,
+      [PARTICLE_TYPES.HYDROGEN]: 4,
+      [PARTICLE_TYPES.NITROGEN]: 2,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+    bonds: {
+      single: 6,
+      double: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'n1', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'n2', type: PARTICLE_TYPES.NITROGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h4', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'o1', type: 'double' },
+        { source: 'c1', target: 'n1', type: 'single' },
+        { source: 'c1', target: 'n2', type: 'single' },
+        { source: 'n1', target: 'h1', type: 'single' },
+        { source: 'n1', target: 'h2', type: 'single' },
+        { source: 'n2', target: 'h3', type: 'single' },
+        { source: 'n2', target: 'h4', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.PYRUVATE,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 3,
+      [PARTICLE_TYPES.HYDROGEN]: 3,
+      [PARTICLE_TYPES.OXYGEN]: 3,
+    },
+    bonds: {
+      single: 6,
+      double: 2,
+    },
+    structure: {
+      nodes: [
+        { id: 'c1', type: PARTICLE_TYPES.CARBON },
+        { id: 'c2', type: PARTICLE_TYPES.CARBON },
+        { id: 'c3', type: PARTICLE_TYPES.CARBON },
+        { id: 'o1', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o2', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'o3', type: PARTICLE_TYPES.OXYGEN },
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h2', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'h3', type: PARTICLE_TYPES.HYDROGEN },
+      ],
+      edges: [
+        { source: 'c1', target: 'c2', type: 'single' },
+        { source: 'c2', target: 'c3', type: 'single' },
+        { source: 'c2', target: 'o1', type: 'double' },
+        { source: 'c3', target: 'o2', type: 'double' },
+        { source: 'c3', target: 'o3', type: 'single' },
+        { source: 'c1', target: 'h1', type: 'single' },
+        { source: 'c1', target: 'h2', type: 'single' },
+        { source: 'c1', target: 'h3', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.CITRIC_ACID,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 6,
+      [PARTICLE_TYPES.HYDROGEN]: 8,
+      [PARTICLE_TYPES.OXYGEN]: 7,
+    },
+    bonds: {
+      single: 17,
+      double: 3,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.PHOSPHOLIPID,
+    atoms: {
+      [PARTICLE_TYPES.GLYCEROL]: 1,
+      [PARTICLE_TYPES.FATTY_ACID]: 2,
+      [PARTICLE_TYPES.PHOSPHATE]: 1,
+    },
+    bonds: {
+      single: 3,
+    },
+    structure: {
+      nodes: [
+        { id: 'gly', type: PARTICLE_TYPES.GLYCEROL },
+        { id: 'fa1', type: PARTICLE_TYPES.FATTY_ACID },
+        { id: 'fa2', type: PARTICLE_TYPES.FATTY_ACID },
+        { id: 'phos', type: PARTICLE_TYPES.PHOSPHATE }
+      ],
+      edges: [
+        { source: 'gly', target: 'fa1', type: 'single' },
+        { source: 'gly', target: 'fa2', type: 'single' },
+        { source: 'gly', target: 'phos', type: 'single' },
+      ]
+    }
+  },
+  {
+    type: PARTICLE_TYPES.CELLULOSE,
+    atoms: {
+      [PARTICLE_TYPES.GLUCOSE]: 3, // Proxy for chain
+    },
+    bonds: {
+      single: 2,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.NADH,
+    atoms: {
+      [PARTICLE_TYPES.ADENINE]: 1,
+      [PARTICLE_TYPES.RIBOSE]: 2,
+      [PARTICLE_TYPES.PHOSPHATE]: 2,
+      [PARTICLE_TYPES.NITROGEN]: 1, // Simplified Nicotinamide
+      [PARTICLE_TYPES.CARBON]: 6,
+    },
+    bonds: {
+      single: 6,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.CHOLESTEROL,
+    atoms: {
+      [PARTICLE_TYPES.CARBON]: 27,
+      [PARTICLE_TYPES.HYDROGEN]: 46,
+      [PARTICLE_TYPES.OXYGEN]: 1,
+    },
+    bonds: {
+      single: 70,
+      double: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.HEME,
+    atoms: {
+      [PARTICLE_TYPES.IRON]: 1,
+      [PARTICLE_TYPES.NITROGEN]: 4,
+      [PARTICLE_TYPES.CARBON]: 34,
+      [PARTICLE_TYPES.HYDROGEN]: 32,
+      [PARTICLE_TYPES.OXYGEN]: 4,
+    },
+    bonds: {
+      single: 70,
+      double: 15,
+    },
+  },
+  {
     type: PARTICLE_TYPES.FRUCTOSE,
     atoms: {
       [PARTICLE_TYPES.CARBON]: 6,

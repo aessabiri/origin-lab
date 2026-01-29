@@ -277,6 +277,19 @@ const AAButton = ({ type, onAdd }) => {
     'serine': { property: 'Polar', effect: '+Solubility' },
     'valine': { property: 'Hydrophobic', effect: '+Folding' },
     'leucine': { property: 'Hydrophobic', effect: '+Size' },
+    'isoleucine': { property: 'Hydrophobic', effect: '+Size' },
+    'threonine': { property: 'Polar', effect: '+Solubility' },
+    'methionine': { property: 'Hydrophobic', effect: '+Stability' },
+    'arginine': { property: 'Basic', effect: '+Reaction' },
+    'asparagine': { property: 'Polar', effect: '+Complexity' },
+    'aspartic-acid': { property: 'Acidic', effect: '+Solubility' },
+    'glutamic-acid': { property: 'Acidic', effect: '+Metabolism' },
+    'glutamine': { property: 'Polar', effect: '+Complexity' },
+    'proline': { property: 'Rigid', effect: '+Stability' },
+    'tyrosine': { property: 'Aromatic', effect: '+Stability' },
+    'lysine': { property: 'Basic', effect: '+Complexity' },
+    'histidine': { property: 'Basic', effect: '+Stability' },
+    'tryptophan': { property: 'Aromatic', effect: '+Size' },
     'cysteine': { property: 'Reactive', effect: '+Bonds' },
     'phenylalanine': { property: 'Aromatic', effect: '+Stability' },
   }[type] || { property: 'Neutral', effect: '+Complexity' };
@@ -374,7 +387,7 @@ const generateFoldedStructure = (sequence) => {
     
     // Hydrophobicity simulation (simplified)
     // Some AA pull towards center, some push away
-    const isHydrophobic = ['leucine', 'valine', 'phenylalanine'].includes(aa.type);
+    const isHydrophobic = ['leucine', 'isoleucine', 'valine', 'phenylalanine', 'methionine', 'tryptophan', 'tyrosine', 'proline'].includes(aa.type);
     const radius = isHydrophobic ? 10 + Math.random() * 10 : 20 + Math.random() * 15;
     
     // Randomish walk with bias
