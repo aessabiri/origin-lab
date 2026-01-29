@@ -18,15 +18,30 @@ const ProteinFolder = () => {
   const [foldedStructure, setFoldedStructure] = useState(null);
   const [activeTab, setActiveTab] = useState('library'); // 'library' or 'history'
   
-  // 1. Get Available Amino Acids
-  const aminoAcids = useMemo(() => {
+  // 1. Get and Categorize Available Amino Acids
+  const categorizedAA = useMemo(() => {
     const codex = getUniversalCodexData();
     const bioGroup = codex.find(g => g.name === 'Biochemistry');
     const aaSub = bioGroup?.subcategories.find(s => s.name === 'Amino Acids');
     
-    if (!aaSub) return [];
+    if (!aaSub) return {};
     
-    return aaSub.particles.filter(type => isSandboxMode || discoveredItems.includes(type));
+    const available = aaSub.particles.filter(type => isSandboxMode || discoveredItems.includes(type));
+    
+    const groups = {
+      'Hydrophobic': ['glycine', 'alanine', 'valine', 'leucine', 'isoleucine', 'proline', 'methionine', 'phenylalanine', 'tyrosine', 'tryptophan'],
+      'Polar': ['serine', 'threonine', 'cysteine', 'asparagine', 'glutamine'],
+      'Basic (+)': ['lysine', 'arginine', 'histidine'],
+      'Acidic (-)': ['aspartic-acid', 'glutamic-acid']
+    };
+
+    const result = {};
+    Object.entries(groups).forEach(([name, members]) => {
+      const found = available.filter(type => members.includes(type));
+      if (found.length > 0) result[name] = found;
+    });
+    
+    return result;
   }, [discoveredItems, isSandboxMode]);
 
   const handleAddAA = (type) => {
@@ -109,10 +124,20 @@ const ProteinFolder = () => {
               {activeTab === 'library' ? (
                 <div className="space-y-6">
                    <section>
-                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase mb-3 tracking-widest">Monomers</h4>
-                      <div className="space-y-2">
-                        {aminoAcids.map(type => (
-                          <AAButton key={type} type={type} onAdd={() => handleAddAA(type)} />
+                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase mb-3 tracking-widest">Amino Acid Library</h4>
+                      <div className="space-y-6">
+                        {Object.entries(categorizedAA).map(([groupName, types]) => (
+                          <div key={groupName} className="space-y-2">
+                             <div className="flex items-center gap-2">
+                                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">{groupName}</span>
+                                <div className="flex-1 h-px bg-zinc-900"></div>
+                             </div>
+                             <div className="space-y-1">
+                                {types.map(type => (
+                                  <AAButton key={type} type={type} onAdd={() => handleAddAA(type)} />
+                                ))}
+                             </div>
+                          </div>
                         ))}
                       </div>
                    </section>
@@ -277,20 +302,20 @@ const AAButton = ({ type, onAdd }) => {
     'serine': { property: 'Polar', effect: '+Solubility' },
     'valine': { property: 'Hydrophobic', effect: '+Folding' },
     'leucine': { property: 'Hydrophobic', effect: '+Size' },
-    'isoleucine': { property: 'Hydrophobic', effect: '+Size' },
-    'threonine': { property: 'Polar', effect: '+Solubility' },
-    'methionine': { property: 'Hydrophobic', effect: '+Stability' },
-    'arginine': { property: 'Basic', effect: '+Reaction' },
+    'isoleucine': { property: 'Hydrophobic', effect: '+Rigidity' },
+    'threonine': { property: 'Polar', effect: '+Bonding' },
+    'methionine': { property: 'Start Code', effect: '+Synthesis' },
+    'arginine': { property: 'Basic', effect: '+Charge' },
     'asparagine': { property: 'Polar', effect: '+Complexity' },
-    'aspartic-acid': { property: 'Acidic', effect: '+Solubility' },
-    'glutamic-acid': { property: 'Acidic', effect: '+Metabolism' },
-    'glutamine': { property: 'Polar', effect: '+Complexity' },
-    'proline': { property: 'Rigid', effect: '+Stability' },
-    'tyrosine': { property: 'Aromatic', effect: '+Stability' },
-    'lysine': { property: 'Basic', effect: '+Complexity' },
-    'histidine': { property: 'Basic', effect: '+Stability' },
-    'tryptophan': { property: 'Aromatic', effect: '+Size' },
-    'cysteine': { property: 'Reactive', effect: '+Bonds' },
+    'aspartic-acid': { property: 'Acidic', effect: '-pH Stability' },
+    'glutamic-acid': { property: 'Acidic', effect: '+Excitation' },
+    'glutamine': { property: 'Polar', effect: '+Metabolism' },
+    'proline': { property: 'Helix Breaker', effect: '+Unique Fold' },
+    'tyrosine': { property: 'Aromatic', effect: '+Signaling' },
+    'lysine': { property: 'Basic', effect: '+Folding' },
+    'histidine': { property: 'pH Buffer', effect: '+Catalysis' },
+    'tryptophan': { property: 'Bulky', effect: '+Size' },
+    'cysteine': { property: 'Disulfide', effect: '++Stability' },
     'phenylalanine': { property: 'Aromatic', effect: '+Stability' },
   }[type] || { property: 'Neutral', effect: '+Complexity' };
 
