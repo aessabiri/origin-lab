@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useBioStore } from './store';
 import { useBioSimulation } from './hooks/useBioSimulation';
-import CellCreator from './components/CellCreator';
 import PetriDish from './components/PetriDish';
 import BioSidebar from './components/BioSidebar';
 import ProteinFolder from './components/ProteinFolder';
@@ -94,13 +93,14 @@ const MODE_THEMES = {
 };
 
 const BiologyApp = () => {
-  const { isCellCreatorOpen, setIsCellCreatorOpen } = useBioStore();
+  const { injectLuca, currentCellDesign, isRunning, agents } = useBioStore();
   const setIsCodexVisible = useStore(state => state.setIsCodexVisible);
-  const [viewMode, setViewMode] = useState('simulation'); // 'simulation', 'folding', 'assembly'
+  const [viewMode, setViewMode] = useState('assembly'); // Default to Assembly
   
   useBioSimulation();
 
   const activeTheme = MODE_THEMES[viewMode];
+  const hasDesign = currentCellDesign && currentCellDesign.organelles.length > 0;
 
   return (
     <div className={`flex flex-col md:flex-row h-full w-full ${activeTheme.bg} ${activeTheme.textPrimary} overflow-hidden relative transition-colors duration-700`}>
@@ -115,41 +115,75 @@ const BiologyApp = () => {
       {/* Main Content Area - Full Screen Canvas */}
       <div className="flex-1 relative w-full h-full overflow-hidden flex flex-col">
         
-        {/* Simulation Mode: The Petri Dish */}
+        {/* Simulation Mode: The Incubation Chamber */}
         {viewMode === 'simulation' && (
-          <div className="flex-1 w-full h-full flex items-center justify-center p-8 relative overflow-hidden">
-             {/* PARALLAX BACKGROUND (Dust/Motes) */}
-             <div className="absolute inset-0 opacity-20 pointer-events-none">
-                {[...Array(20)].map((_, i) => (
-                  <div 
-                    key={i} 
-                    className="absolute rounded-full bg-teal-500/20 blur-xl animate-pulse"
-                    style={{
-                      width: Math.random() * 100 + 50,
-                      height: Math.random() * 100 + 50,
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      animationDelay: `${Math.random() * 5}s`,
-                      transform: `translateZ(${Math.random() * 100}px)`
-                    }}
-                  ></div>
-                ))}
-             </div>
-
-             {/* Petri Dish Container */}
-             <div className="relative w-full h-full max-w-[85vh] aspect-square rounded-full border-[12px] border-[#1a1a1a] shadow-[0_0_50px_rgba(0,0,0,0.8),inset_0_0_30px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm ring-[16px] ring-black/20 flex items-center justify-center">
-                {/* Brass Inner Ring */}
-                <div className="absolute inset-0 border-4 border-amber-900/20 rounded-full z-10 pointer-events-none"></div>
-                <PetriDish />
+          <div className="flex-1 w-full h-full flex items-center justify-center p-8 relative overflow-hidden bg-[#050505]">
+             
+             {/* Machine Chassis */}
+             <div className="relative w-[90vh] aspect-square bg-[#1a1a1a] rounded-[3rem] border-8 border-[#2a2a2a] shadow-2xl flex flex-col overflow-hidden">
                 
-                {/* Spawn Control Overlay */}
-                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20">
-                  <button 
-                    onClick={() => setIsCellCreatorOpen(true)}
-                    className="px-8 py-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-amber-500 border-2 border-amber-900/50 font-black uppercase tracking-[0.2em] text-xs rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+                {/* Top Control Panel */}
+                <div className="h-24 bg-[#111] border-b-4 border-[#333] flex justify-between items-center px-8 shadow-md z-20">
+                   <div className="flex items-center gap-4">
+                      <div className={`w-4 h-4 rounded-full ${isRunning ? 'bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]' : 'bg-red-900'}`}></div>
+                      <div className="flex flex-col">
+                         <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Chamber_Status</span>
+                         <span className={`text-lg font-mono font-bold ${isRunning ? 'text-green-500' : 'text-zinc-600'}`}>
+                            {isRunning ? 'LIFE_DETECTED' : 'STANDBY'}
+                         </span>
+                      </div>
+                   </div>
+                   
+                   {/* Data Screen */}
+                   <div className="w-64 h-16 bg-black border-2 border-zinc-800 rounded flex items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0 bg-green-500/5 scanline pointer-events-none"></div>
+                      <div className="text-center">
+                         <span className="text-[8px] font-mono text-green-700 block">INTERNAL_TEMP: 37.0°C</span>
+                         <span className="text-[8px] font-mono text-green-700 block">FLUID_PH: 7.4</span>
+                         <span className="text-[8px] font-mono text-green-700 block">AGENTS: {agents.length}</span>
+                      </div>
+                   </div>
+                </div>
+
+                {/* Main Tank Viewport */}
+                <div className="flex-1 relative bg-[#081a1a] shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] overflow-hidden">
+                   {/* Fluid Effect */}
+                   <div className="absolute inset-0 bg-gradient-to-b from-teal-900/10 to-teal-900/30 pointer-events-none z-10"></div>
+                   
+                   {/* The Simulation Canvas */}
+                   <PetriDish />
+
+                   {/* Glass Reflection */}
+                   <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-20 rounded-b-[2.5rem]"></div>
+                </div>
+
+                {/* Bottom Control Deck */}
+                <div className="h-32 bg-[#111] border-t-4 border-[#333] flex items-center justify-center gap-8 relative z-30">
+                   {/* Inject Button */}
+                   <button 
+                    onClick={hasDesign ? injectLuca : () => setViewMode('assembly')}
+                    className={`
+                      relative group px-8 py-4 bg-[#1a1a1a] rounded-lg border-2 border-black shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_5px_10px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none transition-all
+                      ${hasDesign ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}
+                    `}
                   >
-                    <span className="text-xl">🧬</span> Instantiate Bio-Agent
+                    <div className={`absolute inset-0 bg-gradient-to-b ${hasDesign ? 'from-amber-600/20 to-transparent' : 'from-red-900/20 to-transparent'} rounded-lg opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+                    <div className="flex flex-col items-center gap-1">
+                       <span className={`text-2xl filter drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] ${hasDesign ? 'text-amber-500' : 'text-zinc-600'}`}>
+                          {hasDesign ? '⚡' : '🚫'}
+                       </span>
+                       <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${hasDesign ? 'text-amber-500' : 'text-zinc-600'}`}>
+                          {hasDesign ? 'INJECT SEQUENCE' : 'NO_DESIGN'}
+                       </span>
+                    </div>
                   </button>
+
+                  <div className="flex flex-col gap-2">
+                     <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-500 animate-pulse" style={{ width: isRunning ? '100%' : '0%' }}></div>
+                     </div>
+                     <span className="text-[8px] font-mono text-zinc-600 text-center">SEQUENCE_PROGRESS</span>
+                  </div>
                 </div>
              </div>
           </div>
@@ -190,7 +224,7 @@ const BiologyApp = () => {
                </div>
             </div>
             <div className="flex-1 relative bg-[#0d0d0d] border-x-4 border-b-4 border-[#1a1a1a] rounded-b-xl shadow-inner overflow-hidden">
-               <CellBuilder />
+               <CellBuilder onFinalize={() => setViewMode('simulation')} />
             </div>
           </div>
         )}
@@ -235,9 +269,6 @@ const BiologyApp = () => {
           </svg>
         </button>
       </div>
-
-      {/* Modals */}
-      {isCellCreatorOpen && viewMode === 'simulation' && <CellCreator onClose={() => setIsCellCreatorOpen(false)} />}
     </div>
   );
 };

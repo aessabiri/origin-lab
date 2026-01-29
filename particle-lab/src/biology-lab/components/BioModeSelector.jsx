@@ -6,9 +6,9 @@ const BioModeSelector = ({ currentMode, setMode }) => {
   const { agents, isRunning, synthesizedProteins, currentCellDesign } = useBioStore();
 
   const modes = [
-    { id: 'simulation', label: 'Petri Dish', icon: '🧫', val: agents.length, unit: 'CELLS' },
-    { id: 'folding', label: 'Protein Lab', icon: '🧬', val: synthesizedProteins.length, unit: 'SEQ' },
     { id: 'assembly', label: 'Cell Assembly', icon: '🦠', val: currentCellDesign.organelles.length, unit: 'COMP' },
+    { id: 'folding', label: 'Protein Lab', icon: '🧬', val: synthesizedProteins.length, unit: 'SEQ' },
+    { id: 'simulation', label: 'Incubation Chamber', icon: '🧫', val: agents.length, unit: 'AGENTS' },
     { id: 'inventory', label: 'Bio-Storage', icon: '📦', val: 'LOAD', unit: 'SYS' }
   ];
 

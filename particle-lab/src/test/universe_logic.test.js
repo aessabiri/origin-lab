@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { updateSimulation, createNebulaParticle } from '../components/universeLogic';
+import { updateSimulation, createNebulaParticle, BigBangPhase } from '../components/universeLogic';
 import { PARTICLE_TYPES } from '../constants/particles';
 
 describe('Universe Logic', () => {
@@ -74,5 +74,23 @@ describe('Universe Logic', () => {
     expect(star.composition.hydrogen).toBeLessThan(100);
     expect(star.composition.helium).toBeGreaterThan(0);
     expect(star.temperature).toBeGreaterThan(3000);
+  });
+
+  it('should return cinematic overrides during Big Bang phases', () => {
+    const particles = [{ x: 50, y: 50, vx: 0, vy: 0 }];
+    
+    // INFLATION Phase
+    const cin1 = updateSimulation(0.1, particles, [], [], [], 100, 100, null, null, null, {}, BigBangPhase.INFLATION, 0.5);
+    expect(cin1.shake).toBeGreaterThan(0);
+    expect(cin1.zoom).toBeGreaterThan(1);
+
+    // PLASMA Phase
+    const cin2 = updateSimulation(0.1, particles, [], [], [], 100, 100, null, null, null, {}, BigBangPhase.PLASMA, 5);
+    expect(cin2.colorShift).toBeGreaterThan(0);
+    
+    // STELLAR Phase (Normal Physics)
+    const cin3 = updateSimulation(0.1, particles, [], [], [], 100, 100, null, null, null, {}, BigBangPhase.STELLAR, 20);
+    expect(cin3.shake).toBe(0);
+    expect(cin3.zoom).toBe(1);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useBioSimulation } from '../hooks/useBioSimulation';
 import { useBioStore } from '../store';
 
@@ -33,7 +33,9 @@ describe('Biology Lab Simulation', () => {
     renderHook(() => useBioSimulation());
 
     // Advance time
-    vi.advanceTimersByTime(100);
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
 
     const updatedAgent = useBioStore.getState().agents[0];
     expect(updatedAgent.x).not.toBe(400); // Should have moved
@@ -50,7 +52,9 @@ describe('Biology Lab Simulation', () => {
 
     renderHook(() => useBioSimulation());
 
-    vi.advanceTimersByTime(100); 
+    act(() => {
+      vi.advanceTimersByTime(100);
+    }); 
 
     const state = useBioStore.getState();
     expect(state.foodItems).toHaveLength(0); // Food eaten
@@ -69,9 +73,13 @@ describe('Biology Lab Simulation', () => {
     renderHook(() => useBioSimulation());
 
     // Stage 1: Prime the timer
-    vi.advanceTimersByTime(100);
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
     // Stage 2: Run the logic
-    vi.advanceTimersByTime(100);
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
 
     const agents = useBioStore.getState().agents;
     expect(agents.length).toBeGreaterThanOrEqual(2);
@@ -87,7 +95,9 @@ describe('Biology Lab Simulation', () => {
 
     renderHook(() => useBioSimulation());
 
-    vi.advanceTimersByTime(100);
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
 
     const agents = useBioStore.getState().agents;
     expect(agents).toHaveLength(0); // Should be dead
@@ -105,7 +115,9 @@ describe('Biology Lab Simulation', () => {
 
     renderHook(() => useBioSimulation());
 
-    vi.advanceTimersByTime(100);
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
 
     const updatedAgent = useBioStore.getState().agents[0];
     expect(updatedAgent.vx).toBeGreaterThan(0);

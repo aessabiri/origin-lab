@@ -79,11 +79,20 @@ export const useInventory = create(
       // Add a newly discovered or synthesized item
       addResource: (category, type, amount = 1) => set((state) => {
         const target = state[category];
+        
+        // Also track in Codex
+        let newDiscovered = state.discoveredItems;
+        if (!newDiscovered.includes(type)) {
+            newDiscovered = [...newDiscovered, type];
+        }
+
         if (!target) {
             console.warn(`Inventory category '${category}' does not exist.`);
-            return state;
+            return { discoveredItems: newDiscovered };
         }
+        
         return {
+          discoveredItems: newDiscovered,
           [category]: {
             ...target,
             [type]: (target[type] || 0) + amount
@@ -92,19 +101,17 @@ export const useInventory = create(
       }),
 
       // Consume a resource (returns true if successful, false if insufficient)
+      // NOTE: As of Jan 2026, Resources are "Infinite" once unlocked.
+      // This function now only checks availability, it does NOT deplete stock.
       consumeResource: (category, type, amount = 1) => {
         const state = get();
         const currentAmount = state[category]?.[type] || 0;
         
-        if (currentAmount < amount) return false;
-
-        set((s) => ({
-          [category]: {
-            ...s[category],
-            [type]: currentAmount - amount
-          }
-        }));
-        return true;
+        // Check availability (either count > 0 OR it is in discoveredItems)
+        // Using count > 0 is safer to ensure it was actually produced at least once
+        if (currentAmount > 0) return true;
+        
+        return false;
       },
 
       // Nuclear Transmutation (Star Forging)

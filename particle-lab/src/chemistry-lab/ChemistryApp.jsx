@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Pantry from './components/Pantry';
+import ChemistrySidebar from './components/ChemistrySidebar';
 import Workstation from './components/Workstation';
 import { useSimulation } from './hooks/useSimulation';
 import { useChemistryStore } from './store';
@@ -15,7 +15,7 @@ const ChemistryApp = () => {
   const setIsCodexVisible = useStore(state => state.setIsCodexVisible);
 
   // Layout State
-  const [isPantryOpen, setIsPantryOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Default open for better UX
 
   React.useEffect(() => {
     const handleInteraction = () => {
@@ -36,29 +36,28 @@ const ChemistryApp = () => {
   return (
     <div className="flex w-full h-full bg-slate-900 text-white font-inter overflow-hidden relative">
       
-      {/* Left Sidebar: Pantry (Collapsible) */}
+      {/* Left Sidebar: Local Inventory & Equipment */}
       <div 
         className={`relative z-20 h-full bg-gray-900 border-r border-gray-800 transition-all duration-300 ease-in-out flex flex-col ${
-          isPantryOpen ? 'w-80 translate-x-0' : 'w-0 -translate-x-full overflow-hidden'
+          isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 -translate-x-full overflow-hidden'
         }`}
       >
         <div className="flex-1 overflow-hidden relative">
-           {/* We need to ensure Pantry fits here. Pantry uses ResourceExchange which is flex-col h-full. */}
            <div className="absolute inset-0">
-             <Pantry />
+             <ChemistrySidebar />
            </div>
         </div>
       </div>
 
-      {/* Toggle Button for Pantry (Fixed to left edge when closed, or top of sidebar when open) */}
+      {/* Toggle Button for Sidebar */}
       <button
-        onClick={() => setIsPantryOpen(!isPantryOpen)}
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className={`absolute z-30 top-1/2 -translate-y-1/2 bg-gray-800 border border-gray-600 text-amber-500 p-2 rounded-r-lg shadow-lg transition-all duration-300 ${
-          isPantryOpen ? 'left-80' : 'left-0'
+          isSidebarOpen ? 'left-80' : 'left-0'
         }`}
-        aria-label={isPantryOpen ? "Close Pantry" : "Open Pantry"}
+        aria-label={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
       >
-        {isPantryOpen ? (
+        {isSidebarOpen ? (
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>

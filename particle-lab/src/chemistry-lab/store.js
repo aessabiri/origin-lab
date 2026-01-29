@@ -36,7 +36,8 @@ export const useChemistryStore = create(
       unlockedEquipment: [...STARTING_EQUIPMENT],
       
       // --- Physical State ---
-      inventory: [...STARTING_CHEMICALS], // Chemicals available in Pantry
+      inventory: [...STARTING_CHEMICALS], // Unlocks (Legacy/Career tracking)
+      localInventory: {}, // Actual quantity of items available in the lab
       vessels: {
         beaker: { id: 'beaker', name: 'Open Beaker', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 500, status: 'ok', type: 'glass', variant: 'beaker', activeVisual: null, isOpen: true },
       },
@@ -62,6 +63,22 @@ export const useChemistryStore = create(
       toggleFumeHood: () => set((state) => ({ isFumeHoodOn: !state.isFumeHoodOn })),
       toggleHint: () => set((state) => ({ isHintVisible: !state.isHintVisible })),
       
+      addToLocalInventory: (chemicalId, amount) => set(state => {
+        const current = state.localInventory[chemicalId] || 0;
+        return {
+            localInventory: { ...state.localInventory, [chemicalId]: current + amount }
+        };
+      }),
+
+      removeFromLocalInventory: (chemicalId, amount) => set(state => {
+        const current = state.localInventory[chemicalId] || 0;
+        if (current < amount) return state;
+        const newVal = current - amount;
+        const newInv = { ...state.localInventory, [chemicalId]: newVal };
+        if (newVal <= 0) delete newInv[chemicalId];
+        return { localInventory: newInv };
+      }),
+
       setGameMode: (mode) => {
           if (mode === 'sandbox') {
               set({ 
@@ -279,21 +296,18 @@ export const useChemistryStore = create(
       addToVessel: (vesselId, chemicalId, amount) => {
         const state = get();
         
-        // --- Inventory Check ---
-        if (state.gameMode !== 'sandbox') {
-           const invKey = getInventoryKey(chemicalId);
-           if (invKey) {
-              const category = ['HYDROGEN', 'HELIUM', 'CARBON', 'NITROGEN', 'OXYGEN', 'SULFUR', 'IRON'].includes(chemicalId) ? 'elements' : 'compounds';
-              const success = useInventory.getState().consumeResource(category, invKey, amount);
-              
-              if (!success) {
-                 get().setMessage(`Not enough ${chemicalId} in Global Inventory!`);
-                 return; // Abort
-              }
-           }
+        // --- Local Inventory Check ---
+        const available = state.localInventory[chemicalId] || 0;
+        
+        if (state.gameMode !== 'sandbox' && available < 1) { // Check existence, not quantity
+             get().setMessage(`Not unlocked in Local Store! Import first.`);
+             return;
         }
 
         audioSystem.playOneShot(SFX.POUR);
+        
+        // We do NOT deduct from local inventory anymore (Infinite Supply once imported)
+
         set((state) => {
           const vessel = state.vessels[vesselId];
           const currentAmount = vessel.contents[chemicalId] || 0;

@@ -51,6 +51,48 @@ export const useBioStore = create(
 
       addAgent: (agent) => set((state) => ({ agents: [...state.agents, agent] })),
       
+      // Inject the User's Design into the Simulation
+      injectLuca: () => set((state) => {
+        const design = state.currentCellDesign;
+        if (design.organelles.length === 0) return state; // Can't inject empty cell
+
+        // Calculate stats based on organelles
+        let speed = 1;
+        let metabolism = 0.5;
+        let sense = 100;
+        
+        // Simple stat derivation
+        design.organelles.forEach(o => {
+           if (o.type === 'mitochondrion') { metabolism += 0.5; speed += 0.5; }
+           if (o.type === 'ribosome') { metabolism += 0.2; }
+           if (o.type === 'membrane') { sense += 50; }
+        });
+
+        const luca = {
+          id: 'LUCA',
+          x: 400, // Center of world
+          y: 400,
+          vx: 0, 
+          vy: 0,
+          radius: 15 + (design.organelles.length * 2),
+          energy: 200, // Starting energy
+          color: '#ffffff', // White for the protagonist
+          genome: {
+            speed,
+            metabolism,
+            sense,
+            diet: 0, // Default Herbivore for now
+          },
+          design: design // Store the blueprint
+        };
+
+        return {
+          agents: [luca], // Clear previous and add LUCA
+          isRunning: true, // Auto-start
+          soup: { ...INITIAL_SOUP } // Reset soup for fair test
+        };
+      }),
+
       removeAgent: (id) => set((state) => ({ agents: state.agents.filter(a => a.id !== id) })),
 
       updateSoup: (updates) => set((state) => ({ soup: { ...state.soup, ...updates } })),

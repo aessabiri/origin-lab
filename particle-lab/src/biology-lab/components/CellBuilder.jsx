@@ -14,7 +14,7 @@ const ORGANELLES = [
   { type: PARTICLE_TYPES.NUCLEUS, stats: { stability: 30, metabolism: 10 } },
 ];
 
-const CellBuilder = () => {
+const CellBuilder = ({ onFinalize }) => {
   const { 
     currentCellDesign, 
     synthesizedProteins, 
@@ -55,7 +55,8 @@ const CellBuilder = () => {
 
   const handleFinalize = () => {
     // In a real game, this might unlock spawning this specific cell type
-    alert("LUCA PROTOTYPE FINALIZED // SAVED TO BIOS_KERNEL");
+    // alert("LUCA PROTOTYPE FINALIZED // SAVED TO BIOS_KERNEL");
+    if (onFinalize) onFinalize();
   };
 
   return (

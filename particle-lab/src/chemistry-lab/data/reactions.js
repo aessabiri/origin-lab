@@ -1,4 +1,7 @@
-export const REACTIONS = [
+import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
+import { PARTICLE_TYPES } from '../../constants/particles.js';
+
+const MANUAL_REACTIONS = [
   // Vinegar + Baking Soda -> CO2 + Water
   {
     inputs: { 'vinegar': 1, 'baking-soda': 1 },
@@ -179,16 +182,88 @@ export const REACTIONS = [
   {
     inputs: { 'methane': 2, 'ammonia': 1, 'water': 2 },
     conditions: { tempMin: 400, pressureMin: 40 }, // High energy/lightning simulation
-        outputs: { 'glycine': 1, 'hydrogen': 5 },
-        visual: 'solidify',
-        heat: -30
-      },
-      // Neutralization: HCl + NaOH -> NaCl + H2O
-      {
-        inputs: { 'hydrochloric-acid': 1, 'sodium-hydroxide': 1 },
-        conditions: {}, // Spontaneous
-        outputs: { 'sodium-chloride': 1, 'water': 1 },
-        visual: 'steam', // It gets hot!
-        heat: 58 // Standard enthalpy of neutralization is ~57 kJ/mol
+    outputs: { 'glycine': 1, 'hydrogen': 5 },
+    visual: 'solidify',
+    heat: -30
+  },
+  // Neutralization: HCl + NaOH -> NaCl + H2O
+  {
+    inputs: { 'hydrochloric-acid': 1, 'sodium-hydroxide': 1 },
+    conditions: {}, // Spontaneous
+    outputs: { 'sodium-chloride': 1, 'water': 1 },
+    visual: 'steam', // It gets hot!
+    heat: 58 // Standard enthalpy of neutralization is ~57 kJ/mol
+  }
+];
+
+// --- Auto-Generation Logic ---
+
+// Elements that exist as Diatomic Gases in the Chemistry Lab inventory
+const DIATOMIC_ELEMENTS = new Set([
+  PARTICLE_TYPES.HYDROGEN,
+  PARTICLE_TYPES.OXYGEN,
+  PARTICLE_TYPES.NITROGEN,
+  PARTICLE_TYPES.CHLORINE,
+  PARTICLE_TYPES.FLUORINE,
+  // Bromine/Iodine omitted as they might be liquid/solid or not in basic list, 
+  // but usually treated as diatomic in reaction stochiometry.
+]);
+
+// Helper to check if a reaction for this output already exists
+const existingOutputs = new Set();
+MANUAL_REACTIONS.forEach(r => {
+  Object.keys(r.outputs).forEach(out => existingOutputs.add(out));
+});
+
+const generatedReactions = [];
+
+MOLECULE_RECIPES.forEach(recipe => {
+  if (existingOutputs.has(recipe.type)) return; // Skip if manually defined
+
+  // Calculate stoichiometry
+  // We need to convert Atom counts to Molecule counts.
+  // If an atom is diatomic (e.g. H), we need H/2 molecules.
+  // If H is odd, we must multiply the entire equation by 2 (or more) to get integer coefficients.
+  
+  let multiplier = 1;
+  const atomIngredients = Object.entries(recipe.atoms);
+  
+  // check for odd counts of diatomic elements
+  for (const [atom, count] of atomIngredients) {
+    if (DIATOMIC_ELEMENTS.has(atom)) {
+      if ((count * multiplier) % 2 !== 0) {
+        multiplier *= 2;
       }
-    ];
+    }
+  }
+
+  const inputs = {};
+  
+  atomIngredients.forEach(([atom, count]) => {
+    const totalAtoms = count * multiplier;
+    if (DIATOMIC_ELEMENTS.has(atom)) {
+      inputs[atom] = totalAtoms / 2;
+    } else {
+      inputs[atom] = totalAtoms;
+    }
+  });
+
+  // Output count
+  const outputs = { [recipe.type]: multiplier };
+
+  // Heuristic for Conditions based on complexity
+  const conditions = {
+    tempMin: 50 + Object.keys(inputs).length * 20, // More ingredients -> more heat needed
+    pressureMin: 1 + Object.keys(inputs).length // Slight pressure
+  };
+
+  generatedReactions.push({
+    inputs,
+    conditions,
+    outputs,
+    visual: 'fume', // Generic visual
+    heat: 10 * multiplier // Generic exothermic
+  });
+});
+
+export const REACTIONS = [...MANUAL_REACTIONS, ...generatedReactions];

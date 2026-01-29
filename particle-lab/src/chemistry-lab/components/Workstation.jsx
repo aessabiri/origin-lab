@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Vessel from './Vessel';
-import Condenser from './Condenser';
-import EquipmentPalette from './EquipmentPalette';
 import MissionTracker from './MissionTracker';
 import MissionHint from './MissionHint';
 import { useChemistryStore } from '../store';
@@ -9,13 +7,8 @@ import { useChemistryStore } from '../store';
 const Workstation = () => {
   const vessels = useChemistryStore(state => state.vessels);
   const isFumeHoodOn = useChemistryStore(state => state.isFumeHoodOn);
-  const toggleFumeHood = useChemistryStore(state => state.toggleFumeHood);
   const createVessel = useChemistryStore(state => state.createVessel);
   const removeVessel = useChemistryStore(state => state.removeVessel);
-  const gameMode = useChemistryStore(state => state.gameMode);
-  const setGameMode = useChemistryStore(state => state.setGameMode);
-
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -57,39 +50,6 @@ const Workstation = () => {
             </div>
          </div>
        )}
-
-       {/* Control Panel (Wall) */}
-       <div className="absolute top-20 right-10 flex flex-col gap-4 z-30">
-          <button 
-            onClick={toggleFumeHood}
-            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 shadow-lg ${isFumeHoodOn ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400' : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500'}`}
-          >
-            <span className="text-2xl">{isFumeHoodOn ? '🌪️' : '💨'}</span>
-            <span className="text-[10px] font-bold tracking-widest uppercase">Fume Hood</span>
-          </button>
-
-          <div className="relative">
-              <button 
-                onClick={() => setIsPaletteOpen(!isPaletteOpen)}
-                className={`w-full p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 shadow-lg ${isPaletteOpen ? 'bg-amber-500/20 border-amber-500 text-amber-400' : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500'}`}
-              >
-                <span className="text-2xl">🛠️</span>
-                <span className="text-[10px] font-bold tracking-widest uppercase">Equipment</span>
-              </button>
-              
-              {/* Render Palette anchored here */}
-              <EquipmentPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
-          </div>
-
-          {/* Game Mode Toggle */}
-          <button 
-            onClick={() => setGameMode(gameMode === 'sandbox' ? 'career' : 'sandbox')}
-            className={`p-2 rounded-xl border-2 transition-all flex flex-col items-center gap-1 shadow-lg ${gameMode === 'sandbox' ? 'bg-purple-900/50 border-purple-500 text-purple-300' : 'bg-blue-900/50 border-blue-500 text-blue-300'}`}
-          >
-            <span className="text-xs font-bold uppercase tracking-widest">{gameMode === 'sandbox' ? 'Sandbox Mode' : 'Career Mode'}</span>
-            <span className="text-[10px] opacity-70">{gameMode === 'sandbox' ? 'All Unlocked' : 'Missions Active'}</span>
-          </button>
-       </div>
 
        
        {/* Table Surface */}
