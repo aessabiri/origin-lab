@@ -1,6 +1,6 @@
 import React from 'react';
 import { useChemistryStore } from '../store';
-import { CHEMICALS } from '../data/chemicals';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 import ChemicalIcon from './ChemicalIcon';
 import MoleculeStructure from './MoleculeStructure';
 
@@ -10,7 +10,7 @@ const ChemicalInfoModal = () => {
 
   if (!inspectedChemicalId) return null;
 
-  const chemical = CHEMICALS[inspectedChemicalId];
+  const chemical = MATTER_DEFINITIONS[inspectedChemicalId];
   if (!chemical) return null;
 
   const handleClose = () => setInspectedChemical(null);

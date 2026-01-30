@@ -1,4 +1,4 @@
-import { CHEMICALS } from '../data/chemicals';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 
 const GAS_CONSTANT = 0.0821; // L atm / (K mol) - Simplified for game scale
 
@@ -6,8 +6,11 @@ export const calculatePressure = (vessel) => {
     // 1. Calculate Total Moles of Gas
     let gasMoles = 0;
     
-    Object.entries(vessel.contents).forEach(([chemId, amount]) => {
-        const chem = CHEMICALS[chemId];
+      Object.entries(vessel.contents).forEach(([chemId, amount]) => {
+    
+        const chem = MATTER_DEFINITIONS[chemId];
+    
+    
         if (!chem) return;
 
         // Check if it's naturally a gas OR if it's boiling

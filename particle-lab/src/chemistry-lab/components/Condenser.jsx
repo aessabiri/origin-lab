@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useChemistryStore } from '../store';
-import { CHEMICALS } from '../data/chemicals';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 
 const Condenser = () => {
   const condenser = useChemistryStore(state => state.condenser);
@@ -10,13 +10,11 @@ const Condenser = () => {
   const totalVolume = Object.values(condenser.contents).reduce((a, b) => a + b, 0);
   const fillPercentage = Math.min((totalVolume / condenser.maxVol) * 100, 100);
 
-  const fluidColor = useMemo(() => {
-    if (totalVolume === 0) return 'transparent';
-    const entries = Object.entries(condenser.contents);
-    if (entries.length === 0) return 'transparent';
-    const dominant = entries.reduce((a, b) => a[1] > b[1] ? a : b);
-    return CHEMICALS[dominant[0]]?.color || '#3b82f6';
-  }, [condenser.contents, totalVolume]);
+  const dominantColor = useMemo(() => {
+    const dominant = Object.entries(condenser.contents).sort((a,b) => b[1] - a[1])[0];
+    if (!dominant) return '#3b82f6';
+    return MATTER_DEFINITIONS[dominant[0]]?.color || '#3b82f6';
+  }, [condenser.contents]);
 
   const handleCollect = () => {
       emptyCondenser();

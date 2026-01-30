@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useChemistryStore } from '../store';
-import { CHEMICALS } from '../data/chemicals';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 import { VESSEL_STATS } from '../data/constants';
 import { calculatePH, calculateMixtureColor, calculatePrecipitates } from '../logic/chemistry';
 import QuantityModal from './QuantityModal';
@@ -61,7 +61,7 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
      
      const sorted = entries.sort((a, b) => b[1] - a[1]);
      const dominantId = sorted[0][0];
-     const dominant = CHEMICALS[dominantId];
+     const dominant = MATTER_DEFINITIONS[dominantId];
      if (!dominant) return 'Unknown';
 
      // Determine effective state
@@ -73,9 +73,9 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
          effectiveState = 'gas';
      }
 
-     if (dominantId === 'H2O' && entries.length > 1 && effectiveState === 'liquid') {
+     if (dominantId === 'water' && entries.length > 1 && effectiveState === 'liquid') {
         const soluteId = sorted[1][0];
-        const solute = CHEMICALS[soluteId];
+        const solute = MATTER_DEFINITIONS[soluteId];
         return `Aq. ${solute?.name || 'Solution'}`;
      }
      
@@ -136,7 +136,7 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
         isOpen={modalState.isOpen}
         onClose={() => setModalState({ isOpen: false, chemicalId: null })}
         onConfirm={handleConfirmPour}
-        chemicalName={CHEMICALS[modalState.chemicalId]?.name || 'Unknown'}
+        chemicalName={MATTER_DEFINITIONS[modalState.chemicalId]?.name || 'Unknown'}
       />
       
       {showUpgradeMenu && (

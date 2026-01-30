@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useChemistryStore } from '../store';
 import { EQUIPMENT } from '../data/equipment';
-import { CHEMICALS } from '../data/chemicals';
 import ResourceExchange from '../../components/ResourceExchange.jsx';
 import ChemicalIcon from './ChemicalIcon.jsx';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry.js';
 
 const ChemistrySidebar = () => {
   const [activeTab, setActiveTab] = useState('storage'); // 'storage' | 'equipment'
@@ -67,7 +67,7 @@ const ChemistrySidebar = () => {
                ) : (
                  <div className="grid grid-cols-2 gap-2">
                    {Object.entries(localInventory).map(([id, amount]) => {
-                     const chemical = CHEMICALS[id] || { name: id, color: '#999', formula: '?' };
+                     const chemical = MATTER_DEFINITIONS[id] || { name: id, color: '#999', formula: '?' };
                      return (
                        <div 
                          key={id}

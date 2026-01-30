@@ -3,9 +3,9 @@ export const MISSIONS = [
     id: 'mission_01',
     title: 'Welcome to the Lab',
     description: 'Let\'s start simple. Create Carbon Dioxide (CO2) by mixing Vinegar and Baking Soda.',
-    requirements: { CO2: 1 },
+    requirements: { 'carbon-dioxide': 1 },
     rewards: {
-      unlockChemicals: ['HYDROGEN', 'OXYGEN', 'UNIVERSAL_INDICATOR'],
+      unlockChemicals: ['hydrogen', 'oxygen', 'universal-indicator'],
       unlockEquipment: ['flask_volumetric'],
       message: 'Unlocks: Hydrogen, Oxygen, Indicator, Reaction Flask'
     },
@@ -20,9 +20,9 @@ export const MISSIONS = [
     id: 'mission_02',
     title: 'Combustion',
     description: 'Use the Reaction Flask to burn Hydrogen and Oxygen together to create Water (H2O). Watch the temperature!',
-    requirements: { H2O: 1 },
+    requirements: { 'water': 1 },
     rewards: {
-      unlockChemicals: ['IRON', 'SULFUR'],
+      unlockChemicals: ['iron', 'sulfur'],
       message: 'Unlocks: Iron, Sulfur'
     },
     hint: {
@@ -36,9 +36,9 @@ export const MISSIONS = [
     id: 'mission_03',
     title: 'Oxidation',
     description: 'Expose Iron to Oxygen to create Rust (Iron Oxide).',
-    requirements: { IRON_OXIDE: 1 },
+    requirements: { 'iron-oxide': 1 },
     rewards: {
-      unlockChemicals: ['NITROGEN'],
+      unlockChemicals: ['nitrogen'],
       unlockEquipment: ['reactor_reinforced'],
       message: 'Unlocks: Nitrogen, High-Pressure Reactor'
     },
@@ -53,9 +53,9 @@ export const MISSIONS = [
     id: 'mission_04',
     title: 'Industrial Ammonia',
     description: 'Synthesize Ammonia using Nitrogen and Hydrogen in the High-Pressure Reactor (Haber Process). Needs Heat and Pressure.',
-    requirements: { AMMONIA: 1 },
+    requirements: { 'ammonia': 1 },
     rewards: {
-      unlockChemicals: ['NaCl', 'CHLORINE'],
+      unlockChemicals: ['sodium-chloride', 'chlorine'],
       message: 'Unlocks: Salt, Chlorine'
     },
     hint: {
@@ -69,9 +69,9 @@ export const MISSIONS = [
     id: 'mission_05',
     title: 'Acids',
     description: 'Create Hydrochloric Acid (HCl) from Hydrogen and Chlorine.',
-    requirements: { HYDROCHLORIC_ACID: 1 },
+    requirements: { 'hydrochloric-acid': 1 },
     rewards: {
-      unlockChemicals: ['ETHANOL'],
+      unlockChemicals: ['ethanol'],
       unlockEquipment: ['distillation_setup'],
       message: 'Unlocks: Ethanol, Distillation Kit'
     },
@@ -86,9 +86,9 @@ export const MISSIONS = [
     id: 'mission_06',
     title: 'Purification',
     description: 'Boil Ethanol in the Distillation Kit and collect the pure condensed liquid.',
-    requirements: { ETHANOL: 1 }, // Collecting it from condenser triggers this
+    requirements: { 'ethanol': 1 }, // Collecting it from condenser triggers this
     rewards: {
-      unlockChemicals: ['ETHYLENE'],
+      unlockChemicals: ['ethylene'],
       message: 'Unlocks: Ethylene (The Plastic Age)'
     },
     hint: {
@@ -102,9 +102,9 @@ export const MISSIONS = [
     id: 'mission_07',
     title: 'The Sabatier Process',
     description: 'Convert CO2 and Hydrogen into Methane gas. This is how we might make fuel on Mars!',
-    requirements: { METHANE: 1 },
+    requirements: { 'methane': 1 },
     rewards: {
-      unlockChemicals: ['POTASSIUM_PERMANGANATE'],
+      unlockChemicals: ['potassium-permanganate'],
       message: 'Unlocks: Potassium Permanganate'
     },
     hint: {
@@ -118,7 +118,7 @@ export const MISSIONS = [
     id: 'mission_08',
     title: 'Building Blocks of Life',
     description: 'Synthesize Glucose and Glycine to prove that chemistry leads to biology.',
-    requirements: { GLYCINE: 1 },
+    requirements: { 'glycine': 1 },
     rewards: {
       message: 'You have mastered the foundations of the Chemistry Lab!'
     },
@@ -131,5 +131,5 @@ export const MISSIONS = [
   }
 ];
 
-export const STARTING_CHEMICALS = ['VINEGAR', 'BAKING_SODA'];
+export const STARTING_CHEMICALS = ['vinegar', 'baking-soda'];
 export const STARTING_EQUIPMENT = ['beaker_std'];

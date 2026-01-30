@@ -3,7 +3,6 @@ import { useStore } from '../store';
 import { useProgressionStore } from '../store/progressionStore';
 import { useInventory } from '../store/inventory';
 import { getUniversalCodexData } from '../utils/codexData';
-import { CHEMICALS } from '../chemistry-lab/data/chemicals';
 import { PARTICLE_INFO, PARTICLE_TYPES } from '../constants/particles';
 
 // Mock dependencies if needed, but we're testing store integration so real stores are better.

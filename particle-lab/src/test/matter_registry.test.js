@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MATTER_DEFINITIONS, getMatterInfo, getAllMatter } from '../constants/matterRegistry';
 import { PARTICLE_TYPES } from '../constants/particles';
-import { CHEMICALS } from '../chemistry-lab/data/chemicals';
 
 describe('Unified Matter Registry', () => {
   it('should contain definitions from Physics (PARTICLE_INFO)', () => {
@@ -11,15 +10,21 @@ describe('Unified Matter Registry', () => {
     expect(proton.source).toBe('Physics');
   });
 
-  it('should contain definitions from Chemistry (CHEMICALS)', () => {
+  it('should contain definitions from Chemistry', () => {
     // Pick a chemical likely to exist, e.g., WATER
     const waterId = PARTICLE_TYPES.WATER; 
     const water = getMatterInfo(waterId);
     
     expect(water).toBeDefined();
     expect(water.formula).toBe('H₂O');
-    expect(water.source).toBe('Chemistry'); // Should override Physics or merge
+    expect(water.source).toBe('Chemistry');
     expect(water.isChemical).toBe(true);
+  });
+
+  it('should contain baking-soda with correct metadata', () => {
+    const bakingSoda = MATTER_DEFINITIONS['baking-soda'];
+    expect(bakingSoda).toBeDefined();
+    expect(bakingSoda.name).toBe('Baking Soda');
   });
 
   it('should have a color for every entry', () => {

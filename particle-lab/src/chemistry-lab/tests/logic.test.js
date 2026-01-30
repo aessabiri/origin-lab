@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calculatePH, calculatePrecipitates, processReactions } from '../logic/chemistry';
-import { CHEMICALS } from '../data/chemicals';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 
 describe('Chemistry Logic', () => {
     

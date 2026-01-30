@@ -1,4 +1,4 @@
-import { CHEMICALS } from '../data/chemicals';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 import { useChemistryStore } from '../store';
 
 export const processPhaseChanges = (vessel, timeSpeed) => {
@@ -22,8 +22,13 @@ export const processPhaseChanges = (vessel, timeSpeed) => {
 
     let isAnySolidified = false;
 
-    Object.entries(vessel.contents).forEach(([chemId, amount]) => {
-        const chem = CHEMICALS[chemId];
+      Object.entries(vessel.contents).forEach(([chemId, amount]) => {
+
+        const chem = MATTER_DEFINITIONS[chemId];
+
+        if (!chem) return;
+
+    
         if (!chem) return;
 
         let amountToRemove = 0;

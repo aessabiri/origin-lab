@@ -1,6 +1,6 @@
 import { REACTIONS } from '../data/reactions';
+import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 import { PHYSICS_CONSTANTS } from '../data/constants';
-import { CHEMICALS } from '../data/chemicals';
 import { getCandidateReactions } from './reactionRegistry';
 
 // Helper to calculate dissolved vs precipitate
@@ -20,7 +20,7 @@ export const calculatePrecipitates = (contents, temp) => {
             return;
         }
 
-        const chem = CHEMICALS[id];
+        const chem = MATTER_DEFINITIONS[id];
         if (!chem) return;
 
         // If it's a gas, we assume it's dissolved (up to Henry's law limit, but ignored for now)
@@ -136,7 +136,7 @@ export const calculatePH = (contents) => {
     let molesOH = 0;
 
     Object.entries(contents).forEach(([id, amount]) => {
-        const chem = CHEMICALS[id];
+        const chem = MATTER_DEFINITIONS[id];
         if (!chem) return;
         totalVol += amount;
 
@@ -182,7 +182,7 @@ export const calculateMixtureColor = (contents, currentPH) => {
     if (entries.length === 0) return 'transparent';
 
     entries.forEach(([id, amount]) => {
-        const chem = CHEMICALS[id];
+        const chem = MATTER_DEFINITIONS[id];
         if (!chem) return;
 
         let color = chem.color;

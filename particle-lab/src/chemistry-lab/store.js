@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { MISSIONS, STARTING_CHEMICALS, STARTING_EQUIPMENT } from './data/missions';
-import { CHEMICALS } from './data/chemicals';
+import { MISSIONS, STARTING_EQUIPMENT } from './data/missions';
 import { EQUIPMENT } from './data/equipment';
 import { audioSystem, SFX } from './logic/audio';
 import { useInventory } from '../store/inventory.js';
 import { MATTER_DEFINITIONS } from '../constants/matterRegistry.js';
+
+// Starting Chemicals (Standardized IDs)
+const STARTING_CHEMICALS = ['water', 'sodium-chloride', 'universal-indicator'];
 
 export const useChemistryStore = create(
   persist(
@@ -63,7 +65,7 @@ export const useChemistryStore = create(
           if (mode === 'sandbox') {
               set({ 
                   gameMode: 'sandbox',
-                  inventory: Object.keys(CHEMICALS),
+                  inventory: Object.keys(MATTER_DEFINITIONS).filter(id => MATTER_DEFINITIONS[id].isChemical),
                   unlockedEquipment: EQUIPMENT.map(e => e.id),
                   message: 'SANDBOX MODE: Everything unlocked. Have fun!'
               });

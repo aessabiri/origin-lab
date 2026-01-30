@@ -1,4 +1,4 @@
-import { CHEMICALS } from './chemicals';
+import { PARTICLE_TYPES } from '../../constants/particles';
 
 // Helper for centering. SVG viewbox is 200x150. Center is 100, 75.
 const CX = 100;

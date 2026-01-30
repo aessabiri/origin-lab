@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PARTICLE_TYPES, PARTICLE_INFO, PARTICLE_COLORS } from '../constants/particles';
 import { REACTIONS } from '../chemistry-lab/data/reactions';
-import { CHEMICALS } from '../chemistry-lab/data/chemicals';
+import { MATTER_DEFINITIONS } from '../constants/matterRegistry';
 import ParticleIcon from '../particle-lab/components/ParticleIcon.jsx';
 import ChemicalIcon from '../chemistry-lab/components/ChemicalIcon';
 import InfoPanel from '../particle-lab/components/InfoPanel.jsx';
@@ -136,7 +136,7 @@ const ReactionInfoModal = ({ reaction, onClose }) => {
                                 <ParticleIcon type={item.name} color={PARTICLE_COLORS[item.name] || 'bg-gray-500'} />
                                 {item.count > 1 && <span className="absolute -top-1 -right-1 bg-slate-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border border-slate-900">x{item.count}</span>}
                             </div>
-                            <span className="text-[10px] font-bold text-slate-300 text-center leading-tight max-w-[80px] break-words">{PARTICLE_INFO[item.name]?.name || CHEMICALS[item.name]?.name || item.name}</span>
+                            <span className="text-[10px] font-bold text-slate-300 text-center leading-tight max-w-[80px] break-words">{MATTER_DEFINITIONS[item.name]?.name || item.name}</span>
                         </div>
                     ))}
                 </div>
@@ -160,7 +160,7 @@ const ReactionInfoModal = ({ reaction, onClose }) => {
                                 <ParticleIcon type={item.name} color={PARTICLE_COLORS[item.name] || 'bg-gray-500'} />
                                 {item.count > 1 && <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border border-slate-900">x{item.count}</span>}
                             </div>
-                            <span className="text-[10px] font-bold text-blue-200 text-center leading-tight max-w-[80px] break-words">{PARTICLE_INFO[item.name]?.name || CHEMICALS[item.name]?.name || item.name}</span>
+                            <span className="text-[10px] font-bold text-blue-200 text-center leading-tight max-w-[80px] break-words">{MATTER_DEFINITIONS[item.name]?.name || item.name}</span>
                         </div>
                     )) : (
                         <span className="text-slate-600 italic text-sm">Energy / Radiation</span>
@@ -417,7 +417,7 @@ const RecipeCard = ({ inputs, output, desc, isBio, onSelectInfo, onInfoClick }) 
 };
 
 const ChemItem = ({ id, count, onClick }) => {
-  const chem = CHEMICALS[id] || { name: id, color: '#999', state: 'powder', formula: '?' };
+  const chem = MATTER_DEFINITIONS[id] || { name: id, color: '#999', state: 'powder', formula: '?' };
   const particleColor = PARTICLE_COLORS[id] || 'bg-gray-500';
   
   return (
