@@ -80,7 +80,15 @@ export const useSelection = ({ canvasRef }) => {
 
   const selectionInfo = useMemo(() => {
     const selectedParticles = particles.filter(p => selectedParticleIds.has(p.id));
-    const canDisassemble = selectedParticles.length === 1 && (COMPOUND_PARTICLE_TYPES.has(selectedParticles[0].type) || (MOLECULE_PARTICLE_TYPES && MOLECULE_PARTICLE_TYPES.has(selectedParticles[0].type)));
+    
+    const MOLECULE_TYPES = new Set(MOLECULE_RECIPES.map(r => r.type));
+    const POLYPEPTIDE_TYPES = new Set(POLYPEPTIDE_RECIPES.map(r => r.type));
+
+    const canDisassemble = selectedParticles.length === 1 && (
+      COMPOUND_PARTICLE_TYPES.has(selectedParticles[0].type) || 
+      MOLECULE_TYPES.has(selectedParticles[0].type) ||
+      POLYPEPTIDE_TYPES.has(selectedParticles[0].type)
+    );
     const canRevert = canDisassemble;
 
     let assemblyRecipe = null;
