@@ -137,12 +137,24 @@ const Hub = ({ onNavigate }) => {
                     />
 
                     <LabCard 
-                        title="Universe Progress" 
-                        icon="📈" 
-                        color="purple"
-                        desc="Cosmic timeline & evolution milestones."
+                        title="Goals & Missions" 
+                        icon="🏆" 
+                        color="indigo"
+                        desc="Active research objectives & rewards."
                         stats={[
-                            { label: 'Milestones', value: completedMilestones.length },
+                            { label: 'Active', value: 'Physics, Chem, Bio' },
+                            { label: 'Completed', value: useProgressionStore.getState().completedQuests.length },
+                        ]}
+                        onClick={() => onNavigate('goals')}
+                    />
+
+                    <LabCard 
+                        title="Cosmic Timeline" 
+                        icon="⏳" 
+                        color="purple"
+                        desc="Universe evolution milestones."
+                        stats={[
+                            { label: 'Era', value: completedMilestones.length },
                             { label: 'Total XP', value: xp },
                         ]}
                         onClick={() => onNavigate('progress')}
@@ -198,32 +210,52 @@ const Hub = ({ onNavigate }) => {
 
 // --- Sub-components ---
 
-const LabCard = ({ title, icon, color, desc, stats, onClick }) => (
-    <div 
-        onClick={onClick}
-        className={`group relative bg-slate-900/50 rounded-2xl p-6 border border-slate-800 cursor-pointer overflow-hidden transition-all hover:border-${color}-500/50 hover:shadow-2xl hover:shadow-${color}-500/10 h-full`}
-    >
-        <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-6xl grayscale group-hover:grayscale-0`}>
-            {icon}
-        </div>
-        
-        <div className="relative z-10 flex flex-col h-full">
-            <div className={`w-12 h-12 bg-${color}-500/20 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform text-${color}-400`}>
+const LabCard = ({ title, icon, color, desc, stats, onClick }) => {
+    const colorClasses = {
+        blue: 'hover:border-blue-500/50 hover:shadow-blue-500/10 text-blue-400',
+        green: 'hover:border-green-500/50 hover:shadow-green-500/10 text-green-400',
+        teal: 'hover:border-teal-500/50 hover:shadow-teal-500/10 text-teal-400',
+        yellow: 'hover:border-yellow-500/50 hover:shadow-yellow-500/10 text-yellow-400',
+        purple: 'hover:border-purple-500/50 hover:shadow-purple-500/10 text-purple-400',
+        indigo: 'hover:border-indigo-500/50 hover:shadow-indigo-500/10 text-indigo-400',
+    };
+
+    const bgColorClasses = {
+        blue: 'bg-blue-500/20',
+        green: 'bg-green-500/20',
+        teal: 'bg-teal-500/20',
+        yellow: 'bg-yellow-500/20',
+        purple: 'bg-purple-500/20',
+        indigo: 'bg-indigo-500/20',
+    };
+
+    return (
+        <div 
+            onClick={onClick}
+            className={`group relative bg-slate-900/50 rounded-2xl p-6 border border-slate-800 cursor-pointer overflow-hidden transition-all ${colorClasses[color]} h-full`}
+        >
+            <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-6xl grayscale group-hover:grayscale-0`}>
                 {icon}
             </div>
-            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-${color}-300 transition-colors">{title}</h3>
-            <p className="text-slate-400 text-sm mb-6 flex-1">{desc}</p>
             
-            <div className="space-y-2 border-t border-slate-800 pt-4 mt-auto">
-                {stats.map((s, i) => (
-                    <div key={i} className="flex justify-between text-sm">
-                        <span className="text-slate-500">{s.label}</span>
-                        <span className={`font-mono font-bold text-${color}-400`}>{s.value}</span>
-                    </div>
-                ))}
+            <div className="relative z-10 flex flex-col h-full">
+                <div className={`w-12 h-12 ${bgColorClasses[color]} rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform`}>
+                    {icon}
+                </div>
+                <h3 className="text-xl font-bold text-white mb-1 group-hover:text-inherit transition-colors">{title}</h3>
+                <p className="text-slate-400 text-sm mb-6 flex-1">{desc}</p>
+                
+                <div className="space-y-2 border-t border-slate-800 pt-4 mt-auto">
+                    {stats.map((s, i) => (
+                        <div key={i} className="flex justify-between text-sm">
+                            <span className="text-slate-500">{s.label}</span>
+                            <span className={`font-mono font-bold`}>{s.value}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default Hub;

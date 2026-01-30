@@ -21,13 +21,13 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
 
     if (isPlaceholder) {
       return (
-        <div className="w-16 h-20 rounded-md flex items-center justify-center bg-gray-600 text-gray-400 text-xs">
+        <div className="w-14 h-14 rounded-md flex items-center justify-center bg-gray-600 text-gray-400 text-[10px] text-center px-1">
           {placeholderText}
         </div>
       );
     }
 
-    if (!type) return <div key={`empty-${Math.random()}`} className="w-16 h-20" />;
+    if (!type) return <div key={`empty-${Math.random()}`} className="w-14 h-14" />;
 
     return (
       <div
@@ -35,20 +35,21 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
         draggable={isDiscovered}
         onDragStart={(e) => isDiscovered && onDragStart(e, particle)}
         onClick={() => isDiscovered && onParticleClick(type)}
-        className={`relative w-16 h-20 rounded-md flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? PARTICLE_COLORS[type] : 'bg-gray-700'} ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300' : 'cursor-default'}`}
+        className={`relative w-14 h-14 rounded-md flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300' : 'bg-gray-700 cursor-default'}`}
+        style={isDiscovered ? { backgroundColor: PARTICLE_COLORS[type] } : {}}
       >
-        <div className={`absolute inset-0 flex flex-col items-center justify-between py-1.5 transition-all duration-300 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`} style={{ fontSize: '0.7rem' }}>
-          <span className="font-bold opacity-70 leading-none">{atomicNumber}</span>
-          <span className="text-xl font-black leading-none">{PARTICLE_NAMES[type].substring(0, 2)}</span>
+        <div className={`absolute inset-0 flex flex-col items-center justify-between py-1 transition-all duration-300 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`} style={{ fontSize: '0.65rem' }}>
+          <span className="font-mono font-bold opacity-70 leading-none text-[8px]">{atomicNumber}</span>
+          <span className="font-mono text-lg font-black leading-none tracking-tighter">{PARTICLE_NAMES[type].substring(0, 2)}</span>
           <div className="w-full px-0.5 overflow-hidden">
-            <p className="text-[9px] font-bold leading-tight text-center break-words uppercase tracking-tighter">
+            <p className="font-sans text-[7px] font-bold leading-tight text-center break-words uppercase tracking-tighter">
               {PARTICLE_NAMES[type]}
             </p>
           </div>
         </div>
         {!isDiscovered && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xl font-bold text-gray-500">?</span>
+            <span className="font-mono text-lg font-bold text-gray-500">?</span>
           </div>
         )}
       </div>
@@ -65,15 +66,16 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
         draggable={isDiscovered}
         onDragStart={(e) => isDiscovered && onDragStart(e, particle)}
         onClick={() => isDiscovered && onParticleClick(type)}
-        className={`relative w-20 h-20 rounded-lg flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? PARTICLE_COLORS[type] : 'bg-gray-700'} ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300' : 'cursor-default'}`}
+        className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300' : 'bg-gray-700 cursor-default'}`}
+        style={isDiscovered ? { backgroundColor: PARTICLE_COLORS[type] } : {}}
       >
-        <div className={`w-full h-full transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`}>
+        <div className={`w-full h-full p-2 transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`}>
           <ParticleIcon type={type} color={PARTICLE_COLORS[type]} isCompound />
         </div>
-        <span className={`absolute text-sm font-bold text-white text-center p-1 transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`}>{PARTICLE_NAMES[type]}</span>
+        <span className={`absolute bottom-0 text-[8px] font-mono font-bold text-white text-center p-0.5 transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'} bg-black/30 w-full rounded-b-lg`}>{PARTICLE_NAMES[type]}</span>
         {!isDiscovered && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-3xl font-bold text-gray-500">?</span>
+            <span className="font-mono text-2xl font-bold text-gray-500">?</span>
           </div>
         )}
       </div>
@@ -84,7 +86,7 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
     <div className="bg-gray-900/80 backdrop-blur-md p-4 rounded-lg shadow-2xl border border-gray-700" {...props}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
-          <h3 className="text-xl font-bold">Periodic Table</h3>
+          <h3 className="text-xl font-mono font-bold text-indigo-300">Periodic Table</h3>
           <button
             onClick={onPinToggle}
             title={isPinned ? 'Unpin Table' : 'Pin Table'}
@@ -95,7 +97,7 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
             </svg>
           </button>
         </div>
-        <button onClick={onClose} className="px-3 py-1 bg-red-600 rounded-md hover:bg-red-700 text-white font-bold">&times;</button>
+        <button onClick={onClose} className="px-3 py-1 bg-red-600 rounded-md hover:bg-red-700 text-white font-bold transition-colors">&times;</button>
       </div>
 
       {/* Main Table */}
@@ -119,7 +121,7 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
         {ACTINIDE_SERIES.map((atomicNumber) => renderCell(atomicNumber))}
       </div>
 
-      <h3 className="text-xl font-bold mt-6 mb-2">Isotopes & More</h3>
+      <h3 className="text-xl font-mono font-bold mt-6 mb-2 text-indigo-300">Isotopes & More</h3>
       <div className="flex flex-wrap gap-2">
         {ISOTOPE_AND_SPECIAL_LIST.map(type => renderSpecialParticle(type))}
       </div>

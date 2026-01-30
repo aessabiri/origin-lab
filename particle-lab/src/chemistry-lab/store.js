@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { MISSIONS, STARTING_EQUIPMENT } from './data/missions';
 import { EQUIPMENT } from './data/equipment';
 import { audioSystem, SFX } from './logic/audio';
 import { useInventory } from '../store/inventory.js';
 import { MATTER_DEFINITIONS } from '../constants/matterRegistry.js';
+import { useProgressionStore } from '../store/progressionStore.js';
 
-// Starting Chemicals (Standardized IDs)
+// Starting State
+const STARTING_EQUIPMENT = ['beaker_std'];
 const STARTING_CHEMICALS = ['water', 'sodium-chloride', 'universal-indicator'];
 
 export const useChemistryStore = create(
@@ -14,7 +15,6 @@ export const useChemistryStore = create(
     (set, get) => ({
       // --- Game State ---
       gameMode: 'career', // 'sandbox' or 'career'
-      missionIndex: 0,
       unlockedEquipment: [...STARTING_EQUIPMENT],
       
       // --- Physical State ---
@@ -32,7 +32,7 @@ export const useChemistryStore = create(
         status: 'ok',
         isActive: true
       },
-      message: 'Welcome to the Lab! Check your current objective.',
+      message: 'Welcome to the Lab!',
       timeSpeed: 1,
       isFumeHoodOn: false,
       inspectedChemical: null,
@@ -75,7 +75,6 @@ export const useChemistryStore = create(
                   gameMode: 'career',
                   inventory: [...STARTING_CHEMICALS],
                   unlockedEquipment: [...STARTING_EQUIPMENT],
-                  missionIndex: 0,
                   message: 'CAREER MODE: Progress reset. Good luck!'
               });
           }
@@ -85,39 +84,35 @@ export const useChemistryStore = create(
           const state = get();
           if (state.gameMode !== 'career') return;
 
-          const currentMission = MISSIONS[state.missionIndex];
-          if (!currentMission) return;
+          // Trigger Central Progression Check
+          const newlyCompleted = useProgressionStore.getState().checkProgress(newChemicals);
+          
+          newlyCompleted.forEach(quest => {
+              if (quest.category === 'Chemistry' || quest.category === 'Biology') {
+                  const rewards = quest.rewards;
+                  
+                  // Apply Rewards Locally
+                  const newInventory = [...state.inventory];
+                  if (rewards.unlockChemicals) {
+                      rewards.unlockChemicals.forEach(c => {
+                          if (!newInventory.includes(c)) newInventory.push(c);
+                      });
+                  }
+                  
+                  const newEquipment = [...state.unlockedEquipment];
+                  if (rewards.unlockEquipment) {
+                      rewards.unlockEquipment.forEach(e => {
+                          if (!newEquipment.includes(e)) newEquipment.push(e);
+                      });
+                  }
 
-          // Check if any of the newly acquired chemicals match the requirement
-          const reqs = currentMission.requirements;
-          const met = Object.keys(reqs).some(reqChem => newChemicals.includes(reqChem));
-
-          if (met) {
-              const nextIndex = state.missionIndex + 1;
-              const rewards = currentMission.rewards;
-              
-              // Apply Rewards
-              const newInventory = [...state.inventory];
-              if (rewards.unlockChemicals) {
-                  rewards.unlockChemicals.forEach(c => {
-                      if (!newInventory.includes(c)) newInventory.push(c);
+                  set({
+                      inventory: newInventory,
+                      unlockedEquipment: newEquipment,
+                      message: `🎉 QUEST COMPLETE! ${quest.title}: ${rewards.message || ''}`
                   });
               }
-              
-              const newEquipment = [...state.unlockedEquipment];
-              if (rewards.unlockEquipment) {
-                  rewards.unlockEquipment.forEach(e => {
-                      if (!newEquipment.includes(e)) newEquipment.push(e);
-                  });
-              }
-
-              set({
-                  missionIndex: nextIndex,
-                  inventory: newInventory,
-                  unlockedEquipment: newEquipment,
-                  message: `🎉 MISSION COMPLETE! ${rewards.message}`
-              });
-          }
+          });
       },
 
       addVessel: (typeId) => {}, // Legacy placeholder, remove if safe

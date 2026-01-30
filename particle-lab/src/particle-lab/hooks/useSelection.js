@@ -9,7 +9,6 @@ import { generateGraphSignature } from '../utils/chemistryStructure.js';
 export const useSelection = ({ canvasRef }) => {
   const particles = useParticleStore(state => state.particles);
   const bonds = useParticleStore(state => state.bonds);
-  const MOLECULE_PARTICLE_TYPES = useMemo(() => new Set(MOLECULE_RECIPES.map(r => r.type)), []);
 
   const [selectedParticleIds, setSelectedParticleIds] = useState(new Set());
   const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0, visible: false });
@@ -160,7 +159,7 @@ export const useSelection = ({ canvasRef }) => {
     }
 
     return { canAssemble: !!assemblyRecipe, canDisassemble, canRevert, assemblyRecipe, selectedParticles, isMoleculeAssembly, isPolypeptideAssembly };
-  }, [selectedParticleIds, particles, bonds, MOLECULE_PARTICLE_TYPES]);
+  }, [selectedParticleIds, particles, bonds]);
 
   return { selectedParticleIds, setSelectedParticleIds, selectionBox, canvasBind, handleParticleClick, selectionInfo };
 };

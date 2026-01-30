@@ -9,13 +9,6 @@ export const useParticleStore = create(
       bonds: [],
       secondaryParticles: [],
       
-      // --- Discovery/Progression (Local Scope) ---
-      // Discovery is now tracked via useInventory (Universal Ledger).
-      
-      // --- Goals/Tutorials ---
-      currentGoalIndex: 0,
-      goalPath: 'medium',
-      
       // --- UI State ---
       uiScale: 1,
       isPeriodicTablePinned: false,
@@ -34,9 +27,6 @@ export const useParticleStore = create(
       setParticles: (particles) => set({ particles }),
       setBonds: (bonds) => set({ bonds }),
       setSecondaryParticles: (secondaryParticles) => set({ secondaryParticles }),
-      
-      setCurrentGoalIndex: (index) => set({ currentGoalIndex: index }),
-      setGoalPath: (path) => set({ goalPath: path }),
       
       setUiScale: (scale) => set({ uiScale: scale }),
       setIsPeriodicTablePinned: (pinned) => set({ isPeriodicTablePinned: pinned }),
@@ -77,21 +67,11 @@ export const useParticleStore = create(
           particles: [],
           bonds: [],
           secondaryParticles: [],
-          currentGoalIndex: 0,
           isResetConfirmVisible: false,
         });
         get().showMessage('Lab has been reset!');
       },
       
-      handleSetGoalPath: (path) => {
-        set({
-          goalPath: path,
-          currentGoalIndex: 0,
-          isSandboxMode: false,
-        });
-        get().showMessage(`Goal path set to ${path}. Progress reset.`);
-      },
-
       handleToggleSandbox: () => {
         const newMode = !get().isSandboxMode;
         set({ isSandboxMode: newMode });
@@ -110,8 +90,6 @@ export const useParticleStore = create(
         particles: state.particles,
         bonds: state.bonds,
         secondaryParticles: state.secondaryParticles,
-        currentGoalIndex: state.currentGoalIndex,
-        goalPath: state.goalPath,
         uiScale: state.uiScale,
         isPeriodicTablePinned: state.isPeriodicTablePinned,
         isSandboxMode: state.isSandboxMode,

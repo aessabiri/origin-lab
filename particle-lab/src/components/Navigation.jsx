@@ -54,6 +54,16 @@ const NAV_ITEMS = [
     color: 'teal' 
   },
   { 
+    id: 'goals', 
+    label: 'Goals', 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-6.75c-.622 0-1.125.504-1.125 1.125v3.375m9 0h-9M12 12V3.75m0 0l-3 3m3-3l3 3" />
+      </svg>
+    ),
+    color: 'indigo' 
+  },
+  { 
     id: 'progress', 
     label: 'Progress', 
     icon: (
@@ -93,6 +103,7 @@ const Navigation = () => {
             cyan: '#22d3ee', // cyan-400
             green: '#4ade80', // green-400
             teal: '#2dd4bf', // teal-400
+            indigo: '#818cf8', // indigo-400
             yellow: '#fbbf24', // amber-400
             amber: '#f59e0b', // amber-500
           };

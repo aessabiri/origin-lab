@@ -140,33 +140,39 @@ export const useProgressionStore = create(
         if (quest) {
             set({ completedQuests: [...completedQuests, id] });
             addXp(quest.rewards.xp);
-            // Optional: Trigger global notification here
+            
+            // Handle specialized rewards (e.g. Unlocks)
+            if (quest.rewards.unlockChemicals || quest.rewards.unlockEquipment) {
+                // If the chemistry lab is active, we might need to tell its store.
+                // However, the unified system should ideally check this store.
+            }
+            return true;
         }
+        return false;
       },
 
       checkProgress: (discoveredItems) => {
          const state = get();
          if (useStore.getState().isSandboxMode) return;
 
-         // Check Quests
+         let newlyCompleted = [];
+
          QUESTS.forEach(quest => {
              if (state.completedQuests.includes(quest.id)) return;
              
-             // Check if all requirements are met
-             // Requirements are { 'ITEM_ID': count }
-             // Since 'discoveredItems' is just a list of IDs, we just check existence for now.
-             // (We switched to Infinite Supply, so existence IS the requirement)
-             
-             const reqs = Object.keys(quest.requirements);
-             const isMet = reqs.every(reqId => {
-                 if (reqId === 'LUCA_SURVIVAL') return false; // Manual trigger only
+             const reqIds = Object.keys(quest.requirements);
+             const isMet = reqIds.every(reqId => {
+                 if (reqId === 'LUCA_SURVIVAL') return false; // Manual trigger
                  return discoveredItems.includes(reqId);
              });
 
              if (isMet) {
-                 state.completeQuest(quest.id);
+                 const success = state.completeQuest(quest.id);
+                 if (success) newlyCompleted.push(quest);
              }
          });
+
+         return newlyCompleted;
       },
       
       getMilestones: () => MILESTONES,

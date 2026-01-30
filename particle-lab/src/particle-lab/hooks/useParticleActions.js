@@ -6,18 +6,16 @@ import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../../constants/polypeptideRecipes.js';
 import { PARTICLE_NAMES } from '../../constants/particles.js';
 import { MATTER_DEFINITIONS } from '../../constants/matterRegistry.js';
+import { useProgressionStore } from '../../store/progressionStore.js';
 
 export const useParticleActions = ({
   selectionInfo,
-  goals,
   setSelectedParticleIds,
 }) => {
   const particles = useParticleStore(state => state.particles);
   const setParticles = useParticleStore(state => state.setParticles);
   const setBonds = useParticleStore(state => state.setBonds);
   const setSecondaryParticles = useParticleStore(state => state.setSecondaryParticles);
-  const currentGoalIndex = useParticleStore(state => state.currentGoalIndex);
-  const setCurrentGoalIndex = useParticleStore(state => state.setCurrentGoalIndex);
   const showMessage = useParticleStore(state => state.showMessage);
 
   const disassembleParticle = useCallback((particleId, particleIndex) => {
@@ -135,11 +133,14 @@ export const useParticleActions = ({
       const bonds = useParticleStore.getState().bonds;
       setBonds(bonds.filter(b => !combinedIds.has(b.particleA_id) && !combinedIds.has(b.particleB_id)));
 
-      if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
-        showMessage(`Goal Complete: Discover ${PARTICLE_NAMES[assemblyRecipe.type]}!`);
-        setCurrentGoalIndex(currentGoalIndex + 1);
+      // Trigger Central Progression Check
+      const newlyDiscovered = [assemblyRecipe.type];
+      const newlyCompleted = useProgressionStore.getState().checkProgress(newlyDiscovered);
+      
+      if (newlyCompleted.length > 0) {
+          newlyCompleted.forEach(q => showMessage(`Quest Complete: ${q.title}!`));
       } else {
-        showMessage(`Success! You've created ${PARTICLE_NAMES[assemblyRecipe.type]}.`);
+          showMessage(`Success! You've created ${PARTICLE_NAMES[assemblyRecipe.type]}.`);
       }
 
       setSelectedParticleIds(new Set());
@@ -168,14 +169,18 @@ export const useParticleActions = ({
     });
     setParticles(next);
 
-    if (goals && currentGoalIndex < goals.length && assemblyRecipe.type === goals[currentGoalIndex].type) {
-      showMessage(`Goal Complete: ${goals[currentGoalIndex].name}!`);
-      setCurrentGoalIndex(currentGoalIndex + 1);
+    // Trigger Central Progression Check for Compounds too
+    const newlyDiscovered = [assemblyRecipe.type];
+    const newlyCompleted = useProgressionStore.getState().checkProgress(newlyDiscovered);
+    
+    if (newlyCompleted.length > 0) {
+        newlyCompleted.forEach(q => showMessage(`Quest Complete: ${q.title}!`));
     } else {
-      showMessage(`${PARTICLE_NAMES[assemblyRecipe.type]} formed!`);
+        showMessage(`${PARTICLE_NAMES[assemblyRecipe.type]} formed!`);
     }
+
     setSelectedParticleIds(new Set());
-  }, [selectionInfo, showMessage, currentGoalIndex, setCurrentGoalIndex, setParticles, setSecondaryParticles, setSelectedParticleIds, particles, setBonds, goals]);
+  }, [selectionInfo, showMessage, setParticles, setSecondaryParticles, setSelectedParticleIds, particles, setBonds]);
 
   const handleDisassemble = useCallback(() => {
     if (!selectionInfo.canDisassemble) return;

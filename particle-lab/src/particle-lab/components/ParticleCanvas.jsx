@@ -11,7 +11,6 @@ import ParticleCanvasOverlay from './ParticleCanvasOverlay.jsx';
 import { useParticleActions } from '../hooks/useParticleActions.js';
 import { useSelection } from '../hooks/useSelection.js';
 import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
-import { GOAL_PATHS } from '../../constants/goalPaths.js';
 import { RECIPES, PARTICLE_CATEGORIES } from '../../recipes.js';
 import { useDecay } from '../hooks/useDecay.js';
 import { useStore } from '../../store.js';
@@ -29,13 +28,10 @@ const ParticleCanvas = ({ onDragStart }) => {
     particles, setParticles,
     bonds, setBonds,
     secondaryParticles,
-    currentGoalIndex,
     uiScale, setUiScale,
     isPeriodicTablePinned, setIsPeriodicTablePinned,
-    goalPath,
     isSandboxMode,
     isPaletteVisible, setIsPaletteVisible,
-    isHintVisible,
     isActionMenuVisible, setIsActionMenuVisible,
     isSettingsVisible, setIsSettingsVisible,
     isResetConfirmVisible, setIsResetConfirmVisible,
@@ -43,10 +39,9 @@ const ParticleCanvas = ({ onDragStart }) => {
     message, showMessage,
     openExclusive,
     handleReset, executeReset,
-    handleSetGoalPath, handleToggleSandbox,
+    handleToggleSandbox,
     handleEmptyCanvas,
-    setInfoPanelType,
-    setCurrentGoalIndex
+    setInfoPanelType
   } = useParticleStore();
 
   const { discoveredAtoms, discoveredMolecules } = useDiscoveredMatter();
@@ -55,7 +50,6 @@ const ParticleCanvas = ({ onDragStart }) => {
   const draggedIndexRef = useRef(null);
   const canvasRef = useRef(null);
   const bondsCanvasRef = useRef(null);
-  const goals = useMemo(() => GOAL_PATHS[goalPath] || GOAL_PATHS.medium, [goalPath]);
 
   const allDiscoveredParticles = useMemo(() => {
     if (isSandboxMode) {
@@ -247,7 +241,6 @@ const ParticleCanvas = ({ onDragStart }) => {
     handleRevertToElementary,
   } = useParticleActions({
     selectionInfo,
-    goals,
     setSelectedParticleIds,
   });
 
