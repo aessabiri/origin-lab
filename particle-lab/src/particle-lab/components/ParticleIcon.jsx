@@ -52,13 +52,13 @@ const radialGradient = (id, c, opacity = 0.8) => (
     </radialGradient>
   );
 
-const QuarkComposition = ({ up = 0, down = 0, parentHexColor }) => {
+const QuarkComposition = ({ up = 0, down = 0, antiUp = 0, antiDown = 0, parentHexColor }) => {
     const gluonColor = PARTICLE_COLOR_MAP['black'];
-    const total = up + down;
+    const total = up + down + antiUp + antiDown;
     if (total === 0) return null;
 
     const particles = [];
-    if (total === 3) { // Baryons (like protons/neutrons) have one of each color.
+    if (total === 3 && (up + down === 3)) { // Baryons
         const qcdAnimations = [
             'animate-qcd-color-cycle-1',
             'animate-qcd-color-cycle-2',
@@ -68,11 +68,23 @@ const QuarkComposition = ({ up = 0, down = 0, parentHexColor }) => {
         for (let i = 0; i < 3; i++) {
             particles.push({ animation: qcdAnimations[i], type: upQuarks-- > 0 ? 'u' : 'd' });
         }
-    } else { // For other particles, use default colors.
+    } else if (total === 3 && (antiUp + antiDown === 3)) { // Anti-Baryons
+        const qcdAnimations = [
+            'animate-qcd-color-cycle-1',
+            'animate-qcd-color-cycle-2',
+            'animate-qcd-color-cycle-3',
+        ];
+        let auQuarks = antiUp;
+        for (let i = 0; i < 3; i++) {
+            particles.push({ animation: qcdAnimations[i], type: auQuarks-- > 0 ? 'ū' : 'd̅' });
+        }
+    } else { // Generic
         const upColor = PARTICLE_COLOR_MAP['yellow-400'];
         const downColor = PARTICLE_COLOR_MAP['indigo-400'];
         for (let i = 0; i < up; i++) particles.push({ color: upColor, type: 'u' });
         for (let i = 0; i < down; i++) particles.push({ color: downColor, type: 'd' });
+        for (let i = 0; i < antiUp; i++) particles.push({ color: upColor, type: 'ū' });
+        for (let i = 0; i < antiDown; i++) particles.push({ color: downColor, type: 'd̅' });
     }
 
     const positions = [
@@ -102,7 +114,8 @@ const QuarkComposition = ({ up = 0, down = 0, parentHexColor }) => {
               cx={particlePositions[i][0]}
               cy={particlePositions[i][1]}
               r="10"
-              className={p.animation}
+              className={p.animation || ''}
+              fill={p.color || ''}
               stroke="#fff" strokeOpacity="0.5" strokeWidth="1" />
             <text x={particlePositions[i][0]} y={particlePositions[i][1]} dy=".35em" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">
               {p.type}
@@ -1963,7 +1976,99 @@ const MitochondriaPngIcon = () => <PngIcon src={mitochondriaImg} alt="Mitochondr
 const RibosomePngIcon = () => <PngIcon src={ribosomeImg} alt="Ribosome" />;
 
 
+const HiggsBosonIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <defs>
+      <radialGradient id="higgs-grad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="white" stopOpacity="0.9" />
+        <stop offset="100%" stopColor={hexColor} stopOpacity="0.4" />
+      </radialGradient>
+    </defs>
+    <circle cx="50" cy="50" r="40" fill="url(#higgs-grad)" className="animate-pulse-glow" />
+    <circle cx="50" cy="50" r="10" fill="white" className="animate-vibrate" opacity="0.8" />
+    {/* Mass field ripples */}
+    <circle cx="50" cy="50" r="25" fill="none" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" className="animate-spin-slow" />
+    <circle cx="50" cy="50" r="35" fill="none" stroke="white" strokeWidth="0.5" strokeDasharray="2 8" className="animate-spin-slow-reverse" />
+  </svg>
+);
+
+const MuonIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <circle cx="50" cy="50" r="30" fill={hexColor} opacity="0.6" />
+    <circle cx="50" cy="50" r="15" fill={hexColor} className="animate-vibrate" />
+    <path d="M 20 50 Q 50 20 80 50" stroke="white" strokeWidth="2" fill="none" strokeDasharray="5 5" opacity="0.5" />
+    <text x="50" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" opacity="0.8">μ</text>
+  </svg>
+);
+
+const Helium3Icon = (p) => <NeoAtomIcon symbol="³He" p={2} n={1} e={2} {...p} />;
+const Carbon14Icon = (p) => <NeoAtomIcon symbol="¹⁴C" p={6} n={8} e={6} {...p} />;
+const Uranium235Icon = (p) => <NeoAtomIcon symbol="²³⁵U" p={92} n={143} e={92} {...p} />;
+const Uranium238Icon = (p) => <NeoAtomIcon symbol="²³⁸U" p={92} n={146} e={92} {...p} />;
+
+const PositronIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-lg">
+    <defs>
+      <radialGradient id="positron-grad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+        <stop offset="0%" stopColor={hexColor} stopOpacity="0.9" />
+        <stop offset="100%" stopColor={hexColor} stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <circle cx="50" cy="50" r="33.3" fill="url(#positron-grad)" />
+    <circle cx="33.3" cy="58.3" r="20.8" fill="url(#positron-grad)" opacity="0.7" />
+    <circle cx="66.6" cy="41.6" r="16.6" fill="url(#positron-grad)" opacity="0.7" />
+    <path d="M29.1 50 a 12.5 12.5 0 0 1 12.5 -12.5" stroke="white" strokeOpacity="0.4" fill="none" strokeWidth="2" />
+    
+    <g className="animate-vibrate">
+      <text x="50" y="58" textAnchor="middle" fill="white" fontSize="24" fontWeight="bold">+</text>
+    </g>
+  </svg>
+);
+
+const TauIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <circle cx="50" cy="50" r="35" fill={hexColor} opacity="0.5" />
+    <circle cx="50" cy="50" r="20" fill={hexColor} className="animate-vibrate" />
+    <text x="50" y="58" textAnchor="middle" fill="white" fontSize="24" fontWeight="bold" opacity="0.9">τ</text>
+  </svg>
+);
+
+const AntiProtonIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('antiproton-grad', hexColor)}</defs>
+    <circle cx="50" cy="50" r="45" fill="url(#antiproton-grad)" opacity="0.8" />
+    <QuarkComposition antiUp={2} antiDown={1} parentHexColor={hexColor} />
+    <text x="85" y="85" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" opacity="0.6">-</text>
+  </svg>
+);
+
+const AntiNeutronIcon = ({ hexColor }) => (
+  <svg viewBox="0 0 100 100" className="w-full h-full">
+    <defs>{radialGradient('antineutron-grad', hexColor)}</defs>
+    <circle cx="50" cy="50" r="45" fill="url(#antineutron-grad)" opacity="0.8" />
+    <QuarkComposition antiUp={1} antiDown={2} parentHexColor={hexColor} />
+    <text x="85" y="85" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold" opacity="0.4">n̅</text>
+  </svg>
+);
+
+const SilverIcon = (p) => <NeoAtomIcon symbol="Ag" p={47} n={61} e={47} {...p} />;
+const GoldIcon = (p) => <NeoAtomIcon symbol="Au" p={79} n={118} e={79} {...p} />;
+const LeadIcon = (p) => <NeoAtomIcon symbol="Pb" p={82} n={125} e={82} {...p} />;
+
 const PARTICLE_ICON_MAP = {
+  [PARTICLE_TYPES.HIGGS_BOSON]: HiggsBosonIcon,
+  [PARTICLE_TYPES.MUON]: MuonIcon,
+  [PARTICLE_TYPES.POSITRON]: PositronIcon,
+  [PARTICLE_TYPES.TAU]: TauIcon,
+  [PARTICLE_TYPES.ANTI_PROTON]: AntiProtonIcon,
+  [PARTICLE_TYPES.ANTI_NEUTRON]: AntiNeutronIcon,
+  [PARTICLE_TYPES.SILVER]: SilverIcon,
+  [PARTICLE_TYPES.GOLD]: GoldIcon,
+  [PARTICLE_TYPES.LEAD]: LeadIcon,
+  [PARTICLE_TYPES.HELIUM_3]: Helium3Icon,
+  [PARTICLE_TYPES.CARBON_14]: Carbon14Icon,
+  [PARTICLE_TYPES.URANIUM_235]: Uranium235Icon,
+  [PARTICLE_TYPES.URANIUM_238]: Uranium238Icon,
   [PARTICLE_TYPES.METHANOL]: MethanolIcon,
   [PARTICLE_TYPES.PROPANE]: PropaneIcon,
   [PARTICLE_TYPES.BUTANE]: ButaneIcon,

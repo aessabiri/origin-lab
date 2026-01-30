@@ -38,6 +38,9 @@ export const ATOMIC_NUMBER_TO_TYPE = {
   34: PARTICLE_TYPES.SELENIUM,
   35: PARTICLE_TYPES.BROMINE,
   36: PARTICLE_TYPES.KRYPTON,
+  47: PARTICLE_TYPES.SILVER,
+  79: PARTICLE_TYPES.GOLD,
+  82: PARTICLE_TYPES.LEAD,
 };
 
 // Defines the grid layout of the periodic table. 0 is an empty spacer.
@@ -47,6 +50,9 @@ export const PERIODIC_TABLE_LAYOUT = [
   [3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 7, 8, 9, 10], // Period 2
   [11, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 14, 15, 16, 17, 18], // Period 3
   [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36], // Period 4
+  [0, 0, 0, 0, 0, 0, 0, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // Period 5 (Custom/Partial)
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  [0, 0, 0, 0, 0, 0, 0, 79, 0, 0, 82, 0, 0, 0, 0, 0, 0, 0], // Period 6 (Custom/Partial)
 ];
 
 // Lanthanide and Actinide series (using atomic numbers)
@@ -58,10 +64,19 @@ export const ACTINIDE_SERIES = Array.from({ length: 15 }, (_, i) => 89 + i); // 
 export const ISOTOPE_AND_SPECIAL_LIST = [
   PARTICLE_TYPES.PROTON,
   PARTICLE_TYPES.NEUTRON,
+  PARTICLE_TYPES.ANTI_PROTON,
+  PARTICLE_TYPES.ANTI_NEUTRON,
+  PARTICLE_TYPES.MUON,
+  PARTICLE_TYPES.TAU,
+  PARTICLE_TYPES.HIGGS_BOSON,
   PARTICLE_TYPES.PION_PLUS,
   PARTICLE_TYPES.PION_MINUS,
   PARTICLE_TYPES.LAMBDA_BARYON,
   PARTICLE_TYPES.J_PSI_MESON,
   PARTICLE_TYPES.DEUTERIUM,
   PARTICLE_TYPES.TRITIUM,
+  PARTICLE_TYPES.HELIUM_3,
+  PARTICLE_TYPES.CARBON_14,
+  PARTICLE_TYPES.URANIUM_235,
+  PARTICLE_TYPES.URANIUM_238,
 ];

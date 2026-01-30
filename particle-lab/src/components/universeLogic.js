@@ -215,7 +215,67 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
     if (s.mass > 200 && s.composition.iron > 10) {
        s.unstable = true;
     }
+
+    // --- SUPERNOVA DETECTION ---
+    const totalFuel = s.composition.hydrogen + s.composition.helium;
+    if (s.mass > 150 && totalFuel < 5 && !s.exploding) {
+        s.exploding = true;
+        s.explosionTimer = 2.0; // 2 seconds of buildup
+    }
+
+    if (s.exploding) {
+        s.explosionTimer -= dt;
+        s.radius += dt * 50; 
+        s.color = '#ffffff'; 
+        cinematics.exposure = Math.max(cinematics.exposure, (2 - s.explosionTimer) * 0.5);
+        cinematics.shake = Math.max(cinematics.shake, (2 - s.explosionTimer) * 10);
+
+        if (s.explosionTimer <= 0) {
+            // BOOM!
+            const yieldMass = s.mass;
+            const cx = s.x;
+            const cy = s.y;
+
+            // 1. Seed heavy elements into Global Inventory
+            import('../store/inventory.js').then(m => {
+                const add = m.useInventory.getState().addResource;
+                add('elements', PARTICLE_TYPES.IRON, Math.floor(yieldMass * 0.2));
+                add('elements', PARTICLE_TYPES.SILVER, Math.floor(yieldMass * 0.05));
+                add('elements', PARTICLE_TYPES.GOLD, Math.floor(yieldMass * 0.02));
+                add('elements', PARTICLE_TYPES.LEAD, Math.floor(yieldMass * 0.03));
+                add('elements', PARTICLE_TYPES.URANIUM_238, Math.floor(yieldMass * 0.01));
+            });
+
+            // 2. Create blast particles
+            for(let k=0; k<50; k++) {
+                const angle = Math.random() * Math.PI * 2;
+                const v = 200 + Math.random() * 500;
+                particles.push({
+                    x: cx, y: cy,
+                    vx: Math.cos(angle) * v,
+                    vy: Math.sin(angle) * v,
+                    mass: 1,
+                    type: PARTICLE_TYPES.IRON,
+                    color: '#ef4444',
+                    life: 100,
+                    dead: false
+                });
+            }
+
+            s.dead = true; 
+            if (onFusion) onFusion(cx, cy, '#ffffff'); // Use fusion callback for flash
+        }
+    }
   }
+
+  // Remove dead stars
+  let starAliveIndex = 0;
+  for (let i = 0; i < stars.length; i++) {
+      if (!stars[i].dead) {
+          stars[starAliveIndex++] = stars[i];
+      }
+  }
+  stars.length = starAliveIndex;
   
   // 3. Update Planets
   if (planets) {
@@ -378,6 +438,15 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
                 p.color = '#1f2937';
                 p2.dead = true; // Consumed
                 if (onDiscover) onDiscover(PARTICLE_TYPES.CARBON);
+                break;
+            }
+            // C + C -> Fe (Simplified jump)
+            if (p.type === PARTICLE_TYPES.CARBON && p2.type === PARTICLE_TYPES.CARBON) {
+                p.type = PARTICLE_TYPES.IRON;
+                p.mass = 56;
+                p.color = '#374151';
+                p2.dead = true;
+                if (onDiscover) onDiscover(PARTICLE_TYPES.IRON);
                 break;
             }
         }

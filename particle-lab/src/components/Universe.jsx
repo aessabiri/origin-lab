@@ -65,17 +65,24 @@ const Universe = () => {
   const detonateStar = (index) => {
       const star = simState.current.stars[index];
       const inventory = useInventory.getState();
+      const yieldMass = star.mass;
       
-      if (star.composition.hydrogen > 1) inventory.addResource('elements', 'hydrogen', Math.floor(star.composition.hydrogen));
-      if (star.composition.helium > 1) inventory.addResource('elements', 'helium', Math.floor(star.composition.helium));
-      if (star.composition.carbon > 1) inventory.addResource('elements', 'carbon', Math.floor(star.composition.carbon));
-      if (star.mass > 100) inventory.addResource('elements', 'iron', Math.floor(star.mass * 0.1));
+      // Seed diverse elements into Global Inventory
+      inventory.addResource('elements', PARTICLE_TYPES.IRON, Math.floor(yieldMass * 0.2));
+      inventory.addResource('elements', PARTICLE_TYPES.SILVER, Math.floor(yieldMass * 0.05));
+      inventory.addResource('elements', PARTICLE_TYPES.GOLD, Math.floor(yieldMass * 0.02));
+      inventory.addResource('elements', PARTICLE_TYPES.LEAD, Math.floor(yieldMass * 0.03));
+      inventory.addResource('elements', PARTICLE_TYPES.URANIUM_238, Math.floor(yieldMass * 0.01));
+      
+      // Recover basic elements too
+      if (star.composition.hydrogen > 1) inventory.addResource('elements', 'hydrogen', Math.floor(star.composition.hydrogen * 0.5));
+      if (star.composition.helium > 1) inventory.addResource('elements', 'helium', Math.floor(star.composition.helium * 0.5));
       
       simState.current.visualEffects.push({ 
-          x: star.x, y: star.y, color: '#ef4444', life: 3.0, maxLife: 3.0, radius: star.radius * 5 
+          x: star.x, y: star.y, color: '#ffffff', life: 3.0, maxLife: 3.0, radius: star.radius * 10 
       });
       simState.current.stars.splice(index, 1);
-      showMessage("Supernova! Elements harvested.");
+      showMessage("Supernova! Heavy elements (Au, Ag, Pb, U) harvested.");
   };
 
   const populateUniverse = () => {
@@ -248,14 +255,25 @@ const Universe = () => {
 
              // Render Stars
              simState.current.stars.forEach(s => {
+                 const isExploding = s.exploding;
+                 const baseColor = isExploding ? '#ffffff' : s.color;
+                 const pulse = isExploding ? (Math.random() * 0.5 + 0.5) : 1.0;
+                 
                  const grad = ctx.createRadialGradient(s.x, s.y, s.radius*0.1, s.x, s.y, s.radius*3);
-                 grad.addColorStop(0, s.color);
-                 grad.addColorStop(0.2, s.color.replace(')', ', 0.4)').replace('rgb', 'rgba'));
+                 grad.addColorStop(0, baseColor);
+                 grad.addColorStop(0.2, baseColor.replace(')', ', 0.4)').replace('rgb', 'rgba'));
                  grad.addColorStop(1, 'rgba(0,0,0,0)');
+                 
+                 ctx.save();
+                 if (isExploding) {
+                     ctx.shadowBlur = 50 * pulse;
+                     ctx.shadowColor = 'white';
+                 }
                  ctx.fillStyle = grad;
-                 ctx.beginPath(); ctx.arc(s.x, s.y, s.radius*3, 0, Math.PI*2); ctx.fill();
+                 ctx.beginPath(); ctx.arc(s.x, s.y, s.radius*3 * pulse, 0, Math.PI*2); ctx.fill();
                  ctx.fillStyle = 'white';
-                 ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.8, 0, Math.PI*2); ctx.fill();
+                 ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.8 * pulse, 0, Math.PI*2); ctx.fill();
+                 ctx.restore();
              });
 
              // Render Particles
@@ -283,6 +301,23 @@ const Universe = () => {
                 grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 ctx.beginPath(); ctx.arc(w.x, w.y, radius+30, 0, Math.PI*2); ctx.fillStyle=grad; ctx.fill();
              });
+
+             // Render Visual Effects (Shockwaves/Flashes)
+             simState.current.visualEffects.forEach((fx, i) => {
+                 fx.life -= dt;
+                 const alpha = fx.life / fx.maxLife;
+                 const currentRadius = fx.radius * (1 + (1 - alpha) * 2);
+                 
+                 const grad = ctx.createRadialGradient(fx.x, fx.y, 0, fx.x, fx.y, currentRadius);
+                 grad.addColorStop(0, fx.color === 'white' ? `rgba(255,255,255,${alpha})` : fx.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba'));
+                 grad.addColorStop(1, 'rgba(0,0,0,0)');
+                 
+                 ctx.fillStyle = grad;
+                 ctx.beginPath();
+                 ctx.arc(fx.x, fx.y, currentRadius, 0, Math.PI*2);
+                 ctx.fill();
+             });
+             simState.current.visualEffects = simState.current.visualEffects.filter(fx => fx.life > 0);
          }
          
          // --- EARTH VIEW ---

@@ -109,6 +109,48 @@ export const RECIPES = [
       [PARTICLE_TYPES.ANTI_CHARM_QUARK]: 1,
     },
   },
+  {
+    type: PARTICLE_TYPES.MUON,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.ELECTRON]: 1,
+      [PARTICLE_TYPES.ELECTRON_NEUTRINO]: 1,
+      [PARTICLE_TYPES.ELECTRON_ANTINEUTRINO]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.TAU,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.MUON]: 1,
+      [PARTICLE_TYPES.ELECTRON_NEUTRINO]: 1,
+      [PARTICLE_TYPES.ELECTRON_ANTINEUTRINO]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.ANTI_PROTON,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.ANTI_UP_QUARK]: 2,
+      [PARTICLE_TYPES.ANTI_DOWN_QUARK]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.ANTI_NEUTRON,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.ANTI_UP_QUARK]: 1,
+      [PARTICLE_TYPES.ANTI_DOWN_QUARK]: 2,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.HIGGS_BOSON,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.PHOTON]: 2,
+      [PARTICLE_TYPES.Z_BOSON]: 1,
+    },
+  },
   // Atoms
   {
     type: PARTICLE_TYPES.HYDROGEN,
@@ -146,6 +188,15 @@ export const RECIPES = [
     },
   },
   {
+    type: PARTICLE_TYPES.HELIUM_3,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 2,
+      [PARTICLE_TYPES.NEUTRON]: 1,
+      [PARTICLE_TYPES.ELECTRON]: 2,
+    },
+  },
+  {
     type: PARTICLE_TYPES.LITHIUM,
     category: PARTICLE_CATEGORIES.ATOM,
     ingredients: {
@@ -178,6 +229,15 @@ export const RECIPES = [
     ingredients: {
       [PARTICLE_TYPES.PROTON]: 6,
       [PARTICLE_TYPES.NEUTRON]: 6,
+      [PARTICLE_TYPES.ELECTRON]: 6,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.CARBON_14,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 6,
+      [PARTICLE_TYPES.NEUTRON]: 8,
       [PARTICLE_TYPES.ELECTRON]: 6,
     },
   },
@@ -449,6 +509,51 @@ export const RECIPES = [
       [PARTICLE_TYPES.PROTON]: 36,
       [PARTICLE_TYPES.NEUTRON]: 48,
       [PARTICLE_TYPES.ELECTRON]: 36,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.SILVER,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 47,
+      [PARTICLE_TYPES.NEUTRON]: 61,
+      [PARTICLE_TYPES.ELECTRON]: 47,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.GOLD,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 79,
+      [PARTICLE_TYPES.NEUTRON]: 118,
+      [PARTICLE_TYPES.ELECTRON]: 79,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.LEAD,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 82,
+      [PARTICLE_TYPES.NEUTRON]: 125,
+      [PARTICLE_TYPES.ELECTRON]: 82,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.URANIUM_235,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 92,
+      [PARTICLE_TYPES.NEUTRON]: 143,
+      [PARTICLE_TYPES.ELECTRON]: 92,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.URANIUM_238,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 92,
+      [PARTICLE_TYPES.NEUTRON]: 146,
+      [PARTICLE_TYPES.ELECTRON]: 92,
     },
   },
   // Molecules - Moved simple ones to moleculeRecipes.js for structural checks

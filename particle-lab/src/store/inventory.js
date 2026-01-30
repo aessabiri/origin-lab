@@ -10,7 +10,11 @@ export const useInventory = create(
     (set, get) => ({
       // --- Primordial Matter ---
       energy: 0, // Raw energy from Big Bang
-      quarks: { up: 0, down: 0, charm: 0, strange: 0, top: 0, bottom: 0 },
+      quarks: { 
+        up: 0, down: 0, charm: 0, strange: 0, top: 0, bottom: 0,
+        muon: 0, 'higgs-boson': 0, positron: 0, tau: 0,
+        'anti-proton': 0, 'anti-neutron': 0
+      },
       
       // --- Elemental Stock (The Periodic Table) ---
       // Keys match PARTICLE_TYPES values (e.g., 'hydrogen', 'carbon')
@@ -23,6 +27,13 @@ export const useInventory = create(
         phosphorus: 0,
         sulfur: 0,
         iron: 0,
+        'helium-3': 0,
+        'carbon-14': 0,
+        'uranium-235': 0,
+        'uranium-238': 0,
+        silver: 0,
+        gold: 0,
+        lead: 0,
       },
 
       // --- Molecular Stock (Chemistry Yields) ---
@@ -142,10 +153,16 @@ export const useInventory = create(
       // Hard Reset (Pre-Big Bang)
       resetUniverse: () => set({
         energy: 0,
-        quarks: { up: 0, down: 0, charm: 0, strange: 0, top: 0, bottom: 0 },
+        quarks: { 
+          up: 0, down: 0, charm: 0, strange: 0, top: 0, bottom: 0,
+          muon: 0, 'higgs-boson': 0, positron: 0, tau: 0,
+          'anti-proton': 0, 'anti-neutron': 0
+        },
         elements: {
           hydrogen: 0, helium: 0, carbon: 0, nitrogen: 0, oxygen: 0,
           phosphorus: 0, sulfur: 0, iron: 0,
+          'helium-3': 0, 'carbon-14': 0, 'uranium-235': 0, 'uranium-238': 0,
+          silver: 0, gold: 0, lead: 0,
         },
         compounds: {
           water: 0, ammonia: 0, methane: 0, glucose: 0,
