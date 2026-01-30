@@ -62,6 +62,20 @@ const Universe = () => {
       simState.current.visualEffects.push({ x: star.x, y: star.y, color: 'white', life: 2.0, maxLife: 2.0, radius: 100 });
   };
 
+  const onSupernova = (yieldMass, x, y) => {
+      const inventory = useInventory.getState();
+      inventory.addResource('elements', PARTICLE_TYPES.IRON, Math.floor(yieldMass * 0.2));
+      inventory.addResource('elements', PARTICLE_TYPES.SILVER, Math.floor(yieldMass * 0.05));
+      inventory.addResource('elements', PARTICLE_TYPES.GOLD, Math.floor(yieldMass * 0.02));
+      inventory.addResource('elements', PARTICLE_TYPES.LEAD, Math.floor(yieldMass * 0.03));
+      inventory.addResource('elements', PARTICLE_TYPES.URANIUM_238, Math.floor(yieldMass * 0.01));
+      
+      simState.current.visualEffects.push({ 
+          x, y, color: '#ffffff', life: 3.0, maxLife: 3.0, radius: 200 
+      });
+      showMessage("Supernova! Heavy elements (Au, Ag, Pb, U) harvested.");
+  };
+
   const detonateStar = (index) => {
       const star = simState.current.stars[index];
       const inventory = useInventory.getState();
@@ -249,6 +263,7 @@ const Universe = () => {
                  discover, 
                  onFusion, 
                  onStarFormation,
+                 onSupernova,
                  universeMilestones,
                  BigBangPhase.STELLAR
              );

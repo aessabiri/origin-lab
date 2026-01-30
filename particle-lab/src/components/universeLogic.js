@@ -108,7 +108,7 @@ export const triggerInflation = (width, height) => {
     return particles;
 };
 
-export const updateSimulation = (dt, particles, stars, gravityWells, planets, width, height, onDiscover, onFusion, onStarFormation, milestones = {}, bigBangPhase = BigBangPhase.STELLAR, simTime = 0) => {
+export const updateSimulation = (dt, particles, stars, gravityWells, planets, width, height, onDiscover, onFusion, onStarFormation, onSupernova, milestones = {}, bigBangPhase = BigBangPhase.STELLAR, simTime = 0) => {
   const cx = width / 2;
   const cy = height / 2;
   
@@ -236,15 +236,8 @@ export const updateSimulation = (dt, particles, stars, gravityWells, planets, wi
             const cx = s.x;
             const cy = s.y;
 
-            // 1. Seed heavy elements into Global Inventory
-            import('../store/inventory.js').then(m => {
-                const add = m.useInventory.getState().addResource;
-                add('elements', PARTICLE_TYPES.IRON, Math.floor(yieldMass * 0.2));
-                add('elements', PARTICLE_TYPES.SILVER, Math.floor(yieldMass * 0.05));
-                add('elements', PARTICLE_TYPES.GOLD, Math.floor(yieldMass * 0.02));
-                add('elements', PARTICLE_TYPES.LEAD, Math.floor(yieldMass * 0.03));
-                add('elements', PARTICLE_TYPES.URANIUM_238, Math.floor(yieldMass * 0.01));
-            });
+            // 1. Notify listeners (adds elements to inventory via callback)
+            if (onSupernova) onSupernova(yieldMass, cx, cy);
 
             // 2. Create blast particles
             for(let k=0; k<50; k++) {
