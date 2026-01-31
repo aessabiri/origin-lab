@@ -2,6 +2,7 @@ import React from 'react';
 import { useStore } from '../store';
 import { useBioStore } from '../biology-lab/store';
 import { useChemistryStore } from '../chemistry-lab/store';
+import { useParticleStore } from '../particle-lab/store';
 import { useInventory } from '../store/inventory';
 
 const NAV_ITEMS = [
@@ -79,7 +80,8 @@ const NAV_ITEMS = [
 ];
 
 const Navigation = () => {
-  const { currentView, setCurrentView, introComplete, executeReset, setIntroComplete, isSandboxMode, setIsSandboxMode } = useStore();
+  const { currentView, setCurrentView, introComplete, executeReset: executeGlobalReset, setIntroComplete, isSandboxMode, setIsSandboxMode } = useStore();
+  const { executeReset: executeParticleReset } = useParticleStore();
   const { resetSimulation } = useBioStore();
   const { setGameMode } = useChemistryStore();
   const { resetUniverse } = useInventory();
@@ -89,7 +91,8 @@ const Navigation = () => {
   const handleReset = () => {
     if (window.confirm("WARNING: This will collapse the universe back into a singularity. All progress will be lost. Are you sure?")) {
       resetUniverse(); // Inventory -> 0
-      executeReset(); // Physics
+      executeGlobalReset(); // Global
+      executeParticleReset(); // Clear Physics Canvas
       resetSimulation(); // Biology
       setGameMode('career'); // Chemistry
       setIntroComplete(true); // Keep intro bypassed
