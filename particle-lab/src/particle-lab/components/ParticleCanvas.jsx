@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
-import { useSprings, animated } from '@react-spring/web';
+import { useSpring, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import ParticleIcon from './ParticleIcon.jsx';
 import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, CODEX_PARTICLES_BY_CATEGORY, PARTICLE_INFO, elementaryParticleGroups } from '../../constants/particles.js';
@@ -21,6 +21,94 @@ import { useDiscoveredMatter } from '../../hooks/useDiscoveredMatter.js';
 const MOLECULE_PARTICLE_TYPES = new Set(
   MOLECULE_RECIPES.map(r => r.type)
 );
+
+const DraggableParticle = React.memo(({
+  particle,
+  springRegistry,
+  uiScale,
+  isSelected,
+  isAssemblable,
+  onDragEnd,
+  onParticleClick,
+  onShowInfo,
+  canvasRef,
+}) => {
+  const [springs, api] = useSpring(() => ({
+    x: particle.x,
+    y: particle.y,
+    scale: particle.scale ?? 1,
+    config: { tension: 300, friction: 30 }
+  }), [particle.x, particle.y, particle.scale]);
+
+  useEffect(() => {
+    if (springRegistry.current) {
+      springRegistry.current.set(particle.id, springs);
+    }
+    return () => {
+      if (springRegistry.current) {
+        springRegistry.current.delete(particle.id);
+      }
+    };
+  }, [particle.id, springs, springRegistry]);
+
+  const bind = useDrag(({ active, offset: [ox, oy], tap }) => {
+    if (tap) return;
+
+    const canvasBounds = canvasRef.current.getBoundingClientRect();
+    const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
+    const particleSize = baseSize * uiScale;
+
+    const clampedX = Math.max(0, Math.min(ox, canvasBounds.width - particleSize));
+    const clampedY = Math.max(0, Math.min(oy, canvasBounds.height - particleSize));
+
+    api.start({
+      x: clampedX,
+      y: clampedY,
+      scale: active ? 1.1 : 1,
+      immediate: active,
+    });
+
+    if (!active) {
+      onDragEnd(particle.id, clampedX, clampedY);
+    }
+  }, {
+    from: () => [springs.x.get(), springs.y.get()],
+    filterTaps: true,
+    pointer: { touch: true },
+  });
+
+  const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type) || MOLECULE_PARTICLE_TYPES.has(particle.type);
+  const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
+
+  return (
+    <animated.div
+      {...bind()}
+      style={{
+        x: springs.x,
+        y: springs.y,
+        scale: springs.scale,
+        zIndex: isSelected ? 10 : 1,
+        touchAction: 'none',
+        width: `${baseSize * uiScale}px`,
+        height: `${baseSize * uiScale}px`,
+      }}
+      className={`absolute cursor-grab transition-colors duration-300 flex items-center justify-center font-bold text-white ${isSelected ? 'ring-2 ring-yellow-300 rounded-lg' : ''} ${isAssemblable ? 'molecule-glow' : ''}`}
+      onClick={(e) => onParticleClick(e, particle.id)}
+      onDoubleClick={() => onShowInfo(particle.type)}
+      onMouseEnter={() => api.start({ scale: 1.2 })}
+      onMouseLeave={() => api.start({ scale: 1 })}
+    >
+      <div className="flex flex-col items-center justify-center w-full h-full">
+        <div className="w-full h-full">
+          <ParticleIcon type={particle.type} color={PARTICLE_COLORS[particle.type]} isCompound={isCompound} />
+        </div>
+        <span className="text-white text-center p-1 absolute -bottom-6 text-sm">
+          {PARTICLE_NAMES[particle.type]}
+        </span>
+      </div>
+    </animated.div>
+  );
+});
 
 const ParticleCanvas = ({ onDragStart }) => {
   const { isCodexVisible, setIsCodexVisible } = useStore();
@@ -47,9 +135,9 @@ const ParticleCanvas = ({ onDragStart }) => {
   const { discoveredAtoms, discoveredMolecules } = useDiscoveredMatter();
 
   const [visualEffects, setVisualEffects] = useState([]);
-  const draggedIndexRef = useRef(null);
   const canvasRef = useRef(null);
   const bondsCanvasRef = useRef(null);
+  const springRegistry = useRef(new Map());
 
   const allDiscoveredParticles = useMemo(() => {
     if (isSandboxMode) {
@@ -80,12 +168,6 @@ const ParticleCanvas = ({ onDragStart }) => {
     handleParticleClick,
     selectionInfo,
   } = useSelection({ canvasRef });
-  
-  const [springs, api] = useSprings(particles.length, i => ({
-    x: particles[i]?.x ?? 0,
-    y: particles[i]?.y ?? 0,
-    scale: particles[i]?.scale ?? 1,
-  }), [particles]);
 
   // --- Bond Rendering Loop ---
   useEffect(() => {
@@ -104,19 +186,18 @@ const ParticleCanvas = ({ onDragStart }) => {
       ctx.lineCap = 'round';
 
       bonds.forEach(bond => {
-        const idxA = particles.findIndex(p => p.id === bond.particleA_id);
-        const idxB = particles.findIndex(p => p.id === bond.particleB_id);
+        const springA = springRegistry.current.get(bond.particleA_id);
+        const springB = springRegistry.current.get(bond.particleB_id);
+        const pA = particles.find(p => p.id === bond.particleA_id);
+        const pB = particles.find(p => p.id === bond.particleB_id);
         
-        if (idxA === -1 || idxB === -1) return;
-        if (!springs[idxA] || !springs[idxB]) return;
+        if (!springA || !springB || !pA || !pB) return;
 
-        const xA = springs[idxA].x.get();
-        const yA = springs[idxA].y.get();
-        const xB = springs[idxB].x.get();
-        const yB = springs[idxB].y.get();
+        const xA = springA.x.get();
+        const yA = springA.y.get();
+        const xB = springB.x.get();
+        const yB = springB.y.get();
 
-        const pA = particles[idxA];
-        const pB = particles[idxB];
         const sizeA = (COMPOUND_PARTICLE_TYPES.has(pA.type) || MOLECULE_PARTICLE_TYPES.has(pA.type) ? 96 : 64) * uiScale;
         const sizeB = (COMPOUND_PARTICLE_TYPES.has(pB.type) || MOLECULE_PARTICLE_TYPES.has(pB.type) ? 96 : 64) * uiScale;
         
@@ -176,40 +257,12 @@ const ParticleCanvas = ({ onDragStart }) => {
     };
     render();
     return () => cancelAnimationFrame(animationFrameId);
-  }, [bonds, particles, springs, uiScale]);
+  }, [bonds, particles, uiScale]); // Re-run if bonds or particles list changes
 
-  const bind = useDrag(({ args: [index], active, offset: [ox, oy], tap }) => {
-    if (tap) return;
-
-    draggedIndexRef.current = active ? index : null;
-
-    const canvasBounds = canvasRef.current.getBoundingClientRect();
-    const particle = particles[index];
-    const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
-    const particleSize = baseSize * uiScale;
-
-    const clampedX = Math.max(0, Math.min(ox, canvasBounds.width - particleSize));
-    const clampedY = Math.max(0, Math.min(oy, canvasBounds.height - particleSize));
-
-    api.start(i => {
-      if (i === index) {
-        return {
-          x: clampedX,
-          y: clampedY,
-          scale: active ? 1.1 : 1,
-          immediate: active,
-        };
-      }
-    });
-
-    if (!active) {
-      setParticles(particles.map((p, i) => i === index ? { ...p, x: clampedX, y: clampedY, scale: 1 } : p));
-    }
-  }, {
-    from: ({ args: [index] }) => [springs[index].x.get(), springs[index].y.get()],
-    filterTaps: true,
-    pointer: { touch: true },
-  });
+  const handleParticleDragEnd = useCallback((id, x, y) => {
+    const updatedParticles = particles.map(p => p.id === id ? { ...p, x, y, scale: 1 } : p);
+    setParticles(updatedParticles);
+  }, [particles, setParticles]);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -351,20 +404,6 @@ const ParticleCanvas = ({ onDragStart }) => {
   useDecay(triggerRadiationBurst);
 
   useEffect(() => {
-    api.start(i => {
-      if (i === draggedIndexRef.current) {
-        return {};
-      }
-      return {
-        x: particles[i]?.x ?? 0,
-        y: particles[i]?.y ?? 0,
-        scale: particles[i]?.scale ?? 1,
-        immediate: false,
-      };
-    });
-  }, [particles, api]);
-
-  useEffect(() => {
     const handleResize = () => {
       if (!canvasRef.current) return;
       const canvasBounds = canvasRef.current.getBoundingClientRect();
@@ -439,46 +478,20 @@ const ParticleCanvas = ({ onDragStart }) => {
         />
       )}
 
-      {springs.map((props, i) => {
-        const particle = particles[i];
-        if (!particle) return null;
-
-        const isSelected = selectedParticleIds.has(particle.id);
-        const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type) || MOLECULE_PARTICLE_TYPES.has(particle.type);
-        const isAssemblable = assemblableMoleculeIds.has(particle.id);
-
-        const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
-
-        return (
-          <animated.div
-            {...bind(i)}
-            key={particle.id}
-            style={{
-              x: props.x,
-              y: props.y,
-              scale: props.scale,
-              zIndex: isSelected ? 10 : 1,
-              touchAction: 'none',
-              width: `${baseSize * uiScale}px`,
-              height: `${baseSize * uiScale}px`,
-            }}
-            className={`absolute cursor-grab transition-colors duration-300 flex items-center justify-center font-bold text-white ${isSelected ? 'ring-2 ring-yellow-300 rounded-lg' : ''} ${isAssemblable ? 'molecule-glow' : ''}`}
-            onClick={(e) => handleParticleClick(e, particle.id)}
-            onDoubleClick={() => handleShowInfo(particle.type)}
-            onMouseEnter={() => api.start(j => (j === i ? { scale: 1.2 } : {}))}
-            onMouseLeave={() => api.start(j => (j === i ? { scale: 1 } : {}))}
-          >
-            <div className="flex flex-col items-center justify-center w-full h-full">
-              <div className="w-full h-full">
-                <ParticleIcon type={particle.type} color={PARTICLE_COLORS[particle.type]} isCompound={isCompound} />
-              </div>
-              <span className="text-white text-center p-1 absolute -bottom-6 text-sm">
-                {PARTICLE_NAMES[particle.type]}
-              </span>
-            </div>
-          </animated.div>
-        );
-      })}
+      {particles.map(particle => (
+        <DraggableParticle
+          key={particle.id}
+          particle={particle}
+          springRegistry={springRegistry}
+          uiScale={uiScale}
+          isSelected={selectedParticleIds.has(particle.id)}
+          isAssemblable={assemblableMoleculeIds.has(particle.id)}
+          onDragEnd={handleParticleDragEnd}
+          onParticleClick={handleParticleClick}
+          onShowInfo={handleShowInfo}
+          canvasRef={canvasRef}
+        />
+      ))}
 
       <ParticleCanvasOverlay 
         onAssemble={handleAssemble}
