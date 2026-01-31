@@ -27,9 +27,10 @@ export const useStore = create(
       },
       
       // --- Global UI State ---
-      currentView: 'universe', // 'menu', 'hub', 'particle', 'chemistry', 'biology', 'universe'
+      currentView: 'particle', // 'menu', 'hub', 'particle', 'chemistry', 'biology', 'universe'
       isCodexVisible: false,
       isSandboxMode: false,
+      introComplete: true, // Bypass intro screen
       message: '',
 
       // --- Actions ---

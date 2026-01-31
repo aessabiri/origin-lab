@@ -153,6 +153,7 @@ export const useInventory = create(
       // Hard Reset (Pre-Big Bang)
       resetUniverse: () => set({
         energy: 0,
+        discoveredItems: [], // CRITICAL: Clear discovery history
         quarks: { 
           up: 0, down: 0, charm: 0, strange: 0, top: 0, bottom: 0,
           muon: 0, 'higgs-boson': 0, positron: 0, tau: 0,
@@ -182,10 +183,11 @@ export const useInventory = create(
 
       // Reset for a new Universe
       triggerBigBang: () => set({
-        energy: 1e12, // Massive start energy
+        energy: 1e12, 
+        discoveredItems: [],
         quarks: { up: 0, down: 0, charm: 0, strange: 0, top: 0, bottom: 0 },
-        elements: { H: 0, He: 0, C: 0, N: 0, O: 0, P: 0, S: 0, Fe: 0 },
-        compounds: { water: 0, glucose: 0, aminoAcids: 0 },
+        elements: { hydrogen: 0, helium: 0, carbon: 0, nitrogen: 0, oxygen: 0, phosphorus: 0, sulfur: 0, iron: 0 },
+        compounds: { water: 0, glucose: 0 },
       }),
     }),
     {
