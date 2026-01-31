@@ -10,6 +10,14 @@ const DECAY_CONFIG = {
   [PARTICLE_TYPES.TRITIUM]: { lifetime: 20000, products: [{ type: PARTICLE_TYPES.HELIUM_3, count: 1 }, { type: PARTICLE_TYPES.ELECTRON, count: 1 }], msg: 'Tritium Beta-Decay -> Helium-3' },
   [PARTICLE_TYPES.CARBON_14]: { lifetime: 35000, products: [{ type: PARTICLE_TYPES.NITROGEN, count: 1 }, { type: PARTICLE_TYPES.ELECTRON, count: 1 }], msg: 'Carbon-14 decayed into Nitrogen!' },
   [PARTICLE_TYPES.URANIUM_235]: { lifetime: 50000, products: [{ type: PARTICLE_TYPES.LEAD, count: 1 }, { type: PARTICLE_TYPES.HELIUM, count: 1 }], msg: 'Uranium-235 Alpha-Decay into Lead!' },
+  [PARTICLE_TYPES.HIGGS_BOSON]: { 
+    lifetime: 2000, 
+    channels: [
+        { weight: 0.6, products: [{ type: PARTICLE_TYPES.PHOTON, count: 2 }], msg: 'Higgs Boson decayed into 2 Photons!' },
+        { weight: 0.3, products: [{ type: PARTICLE_TYPES.Z_BOSON, count: 2 }], msg: 'Higgs Boson decayed into 2 Z Bosons!' },
+        { weight: 0.1, products: [{ type: PARTICLE_TYPES.Z_BOSON, count: 1 }, { type: PARTICLE_TYPES.PHOTON, count: 1 }], msg: 'Higgs Boson decayed into Z Boson + Photon!' }
+    ]
+  },
 };
 
 export const useDecay = (triggerRadiationBurst) => {
@@ -43,8 +51,30 @@ export const useDecay = (triggerRadiationBurst) => {
           const target = latestParticles.find(part => part.id === p.id);
           if (!target) return;
 
+          let productsToUse = config.products;
+          let messageToUse = config.msg;
+
+          // Handle Probabilistic Decay Channels
+          if (config.channels) {
+              const r = Math.random();
+              let accumulatedWeight = 0;
+              for (const channel of config.channels) {
+                  accumulatedWeight += channel.weight;
+                  if (r <= accumulatedWeight) {
+                      productsToUse = channel.products;
+                      messageToUse = channel.msg;
+                      break;
+                  }
+              }
+              // Fallback for floating point edge cases
+              if (!productsToUse) {
+                   productsToUse = config.channels[0].products;
+                   messageToUse = config.channels[0].msg;
+              }
+          }
+
           const others = latestParticles.filter(part => part.id !== p.id);
-          const newParticles = config.products.flatMap((prod, idx) => {
+          const newParticles = productsToUse.flatMap((prod, idx) => {
              const results = [];
              for(let i=0; i<prod.count; i++) {
                 results.push({
@@ -60,7 +90,7 @@ export const useDecay = (triggerRadiationBurst) => {
 
           setParticles([...others, ...newParticles]);
           triggerRadiationBurst(target.x, target.y);
-          showMessage(config.msg);
+          showMessage(messageToUse);
           decayTimeouts.current.delete(p.id);
         }, config.lifetime);
         

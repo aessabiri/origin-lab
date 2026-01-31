@@ -1,17 +1,10 @@
 import React from 'react';
 import { useStore } from '../store';
+import { useBioStore } from '../biology-lab/store';
+import { useChemistryStore } from '../chemistry-lab/store';
+import { useInventory } from '../store/inventory';
 
 const NAV_ITEMS = [
-  { 
-    id: 'hub', 
-    label: 'Home', 
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-    color: 'blue' 
-  },
   { 
     id: 'universe', 
     label: 'Universe', 
@@ -54,6 +47,16 @@ const NAV_ITEMS = [
     color: 'teal' 
   },
   { 
+    id: 'planetary', 
+    label: 'Earth', 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    color: 'blue' 
+  },
+  { 
     id: 'goals', 
     label: 'Goals', 
     icon: (
@@ -87,13 +90,27 @@ const NAV_ITEMS = [
 ];
 
 const Navigation = () => {
-  const { currentView, setCurrentView, introComplete } = useStore();
+  const { currentView, setCurrentView, introComplete, executeReset, setIntroComplete, isSandboxMode, setIsSandboxMode } = useStore();
+  const { resetSimulation } = useBioStore();
+  const { setGameMode } = useChemistryStore();
+  const { resetUniverse } = useInventory();
 
   if (!introComplete) return null;
 
+  const handleReset = () => {
+    if (window.confirm("WARNING: This will collapse the universe back into a singularity. All progress will be lost. Are you sure?")) {
+      resetUniverse(); // Inventory -> 0
+      executeReset(); // Physics
+      resetSimulation(); // Biology
+      setGameMode('career'); // Chemistry
+      setIntroComplete(false); // Reset Intro
+      setCurrentView('universe'); // Return to Universe View
+    }
+  };
+
   return (
     <nav className="h-full flex flex-col items-center py-6 bg-slate-900 border-r border-slate-800 shadow-2xl z-50 shrink-0">
-      <div className="flex flex-col items-center gap-2 px-3">
+      <div className="flex flex-col items-center gap-2 px-3 flex-1 overflow-y-auto w-full scrollbar-thin scrollbar-thumb-slate-700">
         {NAV_ITEMS.map((item) => {
           const isActive = currentView === item.id;
           
@@ -118,7 +135,7 @@ const Navigation = () => {
               className={`
                 relative w-16 h-16 md:w-20 md:h-20 rounded-2xl
                 flex flex-col items-center justify-center gap-1 transition-all duration-300
-                group
+                group shrink-0
                 ${isActive 
                   ? 'bg-slate-800 shadow-inner' 
                   : 'text-slate-500 hover:text-white hover:bg-white/5'
@@ -154,6 +171,37 @@ const Navigation = () => {
             </button>
           );
         })}
+      </div>
+
+      {/* System Controls */}
+      <div className="flex flex-col items-center gap-4 mt-4 px-3 pt-4 border-t border-slate-800 w-full">
+        {/* Sandbox Mode Toggle */}
+        <button
+            onClick={() => setIsSandboxMode(!isSandboxMode)}
+            className={`
+                relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
+                ${isSandboxMode ? 'text-amber-400 bg-amber-900/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-slate-600 hover:text-amber-400 hover:bg-white/5'}
+            `}
+            title={isSandboxMode ? "Sandbox Mode: ON (Unlocks all items)" : "Sandbox Mode: OFF"}
+        >
+            <span className="text-xl">
+                {isSandboxMode ? '🔓' : '🔒'}
+            </span>
+            {isSandboxMode && (
+                <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_#f59e0b]" />
+            )}
+        </button>
+
+        {/* Universe Collapse (Reset) */}
+        <button
+            onClick={handleReset}
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-900/20 transition-all duration-300"
+            title="Collapse Universe (RESET ALL)"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </button>
       </div>
     </nav>
   );

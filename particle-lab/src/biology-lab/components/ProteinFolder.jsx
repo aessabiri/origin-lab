@@ -10,13 +10,14 @@ import ParticleIcon from '../../particle-lab/components/ParticleIcon';
 
 const ProteinFolder = () => {
   const { synthesizedProteins, addSynthesizedProtein } = useBioStore();
-  const { discoveredItems } = useInventory();
+  const { discoveredItems, compounds, consumeResource, addResource } = useInventory();
   const { isSandboxMode } = useStore();
   
   const [sequence, setSequence] = useState([]);
   const [isFolding, setIsFolding] = useState(false);
   const [foldedStructure, setFoldedStructure] = useState(null);
   const [activeTab, setActiveTab] = useState('library'); // 'library' or 'history'
+  const [statusMessage, setStatusMessage] = useState('');
   
   // 1. Get and Categorize Available Amino Acids
   const categorizedAA = useMemo(() => {
@@ -81,23 +82,76 @@ const ProteinFolder = () => {
   };
 
   const handleStartFolding = () => {
-    if (sequence.length < 2) return;
+    if (sequence.length < 2) {
+        setStatusMessage('Error: Sequence too short.');
+        return;
+    }
+
+    // 1. Calculate Required Resources
+    const required = {};
+    sequence.forEach(node => {
+        required[node.type] = (required[node.type] || 0) + 1;
+    });
+
+    // 2. Check Inventory (skip in sandbox)
+    if (!isSandboxMode) {
+        for (const [type, count] of Object.entries(required)) {
+            if ((compounds[type] || 0) < count) {
+                setStatusMessage(`Error: Insufficient ${PARTICLE_TYPES[type] || type}`);
+                return;
+            }
+        }
+    }
+
+    // 3. Consume Resources
+    if (!isSandboxMode) {
+        for (const [type, count] of Object.entries(required)) {
+            consumeResource('compounds', type, count);
+        }
+    }
+
     setIsFolding(true);
+    setStatusMessage('Folding sequence...');
     
     setTimeout(() => {
       const structure = generateFoldedStructure(sequence);
       setFoldedStructure(structure);
       setIsFolding(false);
       
-      if (sequence.length >= 2) {
-          const info = getUniversalItemInfo(sequence[0].type);
-          addSynthesizedProtein({
-              id: `PROT-${Date.now()}`,
-              name: sequence.length <= 2 ? `Peptide_${sequence.length}` : `Protein_${sequence.length}`,
-              sequence: sequence.map(s => s.type),
-              structure
-          });
+      // 4. Validate against Recipes
+      const seqTypes = sequence.map(s => s.type);
+      const match = POLYPEPTIDE_RECIPES.find(recipe => {
+          // Check if recipes have a defined sequence order
+          if (recipe.sequence) {
+              if (recipe.sequence.length !== seqTypes.length) return false;
+              return recipe.sequence.every((t, i) => t === seqTypes[i]);
+          }
+          // Fallback to composition check (unordered) if sequence not defined
+          const recipeCounts = recipe.molecules;
+          const seqCounts = {};
+          seqTypes.forEach(t => seqCounts[t] = (seqCounts[t] || 0) + 1);
+          
+          if (Object.keys(recipeCounts).length !== Object.keys(seqCounts).length) return false;
+          return Object.entries(recipeCounts).every(([t, c]) => seqCounts[t] === c);
+      });
+
+      const proteinName = match ? match.name : `Custom Peptide (${sequence.length}aa)`;
+      
+      // 5. Reward
+      if (match) {
+          addResource('compounds', match.type, 1);
+          setStatusMessage(`Success: Synthesized ${match.name}`);
+      } else {
+          setStatusMessage('Folded custom structure. (No recipe match)');
       }
+
+      addSynthesizedProtein({
+          id: `PROT-${Date.now()}`,
+          name: proteinName,
+          sequence: seqTypes,
+          structure
+      });
+
     }, 2000);
   };
 

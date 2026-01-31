@@ -47,15 +47,6 @@ const THEME_MAP = {
     accentBg: 'bg-indigo-500/20',
     tabActive: 'bg-indigo-800/50 text-indigo-200 border-indigo-700/50',
     icon: '🧬'
-  },
-  hub: {
-    bg: 'bg-slate-900',
-    sidebar: 'bg-slate-950',
-    border: 'border-slate-800',
-    accent: 'text-blue-400',
-    accentBg: 'bg-blue-500/20',
-    tabActive: 'bg-blue-900/30 text-blue-400 border-blue-800/50',
-    icon: '🌌'
   }
 };
 

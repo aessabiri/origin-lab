@@ -1924,13 +1924,45 @@ const NADHIcon = () => (
 
 const CholesterolIcon = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    <g transform="translate(10, 10) scale(0.8)">
-        {/* Simplified 4-ring steroid skeleton */}
-        <rect x="20" y="40" width="20" height="20" rx="2" stroke="#94a3b8" strokeWidth="4" fill="none" />
-        <rect x="40" y="40" width="20" height="20" rx="2" stroke="#94a3b8" strokeWidth="4" fill="none" />
-        <rect x="40" y="20" width="20" height="20" rx="2" stroke="#94a3b8" strokeWidth="4" fill="none" />
-        <path d="M 60 40 L 75 30 L 85 45" stroke="#94a3b8" strokeWidth="4" fill="none" />
-        <NeoSphere x={20} y={50} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="OH" />
+    <g transform="scale(0.8) translate(10, 10)">
+        {/* Ring A */}
+        <NeoBond x1={20} y1={50} x2={35} y2={40} />
+        <NeoBond x1={35} y1={40} x2={50} y2={50} />
+        <NeoBond x1={50} y1={50} x2={50} y2={65} />
+        <NeoBond x1={50} y1={65} x2={35} y2={75} />
+        <NeoBond x1={35} y1={75} x2={20} y2={65} />
+        <NeoBond x1={20} y1={65} x2={20} y2={50} />
+        
+        {/* Ring B */}
+        <NeoBond x1={50} y1={50} x2={65} y2={40} />
+        <NeoBond x1={65} y1={40} x2={80} y2={50} />
+        <NeoBond x1={80} y1={50} x2={80} y2={65} />
+        <NeoBond x1={80} y1={65} x2={65} y2={75} />
+        <NeoBond x1={65} y1={75} x2={50} y2={65} />
+
+        {/* Ring C */}
+        <NeoBond x1={65} y1={40} x2={65} y2={25} />
+        <NeoBond x1={65} y1={25} x2={80} y2={15} />
+        <NeoBond x1={80} y1={15} x2={95} y2={25} />
+        <NeoBond x1={95} y1={25} x2={80} y2={50} />
+
+        {/* Ring D (5-mem) */}
+        <NeoBond x1={80} y1={15} x2={95} y2={5} />
+        <NeoBond x1={95} y1={5} x2={105} y2={15} />
+        <NeoBond x1={105} y1={15} x2={95} y2={25} />
+
+        {/* Tail */}
+        <NeoBond x1={105} y1={15} x2={120} y2={5} />
+
+        {/* Atoms */}
+        <NeoSphere x={20} y={50} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={35} y={40} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={50} y={50} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={65} y={40} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+        <NeoSphere x={80} y={50} r={8} color={PARTICLE_COLOR_MAP['gray-800']} />
+        
+        {/* Hydroxyl */}
+        <NeoSphere x={15} y={45} r={8} color={PARTICLE_COLOR_MAP['red-600']} label="OH" />
     </g>
   </svg>
 );
@@ -2055,7 +2087,28 @@ const SilverIcon = (p) => <NeoAtomIcon symbol="Ag" p={47} n={61} e={47} {...p} /
 const GoldIcon = (p) => <NeoAtomIcon symbol="Au" p={79} n={118} e={79} {...p} />;
 const LeadIcon = (p) => <NeoAtomIcon symbol="Pb" p={82} n={125} e={82} {...p} />;
 
+const InsulinFragmentIcon = () => (
+  <svg viewBox="0 0 140 100" className="w-full h-full overflow-visible">
+    <g transform="translate(20, 50) scale(0.4)"><GlycineIcon /></g>
+    <g transform="translate(45, 35) scale(0.4)"><IsoleucineIcon /></g>
+    <g transform="translate(70, 50) scale(0.4)"><ValineIcon /></g>
+    <g transform="translate(95, 35) scale(0.4)"><GlutamicAcidIcon /></g>
+    <g transform="translate(120, 50) scale(0.4)"><GlutamineIcon /></g>
+  </svg>
+);
+
+const HemePocketIcon = () => (
+  <svg viewBox="0 0 140 100" className="w-full h-full overflow-visible">
+    <g transform="translate(30, 50) scale(0.4)"><HistidineIcon /></g>
+    <g transform="translate(55, 35) scale(0.4)"><ValineIcon /></g>
+    <g transform="translate(80, 50) scale(0.4)"><LeucineIcon /></g>
+    <g transform="translate(105, 35) scale(0.4)"><HistidineIcon /></g>
+  </svg>
+);
+
 const PARTICLE_ICON_MAP = {
+  [PARTICLE_TYPES.INSULIN_FRAGMENT]: InsulinFragmentIcon,
+  [PARTICLE_TYPES.HEMOGLOBIN_POCKET]: HemePocketIcon,
   [PARTICLE_TYPES.HIGGS_BOSON]: HiggsBosonIcon,
   [PARTICLE_TYPES.MUON]: MuonIcon,
   [PARTICLE_TYPES.POSITRON]: PositronIcon,

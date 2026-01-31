@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import Hub from '../components/Hub';
 import ChemistryApp from '../chemistry-lab/ChemistryApp';
 import Codex from '../components/Codex';
 import { useStore } from '../store';
@@ -16,36 +15,6 @@ global.ResizeObserver = class ResizeObserver {
 
 describe('UI Interactions', () => {
   
-  // --- HUB TESTS ---
-  describe('Hub Component', () => {
-    beforeEach(() => {
-      useStore.setState({ isSandboxMode: false });
-    });
-
-    it('should toggle Sandbox Mode when clicked', () => {
-      // Mock navigation prop
-      const mockNavigate = vi.fn();
-      
-      render(<Hub onNavigate={mockNavigate} />);
-      
-      // Find the toggle button (using the title we added or text)
-      // "Standard progression enabled." is visible when OFF.
-      expect(screen.getByText(/Standard progression enabled/i)).toBeInTheDocument();
-      
-      // Find the button by title
-      const toggleButton = screen.getByTitle('Toggle Sandbox Mode');
-      
-      // Click it
-      fireEvent.click(toggleButton);
-      
-      // Check if text changed
-      expect(screen.getByText(/Unlocks all items/i)).toBeInTheDocument();
-      
-      // Verify store updated
-      expect(useStore.getState().isSandboxMode).toBe(true);
-    });
-  });
-
   // --- CHEMISTRY LAB TESTS ---
   describe('Chemistry Lab UI', () => {
     it('should toggle Pantry Sidebar visibility', () => {

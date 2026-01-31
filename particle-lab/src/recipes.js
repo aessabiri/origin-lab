@@ -143,14 +143,7 @@ export const RECIPES = [
       [PARTICLE_TYPES.ANTI_DOWN_QUARK]: 2,
     },
   },
-  {
-    type: PARTICLE_TYPES.HIGGS_BOSON,
-    category: PARTICLE_CATEGORIES.SECONDARY,
-    ingredients: {
-      [PARTICLE_TYPES.PHOTON]: 2,
-      [PARTICLE_TYPES.Z_BOSON]: 1,
-    },
-  },
+
   // Atoms
   {
     type: PARTICLE_TYPES.HYDROGEN,

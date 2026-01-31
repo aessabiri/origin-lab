@@ -3,8 +3,8 @@ import { useStore } from './store.js';
 import ParticleLab from './particle-lab/ParticleLab.jsx';
 import ChemistryApp from './chemistry-lab/ChemistryApp.jsx';
 import BiologyApp from './biology-lab/BiologyApp.jsx';
+import PlanetaryView from './components/PlanetaryView.jsx';
 import Universe from './components/Universe.jsx';
-import Hub from './components/Hub.jsx';
 import Tutorials from './components/Tutorials.jsx';
 import Navigation from './components/Navigation.jsx';
 import LabNotebook from './components/LabNotebook.jsx';
@@ -19,12 +19,12 @@ const App = () => {
       <Navigation />
 
       <div className="flex-1 overflow-hidden relative">
-        {currentView === 'hub' && <Hub onNavigate={setCurrentView} />}
         {currentView === 'progress' && <GameProgress />}
         {currentView === 'goals' && <Goals />}
         {currentView === 'particle' && <ParticleLab />}
         {currentView === 'chemistry' && <ChemistryApp />}
         {currentView === 'biology' && <BiologyApp />}
+        {currentView === 'planetary' && <PlanetaryView />}
         {currentView === 'universe' && <Universe />}
         {currentView === 'tutorials' && <Tutorials />}
       </div>

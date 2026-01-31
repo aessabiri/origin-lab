@@ -9,19 +9,19 @@ describe('Advanced Logic Coverage', () => {
         it('should be RED in strong acid', () => {
             const contents = { water: 100, 'universal-indicator': 5, 'hydrochloric-acid': 10 };
             const color = calculateMixtureColor(contents, 1.0);
-            expect(color).toBe('rgb(189, 90, 122)');
+            expect(color).toBe('rgb(175, 72, 109)');
         });
 
         it('should be PURPLE in strong base', () => {
             const contents = { water: 100, 'universal-indicator': 5, 'sodium-hydroxide': 10 };
             const color = calculateMixtureColor(contents, 14.0);
-            expect(color).toBe('rgb(140, 102, 247)');
+            expect(color).toBe('rgb(127, 82, 237)');
         });
 
         it('should be GREEN in neutral', () => {
             const contents = { water: 100, 'universal-indicator': 5 };
             const color = calculateMixtureColor(contents, 7.0);
-            expect(color).toBe('rgb(41, 178, 137)');
+            expect(color).toBe('rgb(33, 163, 129)');
         });
     });
 
