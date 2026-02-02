@@ -107,16 +107,33 @@ const StellarNursery = ({ position, color1 = "#4338ca", color2 = "#be185d", clou
     }));
   }, [starCount]);
 
+  const clouds = useMemo(() => {
+    return Array.from({ length: cloudCount }).map(() => {
+        const pos = [(Math.random()-0.5)*12, (Math.random()-0.5)*16, (Math.random()-0.5)*12];
+        const dist = Math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2);
+        // Central clouds are MUCH bigger and lower opacity (blurrier)
+        const isCore = dist < 6;
+        return {
+            pos,
+            scale: isCore 
+                ? [8 + Math.random()*6, 12 + Math.random()*10, 8 + Math.random()*6] // Giant core puffs
+                : [3 + Math.random()*5, 6 + Math.random()*8, 3 + Math.random()*5],
+            rot: [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI],
+            opacity: isCore ? 0.015 : 0.03 // Core is fainter/softer
+        };
+    });
+  }, [cloudCount]);
+
   return (
     <group position={position}>
-        {/* Volumetric Gas Clouds */}
-        {Array.from({ length: cloudCount }).map((_, i) => (
-            <Float key={i} speed={0.5} rotationIntensity={1} floatIntensity={0.5}>
-                <mesh position={[(Math.random()-0.5)*8, (Math.random()-0.5)*12, (Math.random()-0.5)*8]}>
-                    <sphereGeometry args={[3 + Math.random() * 3, 16, 16]} />
+        {/* Irregular Volumetric Clouds */}
+        {clouds.map((cloud, i) => (
+            <Float key={i} speed={0.2} rotationIntensity={0.3} floatIntensity={0.3}>
+                <mesh position={cloud.pos} rotation={cloud.rot} scale={cloud.scale}>
+                    <sphereGeometry args={[1, 12, 12]} />
                     <meshStandardMaterial 
                         color={i % 2 === 0 ? color1 : color2} 
-                        transparent opacity={0.03} 
+                        transparent opacity={cloud.opacity} 
                         depthWrite={false} 
                         blending={THREE.AdditiveBlending} 
                     />
