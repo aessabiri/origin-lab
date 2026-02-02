@@ -80,6 +80,30 @@ export const useChemistryStore = create(
           }
       },
 
+      resetLab: () => {
+          set({
+              gameMode: 'career',
+              inventory: [...STARTING_CHEMICALS],
+              unlockedEquipment: [...STARTING_EQUIPMENT],
+              localInventory: {},
+              vessels: {
+                  beaker: { id: 'beaker', name: 'Open Beaker', contents: {}, temp: 20, targetTemp: 20, pressure: 1, maxVol: 500, status: 'ok', type: 'glass', variant: 'beaker', activeVisual: null, isOpen: true },
+              },
+              condenser: {
+                  id: 'condenser',
+                  name: 'Distillation Column',
+                  connectedTo: null,
+                  contents: {},
+                  maxVol: 300,
+                  status: 'ok',
+                  isActive: true
+              },
+              message: 'Lab Reset.',
+              isFumeHoodOn: false,
+              inspectedChemical: null
+          });
+      },
+
       checkMissionCompletion: (newChemicals) => {
           const state = get();
           if (state.gameMode !== 'career') return;

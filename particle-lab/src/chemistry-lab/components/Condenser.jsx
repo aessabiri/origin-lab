@@ -34,8 +34,8 @@ const Condenser = () => {
                     <stop offset="100%" stopColor="rgba(255,255,255,0.1)" />
                 </linearGradient>
                 <linearGradient id="liquid-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor={fluidColor} stopOpacity="0.8"/>
-                    <stop offset="100%" stopColor={fluidColor} stopOpacity="0.9"/>
+                    <stop offset="0%" stopColor={dominantColor} stopOpacity="0.8"/>
+                    <stop offset="100%" stopColor={dominantColor} stopOpacity="0.9"/>
                 </linearGradient>
             </defs>
 

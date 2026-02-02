@@ -25,7 +25,7 @@ const App = () => {
         {currentView === 'chemistry' && <ChemistryApp />}
         {currentView === 'biology' && <BiologyApp />}
         {currentView === 'planetary' && <PlanetaryView />}
-        {/* {currentView === 'universe' && <Universe />} */}
+        {currentView === 'universe' && <Universe />}
         {currentView === 'tutorials' && <Tutorials />}
       </div>
 

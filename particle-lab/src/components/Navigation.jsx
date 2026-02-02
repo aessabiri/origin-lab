@@ -47,6 +47,16 @@ const NAV_ITEMS = [
     color: 'blue' 
   },
   { 
+    id: 'universe', 
+    label: 'Cosmos', 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+      </svg>
+    ),
+    color: 'purple' 
+  },
+  { 
     id: 'goals', 
     label: 'Goals', 
     icon: (
@@ -83,7 +93,7 @@ const Navigation = () => {
   const { currentView, setCurrentView, introComplete, executeReset: executeGlobalReset, setIntroComplete, isSandboxMode, setIsSandboxMode } = useStore();
   const { executeReset: executeParticleReset } = useParticleStore();
   const { resetSimulation } = useBioStore();
-  const { setGameMode } = useChemistryStore();
+  const { resetLab } = useChemistryStore();
   const { resetUniverse } = useInventory();
 
   if (!introComplete) return null;
@@ -94,15 +104,29 @@ const Navigation = () => {
       executeGlobalReset(); // Global
       executeParticleReset(); // Clear Physics Canvas
       resetSimulation(); // Biology
-      setGameMode('career'); // Chemistry
+      resetLab(); // Chemistry
       setIntroComplete(true); // Keep intro bypassed
       setCurrentView('particle'); // Return to Physics Lab
     }
   };
 
   return (
-    <nav className="h-full flex flex-col items-center py-6 bg-slate-900 border-r border-slate-800 shadow-2xl z-50 shrink-0">
-      <div className="flex flex-col items-center gap-2 px-3 flex-1 overflow-y-auto w-full scrollbar-thin scrollbar-thumb-slate-700">
+    <nav className="h-full w-20 md:w-24 flex flex-col items-center py-4 bg-slate-950/80 backdrop-blur-xl border-r border-white/5 shadow-[20px_0_50px_rgba(0,0,0,0.5)] z-50 shrink-0 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
+         <div className="absolute top-0 left-0 w-full h-1/4 bg-gradient-to-b from-blue-500/20 to-transparent" />
+         <div className="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-purple-500/20 to-transparent" />
+      </div>
+
+      {/* Origin Logo */}
+      <div className="mb-8 relative group cursor-pointer" onClick={() => setCurrentView('particle')}>
+        <div className="w-12 h-12 rounded-full border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 transition-colors duration-500">
+           <div className="w-8 h-8 rounded-full border-4 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.8)] animate-pulse" />
+           <div className="absolute inset-0 rounded-full bg-blue-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-3 px-2 flex-1 overflow-y-auto w-full scrollbar-none">
         {NAV_ITEMS.map((item) => {
           const isActive = currentView === item.id;
           
@@ -123,14 +147,13 @@ const Navigation = () => {
             <button
               key={item.id}
               onClick={() => setCurrentView(item.id)}
-              style={isActive ? { color: activeColor } : {}}
               className={`
-                relative w-16 h-16 md:w-20 md:h-20 rounded-2xl
-                flex flex-col items-center justify-center gap-1 transition-all duration-300
+                relative w-16 h-16 rounded-2xl
+                flex flex-col items-center justify-center transition-all duration-500
                 group shrink-0
                 ${isActive 
-                  ? 'bg-slate-800 shadow-inner' 
-                  : 'text-slate-500 hover:text-white hover:bg-white/5'
+                  ? 'bg-white/5 border border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.05)]' 
+                  : 'text-slate-500 hover:text-white hover:bg-white/5 border border-transparent'
                 }
               `}
               title={item.label}
@@ -138,19 +161,22 @@ const Navigation = () => {
               {/* Active Glow Background */}
               {isActive && (
                 <div 
-                    className="absolute inset-0 rounded-2xl opacity-10 blur-sm" 
+                    className="absolute inset-2 rounded-xl opacity-20 blur-md transition-all duration-500" 
                     style={{ backgroundColor: activeColor }}
                 />
               )}
               
               {/* Icon */}
-              <span className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
+              <span 
+                className={`relative z-10 transition-all duration-500 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_currentColor]' : 'group-hover:scale-110 group-hover:drop-shadow-[0_0_5px_currentColor]'}`}
+                style={isActive ? { color: activeColor } : {}}
+              >
                 {item.icon}
               </span>
               
               {/* Label */}
               <span className={`
-                text-[9px] font-bold uppercase tracking-widest relative z-10 whitespace-nowrap mt-1
+                text-[8px] font-black uppercase tracking-[0.2em] relative z-10 whitespace-nowrap mt-1.5 transition-colors duration-500
                 ${isActive ? 'text-white' : 'text-slate-600 group-hover:text-slate-400'}
               `}>
                 {item.label}
@@ -158,7 +184,10 @@ const Navigation = () => {
 
               {/* Active Indicator Bar */}
               {isActive && (
-                 <div className={`absolute left-0 top-1/4 bottom-1/4 w-1 bg-current rounded-r-full shadow-[0_0_15px_currentColor] opacity-100`} />
+                 <div 
+                    className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full shadow-[0_0_15px_currentColor] opacity-100" 
+                    style={{ backgroundColor: activeColor, boxShadow: `0 0 10px ${activeColor}` }}
+                />
               )}
             </button>
           );
@@ -166,31 +195,34 @@ const Navigation = () => {
       </div>
 
       {/* System Controls */}
-      <div className="flex flex-col items-center gap-4 mt-4 px-3 pt-4 border-t border-slate-800 w-full">
+      <div className="flex flex-col items-center gap-3 mt-4 mb-2 w-full px-2 pt-4 border-t border-white/5">
         {/* Sandbox Mode Toggle */}
         <button
             onClick={() => setIsSandboxMode(!isSandboxMode)}
             className={`
-                relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
-                ${isSandboxMode ? 'text-amber-400 bg-amber-900/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-slate-600 hover:text-amber-400 hover:bg-white/5'}
+                relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 border
+                ${isSandboxMode 
+                    ? 'text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.1)]' 
+                    : 'text-slate-600 bg-white/5 border-transparent hover:text-amber-400 hover:border-amber-500/20'
+                }
             `}
-            title={isSandboxMode ? "Sandbox Mode: ON (Unlocks all items)" : "Sandbox Mode: OFF"}
+            title={isSandboxMode ? "Sandbox Mode: ON" : "Sandbox Mode: OFF"}
         >
-            <span className="text-xl">
+            <span className="text-xl relative z-10">
                 {isSandboxMode ? '🔓' : '🔒'}
             </span>
             {isSandboxMode && (
-                <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_#f59e0b]" />
+                <div className="absolute inset-0 rounded-2xl bg-amber-500/5 animate-pulse blur-sm" />
             )}
         </button>
 
         {/* Universe Collapse (Reset) */}
         <button
             onClick={handleReset}
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-900/20 transition-all duration-300"
-            title="Collapse Universe (RESET ALL)"
+            className="w-14 h-14 rounded-2xl flex items-center justify-center text-red-500/40 hover:text-red-500 bg-white/5 border border-transparent hover:border-red-500/20 hover:bg-red-500/10 transition-all duration-500 group"
+            title="Collapse Universe (RESET)"
         >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
         </button>
