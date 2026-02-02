@@ -3,11 +3,6 @@ import MoleculeStructure from './MoleculeStructure';
 import { MOLECULAR_STRUCTURES } from '../data/structures';
 
 const ChemicalIcon = ({ id, color, state, formula, iconType, className = '' }) => {
-  // If we have a molecular structure defined, use the Ball-and-Stick model
-  if (id && MOLECULAR_STRUCTURES[id]) {
-      return <MoleculeStructure chemicalId={id} className={`bg-transparent border-none ${className}`} />;
-  }
-
   const wrapperStyle = `relative flex items-center justify-center w-16 h-16 transition-transform hover:scale-105 ${className}`;
   
   // Use a sanitized ID for gradients to avoid special character issues
@@ -89,6 +84,46 @@ const ChemicalIcon = ({ id, color, state, formula, iconType, className = '' }) =
             <path d="M12 3V13M12 13L20 8M12 13L4 8" stroke="white" strokeOpacity="0.3" strokeWidth="1"/>
           </svg>
         );
+
+      case 'amino': // Amino Acids - Hexagonal Crystal
+        return (
+          <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+             <defs>
+                <linearGradient id={`${gradId}-amino`} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={color} stopOpacity="0.9"/>
+                    <stop offset="100%" stopColor="white" stopOpacity="0.3"/>
+                </linearGradient>
+             </defs>
+             <path d="M12 2L21 7V17L12 22L3 17V7L12 2Z" fill={`url(#${gradId}-amino)`} stroke={color} strokeWidth="1" />
+             {/* Facet lines */}
+             <path d="M12 2L12 12L3 17M12 12L21 7" stroke="white" strokeOpacity="0.4" fill="none" />
+             <circle cx="12" cy="12" r="2" fill="white" opacity="0.3" />
+          </svg>
+        );
+
+      case 'strand': // DNA/RNA - Helix
+         return (
+            <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+               <path d="M7 4C7 4 12 8 17 4" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" />
+               <path d="M7 12C7 12 12 16 17 12" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" />
+               <path d="M7 20C7 20 12 24 17 20" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" />
+               <line x1="12" y1="4" x2="12" y2="20" stroke="white" strokeWidth="1" strokeDasharray="2 1" opacity="0.5" />
+            </svg>
+         );
+
+      case 'protein': // Polypeptides - Folded Blob
+         return (
+            <svg viewBox="0 0 24 24" className="w-12 h-12 drop-shadow-lg">
+               <defs>
+                  <filter id={`${gradId}-blob`}>
+                     <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+                  </filter>
+               </defs>
+               <path d="M6 12C6 8 8 6 12 6C16 6 18 8 18 12C18 16 16 18 12 18C8 18 6 16 6 12Z" fill={color} opacity="0.8" />
+               <path d="M8 10C8 8 10 8 12 10C14 12 16 10 16 12C16 14 14 16 12 14C10 12 8 14 8 12Z" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+               <circle cx="15" cy="9" r="2" fill="white" opacity="0.4" />
+            </svg>
+         );
       
       case 'powder':
         return (
@@ -169,6 +204,10 @@ const ChemicalIcon = ({ id, color, state, formula, iconType, className = '' }) =
         );
 
       default:
+        // FALLBACK: Only check structure if no iconType match
+        if (id && MOLECULAR_STRUCTURES[id]) {
+            return <MoleculeStructure chemicalId={id} className={`bg-transparent border-none ${className}`} />;
+        }
         return (
              <div className="w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center opacity-50" style={{ borderColor: color }}>
                 ?

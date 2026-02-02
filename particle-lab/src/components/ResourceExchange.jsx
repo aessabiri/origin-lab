@@ -13,6 +13,7 @@ const ResourceExchange = ({
   onImport, 
   allowedCategories = [], 
   excludedCategories = [],
+  excludedSubcategories = [],
   excludedTypes = []
 }) => {
   const discoveredItems = useInventory(state => state.discoveredItems);
@@ -34,6 +35,8 @@ const ResourceExchange = ({
       if (excludedCategories.includes(group.name)) return;
 
       group.subcategories.forEach(sub => {
+         if (excludedSubcategories.includes(sub.name)) return;
+
          sub.particles.forEach(type => {
             // Check: (Discovered OR Sandbox) AND Not Excluded
             if ((isSandboxMode || discoveredSet.has(type)) && !excludedSet.has(type)) {
@@ -92,16 +95,17 @@ const ResourceExchange = ({
          ) : (
            <div className="grid grid-cols-2 gap-3">
              {filteredItems.map(({ type, info }) => {
-               const isSelected = selectedId === type;
                return (
                  <div
                    key={type}
-                   onClick={() => setSelectedId(isSelected ? null : type)}
-                   className={`relative flex flex-col items-center p-3 rounded-xl border transition-all cursor-pointer group ${
-                     isSelected 
-                       ? 'bg-blue-900/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.1)]' 
-                       : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600'
-                   }`}
+                   draggable
+                   onDragStart={(e) => {
+                      e.dataTransfer.setData('chemicalId', type); // Standard for Chem Lab
+                      e.dataTransfer.setData('text/plain', type); // Standard for Particle Lab fallback
+                      e.dataTransfer.effectAllowed = 'copy';
+                   }}
+                   onClick={() => onImport(type, 1)}
+                   className="relative flex flex-col items-center p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing hover:scale-105 bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600 hover:shadow-lg group"
                  >
                    {/* Icon */}
                    <div className="w-12 h-12 mb-2 transition-transform group-hover:scale-105">
@@ -112,22 +116,6 @@ const ResourceExchange = ({
                    <span className="text-xs font-semibold text-center text-slate-300 leading-tight line-clamp-2 min-h-[2.5em] w-full">
                      {info.name}
                    </span>
-
-                   {/* Quick Import Overlay (visible on hover or selection) */}
-                   <div className={`absolute inset-0 bg-slate-900/90 rounded-xl flex flex-col items-center justify-center p-2 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 hover:opacity-100 pointer-events-none hover:pointer-events-auto'}`}>
-                      <button 
-                        onClick={(e) => handleImport(e, type, 1)}
-                        className="w-full py-1.5 mb-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded shadow-lg active:scale-95 transition-transform"
-                      >
-                        + Add 1
-                      </button>
-                      <button 
-                        onClick={(e) => handleImport(e, type, 10)}
-                        className="w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded shadow active:scale-95 transition-transform"
-                      >
-                        + Add 10
-                      </button>
-                   </div>
                  </div>
                );
              })}

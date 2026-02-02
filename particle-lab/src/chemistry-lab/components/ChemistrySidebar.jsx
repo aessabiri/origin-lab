@@ -51,14 +51,33 @@ const ChemistrySidebar = () => {
                <ResourceExchange 
                  labName="Chemistry Lab"
                  onImport={handleImport}
-                 allowedCategories={['Atomic', 'Molecular']}
+                 allowedCategories={['Atomic', 'Molecular', 'Biochemistry']}
                  excludedCategories={['Fundamental']} 
+                 excludedSubcategories={['Hadrons']}
                />
             </div>
 
             {/* Local Inventory List (Bottom) */}
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
-               <h3 className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">Local Bench</h3>
+            <div 
+                className="flex-1 overflow-y-auto p-4 bg-gray-900 transition-colors"
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add('bg-gray-800');
+                }}
+                onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('bg-gray-800');
+                }}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('bg-gray-800');
+                    const chemicalId = e.dataTransfer.getData('chemicalId');
+                    if (chemicalId) {
+                        handleImport(chemicalId, 1);
+                    }
+                }}
+            >
+               <h3 className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest pointer-events-none">Local Bench (Drop Here)</h3>
                
                {Object.keys(localInventory).length === 0 ? (
                  <div className="text-center mt-8 text-gray-600 text-xs italic">
