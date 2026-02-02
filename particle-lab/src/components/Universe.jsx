@@ -32,70 +32,89 @@ const createCircleTexture = () => {
 const Galaxy = ({ radius = 18, count = 35000 }) => {
   const texture = useMemo(() => createCircleTexture(), []);
   
+  // 1. Particle Data
   const points = useMemo(() => {
     const p = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
       const dist = Math.pow(Math.random(), 1.4) * radius; 
       const branchAngle = (i % 3) * ((Math.PI * 2) / 3);
       const spinAngle = dist * 1.0; 
-      
       const armScatter = (Math.pow(Math.random(), 1.5) * (Math.random() < 0.5 ? 1 : -1) * 0.8) * dist;
       const spiralX = Math.cos(branchAngle + spinAngle) * dist + armScatter;
       const spiralZ = Math.sin(branchAngle + spinAngle) * dist + armScatter;
-      
       const phi = Math.acos(2.0 * Math.random() - 1.0);
       const theta = Math.random() * Math.PI * 2.0;
       const bulgeX = dist * Math.sin(phi) * Math.cos(theta);
       const bulgeY = dist * Math.sin(phi) * Math.sin(theta) * 0.8;
       const bulgeZ = dist * Math.cos(phi);
-
       const noiseX = (Math.random() - 0.5) * radius * 2.5;
-      const noiseY = (Math.random() - 0.5) * (radius * 0.15);
+      const noiseY = (Math.random() - 0.5) * (radius * 0.2);
       const noiseZ = (Math.random() - 0.5) * radius * 2.5;
-
-      const randType = Math.random();
+      const isNoise = Math.random() > 0.75; 
       const bulgeStrength = Math.exp(-dist / (radius * 0.18)); 
-      
-      if (randType > 0.75) { // 25% Background Noise
+      if (isNoise) {
           p[i3] = noiseX; p[i3 + 1] = noiseY; p[i3 + 2] = noiseZ;
       } else {
           p[i3] = THREE.MathUtils.lerp(spiralX, bulgeX, bulgeStrength);
           p[i3 + 1] = THREE.MathUtils.lerp((Math.random() - 0.5) * (dist * 0.1), bulgeY, bulgeStrength); 
           p[i3 + 2] = THREE.MathUtils.lerp(spiralZ, bulgeZ, bulgeStrength);
       }
-
       const mixedColor = new THREE.Color();
       const colorInside = new THREE.Color('#ffcc80'); 
       const colorOutside = new THREE.Color('#4361ee'); 
-      const colorDist = randType > 0.75 ? Math.random() * radius : dist;
+      const colorDist = isNoise ? Math.random() * radius : dist;
       mixedColor.lerpColors(colorInside, colorOutside, colorDist / radius);
-      
       const rand = Math.random();
-      if (rand > 0.98) mixedColor.set('#f472b6'); 
-      else if (rand > 0.96) mixedColor.set('#2dd4bf'); 
-      else if (rand > 0.94) mixedColor.set('#ffffff'); 
-      
+      if (rand > 0.985) mixedColor.set('#f472b6'); 
+      else if (rand > 0.97) mixedColor.set('#2dd4bf'); 
+      else if (rand > 0.95) mixedColor.set('#ffffff'); 
       colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
     }
     return { positions: p, colors };
   }, [radius, count]);
 
-  const pointsRef = useRef();
+  // 2. Core Gas Clouds (New)
+  const coreClouds = useMemo(() => {
+    return Array.from({ length: 12 }).map((_, i) => ({
+        pos: [(Math.random()-0.5)*6, (Math.random()-0.5)*4, (Math.random()-0.5)*6],
+        scale: [4 + Math.random()*6, 2 + Math.random()*4, 4 + Math.random()*6],
+        color: ['#fbbf24', '#be185d', '#4338ca'][Math.floor(Math.random()*3)],
+        opacity: 0.01 + Math.random()*0.02,
+        rot: [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI]
+    }));
+  }, []);
+
+  const groupRef = useRef();
   useFrame((_, delta) => {
-    if (pointsRef.current) pointsRef.current.rotation.y += delta * 0.01; 
+    if (groupRef.current) groupRef.current.rotation.y += delta * 0.01; 
   });
 
   return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={count} array={points.positions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={count} array={points.colors} itemSize={3} />
-      </bufferGeometry>
-      <pointsMaterial size={0.2} sizeAttenuation={true} depthWrite={false} vertexColors blending={THREE.AdditiveBlending} transparent opacity={0.8} map={texture} />
-    </points>
+    <group ref={groupRef}>
+      {/* Volumetric Core Haze */}
+      {coreClouds.map((cloud, i) => (
+        <mesh key={i} position={cloud.pos} rotation={cloud.rot} scale={cloud.scale}>
+            <sphereGeometry args={[1, 16, 16]} />
+            <meshStandardMaterial 
+                color={cloud.color} 
+                transparent opacity={cloud.opacity} 
+                depthWrite={false} 
+                blending={THREE.AdditiveBlending} 
+            />
+        </mesh>
+      ))}
+
+      {/* Main Star Population */}
+      <points>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" count={count} array={points.positions} itemSize={3} />
+          <bufferAttribute attach="attributes-color" count={count} array={points.colors} itemSize={3} />
+        </bufferGeometry>
+        <pointsMaterial size={0.2} sizeAttenuation={true} depthWrite={false} vertexColors blending={THREE.AdditiveBlending} transparent opacity={0.8} map={texture} />
+      </points>
+    </group>
   );
 };
 
@@ -111,18 +130,20 @@ const StellarNursery = ({ position, color1 = "#4338ca", color2 = "#be185d", clou
     return Array.from({ length: cloudCount }).map(() => {
         const pos = [(Math.random()-0.5)*12, (Math.random()-0.5)*16, (Math.random()-0.5)*12];
         const dist = Math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2);
-        // Central clouds are MUCH bigger and lower opacity (blurrier)
         const isCore = dist < 6;
         return {
             pos,
             scale: isCore 
-                ? [8 + Math.random()*6, 12 + Math.random()*10, 8 + Math.random()*6] // Giant core puffs
+                ? [10 + Math.random()*8, 14 + Math.random()*12, 10 + Math.random()*8] // Even larger core puffs
                 : [3 + Math.random()*5, 6 + Math.random()*8, 3 + Math.random()*5],
             rot: [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI],
-            opacity: isCore ? 0.015 : 0.03 // Core is fainter/softer
+            opacity: isCore ? 0.012 : 0.03, // Extra blurry core
+            color: isCore 
+                ? (Math.random() > 0.5 ? '#fbbf24' : '#f97316') // Intense Yellow/Orange Mix
+                : (Math.random() > 0.5 ? color1 : color2)
         };
     });
-  }, [cloudCount]);
+  }, [cloudCount, color1, color2]);
 
   return (
     <group position={position}>
@@ -132,7 +153,7 @@ const StellarNursery = ({ position, color1 = "#4338ca", color2 = "#be185d", clou
                 <mesh position={cloud.pos} rotation={cloud.rot} scale={cloud.scale}>
                     <sphereGeometry args={[1, 12, 12]} />
                     <meshStandardMaterial 
-                        color={i % 2 === 0 ? color1 : color2} 
+                        color={cloud.color} 
                         transparent opacity={cloud.opacity} 
                         depthWrite={false} 
                         blending={THREE.AdditiveBlending} 
