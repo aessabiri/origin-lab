@@ -153,7 +153,7 @@ export const useProgressionStore = create(
 
       checkProgress: (discoveredItems) => {
          const state = get();
-         if (useStore.getState().isSandboxMode) return;
+         if (useStore.getState().isSandboxMode) return [];
 
          let newlyCompleted = [];
 

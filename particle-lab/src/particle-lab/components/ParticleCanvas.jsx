@@ -343,8 +343,18 @@ const ParticleCanvas = ({ onDragStart }) => {
 
   const handleRemoveSelected = useCallback(() => {
     if (selectedParticleIds.size === 0) return;
-    const count = selectedParticleIds.size;
-    setParticles(particles.filter(p => !selectedParticleIds.has(p.id)))
+    
+    // Only count particles that actually exist in the array
+    const particlesToRemove = particles.filter(p => selectedParticleIds.has(p.id));
+    const count = particlesToRemove.length;
+    
+    if (count === 0) {
+        // Just clear the stale selection
+        setSelectedParticleIds(new Set());
+        return;
+    }
+
+    setParticles(particles.filter(p => !selectedParticleIds.has(p.id)));
     setSelectedParticleIds(new Set());
     showMessage(`${count} particle(s) removed.`);
   }, [selectedParticleIds, particles, setParticles, showMessage, setSelectedParticleIds]);

@@ -192,6 +192,42 @@ const Universe = () => {
     }, 12000);
   };
 
+  const spriteCache = useRef({});
+
+  const getGlowSprite = (color) => {
+    if (spriteCache.current[color]) return spriteCache.current[color];
+
+    const c = document.createElement('canvas');
+    c.width = 32;
+    c.height = 32;
+    const ctx = c.getContext('2d');
+    const cx = 16, cy = 16, r = 16;
+    
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0, color); // Center core
+    
+    // Hacky alpha for hex colors
+    let alphaColor = color;
+    if (color.startsWith('#')) {
+        // Simple hex to rgba fallback
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substring(0,2), 16);
+        const g = parseInt(hex.substring(2,4), 16);
+        const b = parseInt(hex.substring(4,6), 16);
+        alphaColor = `rgba(${r},${g},${b}, 0.0)`;
+        grad.addColorStop(0.2, `rgba(${r},${g},${b}, 0.5)`);
+        grad.addColorStop(1, `rgba(${r},${g},${b}, 0.0)`);
+    } else {
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+    }
+    
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 32, 32);
+    
+    spriteCache.current[color] = c;
+    return c;
+  };
+
   // --- RENDER LOOP ---
   useEffect(() => {
     let animationFrameId;
@@ -232,13 +268,23 @@ const Universe = () => {
              ctx.translate(shakeX, shakeY);
 
              // Render Particles
+             ctx.globalCompositeOperation = 'screen'; // Additive blending for nebula look
              simState.current.particles.forEach(p => {
-                ctx.beginPath(); 
                 const r = bigBangPhase === BigBangPhase.INFLATION ? 4 : 2;
-                ctx.arc(p.x, p.y, r, 0, Math.PI*2);
-                ctx.fillStyle = p.color; 
-                ctx.fill();
+                if (bigBangPhase === BigBangPhase.INFLATION) {
+                    // Solid dots for Big Bang
+                    ctx.beginPath(); 
+                    ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+                    ctx.fillStyle = p.color; 
+                    ctx.fill();
+                } else {
+                    // Nebula Sprites for Plasma/Dark Ages
+                    const sprite = getGlowSprite(p.color);
+                    const size = r * 8; 
+                    ctx.drawImage(sprite, p.x - size/2, p.y - size/2, size, size);
+                }
              });
+             ctx.globalCompositeOperation = 'source-over';
              
              ctx.restore();
 
@@ -291,13 +337,24 @@ const Universe = () => {
                  ctx.restore();
              });
 
-             // Render Particles
-             simState.current.particles.forEach(p => {
-                ctx.beginPath(); 
-                ctx.arc(p.x, p.y, zoomLevel === ZOOM_LEVELS.SOLAR ? 2 : 1.5, 0, Math.PI*2);
-                ctx.fillStyle = p.color; 
-                ctx.fill();
-             });
+             // Render Particles (Nebula Mechanics)
+             if (zoomLevel === ZOOM_LEVELS.GALAXY) {
+                ctx.globalCompositeOperation = 'screen'; // Glow effect
+                simState.current.particles.forEach(p => {
+                    const sprite = getGlowSprite(p.color);
+                    const size = 32; // Large puffs
+                    ctx.drawImage(sprite, p.x - size/2, p.y - size/2, size, size);
+                });
+                ctx.globalCompositeOperation = 'source-over';
+             } else {
+                // Solar System (Dust)
+                simState.current.particles.forEach(p => {
+                    ctx.beginPath(); 
+                    ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+                    ctx.fillStyle = p.color; 
+                    ctx.fill();
+                });
+             }
              
              // Render Planets
              simState.current.planets.forEach(p => {

@@ -193,6 +193,65 @@ const MANUAL_REACTIONS = [
     outputs: { 'sodium-chloride': 1, 'water': 1 },
     visual: 'steam', // It gets hot!
     heat: 58 // Standard enthalpy of neutralization is ~57 kJ/mol
+  },
+
+  // --- PREBIOTIC CHEMISTRY (The Origins of Life) ---
+
+  // Fatty Acid Synthesis (Abiotic Fischer-Tropsch): 8 C + 16 H + 2 O -> Fatty Acid
+  {
+    inputs: { 'carbon': 8, 'hydrogen': 16, 'oxygen': 2 },
+    conditions: { tempMin: 300, pressureMin: 50 },
+    outputs: { 'fatty-acid': 1 },
+    visual: 'solidify',
+    heat: 40
+  },
+  // Glycerol Synthesis (Hydrogenolysis of Sugars): Glucose + 4 H -> 2 Glycerol
+  {
+    inputs: { 'glucose': 1, 'hydrogen': 4 },
+    conditions: { tempMin: 150, pressureMin: 20 },
+    outputs: { 'glycerol': 2 },
+    visual: 'dissolve',
+    heat: 20
+  },
+  // Lipid Assembly (Dehydration): Glycerol + 3 Fatty Acids -> Lipid + 3 Water
+  {
+    inputs: { 'glycerol': 1, 'fatty-acid': 3 },
+    conditions: { tempMin: 80 },
+    outputs: { 'lipid': 1, 'water': 3 },
+    visual: 'solidify', // Fats are solid/semi-solid
+    heat: 10
+  },
+  // Ribose Synthesis (Formose Reaction): 5 Carbon + 5 Water -> Ribose (Simplified)
+  {
+    inputs: { 'carbon': 5, 'water': 5 },
+    conditions: { tempMin: 100 }, // Catalyzed by minerals usually
+    outputs: { 'ribose': 1 },
+    visual: 'dissolve',
+    heat: -10
+  },
+  // Adenine Synthesis (HCN Polymerization descendent): 5 C + 5 H + 5 N -> Adenine
+  {
+    inputs: { 'carbon': 5, 'hydrogen': 5, 'nitrogen': 5 },
+    conditions: { tempMin: 400, pressureMin: 100 }, // High energy event
+    outputs: { 'adenine': 1 },
+    visual: 'solidify',
+    heat: 50
+  },
+  // Phosphoric Acid Extraction: Phosphorus + 2 Oxygen + 2 Water -> Phosphoric Acid + Hydrogen
+  {
+    inputs: { 'phosphorus': 1, 'oxygen': 2, 'water': 2 },
+    conditions: { tempMin: 100 },
+    outputs: { 'phosphoric-acid': 1, 'hydrogen': 1 },
+    visual: 'fume',
+    heat: 60
+  },
+  // Nucleotide Synthesis (Adenosine Monophosphate): Adenine + Ribose + Phosphoric Acid -> Nucleotide-A + 2 Water
+  {
+    inputs: { 'adenine': 1, 'ribose': 1, 'phosphoric-acid': 1 },
+    conditions: { tempMin: 50 },
+    outputs: { 'nucleotide-a': 1, 'water': 2 },
+    visual: 'solidify',
+    heat: 5
   }
 ];
 
