@@ -178,6 +178,8 @@ export const PARTICLE_TYPES = {
   SILVER: 'silver',
   GOLD: 'gold',
   LEAD: 'lead',
+  TIN: 'tin',
+  BRONZE: 'bronze',
 };
 
 export const PARTICLE_COLORS = {
@@ -241,6 +243,8 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.SILVER]: '#94a3b8',
   [PARTICLE_TYPES.GOLD]: '#d97706',
   [PARTICLE_TYPES.LEAD]: '#475569',
+  [PARTICLE_TYPES.TIN]: '#94a3b8',
+  [PARTICLE_TYPES.BRONZE]: '#cd7f32',
   [PARTICLE_TYPES.URANIUM_235]: '#166534',
   [PARTICLE_TYPES.URANIUM_238]: '#064e3b',
   [PARTICLE_TYPES.ANTI_UP_QUARK]: '#0891b2',
@@ -512,6 +516,8 @@ export const PARTICLE_NAMES = {
   [PARTICLE_TYPES.SILVER]: 'Silver',
   [PARTICLE_TYPES.GOLD]: 'Gold',
   [PARTICLE_TYPES.LEAD]: 'Lead',
+  [PARTICLE_TYPES.TIN]: 'Tin',
+  [PARTICLE_TYPES.BRONZE]: 'Bronze',
 };
 
 export const ELEMENTARY_IDS = [
@@ -519,7 +525,8 @@ export const ELEMENTARY_IDS = [
   'carbon', 'sulfur', 'iron', 'ethanol', 
   'oxygen', 'hydrogen', 'nitrogen',
   'magnesium', 'potassium-permanganate', 'universal-indicator',
-  'muon', 'higgs-boson', 'positron', 'tau', 'anti-proton', 'anti-neutron'
+  'muon', 'higgs-boson', 'positron', 'tau', 'anti-proton', 'anti-neutron',
+  'tin'
 ];
 
 export const PARTICLE_INFO = {
@@ -596,6 +603,8 @@ export const PARTICLE_INFO = {
   [PARTICLE_TYPES.SILVER]: { size: 80, name: 'Silver', category: 'Atom', atomicNumber: 47, mass: '107.87 u', charge: '0 e', composition: '47 Protons, 61 Neutrons, 47 Electrons', description: 'Lustrous transition metal.', iconType: 'bar' },
   [PARTICLE_TYPES.GOLD]: { size: 80, name: 'Gold', category: 'Atom', atomicNumber: 79, mass: '196.97 u', charge: '0 e', composition: '79 Protons, 118 Neutrons, 79 Electrons', description: 'Noble heavy metal.', iconType: 'bar' },
   [PARTICLE_TYPES.LEAD]: { size: 80, name: 'Lead', category: 'Atom', atomicNumber: 82, mass: '207.2 u', charge: '0 e', composition: '82 Protons, 125 Neutrons, 82 Electrons', description: 'Dense stable heavy metal.', iconType: 'bar' },
+  [PARTICLE_TYPES.TIN]: { size: 80, name: 'Tin', category: 'Atom', atomicNumber: 50, mass: '118.71 u', charge: '0 e', composition: '50 Protons, 69 Neutrons, 50 Electrons', description: 'Silvery-white post-transition metal.', iconType: 'bar' },
+  [PARTICLE_TYPES.BRONZE]: { size: 90, name: 'Bronze', category: 'Alloy', composition: 'Copper, Tin', description: 'Durable ancient alloy.', iconType: 'bar' },
   [PARTICLE_TYPES.URANIUM_235]: { size: 80, name: 'Uranium-235', category: 'Isotope', atomicNumber: 92, mass: '235.04 u', charge: '0 e', composition: '92 Protons, 143 Neutrons, 92 Electrons', description: 'Fissile isotope of uranium.', iconType: 'bar' },
   [PARTICLE_TYPES.URANIUM_238]: { size: 80, name: 'Uranium-238', category: 'Isotope', atomicNumber: 92, mass: '238.05 u', charge: '0 e', composition: '92 Protons, 146 Neutrons, 92 Electrons', description: 'Most common isotope of uranium.', iconType: 'bar' },
   [PARTICLE_TYPES.WATER]: { size: 96, name: 'Water', formula: 'H₂O', state: 'liquid', density: 1.0, boilingPoint: 100, meltingPoint: 0, ph: 7.0, iconType: 'liquid', category: 'Molecule', mass: '18.015 u', charge: '0 e', composition: '2 Hydrogen, 1 Oxygen', description: 'Universal solvent.', isChemical: true },
@@ -770,6 +779,7 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
           PARTICLE_TYPES.SELENIUM,
           PARTICLE_TYPES.BROMINE,
           PARTICLE_TYPES.KRYPTON,
+          PARTICLE_TYPES.TIN,
           PARTICLE_TYPES.SILVER,
           PARTICLE_TYPES.GOLD,
           PARTICLE_TYPES.LEAD,
@@ -789,7 +799,7 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
     ]
   },
   {
-    name: 'Molecular',
+    name: 'Molecular & Materials',
     subcategories: [
       {
         name: 'Simple Molecules',
@@ -818,6 +828,13 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
           PARTICLE_TYPES.IRON_SULFIDE,
           PARTICLE_TYPES.POTASSIUM_PERMANGANATE,
           PARTICLE_TYPES.UNIVERSAL_INDICATOR,
+        ]
+      },
+      {
+        name: 'Alloys',
+        particles: [
+          PARTICLE_TYPES.STEEL,
+          PARTICLE_TYPES.BRONZE,
         ]
       },
       {

@@ -6,6 +6,7 @@ export const PARTICLE_CATEGORIES = {
   ATOM: 'atom',
   MOLECULE: 'molecule',
   ORGANELLE: 'organelle',
+  ALLOY: 'alloy',
 };
 
 export const RECIPES = [
@@ -532,6 +533,15 @@ export const RECIPES = [
     },
   },
   {
+    type: PARTICLE_TYPES.TIN,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 50,
+      [PARTICLE_TYPES.NEUTRON]: 69,
+      [PARTICLE_TYPES.ELECTRON]: 50,
+    },
+  },
+  {
     type: PARTICLE_TYPES.URANIUM_235,
     category: PARTICLE_CATEGORIES.ATOM,
     ingredients: {
@@ -603,6 +613,38 @@ export const RECIPES = [
     ingredients: {
       [PARTICLE_TYPES.SILICON]: 1,
       [PARTICLE_TYPES.OXYGEN]: 2,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.STEEL,
+    category: PARTICLE_CATEGORIES.ALLOY,
+    ingredients: {
+      [PARTICLE_TYPES.IRON]: 6,
+      [PARTICLE_TYPES.CARBON]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.BRONZE,
+    category: PARTICLE_CATEGORIES.ALLOY,
+    ingredients: {
+      [PARTICLE_TYPES.COPPER]: 7,
+      [PARTICLE_TYPES.TIN]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.VINEGAR,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.ACETIC_ACID]: 1,
+      [PARTICLE_TYPES.WATER]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.UNIVERSAL_INDICATOR,
+    category: PARTICLE_CATEGORIES.MOLECULE,
+    ingredients: {
+      [PARTICLE_TYPES.WATER]: 1,
+      [PARTICLE_TYPES.ETHANOL]: 1,
     },
   },
 ];

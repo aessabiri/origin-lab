@@ -6,7 +6,6 @@ import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, CODEX_PARTICLES_BY_CAT
 import { COMPOUND_PARTICLE_TYPES } from '../../recipes.js';
 import PeriodicTable from './PeriodicTable.jsx';
 import ActionToolbar from './ActionToolbar.jsx';
-import ActionMenu from './ActionMenu.jsx';
 import ParticleCanvasOverlay from './ParticleCanvasOverlay.jsx';
 import { useParticleActions } from '../hooks/useParticleActions.js';
 import { useSelection } from '../hooks/useSelection.js';

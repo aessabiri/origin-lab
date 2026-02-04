@@ -39,6 +39,7 @@ export const ATOMIC_NUMBER_TO_TYPE = {
   35: PARTICLE_TYPES.BROMINE,
   36: PARTICLE_TYPES.KRYPTON,
   47: PARTICLE_TYPES.SILVER,
+  50: PARTICLE_TYPES.TIN,
   79: PARTICLE_TYPES.GOLD,
   82: PARTICLE_TYPES.LEAD,
 };
@@ -50,7 +51,7 @@ export const PERIODIC_TABLE_LAYOUT = [
   [3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 7, 8, 9, 10], // Period 2
   [11, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 14, 15, 16, 17, 18], // Period 3
   [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36], // Period 4
-  [0, 0, 0, 0, 0, 0, 0, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // Period 5 (Custom/Partial)
+  [0, 0, 0, 0, 0, 0, 0, 47, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0], // Period 5 (Custom/Partial)
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
   [0, 0, 0, 0, 0, 0, 0, 79, 0, 0, 82, 0, 0, 0, 0, 0, 0, 0], // Period 6 (Custom/Partial)
 ];

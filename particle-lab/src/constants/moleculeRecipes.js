@@ -2703,4 +2703,23 @@ export const MOLECULE_RECIPES = [
       ]
     }
   },
+  {
+    type: PARTICLE_TYPES.HYDROGEN_FLUORIDE,
+    atoms: {
+      [PARTICLE_TYPES.HYDROGEN]: 1,
+      [PARTICLE_TYPES.FLUORINE]: 1,
+    },
+    bonds: {
+      single: 1,
+    },
+    structure: {
+      nodes: [
+        { id: 'h1', type: PARTICLE_TYPES.HYDROGEN },
+        { id: 'f1', type: PARTICLE_TYPES.FLUORINE },
+      ],
+      edges: [
+        { source: 'h1', target: 'f1', type: 'single' },
+      ]
+    }
+  },
 ];
