@@ -42,6 +42,13 @@ export const ATOMIC_NUMBER_TO_TYPE = {
   50: PARTICLE_TYPES.TIN,
   79: PARTICLE_TYPES.GOLD,
   82: PARTICLE_TYPES.LEAD,
+  84: PARTICLE_TYPES.POLONIUM,
+  86: PARTICLE_TYPES.RADON,
+  88: PARTICLE_TYPES.RADIUM,
+  89: PARTICLE_TYPES.ACTINIUM,
+  90: PARTICLE_TYPES.THORIUM,
+  91: PARTICLE_TYPES.PROTACTINIUM,
+  92: PARTICLE_TYPES.URANIUM,
 };
 
 // Defines the grid layout of the periodic table. 0 is an empty spacer.
@@ -51,9 +58,9 @@ export const PERIODIC_TABLE_LAYOUT = [
   [3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 7, 8, 9, 10], // Period 2
   [11, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 14, 15, 16, 17, 18], // Period 3
   [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36], // Period 4
-  [0, 0, 0, 0, 0, 0, 0, 47, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0], // Period 5 (Custom/Partial)
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  [0, 0, 0, 0, 0, 0, 0, 79, 0, 0, 82, 0, 0, 0, 0, 0, 0, 0], // Period 6 (Custom/Partial)
+  [37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54], // Period 5
+  [55, 56, -1, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86], // Period 6
+  [87, 88, -2, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118], // Period 7
 ];
 
 // Lanthanide and Actinide series (using atomic numbers)
@@ -61,23 +68,53 @@ export const PERIODIC_TABLE_LAYOUT = [
 export const LANTHANIDE_SERIES = Array.from({ length: 15 }, (_, i) => 57 + i); // 57-71
 export const ACTINIDE_SERIES = Array.from({ length: 15 }, (_, i) => 89 + i); // 89-103
 
-// A separate list for isotopes and other special secondary particles
-export const ISOTOPE_AND_SPECIAL_LIST = [
-  PARTICLE_TYPES.PROTON,
-  PARTICLE_TYPES.NEUTRON,
-  PARTICLE_TYPES.ANTI_PROTON,
-  PARTICLE_TYPES.ANTI_NEUTRON,
-  PARTICLE_TYPES.MUON,
-  PARTICLE_TYPES.TAU,
-  PARTICLE_TYPES.HIGGS_BOSON,
-  PARTICLE_TYPES.PION_PLUS,
-  PARTICLE_TYPES.PION_MINUS,
-  PARTICLE_TYPES.LAMBDA_BARYON,
-  PARTICLE_TYPES.J_PSI_MESON,
-  PARTICLE_TYPES.DEUTERIUM,
-  PARTICLE_TYPES.TRITIUM,
-  PARTICLE_TYPES.HELIUM_3,
-  PARTICLE_TYPES.CARBON_14,
-  PARTICLE_TYPES.URANIUM_235,
-  PARTICLE_TYPES.URANIUM_238,
+// Categorized special particles for better UI organization
+export const CATEGORIZED_SPECIAL_LIST = [
+  {
+    name: 'Fundamental Hadrons',
+    particles: [
+      PARTICLE_TYPES.PROTON,
+      PARTICLE_TYPES.NEUTRON,
+      PARTICLE_TYPES.ANTI_PROTON,
+      PARTICLE_TYPES.ANTI_NEUTRON,
+      PARTICLE_TYPES.MUON,
+      PARTICLE_TYPES.TAU,
+      PARTICLE_TYPES.HIGGS_BOSON,
+      PARTICLE_TYPES.PION_PLUS,
+      PARTICLE_TYPES.PION_MINUS,
+      PARTICLE_TYPES.LAMBDA_BARYON,
+      PARTICLE_TYPES.J_PSI_MESON,
+    ]
+  },
+  {
+    name: 'Radiation & Energy',
+    particles: [
+      PARTICLE_TYPES.ALPHA_PARTICLE,
+      PARTICLE_TYPES.BETA_PARTICLE,
+      PARTICLE_TYPES.GAMMA_RAY,
+    ]
+  },
+  {
+    name: 'Isotopes & Decay Products',
+    particles: [
+      PARTICLE_TYPES.DEUTERIUM,
+      PARTICLE_TYPES.TRITIUM,
+      PARTICLE_TYPES.HELIUM_3,
+      PARTICLE_TYPES.CARBON_14,
+      PARTICLE_TYPES.URANIUM_235,
+      PARTICLE_TYPES.URANIUM_238,
+      PARTICLE_TYPES.URANIUM_234,
+      PARTICLE_TYPES.THORIUM_231,
+      PARTICLE_TYPES.THORIUM_234,
+      PARTICLE_TYPES.THORIUM_230,
+      PARTICLE_TYPES.PROTACTINIUM_231,
+      PARTICLE_TYPES.PROTACTINIUM_234,
+      PARTICLE_TYPES.ACTINIUM_227,
+      PARTICLE_TYPES.RADIUM_226,
+      PARTICLE_TYPES.RADON_222,
+      PARTICLE_TYPES.POLONIUM_210,
+      PARTICLE_TYPES.LEAD_206,
+      PARTICLE_TYPES.LEAD_207,
+    ]
+  }
 ];

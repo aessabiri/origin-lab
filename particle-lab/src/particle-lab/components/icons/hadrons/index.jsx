@@ -169,7 +169,7 @@ export const PionPlusIcon = ({ hexColor }) => (
     <svg viewBox="0 0 100 100" className="w-full h-full">
         <defs>{radialGradient('pion-plus-grad', hexColor)}</defs>
         <circle cx="50" cy="50" r="45" fill="url(#pion-plus-grad)" />
-        <MesonComposition quarkColor={PARTICLE_COLOR_MAP['yellow-400']} antiquarkColor={PARTICLE_COLOR_MAP['indigo-600']} />
+        <MesonComposition quarkColor={PARTICLE_COLOR_MAP['yellow-400']} antiquarkColor={PARTICLE_COLOR_MAP['indigo-400']} />
     </svg>
 );
 
@@ -177,7 +177,7 @@ export const PionMinusIcon = ({ hexColor }) => (
     <svg viewBox="0 0 100 100" className="w-full h-full">
         <defs>{radialGradient('pion-minus-grad', hexColor)}</defs>
         <circle cx="50" cy="50" r="45" fill="url(#pion-minus-grad)" />
-        <MesonComposition quarkColor={PARTICLE_COLOR_MAP['indigo-400']} antiquarkColor={PARTICLE_COLOR_MAP['yellow-600']} />
+        <MesonComposition quarkColor={PARTICLE_COLOR_MAP['indigo-400']} antiquarkColor={PARTICLE_COLOR_MAP['yellow-400']} />
     </svg>
 );
 
@@ -371,6 +371,33 @@ export const ZBosonIcon = ({ hexColor }) => (
     <circle cx="50" cy="50" r="28" stroke={hexColor} strokeWidth="1.5" strokeDasharray="10 30" className="animate-spin-slow" opacity="0.8" />
     <circle cx="50" cy="50" r="22" stroke={hexColor} strokeWidth="1.5" strokeDasharray="5 15" className="animate-spin-slow-reverse" opacity="0.6" />
     <circle cx="50" cy="50" r="4" fill="none" stroke={hexColor} strokeWidth="2" className="animate-pulse" />
+  </svg>
+);
+
+export const AlphaParticleIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <g className="animate-pulse-glow" style={{ animationDuration: '0.5s' }}>
+      <circle cx="45" cy="45" r="15" fill="#fca5a5" />
+      <circle cx="55" cy="55" r="15" fill="#fca5a5" />
+      <circle cx="55" cy="45" r="15" fill="#e5e7eb" />
+      <circle cx="45" cy="55" r="15" fill="#e5e7eb" />
+    </g>
+    <circle cx="50" cy="50" r="40" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="5 5" className="animate-spin-fast" />
+  </svg>
+);
+
+export const BetaParticleIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <circle cx="50" cy="50" r="10" fill="#2563eb" className="animate-vibrate" />
+    <path d="M 10 50 L 90 50" stroke="#2563eb" strokeWidth="2" strokeDasharray="10 5" className="animate-slide-right" />
+    <circle cx="50" cy="50" r="30" fill="none" stroke="#2563eb" strokeWidth="1" opacity="0.4" className="animate-ping" />
+  </svg>
+);
+
+export const GammaRayIcon = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+    <path d="M 0 50 Q 10 20 20 50 T 40 50 T 60 50 T 80 50 T 100 50" stroke="#ffffff" strokeWidth="4" fill="none" className="animate-ocean-wave" />
+    <circle cx="50" cy="50" r="40" fill="none" stroke="#ffffff" strokeWidth="1" strokeDasharray="2 2" className="animate-pulse" />
   </svg>
 );
 

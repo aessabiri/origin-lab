@@ -559,6 +559,129 @@ export const RECIPES = [
       [PARTICLE_TYPES.ELECTRON]: 92,
     },
   },
+  {
+    type: PARTICLE_TYPES.ALPHA_PARTICLE,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 2,
+      [PARTICLE_TYPES.NEUTRON]: 2,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.BETA_PARTICLE,
+    category: PARTICLE_CATEGORIES.SECONDARY,
+    ingredients: {
+      [PARTICLE_TYPES.ELECTRON]: 1,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.THORIUM_231,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 90,
+      [PARTICLE_TYPES.NEUTRON]: 141,
+      [PARTICLE_TYPES.ELECTRON]: 90,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.THORIUM_234,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 90,
+      [PARTICLE_TYPES.NEUTRON]: 144,
+      [PARTICLE_TYPES.ELECTRON]: 90,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.PROTACTINIUM_231,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 91,
+      [PARTICLE_TYPES.NEUTRON]: 140,
+      [PARTICLE_TYPES.ELECTRON]: 91,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.PROTACTINIUM_234,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 91,
+      [PARTICLE_TYPES.NEUTRON]: 143,
+      [PARTICLE_TYPES.ELECTRON]: 91,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.URANIUM_234,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 92,
+      [PARTICLE_TYPES.NEUTRON]: 142,
+      [PARTICLE_TYPES.ELECTRON]: 92,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.THORIUM_230,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 90,
+      [PARTICLE_TYPES.NEUTRON]: 140,
+      [PARTICLE_TYPES.ELECTRON]: 90,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.ACTINIUM_227,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 89,
+      [PARTICLE_TYPES.NEUTRON]: 138,
+      [PARTICLE_TYPES.ELECTRON]: 89,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.RADIUM_226,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 88,
+      [PARTICLE_TYPES.NEUTRON]: 138,
+      [PARTICLE_TYPES.ELECTRON]: 88,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.RADON_222,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 86,
+      [PARTICLE_TYPES.NEUTRON]: 136,
+      [PARTICLE_TYPES.ELECTRON]: 86,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.POLONIUM_210,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 84,
+      [PARTICLE_TYPES.NEUTRON]: 126,
+      [PARTICLE_TYPES.ELECTRON]: 84,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.LEAD_206,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 82,
+      [PARTICLE_TYPES.NEUTRON]: 124,
+      [PARTICLE_TYPES.ELECTRON]: 82,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.LEAD_207,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 82,
+      [PARTICLE_TYPES.NEUTRON]: 125,
+      [PARTICLE_TYPES.ELECTRON]: 82,
+    },
+  },
   // Molecules - Moved simple ones to moleculeRecipes.js for structural checks
   {
     type: PARTICLE_TYPES.SODIUM_CHLORIDE,

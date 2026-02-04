@@ -159,5 +159,12 @@ export const TinIcon = (p) => <NeoAtomIcon symbol="Sn" p={50} n={69} e={50} {...
 export const SilverIcon = (p) => <NeoAtomIcon symbol="Ag" p={47} n={61} e={47} {...p} />;
 export const GoldIcon = (p) => <NeoAtomIcon symbol="Au" p={79} n={118} e={79} {...p} />;
 export const LeadIcon = (p) => <NeoAtomIcon symbol="Pb" p={82} n={125} e={82} {...p} />;
+export const UraniumIcon = (p) => <NeoAtomIcon symbol="U" p={92} n={146} e={92} {...p} />;
+export const ThoriumIcon = (p) => <NeoAtomIcon symbol="Th" p={90} n={142} e={90} {...p} />;
+export const ProtactiniumIcon = (p) => <NeoAtomIcon symbol="Pa" p={91} n={140} e={91} {...p} />;
+export const ActiniumIcon = (p) => <NeoAtomIcon symbol="Ac" p={89} n={138} e={89} {...p} />;
+export const RadonIcon = (p) => <NeoAtomIcon symbol="Rn" p={86} n={136} e={86} {...p} />;
+export const PoloniumIcon = (p) => <NeoAtomIcon symbol="Po" p={84} n={126} e={84} {...p} />;
+export const RadiumIcon = (p) => <NeoAtomIcon symbol="Ra" p={88} n={138} e={88} {...p} />;
 export const Uranium235Icon = (p) => <NeoAtomIcon symbol="²³⁵U" p={92} n={143} e={92} {...p} />;
 export const Uranium238Icon = (p) => <NeoAtomIcon symbol="²³⁸U" p={92} n={146} e={92} {...p} />;
