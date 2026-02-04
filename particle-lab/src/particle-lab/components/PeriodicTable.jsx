@@ -19,7 +19,7 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
 
     if (isPlaceholder) {
       return (
-        <div key={`placeholder-${placeholderText}-${atomicNumber}`} className="w-11 h-11 rounded-md bg-gray-800/50 text-gray-500 text-[9px] text-center flex items-center justify-center border border-gray-700/30">
+        <div key={`placeholder-${placeholderText}-${atomicNumber}`} className="w-14 h-14 rounded-md bg-gray-800/50 text-gray-500 text-[10px] text-center flex items-center justify-center border border-gray-700/30">
           {placeholderText}
         </div>
       );
@@ -27,8 +27,8 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
 
     if (!type) {
       return (
-        <div key={`phantom-${atomicNumber}`} className="w-11 h-11 rounded-md border border-gray-800/20 bg-gray-900/10 flex items-center justify-center">
-           <span className="font-mono text-[8px] text-gray-800 font-bold">{atomicNumber}</span>
+        <div key={`phantom-${atomicNumber}`} className="w-14 h-14 rounded-md border border-gray-800/20 bg-gray-900/10 flex items-center justify-center">
+           <span className="font-mono text-[9px] text-gray-800 font-bold">{atomicNumber}</span>
         </div>
       );
     }
@@ -39,21 +39,21 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
         draggable={isDiscovered}
         onDragStart={(e) => isDiscovered && onDragStart(e, particle)}
         onClick={() => isDiscovered && onParticleClick(type)}
-        className={`relative w-11 h-11 rounded-md flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300 z-10 hover:scale-110 shadow-lg' : 'bg-gray-800/80 cursor-default opacity-30 border border-gray-700'}`}
+        className={`relative w-14 h-14 rounded-md flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300 z-10 hover:scale-110 shadow-lg' : 'bg-gray-800/80 cursor-default opacity-30 border border-gray-700'}`}
         style={isDiscovered ? { backgroundColor: PARTICLE_COLORS[type] } : {}}
       >
-        <div className={`absolute inset-0 flex flex-col items-center justify-between py-1 transition-all duration-300 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`} style={{ fontSize: '0.55rem' }}>
-          <span className="font-mono font-bold opacity-70 leading-none text-[7px]">{atomicNumber}</span>
-          <span className="font-mono text-sm font-black leading-none tracking-tighter">{PARTICLE_NAMES[type]?.substring(0, 2)}</span>
+        <div className={`absolute inset-0 flex flex-col items-center justify-between py-1 transition-all duration-300 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`} style={{ fontSize: '0.65rem' }}>
+          <span className="font-mono font-bold opacity-70 leading-none text-[8px]">{atomicNumber}</span>
+          <span className="font-mono text-lg font-black leading-none tracking-tighter">{PARTICLE_NAMES[type]?.substring(0, 2)}</span>
           <div className="w-full px-0.5 overflow-hidden">
-            <p className="font-sans text-[5.5px] font-bold leading-tight text-center truncate uppercase tracking-tighter opacity-80">
+            <p className="font-sans text-[7px] font-bold leading-tight text-center truncate uppercase tracking-tighter opacity-80">
               {PARTICLE_NAMES[type]}
             </p>
           </div>
         </div>
         {!isDiscovered && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-mono text-[9px] font-bold text-gray-600">{atomicNumber}</span>
+            <span className="font-mono text-[10px] font-bold text-gray-600">{atomicNumber}</span>
           </div>
         )}
       </div>
@@ -70,16 +70,16 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
         draggable={isDiscovered}
         onDragStart={(e) => isDiscovered && onDragStart(e, particle)}
         onClick={() => isDiscovered && onParticleClick(type)}
-        className={`relative w-14 h-14 rounded-lg flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300 hover:scale-105 shadow-lg' : 'bg-gray-800/80 cursor-default opacity-40 border border-gray-700'}`}
+        className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center text-white transition-all duration-500 ${isDiscovered ? 'cursor-pointer hover:ring-2 ring-amber-300 hover:scale-105 shadow-lg' : 'bg-gray-800/80 cursor-default opacity-40 border border-gray-700'}`}
         style={isDiscovered ? { backgroundColor: PARTICLE_COLORS[type] } : {}}
       >
-        <div className={`w-full h-full p-1.5 transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`}>
+        <div className={`w-full h-full p-2 transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'}`}>
           <ParticleIcon type={type} color={PARTICLE_COLORS[type]} isCompound />
         </div>
-        <span className={`absolute bottom-0 text-[7px] font-mono font-bold text-white text-center p-0.5 transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'} bg-black/40 w-full rounded-b-lg truncate px-1`}>{PARTICLE_NAMES[type]}</span>
+        <span className={`absolute bottom-0 text-[8px] font-mono font-bold text-white text-center p-0.5 transition-all duration-500 ${isDiscovered ? 'opacity-100' : 'opacity-0 blur-sm'} bg-black/40 w-full rounded-b-lg truncate px-1`}>{PARTICLE_NAMES[type]}</span>
         {!isDiscovered && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-mono text-xl font-bold text-gray-600">?</span>
+            <span className="font-mono text-2xl font-bold text-gray-600">?</span>
           </div>
         )}
       </div>
@@ -87,7 +87,7 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
   };
 
   return (
-    <div className="bg-gray-900/95 backdrop-blur-xl p-5 rounded-2xl shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto custom-scrollbar max-w-[900px]" {...props}>
+    <div className="bg-gray-900/95 backdrop-blur-xl p-5 rounded-2xl shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto custom-scrollbar max-w-[1200px]" {...props}>
       <div className="flex justify-between items-center mb-4 sticky top-0 bg-gray-900/95 z-20 py-2 border-b border-gray-800">
         <div className="flex items-center gap-4">
           <h3 className="text-xl font-mono font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent uppercase tracking-wider">Table of Elements</h3>
@@ -107,16 +107,16 @@ const PeriodicTable = ({ discoveredParticles, isSandboxMode, onDragStart, onClos
       <div className="flex flex-col gap-6">
         {/* 1. Main Periodic Grid */}
         <section className="overflow-x-auto pb-2">
-          <div className="grid gap-1 w-fit mx-auto" style={{ gridTemplateColumns: 'repeat(18, minmax(44px, 1fr))' }}>
+          <div className="grid gap-1 w-fit mx-auto" style={{ gridTemplateColumns: 'repeat(18, minmax(56px, 1fr))' }}>
             {PERIODIC_TABLE_LAYOUT.flat().map((atomicNumber, i) => {
               if (atomicNumber > 0) return renderCell(atomicNumber);
               if (atomicNumber === -1) return renderCell(0, true, '57-71');
               if (atomicNumber === -2) return renderCell(0, true, '89-103');
-              return <div key={`spacer-${i}`} className="w-11 h-11" />;
+              return <div key={`spacer-${i}`} className="w-14 h-14" />;
             })}
           </div>
 
-          <div className="mt-3 grid gap-1 w-fit mx-auto" style={{ gridTemplateColumns: 'repeat(18, minmax(44px, 1fr))' }}>
+          <div className="mt-3 grid gap-1 w-fit mx-auto" style={{ gridTemplateColumns: 'repeat(18, minmax(56px, 1fr))' }}>
             <div className="col-span-2" /> 
             {LANTHANIDE_SERIES.map((atomicNumber) => renderCell(atomicNumber))}
             <div className="col-span-1" />
