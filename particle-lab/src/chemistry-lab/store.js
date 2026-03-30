@@ -5,6 +5,7 @@ import { audioSystem, SFX } from './logic/audio';
 import { useInventory } from '../store/inventory.js';
 import { MATTER_DEFINITIONS } from '../constants/matterRegistry.js';
 import { useProgressionStore } from '../store/progressionStore.js';
+import { syncSynthesisUtil } from '../hooks/useResourceSync.js';
 
 // Starting State
 const STARTING_EQUIPMENT = ['beaker_std'];
@@ -225,11 +226,8 @@ export const useChemistryStore = create(
                      newInventory.push(chemId);
                      discovered.push(chemId);
                  }
-                 // Add to Global Inventory
-                 const def = MATTER_DEFINITIONS[chemId];
-                 if (def && def.inventoryId) {
-                    useInventory.getState().addResource(def.inventoryCategory || 'compounds', def.inventoryId, contents[chemId]);
-                 }
+                 // Add to Global Inventory using Utility
+                 syncSynthesisUtil(chemId, contents[chemId]);
              });
 
              if (discovered.length > 0) {
@@ -381,12 +379,8 @@ export const useChemistryStore = create(
                discovered.push(chemId);
              }
              
-             // --- Add to Global Inventory ---
-             const def = MATTER_DEFINITIONS[chemId];
-             if (def && def.inventoryId) {
-                const amount = vessel.contents[chemId];
-                useInventory.getState().addResource(def.inventoryCategory || 'compounds', def.inventoryId, amount);
-             }
+             // --- Add to Global Inventory using Utility ---
+             syncSynthesisUtil(chemId, vessel.contents[chemId]);
           });
           
           let msg = '';

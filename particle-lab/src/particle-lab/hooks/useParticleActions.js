@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { useInventory } from '../../store/inventory.js';
 import { useParticleStore } from '../store.js';
 import { PARTICLE_CATEGORIES, FULL_COMPOSITION_MAP } from '../../recipes.js';
 import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
@@ -7,6 +6,7 @@ import { POLYPEPTIDE_RECIPES } from '../../constants/polypeptideRecipes.js';
 import { PARTICLE_NAMES } from '../../constants/particles.js';
 import { MATTER_DEFINITIONS } from '../../constants/matterRegistry.js';
 import { useProgressionStore } from '../../store/progressionStore.js';
+import { useResourceSync } from '../../hooks/useResourceSync.js';
 
 export const useParticleActions = ({
   selectionInfo,
@@ -17,6 +17,7 @@ export const useParticleActions = ({
   const setBonds = useParticleStore(state => state.setBonds);
   const setSecondaryParticles = useParticleStore(state => state.setSecondaryParticles);
   const showMessage = useParticleStore(state => state.showMessage);
+  const { syncSynthesis } = useResourceSync();
 
   const disassembleParticle = useCallback((particleId, particleIndex) => {
     const particle = particles[particleIndex];
@@ -109,13 +110,8 @@ export const useParticleActions = ({
     const { assemblyRecipe, selectedParticles, isMoleculeAssembly, isPolypeptideAssembly } = selectionInfo;
     const combinedIds = new Set(selectedParticles.map(p => p.id));
 
-    // Common Discovery Logic
-    const def = MATTER_DEFINITIONS[assemblyRecipe.type];
-    if (def) {
-       useInventory.getState().markDiscovered(assemblyRecipe.type);
-       // Add 1 unit to inventory
-       useInventory.getState().addResource(def.inventoryCategory || 'compounds', def.inventoryId || assemblyRecipe.type, 1);
-    }
+    // Common Discovery & Synthesis Sync
+    syncSynthesis(assemblyRecipe.type, 1);
 
     if (isMoleculeAssembly || isPolypeptideAssembly) {
       const centerX = selectedParticles.reduce((sum, p) => sum + p.x, 0) / selectedParticles.length;

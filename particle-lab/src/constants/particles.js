@@ -200,12 +200,15 @@ export const PARTICLE_TYPES = {
   RADIUM: 'radium',
   RADON: 'radon',
   POLONIUM: 'polonium',
-  ACTINIUM: 'actinium',
+  PROTACTINIUM: 'protactinium',
   URANIUM: 'uranium',
-};
+  POLYMERASE: 'polymerase',
+  LIPASE: 'lipase',
+  AMINO_ACID: 'amino-acid',
+  PROTEIN: 'protein',
+  };
 
-export const PARTICLE_COLORS = {
-  [PARTICLE_TYPES.UP_QUARK]: '#22d3ee',
+  export const PARTICLE_COLORS = {  [PARTICLE_TYPES.UP_QUARK]: '#22d3ee',
   [PARTICLE_TYPES.DOWN_QUARK]: '#a855f7',
   [PARTICLE_TYPES.CHARM_QUARK]: '#4ade80',
   [PARTICLE_TYPES.STRANGE_QUARK]: '#fbbf24',
@@ -393,6 +396,8 @@ export const PARTICLE_COLORS = {
   [PARTICLE_TYPES.POLONIUM_210]: '#cbd5e1',
   [PARTICLE_TYPES.LEAD_206]: '#475569',
   [PARTICLE_TYPES.LEAD_207]: '#475569',
+  [PARTICLE_TYPES.POLYMERASE]: '#d946ef',
+  [PARTICLE_TYPES.LIPASE]: '#2dd4bf',
 };
 
 export const PARTICLE_NAMES = {

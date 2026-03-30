@@ -135,6 +135,7 @@ const MANUAL_REACTIONS = [
     inputs: { 'ethanol': 1, 'vinegar': 1 },
     conditions: { tempMin: 60 },
     outputs: { 'ethyl-acetate': 1, 'water': 1 },
+    catalyst: 'lipase',
     visual: 'distill',
     heat: 5
   },
@@ -175,6 +176,7 @@ const MANUAL_REACTIONS = [
     inputs: { 'carbon-dioxide': 6, 'water': 6 },
     conditions: { tempMin: 100, pressureMin: 20 }, // High energy required
     outputs: { 'glucose': 1, 'oxygen': 6 },
+    catalyst: 'polymerase',
     visual: 'solidify',
     heat: -50 // Endothermic
   },

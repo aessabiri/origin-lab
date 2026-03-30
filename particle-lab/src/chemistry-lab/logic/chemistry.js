@@ -2,6 +2,7 @@ import { REACTIONS } from '../data/reactions';
 import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 import { PHYSICS_CONSTANTS } from '../data/constants';
 import { getCandidateReactions } from './reactionRegistry';
+import { useInventory } from '../../store/inventory';
 
 // Helper to calculate dissolved vs precipitate
 export const calculatePrecipitates = (contents, temp) => {
@@ -89,7 +90,18 @@ export const processReactions = (vessel, timeSpeed) => {
 
         if (!tempOk || !pressureOk) continue;
 
-        const RATE_MULTIPLIER = PHYSICS_CONSTANTS.BASE_REACTION_RATE * timeSpeed;
+        let RATE_MULTIPLIER = PHYSICS_CONSTANTS.BASE_REACTION_RATE * timeSpeed;
+
+        // --- Catalyst Check (Feedback Loop) ---
+        if (reaction.catalyst) {
+            const inventory = useInventory.getState();
+            // Check elements or compounds for the catalyst
+            const catalystPresent = (inventory.compounds[reaction.catalyst] || 0) > 0 || 
+                                    (inventory.elements[reaction.catalyst] || 0) > 0;
+            if (catalystPresent) {
+                RATE_MULTIPLIER *= 2; 
+            }
+        }
 
         const ingredientsPresent = Object.entries(reaction.inputs).every(([chemId, amount]) => {
             // Check against AVAILABLE ingredients (dissolved)

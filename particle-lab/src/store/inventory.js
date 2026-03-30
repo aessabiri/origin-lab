@@ -82,6 +82,53 @@ export const useInventory = create(
 
       // --- Actions ---
 
+      // Execute an Atomic Transaction (All-or-nothing consumption and production)
+      executeTransaction: (inputs, outputs) => {
+        const state = get();
+        const nextState = { ...state };
+        
+        // 1. Verify all inputs are available
+        for (const input of inputs) {
+          const { category, type, amount = 1 } = input;
+          const current = state[category]?.[type] || 0;
+          if (current < amount) return false; // Insufficient resources
+        }
+
+        // 2. Consume inputs
+        for (const input of inputs) {
+          const { category, type, amount = 1 } = input;
+          nextState[category] = {
+            ...nextState[category],
+            [type]: nextState[category][type] - amount
+          };
+        }
+
+        // 3. Produce outputs
+        let newDiscovered = [...state.discoveredItems];
+        for (const output of outputs) {
+          const { category, type, amount = 1 } = output;
+          
+          if (!newDiscovered.includes(type)) {
+            newDiscovered.push(type);
+          }
+
+          const targetCategory = nextState[category] || {};
+          nextState[category] = {
+            ...targetCategory,
+            [type]: (targetCategory[type] || 0) + amount
+          };
+        }
+
+        set({ ...nextState, discoveredItems: newDiscovered });
+        
+        // Notify Progression if new things discovered
+        if (newDiscovered.length > state.discoveredItems.length) {
+            setTimeout(() => useProgressionStore.getState().checkProgress(newDiscovered), 0);
+        }
+
+        return true;
+      },
+
       // Mark an item as discovered (Universal Codex)
       markDiscovered: (type) => set((state) => {
         if (state.discoveredItems.includes(type)) return state;

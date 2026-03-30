@@ -1,9 +1,5 @@
 {
-  "experimental": {
-    "codebaseInvestigatorSettings": {
-      "maxNumTurns": 20
-    }
-  },
+  "experimental": {},
   "agents": {
     "overrides": {
       "codebase_investigator": {

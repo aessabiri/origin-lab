@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useBioStore } from '../store';
 import { SpatialHash } from '../utils/spatialHash';
+import { syncSynthesisUtil } from '../../hooks/useResourceSync';
 
 const FOOD_VALUE = 20; 
 const BASE_PHOTOSYNTHESIS = 0.8;
@@ -213,6 +214,13 @@ export const useBioSimulation = () => {
           if (a.energy > splitThreshold) {
              const cost = splitThreshold * 0.6;
              a.energy -= cost;
+
+             // --- Enzyme Secretion (Feedback Loop) ---
+             // High energy cells secrete enzymes into the Global Inventory
+             if (Math.random() < 0.2) {
+                 const enzymeType = Math.random() > 0.5 ? 'polymerase' : 'lipase';
+                 syncSynthesisUtil(enzymeType, 1);
+             }
 
              const mRate = 0.1;
              const childGenome = {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useBioStore } from '../biology-lab/store';
 import { useChemistryStore } from '../chemistry-lab/store';
@@ -94,24 +94,63 @@ const Navigation = () => {
   const { executeReset: executeParticleReset } = useParticleStore();
   const { resetSimulation } = useBioStore();
   const { resetLab } = useChemistryStore();
-  const { resetUniverse } = useInventory();
+  const { resetUniverse, compounds } = useInventory();
+
+  const [alerts, setAlerts] = useState([]);
+
+  // --- Monitoring Feedback Loop ---
+  useEffect(() => {
+    const newAlerts = [];
+    
+    if (compounds.glucose < 10) {
+      newAlerts.push({ id: 'glucose', text: 'Biology: Glucose Low', type: 'danger' });
+    }
+    
+    if (compounds.atp < 5) {
+      newAlerts.push({ id: 'atp', text: 'ATP Depletion WARNING', type: 'warning' });
+    }
+    
+    if (compounds.polymerase > 0) {
+      newAlerts.push({ id: 'polymerase', text: 'Biocatalyst Available', type: 'success' });
+    }
+
+    if (JSON.stringify(newAlerts) !== JSON.stringify(alerts)) {
+        setAlerts(newAlerts);
+    }
+  }, [compounds.glucose, compounds.atp, compounds.polymerase, alerts]);
 
   if (!introComplete) return null;
 
   const handleReset = () => {
     if (window.confirm("WARNING: This will collapse the universe back into a singularity. All progress will be lost. Are you sure?")) {
-      resetUniverse(); // Inventory -> 0
-      executeGlobalReset(); // Global
-      executeParticleReset(); // Clear Physics Canvas
-      resetSimulation(); // Biology
-      resetLab(); // Chemistry
-      setIntroComplete(true); // Keep intro bypassed
-      setCurrentView('particle'); // Return to Physics Lab
+      resetUniverse(); 
+      executeGlobalReset(); 
+      executeParticleReset(); 
+      resetSimulation(); 
+      resetLab(); 
+      setIntroComplete(true); 
+      setCurrentView('particle'); 
     }
   };
 
   return (
     <nav className="h-full w-20 md:w-24 flex flex-col items-center py-4 bg-slate-950/80 backdrop-blur-xl border-r border-white/5 shadow-[20px_0_50px_rgba(0,0,0,0.5)] z-50 shrink-0 relative overflow-hidden">
+      {/* Alerts Overlay */}
+      {alerts.length > 0 && (
+          <div className="absolute left-24 top-4 z-[100] flex flex-col gap-2 pointer-events-none w-48 transition-all duration-500">
+              {alerts.map(alert => (
+                  <div key={alert.id} className={`p-2 rounded-xl border shadow-2xl backdrop-blur-md flex items-center gap-2 animate-in slide-in-from-left-4 ${
+                      alert.type === 'danger' ? 'bg-red-500/20 border-red-500/50 text-red-200' : 
+                      alert.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-200' :
+                      'bg-amber-500/20 border-amber-500/50 text-amber-200'
+                  }`}>
+                      <span className="text-base">{alert.type === 'danger' ? '🚨' : alert.type === 'success' ? '🧬' : '⚠️'}</span>
+                      <span className="text-[9px] font-black leading-tight uppercase tracking-widest">{alert.text}</span>
+                  </div>
+              ))}
+          </div>
+      )}
+
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
          <div className="absolute top-0 left-0 w-full h-1/4 bg-gradient-to-b from-blue-500/20 to-transparent" />
@@ -131,14 +170,14 @@ const Navigation = () => {
           const isActive = currentView === item.id;
           
           const colorMap = {
-            blue: '#60a5fa', // blue-400
-            purple: '#c084fc', // purple-400
-            cyan: '#22d3ee', // cyan-400
-            green: '#4ade80', // green-400
-            teal: '#2dd4bf', // teal-400
-            indigo: '#818cf8', // indigo-400
-            yellow: '#fbbf24', // amber-400
-            amber: '#f59e0b', // amber-500
+            blue: '#60a5fa', 
+            purple: '#c084fc', 
+            cyan: '#22d3ee', 
+            green: '#4ade80', 
+            teal: '#2dd4bf', 
+            indigo: '#818cf8', 
+            yellow: '#fbbf24', 
+            amber: '#f59e0b', 
           };
           
           const activeColor = colorMap[item.color];
@@ -158,7 +197,6 @@ const Navigation = () => {
               `}
               title={item.label}
             >
-              {/* Active Glow Background */}
               {isActive && (
                 <div 
                     className="absolute inset-2 rounded-xl opacity-20 blur-md transition-all duration-500" 
@@ -166,7 +204,6 @@ const Navigation = () => {
                 />
               )}
               
-              {/* Icon */}
               <span 
                 className={`relative z-10 transition-all duration-500 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_currentColor]' : 'group-hover:scale-110 group-hover:drop-shadow-[0_0_5px_currentColor]'}`}
                 style={isActive ? { color: activeColor } : {}}
@@ -174,7 +211,6 @@ const Navigation = () => {
                 {item.icon}
               </span>
               
-              {/* Label */}
               <span className={`
                 text-[8px] font-black uppercase tracking-[0.2em] relative z-10 whitespace-nowrap mt-1.5 transition-colors duration-500
                 ${isActive ? 'text-white' : 'text-slate-600 group-hover:text-slate-400'}
@@ -182,7 +218,6 @@ const Navigation = () => {
                 {item.label}
               </span>
 
-              {/* Active Indicator Bar */}
               {isActive && (
                  <div 
                     className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full shadow-[0_0_15px_currentColor] opacity-100" 
@@ -196,7 +231,6 @@ const Navigation = () => {
 
       {/* System Controls */}
       <div className="flex flex-col items-center gap-3 mt-4 mb-2 w-full px-2 pt-4 border-t border-white/5">
-        {/* Sandbox Mode Toggle */}
         <button
             onClick={() => setIsSandboxMode(!isSandboxMode)}
             className={`
@@ -216,7 +250,6 @@ const Navigation = () => {
             )}
         </button>
 
-        {/* Universe Collapse (Reset) */}
         <button
             onClick={handleReset}
             className="w-14 h-14 rounded-2xl flex items-center justify-center text-red-500/40 hover:text-red-500 bg-white/5 border border-transparent hover:border-red-500/20 hover:bg-red-500/10 transition-all duration-500 group"
