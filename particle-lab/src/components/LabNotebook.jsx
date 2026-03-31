@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Codex from './Codex';
+import Spectroscope3D from './Spectroscope3D';
 import { useStore } from '../store';
 import { PARTICLE_NAMES } from '../constants/particles';
 import { useDiscoveredMatter } from '../hooks/useDiscoveredMatter';
@@ -8,6 +9,7 @@ import { MATTER_DEFINITIONS, getMatterInfo } from '../constants/matterRegistry';
 const TABS = {
   CODEX: 'Codex',
   LINEAGE: 'Lineage',
+  SPECTROSCOPE: 'Spectroscope',
   SETTINGS: 'Settings',
   SYSTEM: 'System',
   GOALS: 'Goals',
@@ -88,7 +90,12 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
 
   const handleParticleSelection = (particleId) => {
     setInspectedItem(particleId);
-    setActiveTab(TABS.LINEAGE);
+    const info = getMatterInfo(particleId);
+    if (info.isChemical || info.category?.includes('Nucleotide') || info.category?.includes('Molecule')) {
+        setActiveTab(TABS.SPECTROSCOPE);
+    } else {
+        setActiveTab(TABS.LINEAGE);
+    }
     if (onParticleClick) onParticleClick(particleId);
   };
 
@@ -108,11 +115,43 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
         );
       case TABS.LINEAGE:
         return (
-          <LineageView 
-            itemId={inspectedItem} 
-            theme={theme} 
-            onSelect={setInspectedItem} 
-          />
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-auto">
+                <LineageView itemId={inspectedItem} theme={theme} onSelect={setInspectedItem} />
+            </div>
+            {inspectedItem && (
+                <div className="p-4 flex justify-center border-t border-white/5">
+                    <button 
+                        onClick={() => setActiveTab(TABS.SPECTROSCOPE)}
+                        className={`px-6 py-2 rounded-full ${theme.accentBg} ${theme.accent} border border-white/10 font-bold uppercase tracking-widest text-xs hover:scale-105 transition-transform flex items-center gap-2 shadow-xl`}
+                    >
+                        <span>🔬</span> Visual Spectrum Analysis
+                    </button>
+                </div>
+            )}
+          </div>
+        );
+      case TABS.SPECTROSCOPE:
+        return (
+            <div className="p-8 h-full flex flex-col">
+                <div className="flex-1 min-h-0">
+                    <Spectroscope3D itemId={inspectedItem} />
+                </div>
+                <div className="mt-6 flex justify-center gap-8">
+                    <button 
+                        onClick={() => setActiveTab(TABS.LINEAGE)}
+                        className="text-[10px] text-gray-500 hover:text-white transition-colors uppercase font-black tracking-[0.2em] flex items-center gap-2"
+                    >
+                        <span>🌳</span> View Lineage
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab(TABS.CODEX)}
+                        className="text-[10px] text-gray-500 hover:text-white transition-colors uppercase font-black tracking-[0.2em] flex items-center gap-2"
+                    >
+                        <span>🧬</span> Return to Codex
+                    </button>
+                </div>
+            </div>
         );
       case TABS.SETTINGS:
         return (
@@ -211,6 +250,7 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
           <nav className="flex-1 p-4 space-y-2">
             <TabButton active={activeTab === TABS.CODEX} onClick={() => setActiveTab(TABS.CODEX)} icon="🧬" theme={theme}>Codex</TabButton>
             <TabButton active={activeTab === TABS.LINEAGE} onClick={() => setActiveTab(TABS.LINEAGE)} icon="🌳" theme={theme}>Lineage</TabButton>
+            <TabButton active={activeTab === TABS.SPECTROSCOPE} onClick={() => setActiveTab(TABS.SPECTROSCOPE)} icon="🔬" theme={theme}>Spectroscope</TabButton>
             <TabButton active={activeTab === TABS.GOALS} onClick={() => setActiveTab(TABS.GOALS)} icon="🎯" theme={theme}>Goals</TabButton>
             <TabButton active={activeTab === TABS.SETTINGS} onClick={() => setActiveTab(TABS.SETTINGS)} icon="⚙️" theme={theme}>Settings</TabButton>
             <TabButton active={activeTab === TABS.SYSTEM} onClick={() => setActiveTab(TABS.SYSTEM)} icon="⚠️" theme={theme}>System</TabButton>
