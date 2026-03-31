@@ -140,8 +140,6 @@ export const useChemistryStore = create(
           });
       },
 
-      addVessel: (typeId) => {}, // Legacy placeholder, remove if safe
-      
       createVessel: (vesselConfig) => {
           set((state) => {
               const newId = `vessel_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;

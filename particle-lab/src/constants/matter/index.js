@@ -43,9 +43,7 @@ Object.entries(PARTICLE_INFO).forEach(([id, info]) => {
 
 // Helper Functions
 export const getMatterInfo = (id) => MATTER_DEFINITIONS[id] || {
-  id, name: 'Unknown', description: 'No data', color: '#9ca3af', source: 'Unknown', parents: []
+  id, name: 'Unknown Substance', description: 'No data', color: '#9ca3af', source: 'Unknown', parents: []
 };
 
-export const getMatterColor = (id) => getMatterInfo(id).color;
 export const getAllMatter = () => Object.values(MATTER_DEFINITIONS);
-export const getMatterByCategory = (category) => Object.values(MATTER_DEFINITIONS).filter(m => m.category === category);

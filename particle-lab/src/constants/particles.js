@@ -878,8 +878,6 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
           PARTICLE_TYPES.SILVER,
           PARTICLE_TYPES.GOLD,
           PARTICLE_TYPES.LEAD,
-          PARTICLE_TYPES.URANIUM_235,
-          PARTICLE_TYPES.URANIUM_238,
         ]
       },
       {
@@ -921,7 +919,7 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
     ]
   },
   {
-    name: 'Molecular & Materials',
+    name: 'Molecular',
     subcategories: [
       {
         name: 'Simple Molecules',
@@ -992,13 +990,12 @@ export const CODEX_PARTICLES_BY_CATEGORY = [
         particles: [
           PARTICLE_TYPES.POLYETHYLENE,
           PARTICLE_TYPES.CELLULOSE,
-          PARTICLE_TYPES.STEEL,
         ]
       }
     ]
   },
   {
-    name: 'Biochemistry',
+    name: 'Biological',
     subcategories: [
       {
         name: 'Sugars',

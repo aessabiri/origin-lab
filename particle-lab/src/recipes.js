@@ -773,10 +773,6 @@ export const RECIPES = [
 ];
 
 // Create a map for quick lookup of a particle's composition for deconstruction.
-export const COMPOSITION_MAP = new Map(
-  RECIPES.map(recipe => [recipe.type, recipe.ingredients])
-);
-
 export const FULL_COMPOSITION_MAP = new Map([
   ...RECIPES.map(recipe => [recipe.type, recipe.ingredients]),
   ...MOLECULE_RECIPES.map(recipe => [recipe.type, recipe.atoms])

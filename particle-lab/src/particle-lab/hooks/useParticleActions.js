@@ -4,7 +4,6 @@ import { PARTICLE_CATEGORIES, FULL_COMPOSITION_MAP } from '../../recipes.js';
 import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
 import { POLYPEPTIDE_RECIPES } from '../../constants/polypeptideRecipes.js';
 import { PARTICLE_NAMES } from '../../constants/particles.js';
-import { MATTER_DEFINITIONS } from '../../constants/matterRegistry.js';
 import { useProgressionStore } from '../../store/progressionStore.js';
 import { useResourceSync } from '../../hooks/useResourceSync.js';
 

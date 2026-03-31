@@ -29,7 +29,6 @@ export const syncSynthesisUtil = (itemId, quantity = 1, ingredients = []) => {
  * Standardizes the synchronization between labs and the Global Inventory.
  */
 export const useResourceSync = () => {
-...
   const syncSynthesis = (itemId, quantity = 1, ingredients = []) => {
     return syncSynthesisUtil(itemId, quantity, ingredients);
   };

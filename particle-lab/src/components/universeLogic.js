@@ -83,30 +83,6 @@ export const createNebulaParticle = (width, height, offsetX = 0, offsetY = 0) =>
   };
 };
 
-export const triggerInflation = (width, height) => {
-    const particles = [];
-    const cx = width / 2;
-    const cy = height / 2;
-    
-    // Create 2000 high-energy particles
-    for (let i = 0; i < 2000; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const velocity = 200 + Math.random() * 800; // FAST
-        
-        particles.push({
-            x: cx,
-            y: cy,
-            vx: Math.cos(angle) * velocity,
-            vy: Math.sin(angle) * velocity,
-            mass: 1,
-            type: 'QUARK', // Abstract type for now
-            color: '#ffffff',
-            life: 100,
-            dead: false
-        });
-    }
-    return particles;
-};
 
 export const updateSimulation = (dt, particles, stars, gravityWells, planets, width, height, onDiscover, onFusion, onStarFormation, onSupernova, milestones = {}, bigBangPhase = BigBangPhase.STELLAR, simTime = 0) => {
   const cx = width / 2;

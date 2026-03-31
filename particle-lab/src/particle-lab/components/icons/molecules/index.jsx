@@ -820,9 +820,3 @@ export const BronzeIcon = () => (
   </svg>
 );
 
-export const FructoseIcon_2 = () => (
-  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-    <path d="M 50 20 L 80 45 L 70 80 L 30 80 L 20 45 Z" stroke="#9ca3af" strokeWidth="6" fill="none" opacity="0.6" strokeLinejoin="round" />
-    <NeoSphere x={50} y={20} r={12} color={PARTICLE_COLOR_MAP['red-600']} label="O" /><NeoSphere x={80} y={45} r={10} color={PARTICLE_COLOR_MAP['gray-800']} /><NeoSphere x={70} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-800']} /><NeoSphere x={30} y={80} r={10} color={PARTICLE_COLOR_MAP['gray-800']} /><NeoSphere x={20} y={45} r={10} color={PARTICLE_COLOR_MAP['gray-800']} />
-  </svg>
-);
