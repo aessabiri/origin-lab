@@ -1,75 +1,64 @@
-import React, { useMemo, useRef, Suspense } from 'react';
+import React, { useMemo, useRef, Suspense, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Stars, Float, Text, ContactShadows, PresentationControls, Environment } from '@react-three/drei';
+import { 
+  PerspectiveCamera, 
+  Float, 
+  PresentationControls, 
+  BakeShadows,
+  Points,
+  PointMaterial,
+  useGLTF,
+  MeshTransmissionMaterial,
+  Center
+} from '@react-three/drei';
+import { 
+  EffectComposer, 
+  Bloom, 
+  Noise, 
+  Vignette, 
+  ChromaticAberration
+} from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { MATTER_DEFINITIONS } from '../constants/matterRegistry';
 import { MOLECULE_RECIPES } from '../constants/moleculeRecipes';
 
-// Optimization: Shared geometries
-const atomGeometry = new THREE.SphereGeometry(1, 32, 32);
-const bondGeometry = new THREE.CylinderGeometry(0.15, 0.15, 1, 16);
+// --- Quantum Constants ---
+const POINTS_PER_ATOM = 800; 
+const JITTER_STRENGTH = 1.5;
+const ATOM_SPACING_FACTOR = 2.2; 
 
-const Atom = ({ position, color, label, size = 1 }) => {
-  return (
-    <group position={position}>
-      <mesh geometry={atomGeometry} scale={[size, size, size]} castShadow>
-        <meshStandardMaterial 
-            color={color} 
-            roughness={0.1} 
-            metalness={0.8}
-            emissive={color}
-            emissiveIntensity={0.2}
-        />
-      </mesh>
-      <Text
-        position={[0, 0, size + 0.2]}
-        fontSize={size * 0.6}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.05}
-        outlineColor="black"
-      >
-        {label}
-      </Text>
-    </group>
-  );
-};
-
-const Bond = ({ start, end, type = 'single' }) => {
-  const midPoint = useMemo(() => new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5), [start, end]);
-  const distance = useMemo(() => start.distanceTo(end), [start, end]);
-  const direction = useMemo(() => new THREE.Vector3().subVectors(end, start).normalize(), [start, end]);
+// --- Smart Model Loader (Handles AI-generated meshes) ---
+const ExternalModel = ({ url, color }) => {
+  const { scene } = useGLTF(url);
   
-  const quaternion = useMemo(() => {
-    const q = new THREE.Quaternion();
-    const up = new THREE.Vector3(0, 1, 0);
-    q.setFromUnitVectors(up, direction);
-    return q;
-  }, [direction]);
+  // Apply our Clockwork "Jelly" look to the AI mesh
+  useEffect(() => {
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        // We replace the AI material with our high-end one
+        child.material = new THREE.MeshPhysicalMaterial({
+          color: color,
+          transmission: 1,
+          thickness: 2,
+          roughness: 0.2,
+          ior: 1.5,
+          attenuationColor: color,
+          attenuationDistance: 0.5,
+          clearcoat: 1
+        });
+      }
+    });
+  }, [scene, color]);
 
-  return (
-    <mesh 
-      position={midPoint} 
-      quaternion={quaternion} 
-      geometry={bondGeometry}
-      scale={[1, distance, 1]}
-      castShadow
-    >
-      <meshStandardMaterial 
-        color="#ffffff" 
-        transparent 
-        opacity={0.8} 
-        roughness={0} 
-        metalness={1} 
-      />
-    </mesh>
-  );
+  return <primitive object={scene} scale={2} />;
 };
 
-const MoleculeModel = ({ itemId }) => {
-  const groupRef = useRef();
-
+// --- The Quantum Space-Filling Component (Procedural Fallback) ---
+const QuantumMolecule = ({ itemId }) => {
+  const pointsRef = useRef();
+  
   const structure = useMemo(() => {
     const recipe = MOLECULE_RECIPES.find(r => r.type === itemId);
     if (!recipe || !recipe.structure) {
@@ -78,132 +67,190 @@ const MoleculeModel = ({ itemId }) => {
     return recipe.structure;
   }, [itemId]);
 
-  const nodesWithPositions = useMemo(() => {
-    const count = structure.nodes.length;
+  const { positions, colors } = useMemo(() => {
+    const nodeCount = structure.nodes.length;
+    const totalPoints = nodeCount * POINTS_PER_ATOM;
     
-    // Better 3D mapping for molecular shapes
-    return structure.nodes.map((node, i) => {
-      let pos;
-      if (count === 1) {
-        pos = new THREE.Vector3(0, 0, 0);
-      } else {
-        // Spherical distribution for a more "molecular" look
-        const phi = Math.acos(-1 + (2 * i) / (count - 1 || 1));
-        const theta = Math.sqrt(count * Math.PI) * phi;
-        const radius = Math.max(4, Math.sqrt(count) * 2.5);
-        
-        pos = new THREE.Vector3(
-          radius * Math.sin(phi) * Math.cos(theta),
-          radius * Math.cos(phi),
-          radius * Math.sin(phi) * Math.sin(theta)
-        );
-      }
-      
-      const info = MATTER_DEFINITIONS[node.type] || { color: '#ffffff', name: '?' };
-
-      return {
+    const posArr = new Float32Array(totalPoints * 3);
+    const colArr = new Float32Array(totalPoints * 3);
+    
+    const nodes = structure.nodes.map((node) => ({
         ...node,
-        pos,
-        color: info.color,
-        label: info.name.substring(0, 2)
-      };
-    });
-  }, [structure]);
+        pos: new THREE.Vector3((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5),
+        color: new THREE.Color(MATTER_DEFINITIONS[node.type]?.color || '#ffffff')
+    }));
 
-  const edges = useMemo(() => {
-    return structure.edges.map(edge => {
-      const startNode = nodesWithPositions.find(n => n.id === edge.source);
-      const endNode = nodesWithPositions.find(n => n.id === edge.target);
-      if (!startNode || !endNode) return null;
-      return { start: startNode.pos, end: endNode.pos, type: edge.type };
-    }).filter(Boolean);
-  }, [nodesWithPositions, structure.edges]);
+    // FIXED: Corrected loop variable from 'i' to 'iter'
+    for (let iter = 0; iter < 50; iter++) {
+        structure.edges.forEach(edge => {
+            const a = nodes.find(n => n.id === edge.source);
+            const b = nodes.find(n => n.id === edge.target);
+            if (!a || !b) return;
+            const delta = b.pos.clone().sub(a.pos);
+            const dist = delta.length();
+            const target = ATOM_SPACING_FACTOR;
+            const force = (dist - target) * 0.5;
+            const move = delta.normalize().multiplyScalar(force);
+            a.pos.add(move);
+            b.pos.sub(move);
+        });
+
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const a = nodes[i];
+                const b = nodes[j];
+                const delta = b.pos.clone().sub(a.pos);
+                const dist = delta.length();
+                if (dist < ATOM_SPACING_FACTOR * 0.8) {
+                    const force = (ATOM_SPACING_FACTOR * 0.8 - dist) * 0.5;
+                    const move = delta.normalize().multiplyScalar(force);
+                    a.pos.sub(move);
+                    b.pos.add(move);
+                }
+            }
+        }
+    }
+
+    let pointer = 0;
+    nodes.forEach(node => {
+        for (let i = 0; i < POINTS_PER_ATOM; i++) {
+            const u = Math.random();
+            const v = Math.random();
+            const theta = 2 * Math.PI * u;
+            const phi = Math.acos(2 * v - 1);
+            const r = (Math.random() ** 2) * JITTER_STRENGTH * 1.8;
+            posArr[pointer * 3] = node.pos.x + r * Math.sin(phi) * Math.cos(theta);
+            posArr[pointer * 3 + 1] = node.pos.y + r * Math.sin(phi) * Math.sin(theta);
+            posArr[pointer * 3 + 2] = node.pos.z + r * Math.cos(phi);
+            colArr[pointer * 3] = node.color.r;
+            colArr[pointer * 3 + 1] = node.color.g;
+            colArr[pointer * 3 + 2] = node.color.b;
+            pointer++;
+        }
+    });
+
+    return { positions: posArr, colors: colArr };
+  }, [itemId, structure]);
 
   useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.2;
+    if (pointsRef.current) {
+        const t = state.clock.getElapsedTime();
+        pointsRef.current.rotation.y = t * 0.15;
+        pointsRef.current.material.size = 0.15 + Math.sin(t * 12) * 0.03;
     }
   });
 
   return (
-    <group ref={groupRef}>
-      {nodesWithPositions.map((node) => (
-        <Atom key={node.id} position={node.pos} color={node.color} label={node.label} size={1.2} />
-      ))}
-      {edges.map((edge, i) => (
-        <Bond key={i} start={edge.start} end={edge.end} type={edge.type} />
-      ))}
+    <group scale={1.2}>
+      <Points ref={pointsRef} positions={positions} colors={colors} stride={3}>
+        <PointMaterial transparent vertexColors size={0.18} sizeAttenuation={true} depthWrite={false} blending={THREE.AdditiveBlending} opacity={0.7} />
+      </Points>
     </group>
   );
 };
 
+// --- Error Boundary for 3D Loading ---
+class ModelErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error) { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return <QuantumMolecule itemId={this.props.itemId} />;
+    return this.props.children;
+  }
+}
+
+// --- Main Container ---
 const Spectroscope3D = ({ itemId }) => {
+  const [hasModel, setHasModel] = useState(false);
+  const modelUrl = `/models/${itemId}.glb`;
+
+  // Check if a 3D model exists for this item
+  useEffect(() => {
+    setHasModel(false);
+    // Robust check: ensure it's not returning an HTML page (common in SPA dev servers)
+    fetch(modelUrl, { method: 'GET' })
+      .then(res => {
+        const contentType = res.headers.get('content-type');
+        if (res.ok && contentType && !contentType.includes('text/html')) {
+            setHasModel(true);
+        } else {
+            setHasModel(false);
+        }
+      })
+      .catch(() => setHasModel(false));
+  }, [itemId, modelUrl]);
+
   if (!itemId) return null;
 
   return (
-    <div className="w-full h-full min-h-[400px] bg-slate-950 rounded-3xl overflow-hidden relative border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-      {/* UI Overlay */}
-      <div className="absolute top-6 left-8 z-10 pointer-events-none">
-        <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-500/60">Molecular Resonance Scan</span>
-            <h2 className="text-2xl font-bold text-white tracking-tight">{MATTER_DEFINITIONS[itemId]?.name || 'Unknown'}</h2>
-        </div>
-        <div className="mt-4 flex items-center gap-3">
-            <div className="px-2 py-1 rounded bg-cyan-500/10 border border-cyan-500/20">
-                <span className="text-[10px] font-mono text-cyan-400">STRUCT_STABLE</span>
+    <div className="w-full h-full min-h-[600px] bg-black rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl">
+      
+      {/* HUD Overlay */}
+      <div className="absolute inset-0 p-12 z-10 pointer-events-none flex flex-col justify-between">
+        <div className="flex justify-between items-start">
+            <div className="space-y-1">
+                <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_15px_#06b6d4] animate-pulse" />
+                    <span className="text-[10px] font-mono text-cyan-400/60 font-bold tracking-[0.6em] uppercase">
+                        {hasModel ? 'Neural_Mesh_Active' : 'Density_Field_Analysis'}
+                    </span>
+                </div>
+                <h2 className="text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+                    {MATTER_DEFINITIONS[itemId]?.name || 'Unknown'}
+                </h2>
             </div>
-            <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
-                <div className="w-2/3 h-full bg-cyan-500 animate-pulse" />
+        </div>
+
+        <div className="flex justify-between items-end">
+            <div className="max-w-xs space-y-4">
+                <div className="flex flex-col">
+                    <span className="text-[8px] font-mono text-white/40 uppercase tracking-widest mb-1">Observation_Depth</span>
+                    <span className="text-xl font-mono text-cyan-400 font-bold tracking-tight italic">
+                        {hasModel ? 'MACROSCOPIC' : 'QUANTUM'}
+                    </span>
+                </div>
             </div>
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-8 z-10 pointer-events-none">
-         <p className="text-[10px] text-white/30 font-mono">DRAG TO ROTATE // SCROLL TO ZOOM</p>
-      </div>
-
-      <Canvas shadows dpr={[1, 2]}>
-        <PerspectiveCamera makeDefault position={[0, 5, 20]} fov={45} />
+      {/* 3D Canvas */}
+      <Canvas dpr={[1, 2]} gl={{ antialias: false }}>
+        <color attach="background" args={['#000000']} />
+        <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={30} />
         
         <Suspense fallback={null}>
             <PresentationControls
                 global
-                config={{ mass: 2, tension: 500 }}
-                snap={{ mass: 4, tension: 1500 }}
-                rotation={[0, 0.3, 0]}
+                config={{ mass: 5, tension: 200, friction: 40 }}
+                snap={{ mass: 10, tension: 1000 }} 
+                rotation={[0, 0.5, 0]}
                 polar={[-Math.PI / 3, Math.PI / 3]}
-                azimuth={[-Math.PI / 1.4, Math.PI / 1.4]}
+                azimuth={[-Math.PI / 1.2, Math.PI / 1.2]}
             >
-                <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
-                    <MoleculeModel itemId={itemId} />
+                <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.5}>
+                    <Center>
+                        <ModelErrorBoundary key={itemId} itemId={itemId}>
+                            {hasModel ? (
+                                <ExternalModel url={modelUrl} color={MATTER_DEFINITIONS[itemId]?.color} />
+                            ) : (
+                                <QuantumMolecule itemId={itemId} />
+                            )}
+                        </ModelErrorBoundary>
+                    </Center>
                 </Float>
             </PresentationControls>
 
-            <ContactShadows 
-                position={[0, -10, 0]} 
-                opacity={0.4} 
-                scale={40} 
-                blur={2} 
-                far={15} 
-                resolution={256} 
-                color="#000000" 
-            />
-            
-            <Environment preset="city" />
+            <EffectComposer disableNormalPass multisampling={0}>
+                <Bloom luminanceThreshold={0.1} mipmapBlur intensity={2.2} radius={0.5} />
+                <ChromaticAberration offset={[0.002, 0.002]} />
+                <Noise opacity={0.15} />
+                <Vignette eskil={false} offset={0.1} darkness={1.3} />
+            </EffectComposer>
         </Suspense>
-
-        <ambientLight intensity={0.2} />
-        <pointLight position={[10, 10, 10]} intensity={1} color="#ffffff" castShadow />
-        <spotLight position={[-10, 20, 10]} angle={0.12} penumbra={1} intensity={2} castShadow color="#60a5fa" />
-        
-        <Stars radius={100} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />
-        
-        <OrbitControls enablePan={false} makeDefault minDistance={10} maxDistance={40} />
       </Canvas>
-
-      {/* Decorative Scanlines */}
-      <div className="absolute inset-0 pointer-events-none border-[20px] border-slate-950/50" />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.4)_100%)]" />
     </div>
   );
 };

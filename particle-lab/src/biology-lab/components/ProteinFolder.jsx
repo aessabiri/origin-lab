@@ -1,11 +1,15 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, Suspense } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Float, PerspectiveCamera, Environment, MeshTransmissionMaterial, PresentationControls, ContactShadows, Stars } from '@react-three/drei';
+import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
+import * as THREE from 'three';
 import { useBioStore } from '../store';
 import { useInventory } from '../../store/inventory';
 import { useStore } from '../../store';
 import { getUniversalCodexData, getUniversalItemInfo } from '../../utils/codexData';
 import { PARTICLE_TYPES } from '../../constants/particles';
 import { POLYPEPTIDE_RECIPES } from '../../constants/polypeptideRecipes';
-import { BakelitePanel, NixieTube, Oscilloscope, NeoSphere, NeoBond, AnalogGauge } from '../../components/VisualPrimitives';
+import { BakelitePanel, NixieTube, Oscilloscope, AnalogGauge } from '../../components/VisualPrimitives';
 import ParticleIcon from '../../particle-lab/components/ParticleIcon';
 
 const ProteinFolder = () => {
@@ -410,41 +414,130 @@ const SequenceItem = ({ type, onRemove }) => {
   );
 };
 
-const ProteinVisualizer = ({ structure }) => {
-  const { points, bonds } = structure;
-  
+// --- 3D Components for Protein Visualizer ---
+
+const atomGeometry = new THREE.SphereGeometry(1, 32, 32);
+const bondGeometry = new THREE.CylinderGeometry(0.12, 0.12, 1, 16);
+
+const Residue = ({ position, color, label, size = 1.2 }) => {
   return (
-    <div className="relative w-full h-full flex items-center justify-center p-20">
-       <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full overflow-visible">
-          {/* Bonds */}
-          {bonds.map((bond, i) => (
-            <NeoBond 
-              key={i} 
-              x1={50 + points[bond.from].x} 
-              y1={50 + points[bond.from].y} 
-              x2={50 + points[bond.to].x} 
-              y2={50 + points[bond.to].y} 
-              type="single"
-              color={bond.isPeptide ? "stroke-indigo-500" : "stroke-white/20"}
-            />
-          ))}
-       </svg>
-       
-       {/* Points (AA residiues) */}
-       {points.map((p, i) => (
-         <div 
-           key={i} 
-           className="absolute transition-all duration-1000 ease-out transform"
-           style={{ 
-             left: `calc(50% + ${p.x}%)`, 
-             top: `calc(50% + ${p.y}%)`,
-             transform: 'translate(-50%, -50%)'
-           }}
-         >
-            <NeoSphere color={p.color} size={24} label={p.label} />
-         </div>
-       ))}
-    </div>
+    <group position={position}>
+      <mesh geometry={atomGeometry} scale={[size, size, size]} castShadow>
+        <MeshTransmissionMaterial 
+            backside
+            samples={4}
+            thickness={0.5}
+            chromaticAberration={0.05}
+            transmission={0.9}
+            roughness={0.2}
+            color={color}
+            ior={1.1}
+            metalness={0.1}
+        />
+      </mesh>
+      {/* Glow Core */}
+      <mesh geometry={atomGeometry} scale={[size * 0.4, size * 0.4, size * 0.4]}>
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={4} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+};
+
+const PeptideBond = ({ start, end, color = "#4f46e5" }) => {
+  const midPoint = useMemo(() => new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5), [start, end]);
+  const distance = useMemo(() => start.distanceTo(end), [start, end]);
+  const direction = useMemo(() => new THREE.Vector3().subVectors(end, start).normalize(), [start, end]);
+  
+  const quaternion = useMemo(() => {
+    const q = new THREE.Quaternion();
+    const up = new THREE.Vector3(0, 1, 0);
+    q.setFromUnitVectors(up, direction);
+    return q;
+  }, [direction]);
+
+  return (
+    <mesh position={midPoint} quaternion={quaternion} geometry={bondGeometry} scale={[1, distance, 1]}>
+      <meshStandardMaterial 
+        color={color} 
+        emissive={color} 
+        emissiveIntensity={2} 
+        toneMapped={false} 
+        transparent 
+        opacity={0.4} 
+      />
+    </mesh>
+  );
+};
+
+const ProteinModel = ({ structure }) => {
+  const groupRef = useRef();
+  
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.1;
+      groupRef.current.rotation.z = Math.sin(state.clock.getElapsedTime() * 0.5) * 0.1;
+    }
+  });
+
+  const points = useMemo(() => structure.points.map(p => new THREE.Vector3(p.x, p.y, p.z)), [structure]);
+
+  return (
+    <group ref={groupRef} scale={0.4}>
+      {points.map((pos, i) => (
+        <Residue 
+          key={i} 
+          position={pos} 
+          color={structure.points[i].color} 
+          label={structure.points[i].label} 
+        />
+      ))}
+      {structure.bonds.map((bond, i) => (
+        <PeptideBond 
+          key={i} 
+          start={points[bond.from]} 
+          end={points[bond.to]} 
+          color={structure.points[bond.from].color}
+        />
+      ))}
+    </group>
+  );
+};
+
+const ProteinVisualizer3D = ({ structure }) => {
+  if (!structure) return null;
+
+  return (
+    <Canvas shadows dpr={[1, 2]} gl={{ antialias: false }}>
+      <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={40} />
+      
+      <Suspense fallback={null}>
+        <PresentationControls
+          global
+          config={{ mass: 1, tension: 200 }}
+          snap={{ mass: 2, tension: 400 }}
+          rotation={[0, 0, 0]}
+          polar={[-Math.PI / 3, Math.PI / 3]}
+          azimuth={[-Math.PI / 2, Math.PI / 2]}
+        >
+          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+            <ProteinModel structure={structure} />
+          </Float>
+        </PresentationControls>
+
+        <ContactShadows position={[0, -6, 0]} opacity={0.4} scale={20} blur={2} far={10} color="#000000" />
+        <Environment preset="night" />
+        
+        <EffectComposer disableNormalPass>
+          <Bloom luminanceThreshold={1} mipmapBlur intensity={1.5} radius={0.3} />
+          <Noise opacity={0.05} />
+          <Vignette eskil={false} offset={0.1} darkness={1.1} />
+        </EffectComposer>
+      </Suspense>
+
+      <ambientLight intensity={0.4} />
+      <pointLight position={[10, 10, 10]} intensity={2} color="#ffffff" castShadow />
+      <Stars radius={100} depth={50} count={500} factor={4} saturation={0} fade speed={1} />
+    </Canvas>
   );
 };
 
@@ -454,29 +547,24 @@ const generateFoldedStructure = (sequence) => {
   const points = [];
   const bonds = [];
   
-  // Start in center
-  let curX = 0;
-  let curY = 0;
-  
-  // Angle for random folding walk
+  // 3D Folding Logic
   let curAngle = Math.random() * Math.PI * 2;
+  let curPhi = Math.random() * Math.PI;
 
   sequence.forEach((aa, i) => {
     const info = getUniversalItemInfo(aa.type);
-    
-    // Hydrophobicity simulation (simplified)
-    // Some AA pull towards center, some push away
     const isHydrophobic = ['leucine', 'isoleucine', 'valine', 'phenylalanine', 'methionine', 'tryptophan', 'tyrosine', 'proline'].includes(aa.type);
-    const radius = isHydrophobic ? 10 + Math.random() * 10 : 20 + Math.random() * 15;
+    const radius = isHydrophobic ? 4 + Math.random() * 2 : 7 + Math.random() * 4;
     
-    // Randomish walk with bias
-    curAngle += (Math.random() - 0.5) * 2;
+    curAngle += (Math.random() - 0.5) * 2.5;
+    curPhi += (Math.random() - 0.5) * 1.5;
     
-    const x = Math.cos(curAngle) * radius + (i > 0 ? points[i-1].x : 0);
-    const y = Math.sin(curAngle) * radius + (i > 0 ? points[i-1].y : 0);
+    const x = Math.sin(curPhi) * Math.cos(curAngle) * radius + (i > 0 ? points[i-1].x : 0);
+    const y = Math.cos(curPhi) * radius + (i > 0 ? points[i-1].y : 0);
+    const z = Math.sin(curPhi) * Math.sin(curAngle) * radius + (i > 0 ? points[i-1].z : 0);
 
     points.push({
-      x, y,
+      x, y, z,
       color: info.color,
       label: info.name.slice(0,1).toUpperCase()
     });
@@ -489,13 +577,12 @@ const generateFoldedStructure = (sequence) => {
   // Center the structure
   const avgX = points.reduce((acc, p) => acc + p.x, 0) / points.length;
   const avgY = points.reduce((acc, p) => acc + p.y, 0) / points.length;
+  const avgZ = points.reduce((acc, p) => acc + p.z, 0) / points.length;
   
   points.forEach(p => {
     p.x -= avgX;
     p.y -= avgY;
-    // Scale down to % range
-    p.x *= 2; 
-    p.y *= 2;
+    p.z -= avgZ;
   });
 
   return { points, bonds };
