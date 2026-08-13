@@ -24,9 +24,21 @@ export const useParticleStore = create(
       isSandboxMode: false,
       
       // --- Actions ---
-      setParticles: (particles) => set({ particles }),
-      setBonds: (bonds) => set({ bonds }),
-      setSecondaryParticles: (secondaryParticles) => set({ secondaryParticles }),
+      setParticles: (particlesOrUpdater) => set((state) => ({
+        particles: typeof particlesOrUpdater === 'function' 
+          ? particlesOrUpdater(Array.isArray(state.particles) ? state.particles : []) 
+          : (Array.isArray(particlesOrUpdater) ? particlesOrUpdater : [])
+      })),
+      setBonds: (bondsOrUpdater) => set((state) => ({
+        bonds: typeof bondsOrUpdater === 'function' 
+          ? bondsOrUpdater(Array.isArray(state.bonds) ? state.bonds : []) 
+          : (Array.isArray(bondsOrUpdater) ? bondsOrUpdater : [])
+      })),
+      setSecondaryParticles: (secondaryOrUpdater) => set((state) => ({
+        secondaryParticles: typeof secondaryOrUpdater === 'function' 
+          ? secondaryOrUpdater(Array.isArray(state.secondaryParticles) ? state.secondaryParticles : []) 
+          : (Array.isArray(secondaryOrUpdater) ? secondaryOrUpdater : [])
+      })),
       
       setUiScale: (scale) => set({ uiScale: scale }),
       setIsPeriodicTablePinned: (pinned) => set({ isPeriodicTablePinned: pinned }),

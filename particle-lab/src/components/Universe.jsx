@@ -446,6 +446,7 @@ const EnhancedBlackHole = () => {
     const diskRef = useRef();
     const warpRef = useRef();
     const noiseTex = useMemo(() => createNoiseTexture(), []);
+    useEffect(() => () => noiseTex.dispose(), [noiseTex]);
     
     useFrame((state, delta) => {
         if (diskRef.current) diskRef.current.rotation.z -= delta * 0.2;
@@ -581,6 +582,7 @@ const Galaxy = ({ radius = 25, count = 20000 }) => {
 
 const CosmicDust = ({ count = 2000, radius = 100 }) => {
   const texture = useMemo(() => createGlowTexture(), []); 
+  useEffect(() => () => texture.dispose(), [texture]);
   const points = useMemo(() => {
     const p = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
@@ -634,6 +636,7 @@ const CosmicDust = ({ count = 2000, radius = 100 }) => {
 
 const DistantNebulas = ({ count = 10 }) => {
   const texture = useMemo(() => createGlowTexture(), []);
+  useEffect(() => () => texture.dispose(), [texture]);
   const points = useMemo(() => {
     const centers = [];
     for(let i=0; i<count; i++) {
@@ -736,6 +739,7 @@ const createGlowTexture = () => {
 
 const StellarNursery = ({ position }) => {
     const glowTex = useMemo(() => createGlowTexture(), []);
+    useEffect(() => () => glowTex.dispose(), [glowTex]);
     
     // Generate 3 pillars
     const pillars = useMemo(() => {

@@ -123,7 +123,7 @@ export const useInventory = create(
         
         // Notify Progression if new things discovered
         if (newDiscovered.length > state.discoveredItems.length) {
-            setTimeout(() => useProgressionStore.getState().checkProgress(newDiscovered), 0);
+            useProgressionStore.getState().checkProgress(newDiscovered);
         }
 
         return true;
@@ -135,7 +135,7 @@ export const useInventory = create(
         const newDiscovered = [...state.discoveredItems, type];
         
         // Notify Progression
-        setTimeout(() => useProgressionStore.getState().checkProgress(newDiscovered), 0);
+        useProgressionStore.getState().checkProgress(newDiscovered);
         
         return { discoveredItems: newDiscovered };
       }),
@@ -149,7 +149,7 @@ export const useInventory = create(
         if (!newDiscovered.includes(type)) {
             newDiscovered = [...newDiscovered, type];
             // Notify Progression
-            setTimeout(() => useProgressionStore.getState().checkProgress(newDiscovered), 0);
+            useProgressionStore.getState().checkProgress(newDiscovered);
         }
 
         if (!target) {

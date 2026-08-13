@@ -279,8 +279,8 @@ const ProteinFolder = () => {
                    <span className="text-xs font-black text-amber-500 animate-pulse tracking-widest uppercase">Analyzing Tertiary Structure</span>
                 </div>
               ) : foldedStructure ? (
-                <div className="scale-[2.5]">
-                   <ProteinVisualizer structure={foldedStructure} />
+                <div className="w-full h-full">
+                   <ProteinVisualizer3D structure={foldedStructure} />
                 </div>
               ) : (
                 <div className="flex flex-col items-center opacity-10 space-y-4">
@@ -543,47 +543,119 @@ const ProteinVisualizer3D = ({ structure }) => {
 
 // --- Logic Helpers ---
 
-const generateFoldedStructure = (sequence) => {
+export const generateFoldedStructure = (sequence) => {
+  const isH = (type) => ['leucine', 'isoleucine', 'valine', 'phenylalanine', 'methionine'].includes(type);
+  const isP = (type) => ['serine', 'threonine', 'cysteine', 'asparagine', 'glutamine', 'lysine', 'arginine', 'histidine', 'aspartic-acid', 'glutamic-acid'].includes(type);
+
+  // Beam Search for 3D Lattice HP Model
+  const beamWidth = 200;
+  
+  // Directions: x, -x, y, -y, z, -z
+  const dirs = [
+    [1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]
+  ];
+
+  let beam = [ { path: [[0,0,0]], energy: 0 } ]; 
+  
+  for (let i = 1; i < sequence.length; i++) {
+    const nextBeam = [];
+    const currentAA = sequence[i].type;
+    const currentIsH = isH(currentAA);
+    const currentIsP = isP(currentAA);
+    
+    for (const state of beam) {
+      const lastPos = state.path[state.path.length - 1];
+      
+      for (const d of dirs) {
+        const nx = lastPos[0] + d[0];
+        const ny = lastPos[1] + d[1];
+        const nz = lastPos[2] + d[2];
+        
+        // Check self-avoiding
+        let collision = false;
+        for (const p of state.path) {
+          if (p[0] === nx && p[1] === ny && p[2] === nz) {
+            collision = true;
+            break;
+          }
+        }
+        if (collision) continue;
+        
+        // Calculate energy for new position
+        let dE = 0;
+        
+        let hNeighbors = 0;
+        let pNeighbors = 0;
+        let emptyNeighbors = 5; // one neighbor is the previous residue
+        
+        // Count neighbors among already placed residues
+        for (let j = 0; j < state.path.length - 1; j++) { 
+          const p = state.path[j];
+          const dist = Math.abs(p[0]-nx) + Math.abs(p[1]-ny) + Math.abs(p[2]-nz);
+          if (dist === 1) {
+             emptyNeighbors--;
+             const otherAA = sequence[j].type;
+             if (isH(otherAA)) hNeighbors++;
+             if (isP(otherAA)) pNeighbors++;
+          }
+        }
+        
+        if (currentIsH) {
+           dE -= hNeighbors * 2.0; // H-H contacts minimize energy
+           dE += emptyNeighbors * 0.5; // H hates solvent
+        } else if (currentIsP) {
+           dE -= pNeighbors * 0.5; // P-P H-bonds
+           dE -= emptyNeighbors * 0.5; // P likes solvent
+        }
+        
+        nextBeam.push({
+          path: [...state.path, [nx, ny, nz]],
+          energy: state.energy + dE
+        });
+      }
+    }
+    
+    nextBeam.sort((a, b) => a.energy - b.energy);
+    beam = nextBeam.slice(0, beamWidth);
+    
+    if (beam.length === 0) {
+      break; 
+    }
+  }
+
+  const bestPath = beam[0] ? beam[0].path : [[0,0,0]];
+
   const points = [];
   const bonds = [];
   
-  // 3D Folding Logic
-  let curAngle = Math.random() * Math.PI * 2;
-  let curPhi = Math.random() * Math.PI;
-
-  sequence.forEach((aa, i) => {
-    const info = getUniversalItemInfo(aa.type);
-    const isHydrophobic = ['leucine', 'isoleucine', 'valine', 'phenylalanine', 'methionine', 'tryptophan', 'tyrosine', 'proline'].includes(aa.type);
-    const radius = isHydrophobic ? 4 + Math.random() * 2 : 7 + Math.random() * 4;
-    
-    curAngle += (Math.random() - 0.5) * 2.5;
-    curPhi += (Math.random() - 0.5) * 1.5;
-    
-    const x = Math.sin(curPhi) * Math.cos(curAngle) * radius + (i > 0 ? points[i-1].x : 0);
-    const y = Math.cos(curPhi) * radius + (i > 0 ? points[i-1].y : 0);
-    const z = Math.sin(curPhi) * Math.sin(curAngle) * radius + (i > 0 ? points[i-1].z : 0);
-
+  bestPath.forEach((pos, i) => {
+    const aa = sequence[i];
+    const info = getUniversalItemInfo(aa.type) || { color: '#ffffff', name: aa.type };
+    // scale lattice
+    const scale = 5;
     points.push({
-      x, y, z,
+      x: pos[0] * scale,
+      y: pos[1] * scale,
+      z: pos[2] * scale,
       color: info.color,
       label: info.name.slice(0,1).toUpperCase()
     });
-
     if (i > 0) {
       bonds.push({ from: i-1, to: i, isPeptide: true });
     }
   });
 
-  // Center the structure
-  const avgX = points.reduce((acc, p) => acc + p.x, 0) / points.length;
-  const avgY = points.reduce((acc, p) => acc + p.y, 0) / points.length;
-  const avgZ = points.reduce((acc, p) => acc + p.z, 0) / points.length;
-  
-  points.forEach(p => {
-    p.x -= avgX;
-    p.y -= avgY;
-    p.z -= avgZ;
-  });
+  if (points.length > 0) {
+    const avgX = points.reduce((acc, p) => acc + p.x, 0) / points.length;
+    const avgY = points.reduce((acc, p) => acc + p.y, 0) / points.length;
+    const avgZ = points.reduce((acc, p) => acc + p.z, 0) / points.length;
+    
+    points.forEach(p => {
+      p.x -= avgX;
+      p.y -= avgY;
+      p.z -= avgZ;
+    });
+  }
 
   return { points, bonds };
 };

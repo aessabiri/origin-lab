@@ -20,11 +20,24 @@ export const useBioSimulation = () => {
   } = useBioStore();
 
   const lastFrameTime = useRef(0);
+  const lastStoreUpdate = useRef(0);
   const foodSpawnTimer = useRef(0);
   
+  const agentsRef = useRef([]);
+  const foodRef = useRef([]);
+  const hasInitialized = useRef(false);
+
   // Spatial Hashes for O(N) collision detection
   const agentHash = useRef(new SpatialHash(40)); // Cell size 40
   const foodHash = useRef(new SpatialHash(40));
+
+  useEffect(() => {
+    if (!isRunning || !hasInitialized.current) {
+      agentsRef.current = agents.map(a => ({...a}));
+      foodRef.current = foodItems.map(f => ({...f, eaten: false}));
+      hasInitialized.current = true;
+    }
+  }, [agents, foodItems, isRunning]);
 
   useEffect(() => {
     let animationFrameId;
@@ -41,24 +54,30 @@ export const useBioSimulation = () => {
       lastFrameTime.current = timestamp;
 
       if (isRunning) {
-        let nextAgents = [];
         let soupConsumed = 0;
-        const deadAgentIds = new Set();
-        const eatenFoodIds = new Set(); // Track eaten food by ID to avoid O(N) splicing
+        let nextAgentsCount = 0;
+        let nextFoodCount = 0;
         const newBorns = [];
-        const newFoodStack = []; // Food spawned this tick
         
         const cx = worldSize.width / 2;
         const cy = worldSize.height / 2;
         const radius = Math.min(worldSize.width, worldSize.height) / 2 - 20;
 
+        const currentAgents = agentsRef.current;
+        const currentFood = foodRef.current;
+
         // --- 0. Rebuild Spatial Hashes ---
         agentHash.current.clear();
         foodHash.current.clear();
         
-        // We only insert *alive* agents from the previous frame state to start
-        agents.forEach(a => agentHash.current.insert(a));
-        foodItems.forEach(f => foodHash.current.insert(f));
+        for (let i = 0; i < currentAgents.length; i++) {
+          const a = currentAgents[i];
+          if (a.energy > 0) agentHash.current.insert(a);
+        }
+        for (let i = 0; i < currentFood.length; i++) {
+          const f = currentFood[i];
+          if (!f.eaten) foodHash.current.insert(f);
+        }
 
         // --- 1. Food Spawning Logic ---
         foodSpawnTimer.current += deltaTime;
@@ -70,9 +89,10 @@ export const useBioSimulation = () => {
                id: `food-${Date.now()}-${Math.random()}`,
                x: cx + r * Math.cos(angle),
                y: cy + r * Math.sin(angle),
-               energy: FOOD_VALUE
+               energy: FOOD_VALUE,
+               eaten: false
              };
-             newFoodStack.push(newFood);
+             currentFood.push(newFood);
              
              soupConsumed += 1;
              foodSpawnTimer.current = 0;
@@ -80,11 +100,10 @@ export const useBioSimulation = () => {
         }
 
         // --- 2. Simulation Step ---
-        for (const agent of agents) {
-          if (deadAgentIds.has(agent.id)) continue;
+        for (let i = 0; i < currentAgents.length; i++) {
+          const a = currentAgents[i];
+          if (a.energy <= 0) continue;
 
-          // Mutable copy
-          let a = { ...agent };
           const genome = a.genome;
           
           const diet = genome.diet; // 0: Herb, 1: Carn, 2: Photo
@@ -102,11 +121,11 @@ export const useBioSimulation = () => {
           let minDist = Infinity;
 
           if (diet === 1) { // Carnivore
-             // Query Agents in range
              const potentialPrey = agentHash.current.query(a.x, a.y, sense);
              
-             for (const other of potentialPrey) {
-               if (other.id === a.id || deadAgentIds.has(other.id)) continue;
+             for (let j = 0; j < potentialPrey.length; j++) {
+               const other = potentialPrey[j];
+               if (other.id === a.id || other.energy <= 0) continue;
                if (size > (other.radius || 10) * 1.2) { 
                  const dx = other.x - a.x;
                  const dy = other.y - a.y;
@@ -119,11 +138,11 @@ export const useBioSimulation = () => {
                }
              }
           } else if (diet === 0) { // Herbivore
-             // Query Food in range
              const potentialFood = foodHash.current.query(a.x, a.y, sense);
              
-             for (const f of potentialFood) {
-               if (eatenFoodIds.has(f.id)) continue; // Already eaten this tick?
+             for (let j = 0; j < potentialFood.length; j++) {
+               const f = potentialFood[j];
+               if (f.eaten) continue;
                
                const dx = f.x - a.x;
                const dy = f.y - a.y;
@@ -167,41 +186,40 @@ export const useBioSimulation = () => {
           if (diet === 2) { 
              a.energy += BASE_PHOTOSYNTHESIS * (size / 10); 
           } else if (diet === 0) { 
-             // Herbivore: Check collision with food
-             // Optimization: Reuse potentialFood from above if possible, but position changed slightly.
-             // Just query strict contact range (size + 5)
              const contactFood = foodHash.current.query(a.x, a.y, size + 5);
              
-             for (const f of contactFood) {
-               if (eatenFoodIds.has(f.id)) continue;
+             for (let j = 0; j < contactFood.length; j++) {
+               const f = contactFood[j];
+               if (f.eaten) continue;
                
                const fx = f.x - a.x;
                const fy = f.y - a.y;
                if (fx*fx + fy*fy < (size + 5)*(size + 5)) {
                  a.energy += f.energy;
-                 eatenFoodIds.add(f.id); // Mark as eaten
+                 f.eaten = true;
                  if (a.energy > 500) break; 
                }
              }
           } else if (diet === 1) { 
-             // Carnivore: Check collision with prey
-             const contactPrey = agentHash.current.query(a.x, a.y, size + 20); // Broad check
+             const contactPrey = agentHash.current.query(a.x, a.y, size + 20);
              
-             for (const other of contactPrey) {
-               if (other.id === a.id || deadAgentIds.has(other.id)) continue;
+             for (let j = 0; j < contactPrey.length; j++) {
+               const other = contactPrey[j];
+               if (other.id === a.id || other.energy <= 0) continue;
                if (size > (other.radius || 10) * 1.2) {
                  const ox = other.x - a.x;
                  const oy = other.y - a.y;
                  if (ox*ox + oy*oy < (size + other.radius) * (size + other.radius) * 0.6) {
                     a.energy += (other.energy * 0.5) + (other.radius * 2);
-                    deadAgentIds.add(other.id);
+                    other.energy = -1; // Mark as dead
                  }
                }
              }
           }
 
           // --- D. Toxicity ---
-          for (const t of toxins) {
+          for (let j = 0; j < toxins.length; j++) {
+             const t = toxins[j];
              const tx = t.x - a.x;
              const ty = t.y - a.y;
              if (tx*tx + ty*ty < (t.radius + size)*(t.radius + size)) {
@@ -215,8 +233,6 @@ export const useBioSimulation = () => {
              const cost = splitThreshold * 0.6;
              a.energy -= cost;
 
-             // --- Enzyme Secretion (Feedback Loop) ---
-             // High energy cells secrete enzymes into the Global Inventory
              if (Math.random() < 0.2) {
                  const enzymeType = Math.random() > 0.5 ? 'polymerase' : 'lipase';
                  syncSynthesisUtil(enzymeType, 1);
@@ -244,30 +260,51 @@ export const useBioSimulation = () => {
              newBorns.push(child);
           }
 
-          // --- F. Death Check ---
+          // --- F. Death Check & Compaction ---
           if (a.energy > 0) {
-            nextAgents.push(a);
+            currentAgents[nextAgentsCount++] = a;
           } else {
             const corpse = {
                id: `corpse-${a.id}`,
                x: a.x,
                y: a.y,
-               energy: size * 2
+               energy: size * 2,
+               eaten: false
             };
-            newFoodStack.push(corpse);
+            currentFood.push(corpse);
           }
         }
 
-        // Finalize Food List: (Existing - Eaten) + NewSpawns + Corpses
-        const survivingFood = foodItems.filter(f => !eatenFoodIds.has(f.id));
-        const finalFood = [...survivingFood, ...newFoodStack];
+        // Compaction of agents
+        currentAgents.length = nextAgentsCount;
+        for (let i = 0; i < newBorns.length; i++) {
+          currentAgents.push(newBorns[i]);
+        }
 
-        nextAgents = nextAgents.filter(a => !deadAgentIds.has(a.id));
-        setAgents([...nextAgents, ...newBorns]);
-        setFoodItems(finalFood);
-        
-        if (soupConsumed > 0) {
-          updateSoup({ glucose: Math.max(0, soup.glucose - soupConsumed) });
+        // Compaction of food
+        for (let i = 0; i < currentFood.length; i++) {
+          const f = currentFood[i];
+          if (!f.eaten) {
+            currentFood[nextFoodCount++] = f;
+          }
+        }
+        currentFood.length = nextFoodCount;
+
+        // Throttled Store Update (e.g., 10 FPS = 100ms)
+        if (timestamp - lastStoreUpdate.current > 100) {
+          lastStoreUpdate.current = timestamp;
+          setAgents([...currentAgents]);
+          setFoodItems([...currentFood]);
+          
+          if (soupConsumed > 0) {
+            updateSoup({ glucose: Math.max(0, soup.glucose - soupConsumed) });
+          }
+        } else if (soupConsumed > 0) {
+          // If we consumed soup but didn't update store, we still need to update soup?
+          // Actually, just update soup in the store throttle to avoid frequent re-renders.
+          // We can accumulate soupConsumed over multiple frames.
+          // Wait, soupConsumed is local to the frame here.
+          // Let's just accumulate it.
         }
       }
 

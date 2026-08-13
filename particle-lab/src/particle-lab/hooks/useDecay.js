@@ -39,6 +39,7 @@ const DECAY_CONFIG = {
 export const useDecay = (triggerRadiationBurst) => {
   const particles = useParticleStore(state => state.particles);
   const setParticles = useParticleStore(state => state.setParticles);
+  const setBonds = useParticleStore(state => state.setBonds);
   const showMessage = useParticleStore(state => state.showMessage);
   const decayTimeouts = useRef(new Map());
 
@@ -105,6 +106,8 @@ export const useDecay = (triggerRadiationBurst) => {
           });
 
           setParticles([...others, ...newParticles]);
+          const currentBonds = useParticleStore.getState().bonds;
+          setBonds(currentBonds.filter(b => b.particleA_id !== p.id && b.particleB_id !== p.id));
           triggerRadiationBurst(target.x, target.y);
           showMessage(messageToUse);
           decayTimeouts.current.delete(p.id);
@@ -115,9 +118,16 @@ export const useDecay = (triggerRadiationBurst) => {
     });
 
     // 3. Antimatter Annihilation Check (Electron + Positron)
-    // Basic O(N^2) check but usually small number of particles on canvas
+    const toRemove = new Set();
+    const newPhotons = [];
+    const bursts = [];
+    let hasAnnihilation = false;
+
     for (let i = 0; i < particles.length; i++) {
+      if (toRemove.has(particles[i].id)) continue;
       for (let j = i + 1; j < particles.length; j++) {
+        if (toRemove.has(particles[j].id)) continue;
+        
         const p1 = particles[i];
         const p2 = particles[j];
         
@@ -129,24 +139,36 @@ export const useDecay = (triggerRadiationBurst) => {
           const distSq = dx*dx + dy*dy;
           
           if (distSq < 1600) { // Within 40px
-            const others = particles.filter(p => p.id !== p1.id && p.id !== p2.id);
+            toRemove.add(p1.id);
+            toRemove.add(p2.id);
+            hasAnnihilation = true;
+            
             const midX = (p1.x + p2.x) / 2;
             const midY = (p1.y + p2.y) / 2;
             
-            const photons = [
-              { id: `annihil-1-${Date.now()}`, type: PARTICLE_TYPES.PHOTON, x: midX, y: midY, scale: 1 },
-              { id: `annihil-2-${Date.now()}`, type: PARTICLE_TYPES.PHOTON, x: midX, y: midY, scale: 1 }
-            ];
-            
-            setParticles([...others, ...photons]);
-            triggerRadiationBurst(midX, midY);
-            showMessage('Annihilation! Matter and Antimatter destroyed each other.');
-            return; // Exit effect to prevent multiple simultaneous updates
+            newPhotons.push(
+              { id: `annihil-1-${Date.now()}-${i}-${j}`, type: PARTICLE_TYPES.PHOTON, x: midX, y: midY, scale: 1 },
+              { id: `annihil-2-${Date.now()}-${i}-${j}`, type: PARTICLE_TYPES.PHOTON, x: midX, y: midY, scale: 1 }
+            );
+            bursts.push({ x: midX, y: midY });
+            break;
           }
         }
       }
     }
 
+    if (hasAnnihilation) {
+      const currentParticles = useParticleStore.getState().particles;
+      const currentBonds = useParticleStore.getState().bonds;
+      
+      const others = currentParticles.filter(p => !toRemove.has(p.id));
+      setParticles([...others, ...newPhotons]);
+      setBonds(currentBonds.filter(b => !toRemove.has(b.particleA_id) && !toRemove.has(b.particleB_id)));
+      
+      bursts.forEach(b => triggerRadiationBurst(b.x, b.y));
+      showMessage('Annihilation! Matter and Antimatter destroyed each other.');
+    }
+
     return () => {}; // Cleanup handled by checking currentParticleIds on next run
-  }, [particles, setParticles, showMessage, triggerRadiationBurst]);
+  }, [particles, setParticles, setBonds, showMessage, triggerRadiationBurst]);
 };

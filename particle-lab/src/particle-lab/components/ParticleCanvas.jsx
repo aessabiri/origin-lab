@@ -2,17 +2,14 @@ import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react'
 import { useSpring, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import ParticleIcon from './ParticleIcon.jsx';
-import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, CODEX_PARTICLES_BY_CATEGORY, PARTICLE_INFO, elementaryParticleGroups } from '../../constants/particles.js';
+import { PARTICLE_TYPES, PARTICLE_COLORS, PARTICLE_NAMES, PARTICLE_INFO } from '../../constants/particles.js';
 import { COMPOUND_PARTICLE_TYPES } from '../../recipes.js';
-import PeriodicTable from './PeriodicTable.jsx';
 import ActionToolbar from './ActionToolbar.jsx';
 import ParticleCanvasOverlay from './ParticleCanvasOverlay.jsx';
 import { useParticleActions } from '../hooks/useParticleActions.js';
 import { useSelection } from '../hooks/useSelection.js';
 import { MOLECULE_RECIPES } from '../../constants/moleculeRecipes.js';
-import { RECIPES, PARTICLE_CATEGORIES } from '../../recipes.js';
 import { useDecay } from '../hooks/useDecay.js';
-import { useStore } from '../../store.js';
 import { useParticleStore } from '../store.js';
 import { findAssemblableMolecules } from '../utils/moleculeDetection.js';
 import { useDiscoveredMatter } from '../../hooks/useDiscoveredMatter.js';
@@ -21,8 +18,13 @@ const MOLECULE_PARTICLE_TYPES = new Set(
   MOLECULE_RECIPES.map(r => r.type)
 );
 
+// Highly Optimized Draggable Atom Component
 const DraggableParticle = React.memo(({
-  particle,
+  id,
+  type,
+  initialX,
+  initialY,
+  initialScale,
   springRegistry,
   uiScale,
   isSelected,
@@ -32,52 +34,51 @@ const DraggableParticle = React.memo(({
   onShowInfo,
   canvasRef,
 }) => {
+  const isCompound = COMPOUND_PARTICLE_TYPES.has(type) || MOLECULE_PARTICLE_TYPES.has(type);
+  const baseSize = PARTICLE_INFO[type]?.size || 64;
+  const size = baseSize * uiScale;
+
   const [springs, api] = useSpring(() => ({
-    x: particle.x,
-    y: particle.y,
-    scale: particle.scale ?? 1,
-    config: { tension: 300, friction: 30 }
-  }), [particle.x, particle.y, particle.scale]);
+    x: initialX,
+    y: initialY,
+    scale: initialScale ?? 1,
+    config: { tension: 350, friction: 28 }
+  }), [initialX, initialY, initialScale]);
 
   useEffect(() => {
     if (springRegistry.current) {
-      springRegistry.current.set(particle.id, springs);
+      springRegistry.current.set(id, springs);
     }
     return () => {
       if (springRegistry.current) {
-        springRegistry.current.delete(particle.id);
+        springRegistry.current.delete(id);
       }
     };
-  }, [particle.id, springs, springRegistry]);
+  }, [id, springs, springRegistry]);
 
   const bind = useDrag(({ active, offset: [ox, oy], tap }) => {
     if (tap) return;
+    if (!canvasRef.current) return;
 
     const canvasBounds = canvasRef.current.getBoundingClientRect();
-    const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
-    const particleSize = baseSize * uiScale;
-
-    const clampedX = Math.max(0, Math.min(ox, canvasBounds.width - particleSize));
-    const clampedY = Math.max(0, Math.min(oy, canvasBounds.height - particleSize));
+    const clampedX = Math.max(0, Math.min(ox, canvasBounds.width - size));
+    const clampedY = Math.max(0, Math.min(oy, canvasBounds.height - size));
 
     api.start({
       x: clampedX,
       y: clampedY,
-      scale: active ? 1.1 : 1,
-      immediate: active,
+      scale: active ? 1.12 : 1,
+      immediate: active, // 60 FPS zero-lag tracking while dragging
     });
 
     if (!active) {
-      onDragEnd(particle.id, clampedX, clampedY);
+      onDragEnd(id, clampedX, clampedY);
     }
   }, {
     from: () => [springs.x.get(), springs.y.get()],
     filterTaps: true,
     pointer: { touch: true },
   });
-
-  const isCompound = COMPOUND_PARTICLE_TYPES.has(particle.type) || MOLECULE_PARTICLE_TYPES.has(particle.type);
-  const baseSize = PARTICLE_INFO[particle.type]?.size || 64;
 
   return (
     <animated.div
@@ -86,78 +87,88 @@ const DraggableParticle = React.memo(({
         x: springs.x,
         y: springs.y,
         scale: springs.scale,
-        zIndex: isSelected ? 10 : 1,
+        zIndex: isSelected ? 30 : 10,
         touchAction: 'none',
-        width: `${baseSize * uiScale}px`,
-        height: `${baseSize * uiScale}px`,
+        width: `${size}px`,
+        height: `${size}px`,
       }}
-      className={`absolute cursor-grab transition-colors duration-300 flex items-center justify-center font-bold text-white ${isSelected ? 'ring-2 ring-yellow-300 rounded-lg' : ''} ${isAssemblable ? 'molecule-glow' : ''}`}
-      onClick={(e) => onParticleClick(e, particle.id)}
-      onDoubleClick={() => onShowInfo(particle.type)}
-      onMouseEnter={() => api.start({ scale: 1.2 })}
-      onMouseLeave={() => api.start({ scale: 1 })}
+      className={`absolute cursor-grab active:cursor-grabbing flex items-center justify-center font-bold text-white select-none transition-shadow duration-200 group ${
+        isSelected ? 'selection-halo rounded-2xl ring-2 ring-cyan-400' : ''
+      } ${isAssemblable ? 'molecule-glow rounded-2xl' : ''}`}
+      onClick={(e) => onParticleClick(e, id)}
+      onDoubleClick={() => onShowInfo(type)}
+      onMouseEnter={() => !isSelected && api.start({ scale: 1.1 })}
+      onMouseLeave={() => !isSelected && api.start({ scale: 1 })}
     >
-      <div className="flex flex-col items-center justify-center w-full h-full">
-        <div className="w-full h-full">
-          <ParticleIcon type={particle.type} color={PARTICLE_COLORS[particle.type]} isCompound={isCompound} />
+      <div className="relative flex flex-col items-center justify-center w-full h-full p-1">
+        
+        {/* Subtle glowing quantum energy orbit */}
+        <div className={`absolute inset-0 rounded-full border border-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${isCompound ? 'scale-110' : 'scale-125'}`}></div>
+        
+        {/* Core Icon */}
+        <div className="w-full h-full drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+          <ParticleIcon 
+            type={type} 
+            color={PARTICLE_COLORS[type]} 
+            isCompound={isCompound} 
+          />
         </div>
-        <span className="text-white text-center p-1 absolute -bottom-6 text-sm">
-          {PARTICLE_NAMES[particle.type]}
-        </span>
+
+        {/* Clean Scientific Label Pill */}
+        <div className="absolute -bottom-5 px-2 py-0.5 rounded-md bg-[#0a0f18]/90 border border-slate-700/60 shadow-lg text-[10px] font-mono tracking-tight text-slate-200 group-hover:text-cyan-300 group-hover:border-cyan-500/40 transition-colors pointer-events-none whitespace-nowrap">
+          {PARTICLE_NAMES[type]}
+        </div>
       </div>
     </animated.div>
+  );
+}, (prev, next) => {
+  return (
+    prev.id === next.id &&
+    prev.type === next.type &&
+    prev.initialX === next.initialX &&
+    prev.initialY === next.initialY &&
+    prev.initialScale === next.initialScale &&
+    prev.uiScale === next.uiScale &&
+    prev.isSelected === next.isSelected &&
+    prev.isAssemblable === next.isAssemblable &&
+    prev.onDragEnd === next.onDragEnd &&
+    prev.onParticleClick === next.onParticleClick &&
+    prev.onShowInfo === next.onShowInfo
   );
 });
 
 const ParticleCanvas = ({ onDragStart }) => {
-  const { isCodexVisible, setIsCodexVisible } = useStore();
   const {
-    particles, setParticles,
-    bonds, setBonds,
-    secondaryParticles,
-    uiScale, setUiScale,
-    isPeriodicTablePinned, setIsPeriodicTablePinned,
-    isSandboxMode,
-    isPaletteVisible, setIsPaletteVisible,
-    isActionMenuVisible, setIsActionMenuVisible,
-    isSettingsVisible, setIsSettingsVisible,
-    isResetConfirmVisible, setIsResetConfirmVisible,
-    isPeriodicTableVisible, setIsPeriodicTableVisible,
-    message, showMessage,
-    openExclusive,
-    handleReset, executeReset,
-    handleToggleSandbox,
+    particles: rawParticles, setParticles,
+    bonds: rawBonds, setBonds,
+    uiScale,
+    isPeriodicTablePinned,
+    isPeriodicTableVisible,
+    showMessage,
     handleEmptyCanvas,
     setInfoPanelType
   } = useParticleStore();
 
-  const { discoveredAtoms, discoveredMolecules } = useDiscoveredMatter();
+  const particles = Array.isArray(rawParticles) ? rawParticles : [];
+  const bonds = Array.isArray(rawBonds) ? rawBonds : [];
+
+  const { discoveredAtoms } = useDiscoveredMatter();
 
   const [visualEffects, setVisualEffects] = useState([]);
   const canvasRef = useRef(null);
   const bondsCanvasRef = useRef(null);
   const springRegistry = useRef(new Map());
 
-  const allDiscoveredParticles = useMemo(() => {
-    if (isSandboxMode) {
-      return Object.keys(PARTICLE_INFO).map(type => ({ type }));
-    } else {
-      const elementary = Object.values(elementaryParticleGroups).flat().map(p => ({ type: p.type }));
-      return [...elementary, ...secondaryParticles, ...discoveredAtoms, ...discoveredMolecules];
-    }
-  }, [isSandboxMode, secondaryParticles, discoveredAtoms, discoveredMolecules]);
+  const latestParticlesRef = useRef(particles);
+  const latestBondsRef = useRef(bonds);
+  
+  useEffect(() => {
+    latestParticlesRef.current = particles;
+  }, [particles]);
 
-  const discoveredParticlesForPeriodicTable = useMemo(() => {
-    if (isSandboxMode) {
-      return Object.values(PARTICLE_TYPES)
-        .filter(type => RECIPES.some(r => r.type === type && (r.category === PARTICLE_CATEGORIES.ATOM || r.category === PARTICLE_CATEGORIES.SECONDARY)))
-        .map(type => ({ type }));
-    } else {
-      return [...secondaryParticles, ...discoveredAtoms];
-    }
-  }, [isSandboxMode, secondaryParticles, discoveredAtoms]);
-
-  const allPossibleParticles = useMemo(() => CODEX_PARTICLES_BY_CATEGORY, []);
+  useEffect(() => {
+    latestBondsRef.current = bonds;
+  }, [bonds]);
 
   const {
     selectedParticleIds,
@@ -168,12 +179,13 @@ const ParticleCanvas = ({ onDragStart }) => {
     selectionInfo,
   } = useSelection({ canvasRef });
 
-  // --- Bond Rendering Loop ---
+  // --- High Performance Bond Rendering Loop (RAF with zero React re-render tie-in) ---
   useEffect(() => {
     const canvas = bondsCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let animationFrameId;
+    let pulsePhase = 0;
 
     const render = () => {
       if (canvas.width !== canvas.offsetWidth || canvas.height !== canvas.offsetHeight) {
@@ -183,14 +195,20 @@ const ParticleCanvas = ({ onDragStart }) => {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.lineCap = 'round';
+      pulsePhase = (pulsePhase + 0.03) % (Math.PI * 2);
 
-      bonds.forEach(bond => {
-        const springA = springRegistry.current.get(bond.particleA_id);
-        const springB = springRegistry.current.get(bond.particleB_id);
-        const pA = particles.find(p => p.id === bond.particleA_id);
-        const pB = particles.find(p => p.id === bond.particleB_id);
+      const activeBonds = latestBondsRef.current;
+      const activeParticles = latestParticlesRef.current;
+      const springsMap = springRegistry.current;
+
+      for (let i = 0; i < activeBonds.length; i++) {
+        const bond = activeBonds[i];
+        const springA = springsMap.get(bond.particleA_id);
+        const springB = springsMap.get(bond.particleB_id);
+        const pA = activeParticles.find(p => p.id === bond.particleA_id);
+        const pB = activeParticles.find(p => p.id === bond.particleB_id);
         
-        if (!springA || !springB || !pA || !pB) return;
+        if (!springA || !springB || !pA || !pB) continue;
 
         const xA = springA.x.get();
         const yA = springA.y.get();
@@ -206,86 +224,125 @@ const ParticleCanvas = ({ onDragStart }) => {
         const cyB = yB + sizeB / 2;
 
         if (bond.type === 'single') {
-           ctx.beginPath();
-           ctx.moveTo(cxA, cyA);
-           ctx.lineTo(cxB, cyB);
-           ctx.lineWidth = 3;
-           ctx.strokeStyle = 'white';
-           ctx.stroke();
-        } else if (bond.type === 'double') {
-           // Outer
-           ctx.beginPath();
-           ctx.moveTo(cxA, cyA);
-           ctx.lineTo(cxB, cyB);
-           ctx.lineWidth = 10;
-           ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
-           ctx.stroke();
-           // Inner
-           ctx.beginPath();
-           ctx.moveTo(cxA, cyA);
-           ctx.lineTo(cxB, cyB);
-           ctx.lineWidth = 4;
-           ctx.strokeStyle = 'white';
-           ctx.stroke();
-        } else if (bond.type === 'triple') {
-           // Outer
-           ctx.beginPath();
-           ctx.moveTo(cxA, cyA);
-           ctx.lineTo(cxB, cyB);
-           ctx.lineWidth = 14;
-           ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
-           ctx.stroke();
-           // Inner
+           // Outer Glow
            ctx.beginPath();
            ctx.moveTo(cxA, cyA);
            ctx.lineTo(cxB, cyB);
            ctx.lineWidth = 6;
-           ctx.strokeStyle = 'white';
+           ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+           ctx.stroke();
+
+           // Core Line
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 2.5;
+           ctx.strokeStyle = '#e0f2fe';
+           ctx.stroke();
+        } else if (bond.type === 'double') {
+           // Double bond lines
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 10;
+           ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+           ctx.stroke();
+
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 4;
+           ctx.strokeStyle = '#38bdf8';
+           ctx.stroke();
+
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 1.5;
+           ctx.strokeStyle = '#ffffff';
+           ctx.stroke();
+        } else if (bond.type === 'triple') {
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 14;
+           ctx.strokeStyle = 'rgba(168, 85, 247, 0.35)';
+           ctx.stroke();
+
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 6;
+           ctx.strokeStyle = '#c084fc';
+           ctx.stroke();
+
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 2;
+           ctx.strokeStyle = '#ffffff';
            ctx.stroke();
         } else if (bond.type === 'peptide') {
            ctx.beginPath();
            ctx.moveTo(cxA, cyA);
            ctx.lineTo(cxB, cyB);
-           ctx.lineWidth = 6;
-           ctx.strokeStyle = '#ec4899';
+           ctx.lineWidth = 8;
+           ctx.strokeStyle = 'rgba(236, 72, 153, 0.35)';
+           ctx.stroke();
+
+           ctx.beginPath();
+           ctx.moveTo(cxA, cyA);
+           ctx.lineTo(cxB, cyB);
+           ctx.lineWidth = 3.5;
+           ctx.strokeStyle = '#f472b6';
            ctx.stroke();
         }
-      });
+      }
 
       animationFrameId = requestAnimationFrame(render);
     };
     render();
     return () => cancelAnimationFrame(animationFrameId);
-  }, [bonds, particles, uiScale]); // Re-run if bonds or particles list changes
+  }, [uiScale]);
 
+  // Stable drag end callback that doesn't recreate when particles change
   const handleParticleDragEnd = useCallback((id, x, y) => {
-    const updatedParticles = particles.map(p => p.id === id ? { ...p, x, y, scale: 1 } : p);
-    setParticles(updatedParticles);
-  }, [particles, setParticles]);
+    setParticles(prev => prev.map(p => p.id === id ? { ...p, x, y, scale: 1 } : p));
+  }, [setParticles]);
 
+  // Smooth drop handler with functional state update
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     try {
-      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      const dataStr = e.dataTransfer.getData('text/plain');
+      if (!dataStr) return;
+      const data = JSON.parse(dataStr);
       if (!data.type) return;
+
+      if (!canvasRef.current) return;
       const canvasBounds = canvasRef.current.getBoundingClientRect();
-      const newX = e.clientX - canvasBounds.left - 25;
-      const newY = e.clientY - canvasBounds.top - 25;
+      const newX = Math.max(0, Math.min(e.clientX - canvasBounds.left - 32, canvasBounds.width - 64));
+      const newY = Math.max(0, Math.min(e.clientY - canvasBounds.top - 32, canvasBounds.height - 64));
+      
       const newParticle = {
-        id: `${data.type}-${Date.now()}`,
+        id: `${data.type}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         type: data.type,
         x: newX,
         y: newY,
         scale: 1,
       };
-      setParticles([...particles, newParticle]);
-      showMessage(`Added ${PARTICLE_NAMES[data.type]} to the lab!`);
-    } catch (err) {
-      console.error('drop parse failed', err);
-    }
-  }, [particles, setParticles, showMessage]);
 
-  const handleDragOver = (e) => { e.preventDefault(); };
+      setParticles(prev => [...prev, newParticle]);
+      showMessage(`Added ${PARTICLE_NAMES[data.type]} to the reaction chamber`);
+    } catch (err) {
+      console.error('Drop parse error', err);
+    }
+  }, [setParticles, showMessage]);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }, []);
 
   const {
     handleAssemble,
@@ -298,7 +355,6 @@ const ParticleCanvas = ({ onDragStart }) => {
 
   const handleAddBond = useCallback((bondType) => {
     if (selectedParticleIds.size !== 2) return;
-
     const [particleA_id, particleB_id] = Array.from(selectedParticleIds);
 
     const newBond = {
@@ -308,14 +364,13 @@ const ParticleCanvas = ({ onDragStart }) => {
       particleB_id,
     };
 
-    setBonds([...bonds, newBond]);
+    setBonds(prev => [...prev, newBond]);
     setSelectedParticleIds(new Set());
-    showMessage(`Created a ${bondType} bond!`);
-  }, [selectedParticleIds, bonds, setBonds, showMessage, setSelectedParticleIds]);
+    showMessage(`Formed ${bondType} covalent bond`);
+  }, [selectedParticleIds, setBonds, showMessage, setSelectedParticleIds]);
 
   const handleAddPeptideBond = useCallback(() => {
     if (selectedParticleIds.size !== 2) return;
-
     const [particleA_id, particleB_id] = Array.from(selectedParticleIds);
 
     const newBond = {
@@ -325,43 +380,27 @@ const ParticleCanvas = ({ onDragStart }) => {
       particleB_id,
     };
 
-    setBonds([...bonds, newBond]);
+    setBonds(prev => [...prev, newBond]);
     setSelectedParticleIds(new Set());
-    showMessage('Peptide bond formed!');
-  }, [selectedParticleIds, bonds, setBonds, showMessage, setSelectedParticleIds]);
+    showMessage('Formed peptide bond');
+  }, [selectedParticleIds, setBonds, showMessage, setSelectedParticleIds]);
 
   const handleBreakBonds = useCallback(() => {
     if (selectedParticleIds.size === 0) return;
-
-    setBonds(bonds.filter(bond =>
+    setBonds(prev => prev.filter(bond =>
       !selectedParticleIds.has(bond.particleA_id) && !selectedParticleIds.has(bond.particleB_id)
     ));
-
-    showMessage('Bonds broken.');
-  }, [selectedParticleIds, bonds, setBonds, showMessage]);
+    showMessage('Severed covalent bonds');
+  }, [selectedParticleIds, setBonds, showMessage]);
 
   const handleRemoveSelected = useCallback(() => {
     if (selectedParticleIds.size === 0) return;
     
-    // Only count particles that actually exist in the array
-    const particlesToRemove = particles.filter(p => selectedParticleIds.has(p.id));
-    const count = particlesToRemove.length;
-    
-    if (count === 0) {
-        // Just clear the stale selection
-        setSelectedParticleIds(new Set());
-        return;
-    }
-
-    setParticles(particles.filter(p => !selectedParticleIds.has(p.id)));
+    setParticles(prev => prev.filter(p => !selectedParticleIds.has(p.id)));
+    setBonds(prev => prev.filter(b => !selectedParticleIds.has(b.particleA_id) && !selectedParticleIds.has(b.particleB_id)));
     setSelectedParticleIds(new Set());
-    showMessage(`${count} particle(s) removed.`);
-  }, [selectedParticleIds, particles, setParticles, showMessage, setSelectedParticleIds]);
-  
-  const handleRemoveSelectedWithBonds = useCallback(() => {
-    setBonds(bonds.filter(bond => !selectedParticleIds.has(bond.particleA_id) && !selectedParticleIds.has(bond.particleB_id)));
-    handleRemoveSelected();
-  }, [handleRemoveSelected, selectedParticleIds, bonds, setBonds]);
+    showMessage(`Purged selection from chamber`);
+  }, [selectedParticleIds, setParticles, setBonds, showMessage, setSelectedParticleIds]);
 
   const canBreakBonds = useMemo(() => {
     if (selectedParticleIds.size === 0) return false;
@@ -381,13 +420,7 @@ const ParticleCanvas = ({ onDragStart }) => {
       PARTICLE_TYPES.LEUCINE,
       PARTICLE_TYPES.SERINE,
     ]);
-    const areBothAminoAcids = selected.every(p => aminoAcidTypes.has(p.type));
-    if (areBothAminoAcids) return true;
-
-    const hasCarboxyl = selected.some(p => p.type === PARTICLE_TYPES.FORMIC_ACID);
-    const hasAmino = selected.some(p => p.type === PARTICLE_TYPES.AMMONIA);
-
-    return areBothAminoAcids;
+    return selected.length === 2 && selected.every(p => aminoAcidTypes.has(p.type));
   }, [particles, selectedParticleIds]);
   
   const assemblableMoleculeIds = useMemo(() => {
@@ -397,43 +430,18 @@ const ParticleCanvas = ({ onDragStart }) => {
   const handleShowInfo = useCallback((type) => setInfoPanelType(type), [setInfoPanelType]);
 
   const triggerRadiationBurst = useCallback((x, y) => {
-    const newEffects = Array.from({ length: 7 }).map((_, i) => ({
+    const newEffects = Array.from({ length: 6 }).map((_, i) => ({
       id: `fx-${i}-${Date.now()}`,
-      x: x + 48,
-      y: y + 48,
+      x: x + 32,
+      y: y + 32,
     }));
     setVisualEffects(prev => [...prev, ...newEffects]);
-    newEffects.forEach(fx => {
-      setTimeout(() => {
-        setVisualEffects(prev => prev.filter(effect => effect.id !== fx.id));
-      }, 700);
-    });
+    setTimeout(() => {
+      setVisualEffects(prev => prev.filter(fx => !newEffects.some(ne => ne.id === fx.id)));
+    }, 700);
   }, []);
 
   useDecay(triggerRadiationBurst);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (!canvasRef.current) return;
-      const canvasBounds = canvasRef.current.getBoundingClientRect();
-
-      setParticles(particles.map(p => {
-        const baseSize = PARTICLE_INFO[p.type]?.size || 64;
-        const particleSize = baseSize * uiScale;
-
-        const clampedX = Math.max(0, Math.min(p.x, canvasBounds.width - particleSize));
-        const clampedY = Math.max(0, Math.min(p.y, canvasBounds.height - particleSize));
-
-        if (clampedX !== p.x || clampedY !== p.y) {
-          return { ...p, x: clampedX, y: clampedY };
-        }
-        return p;
-      }));
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [uiScale, particles, setParticles]);
 
   return (
     <div
@@ -441,26 +449,13 @@ const ParticleCanvas = ({ onDragStart }) => {
       ref={canvasRef}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
-      className="relative flex-1 bg-gray-800 border-4 border-dashed border-gray-700 rounded-2xl shadow-xl overflow-hidden touch-none"
+      className="relative flex-1 min-w-0 min-h-0 w-full h-full lab-grid-bg border border-cyan-500/25 rounded-3xl shadow-[0_15px_50px_rgba(0,0,0,0.8)] overflow-hidden touch-none select-none transition-all duration-300"
     >
-      <button
-        onClick={() => setIsPaletteVisible(!isPaletteVisible)}
-        className="absolute top-1/2 -translate-y-1/2 right-0 z-20 bg-gray-700/50 hover:bg-gray-600/70 p-3 rounded-l-lg transition-all"
-        aria-label={isPaletteVisible ? 'Hide palette' : 'Show palette'}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          {isPaletteVisible ? (
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          )}
-        </svg>
-      </button>
-
+      {/* Radiation Decay FX */}
       {visualEffects.map(fx => (
         <div
           key={fx.id}
-          className="radiation-particle"
+          className="radiation-particle pointer-events-none"
           style={{
             left: fx.x,
             top: fx.y,
@@ -470,14 +465,16 @@ const ParticleCanvas = ({ onDragStart }) => {
         />
       ))}
 
+      {/* High-Performance Canvas for Bonds */}
       <canvas 
         ref={bondsCanvasRef} 
         className="absolute top-0 left-0 w-full h-full pointer-events-none z-0"
       />
 
+      {/* Selection Box */}
       {selectionBox.visible && (
         <div
-          className="absolute bg-blue-500/20 border-2 border-blue-400 pointer-events-none"
+          className="absolute bg-cyan-500/15 border-2 border-cyan-400/80 rounded-lg pointer-events-none shadow-[0_0_15px_rgba(6,182,212,0.3)]"
           style={{
             left: selectionBox.x,
             top: selectionBox.y,
@@ -487,10 +484,15 @@ const ParticleCanvas = ({ onDragStart }) => {
         />
       )}
 
+      {/* Active Atoms & Particles */}
       {particles.map(particle => (
         <DraggableParticle
           key={particle.id}
-          particle={particle}
+          id={particle.id}
+          type={particle.type}
+          initialX={particle.x}
+          initialY={particle.y}
+          initialScale={particle.scale}
           springRegistry={springRegistry}
           uiScale={uiScale}
           isSelected={selectedParticleIds.has(particle.id)}
@@ -502,11 +504,12 @@ const ParticleCanvas = ({ onDragStart }) => {
         />
       ))}
 
+      {/* Canvas HUD & Toolbars */}
       <ParticleCanvasOverlay 
         onAssemble={handleAssemble}
         onDisassemble={handleDisassemble}
         onRevert={handleRevertToElementary}
-        onRemoveSelected={handleRemoveSelectedWithBonds}
+        onRemoveSelected={handleRemoveSelected}
         onBreakBonds={handleBreakBonds}
         onAddSingleBond={() => handleAddBond('single')}
         onAddDoubleBond={() => handleAddBond('double')}
@@ -525,12 +528,10 @@ const ParticleCanvas = ({ onDragStart }) => {
         
         isPeriodicTableVisible={isPeriodicTableVisible}
         isPeriodicTablePinned={isPeriodicTablePinned}
-        
-        // PASS NEW PROPS
         discoveredAtoms={discoveredAtoms}
       />
     </div>
   );
 };
 
-export default ParticleCanvas;
+export default React.memo(ParticleCanvas);

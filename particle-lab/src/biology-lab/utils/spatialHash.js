@@ -5,15 +5,19 @@ export class SpatialHash {
   }
 
   _getKey(x, y) {
-    return `${Math.floor(x / this.cellSize)},${Math.floor(y / this.cellSize)}`;
+    const cx = Math.floor(x / this.cellSize);
+    const cy = Math.floor(y / this.cellSize);
+    return ((cx & 0xFFFF) << 16) | (cy & 0xFFFF);
   }
 
   insert(entity) {
     const key = this._getKey(entity.x, entity.y);
-    if (!this.grid.has(key)) {
-      this.grid.set(key, []);
+    let cell = this.grid.get(key);
+    if (!cell) {
+      cell = [];
+      this.grid.set(key, cell);
     }
-    this.grid.get(key).push(entity);
+    cell.push(entity);
   }
 
   query(x, y, radius) {
@@ -25,9 +29,9 @@ export class SpatialHash {
     const found = [];
     for (let i = startX; i <= endX; i++) {
       for (let j = startY; j <= endY; j++) {
-        const key = `${i},${j}`;
-        if (this.grid.has(key)) {
-          const cell = this.grid.get(key);
+        const key = ((i & 0xFFFF) << 16) | (j & 0xFFFF);
+        const cell = this.grid.get(key);
+        if (cell) {
           for (let k = 0; k < cell.length; k++) {
              found.push(cell[k]);
           }
@@ -38,6 +42,8 @@ export class SpatialHash {
   }
   
   clear() {
-    this.grid.clear();
+    for (const cell of this.grid.values()) {
+      cell.length = 0;
+    }
   }
 }

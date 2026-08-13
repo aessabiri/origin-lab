@@ -7,8 +7,11 @@ import { useParticleStore } from '../store.js';
 import { generateGraphSignature } from '../utils/chemistryStructure.js';
 
 export const useSelection = ({ canvasRef }) => {
-  const particles = useParticleStore(state => state.particles);
-  const bonds = useParticleStore(state => state.bonds);
+  const rawParticles = useParticleStore(state => state.particles);
+  const rawBonds = useParticleStore(state => state.bonds);
+
+  const particles = Array.isArray(rawParticles) ? rawParticles : [];
+  const bonds = Array.isArray(rawBonds) ? rawBonds : [];
 
   const [selectedParticleIds, setSelectedParticleIds] = useState(new Set());
   const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0, visible: false });
@@ -102,7 +105,10 @@ export const useSelection = ({ canvasRef }) => {
     };
 
     if (selectedParticles.length > 0 && !canDisassemble) {
-      const ingredientCounts = selectedParticles.reduce((acc, p) => ({ ...acc, [p.type]: (acc[p.type] || 0) + 1 }), {});
+      const ingredientCounts = {};
+      selectedParticles.forEach(p => {
+        ingredientCounts[p.type] = (ingredientCounts[p.type] || 0) + 1;
+      });
 
       for (const recipe of RECIPES) {
         const isExactMatch = checkCounts(recipe.ingredients, ingredientCounts);
@@ -128,7 +134,10 @@ export const useSelection = ({ canvasRef }) => {
         }
 
         if (!assemblyRecipe) {
-          const bondCounts = selectedBonds.reduce((acc, b) => ({ ...acc, [b.type]: (acc[b.type] || 0) + 1 }), {});
+          const bondCounts = {};
+          selectedBonds.forEach(b => {
+            bondCounts[b.type] = (bondCounts[b.type] || 0) + 1;
+          });
 
           for (const moleculeRecipe of MOLECULE_RECIPES) {
             const atomsMatch = checkCounts(moleculeRecipe.atoms, ingredientCounts);
@@ -145,9 +154,7 @@ export const useSelection = ({ canvasRef }) => {
                   isMoleculeAssembly = true;
                   break;
                 }
-                // If structure doesn't match, continue looking (or fail if this was the only candidate)
               } else {
-                // Fallback for recipes without explicit structure definition (legacy)
                 assemblyRecipe = moleculeRecipe;
                 isMoleculeAssembly = true;
                 break;

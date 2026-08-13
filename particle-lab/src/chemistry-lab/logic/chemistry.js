@@ -94,32 +94,41 @@ export const processReactions = (vessel, timeSpeed) => {
 
         // --- Catalyst Check (Feedback Loop) ---
         if (reaction.catalyst) {
-            const inventory = useInventory.getState();
-            // Check elements or compounds for the catalyst
-            const catalystPresent = (inventory.compounds[reaction.catalyst] || 0) > 0 || 
-                                    (inventory.elements[reaction.catalyst] || 0) > 0;
+            // Check elements or compounds for the catalyst in local vessel
+            const catalystPresent = (vessel.contents[reaction.catalyst] || 0) > 0;
             if (catalystPresent) {
                 RATE_MULTIPLIER *= 2; 
             }
         }
 
-        const ingredientsPresent = Object.entries(reaction.inputs).every(([chemId, amount]) => {
-            // Check against AVAILABLE ingredients (dissolved)
-            return (availableIngredients[chemId] || 0) >= (amount * RATE_MULTIPLIER);
-        });
+        let limitingRatio = 1.0;
+        let hasAllIngredients = true;
 
-        if (ingredientsPresent) {
+        for (const [chemId, amount] of Object.entries(reaction.inputs)) {
+            const available = availableIngredients[chemId] || 0;
+            const required = amount * RATE_MULTIPLIER;
+            if (available <= 0) {
+                hasAllIngredients = false;
+                break;
+            }
+            if (available < required) {
+                limitingRatio = Math.min(limitingRatio, available / required);
+            }
+        }
+
+        if (hasAllIngredients) {
+            const effectiveMultiplier = RATE_MULTIPLIER * limitingRatio;
             const inputsToRemove = {};
             let totalReactedMass = 0;
             
             Object.entries(reaction.inputs).forEach(([k, v]) => {
-                const amount = v * RATE_MULTIPLIER;
+                const amount = v * effectiveMultiplier;
                 inputsToRemove[k] = amount;
                 totalReactedMass += amount; // Simplified mass calculation
             });
             
             const outputsToAdd = {};
-            Object.entries(reaction.outputs).forEach(([k, v]) => outputsToAdd[k] = v * RATE_MULTIPLIER);
+            Object.entries(reaction.outputs).forEach(([k, v]) => outputsToAdd[k] = v * effectiveMultiplier);
 
             result.inputsToRemove = inputsToRemove;
             result.outputsToAdd = outputsToAdd;

@@ -16,6 +16,7 @@ class AudioSystem {
         this.activeLoops = new Map(); // Map<string, { nodes: AudioNode[], gain: GainNode }>
         this.isMuted = false;
         this.initialized = false;
+        this.sharedNoiseBuffer = null;
     }
 
     init() {
@@ -236,12 +237,16 @@ class AudioSystem {
 
     createNoiseBuffer() {
         if (!this.ctx) return null;
+        if (this.sharedNoiseBuffer) return this.sharedNoiseBuffer;
+        
         const bufferSize = this.ctx.sampleRate * 2;
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const output = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
             output[i] = Math.random() * 2 - 1;
         }
+        
+        this.sharedNoiseBuffer = buffer;
         return buffer;
     }
 }

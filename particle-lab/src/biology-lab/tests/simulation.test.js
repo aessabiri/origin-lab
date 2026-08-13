@@ -5,7 +5,7 @@ import { useBioStore } from '../store';
 
 // Mock requestAnimationFrame to control ticks
 const mockRequestAnimationFrame = (callback) => {
-  return setTimeout(() => callback(performance.now()), 16);
+  return setTimeout(() => callback(Date.now()), 16);
 };
 const mockCancelAnimationFrame = (id) => clearTimeout(id);
 
@@ -28,13 +28,17 @@ describe('Biology Lab Simulation', () => {
         id: 'a1', x: 400, y: 400, vx: 1, vy: 0, energy: 100, radius: 15,
         genome: { speed: 1, metabolism: 1, diet: 0 } 
     };
-    useBioStore.setState({ agents: [agent], isRunning: true });
+    useBioStore.setState({ agents: [agent], isRunning: false });
 
     renderHook(() => useBioSimulation());
 
+    act(() => {
+      useBioStore.setState({ isRunning: true });
+    });
+
     // Advance time
     act(() => {
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(300);
     });
 
     const updatedAgent = useBioStore.getState().agents[0];
@@ -48,16 +52,16 @@ describe('Biology Lab Simulation', () => {
     };
     const food = { id: 'f1', x: 405, y: 400, energy: 20 }; // Within radius
     
-    useBioStore.setState({ agents: [agent], foodItems: [food], isRunning: true });
+    useBioStore.setState({ agents: [agent], foodItems: [food], soup: { glucose: 0 }, isRunning: true });
 
     renderHook(() => useBioSimulation());
 
     act(() => {
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(300);
     }); 
 
     const state = useBioStore.getState();
-    expect(state.foodItems).toHaveLength(0); // Food eaten
+    expect(state.foodItems.filter(f => f.id === 'f1')).toHaveLength(0); // Food eaten
     expect(state.agents[0].energy).toBeGreaterThan(100); 
   });
 
@@ -68,17 +72,21 @@ describe('Biology Lab Simulation', () => {
         genome: { speed: 1, metabolism: 1, diet: 0 } 
     };
     
-    useBioStore.setState({ agents: [agent], isRunning: true });
+    useBioStore.setState({ agents: [agent], isRunning: false });
 
     renderHook(() => useBioSimulation());
 
+    act(() => {
+      useBioStore.setState({ isRunning: true });
+    });
+
     // Stage 1: Prime the timer
     act(() => {
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(300);
     });
     // Stage 2: Run the logic
     act(() => {
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(300);
     });
 
     const agents = useBioStore.getState().agents;
@@ -91,12 +99,16 @@ describe('Biology Lab Simulation', () => {
         genome: { speed: 1, metabolism: 100, diet: 0 } // High burn
     };
     
-    useBioStore.setState({ agents: [agent], isRunning: true });
+    useBioStore.setState({ agents: [agent], isRunning: false });
 
     renderHook(() => useBioSimulation());
 
     act(() => {
-      vi.advanceTimersByTime(100);
+      useBioStore.setState({ isRunning: true });
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(300);
     });
 
     const agents = useBioStore.getState().agents;
@@ -111,12 +123,16 @@ describe('Biology Lab Simulation', () => {
     // Food placed to the right
     const food = { id: 'f1', x: 450, y: 400, energy: 20 }; 
     
-    useBioStore.setState({ agents: [agent], foodItems: [food], isRunning: true });
+    useBioStore.setState({ agents: [agent], foodItems: [food], isRunning: false });
 
     renderHook(() => useBioSimulation());
 
     act(() => {
-      vi.advanceTimersByTime(100);
+      useBioStore.setState({ isRunning: true });
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(300);
     });
 
     const updatedAgent = useBioStore.getState().agents[0];

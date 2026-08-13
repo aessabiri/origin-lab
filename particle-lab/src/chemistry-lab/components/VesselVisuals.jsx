@@ -36,23 +36,31 @@ const DEFS = (
   </defs>
 );
 
-const Bubbles = ({ active, width = 100, yStart = 100 }) => {
+const bubblePositions = [
+    { cxFactor: 0.2, cyOffset: 2, rFactor: 3 },
+    { cxFactor: 0.5, cyOffset: 5, rFactor: 2.5 },
+    { cxFactor: 0.8, cyOffset: 1, rFactor: 3.5 },
+    { cxFactor: 0.35, cyOffset: 8, rFactor: 2 },
+    { cxFactor: 0.65, cyOffset: 4, rFactor: 4 },
+];
+
+const Bubbles = React.memo(({ active, width = 100, yStart = 100 }) => {
     if (!active) return null;
     return (
         <g className="bubbles">
-            {[1,2,3,4,5].map(i => (
+            {bubblePositions.map((b, i) => (
                 <circle 
                     key={i} 
-                    cx={Math.random() * width} 
-                    cy={yStart + Math.random() * 10} 
-                    r={2 + Math.random() * 2} 
+                    cx={width * b.cxFactor} 
+                    cy={yStart + b.cyOffset} 
+                    r={b.rFactor} 
                     fill="rgba(255,255,255,0.4)" 
                     className="bubble" 
                 />
             ))}
         </g>
     );
-};
+});
 
 const Fumes = ({ active }) => {
     if (!active) return null;

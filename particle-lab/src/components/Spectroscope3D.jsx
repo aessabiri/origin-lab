@@ -33,12 +33,13 @@ const ExternalModel = ({ url, color }) => {
   
   // Apply our Clockwork "Jelly" look to the AI mesh
   useEffect(() => {
+    const materialsToDispose = [];
     scene.traverse((child) => {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
         // We replace the AI material with our high-end one
-        child.material = new THREE.MeshPhysicalMaterial({
+        const newMat = new THREE.MeshPhysicalMaterial({
           color: color,
           transmission: 1,
           thickness: 2,
@@ -48,8 +49,13 @@ const ExternalModel = ({ url, color }) => {
           attenuationDistance: 0.5,
           clearcoat: 1
         });
+        child.material = newMat;
+        materialsToDispose.push(newMat);
       }
     });
+    return () => {
+      materialsToDispose.forEach(mat => mat.dispose());
+    };
   }, [scene, color]);
 
   return <primitive object={scene} scale={2} />;

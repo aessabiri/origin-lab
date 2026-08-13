@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useBioStore } from '../store';
 import { useInventory } from '../../store/inventory';
+import { usePlanetaryStore } from '../../store/planetaryStore';
 import { useStore } from '../../store';
 import { getUniversalItemInfo } from '../../utils/codexData';
 import { PARTICLE_TYPES } from '../../constants/particles';
@@ -54,8 +55,29 @@ const CellBuilder = ({ onFinalize }) => {
   }, [currentCellDesign.organelles]);
 
   const handleFinalize = () => {
-    // In a real game, this might unlock spawning this specific cell type
-    // alert("LUCA PROTOTYPE FINALIZED // SAVED TO BIOS_KERNEL");
+    // 1. Determine LUCA traits
+    const isPhototroph = stats.metabolism > 30; 
+    const isChemotroph = stats.stability > 20;
+
+    const organism = {
+      name: 'LUCA Prototype',
+      stats,
+      organelles: currentCellDesign.organelles,
+      traits: {
+        phototroph: isPhototroph,
+        chemotroph: isChemotroph,
+        heatTolerance: stats.stability * 2,
+      },
+      timestamp: Date.now()
+    };
+
+    // 2. Seed Planetary Store
+    usePlanetaryStore.getState().seedPlanet(organism);
+
+    // 3. Save to Inventory Codex (so it's recorded)
+    useInventory.getState().markDiscovered('LUCA');
+
+    alert("LUCA PROTOTYPE FINALIZED // SEEDING PLANET...");
     if (onFinalize) onFinalize();
   };
 

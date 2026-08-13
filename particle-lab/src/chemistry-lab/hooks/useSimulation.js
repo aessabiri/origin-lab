@@ -55,7 +55,11 @@ export const useSimulation = () => {
         if (phaseResult.changes && Object.keys(phaseResult.changes).length > 0) {
              const inputsToRemove = {};
              Object.entries(phaseResult.changes).forEach(([id, delta]) => {
-                 if (delta < 0) inputsToRemove[id] = Math.abs(delta);
+                 if (delta < 0) {
+                     inputsToRemove[id] = Math.abs(delta);
+                     vessel.contents[id] = Math.max(0, (vessel.contents[id] || 0) - Math.abs(delta));
+                     if (vessel.contents[id] <= 0.1) delete vessel.contents[id];
+                 }
              });
              
              transmuteContents(vessel.id, inputsToRemove, {});
@@ -92,6 +96,14 @@ export const useSimulation = () => {
         
         if (reactionResult.inputsToRemove) {
             transmuteContents(vessel.id, reactionResult.inputsToRemove, reactionResult.outputsToAdd);
+            
+            Object.entries(reactionResult.inputsToRemove).forEach(([id, amount]) => {
+                vessel.contents[id] = Math.max(0, (vessel.contents[id] || 0) - amount);
+                if (vessel.contents[id] <= 0.1) delete vessel.contents[id];
+            });
+            Object.entries(reactionResult.outputsToAdd || {}).forEach(([id, amount]) => {
+                vessel.contents[id] = (vessel.contents[id] || 0) + amount;
+            });
             
             // Apply Reaction Heat (Exothermic/Endothermic)
             if (reactionResult.heatGenerated) {

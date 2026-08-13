@@ -236,8 +236,8 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
   };
 
   return (
-    <div className={`fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300 ${isHiddenForDrag ? 'opacity-20 pointer-events-none scale-95' : 'opacity-100 scale-100'}`} onClick={onClose}>
-      <div className={`${theme.bg} border ${theme.border} rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] flex overflow-hidden transition-colors duration-500`} onClick={e => e.stopPropagation()}>
+    <div className={`fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-opacity duration-150 ${isHiddenForDrag ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} onClick={onClose}>
+      <div className={`${theme.bg} border ${theme.border} rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] flex overflow-hidden`} onClick={e => e.stopPropagation()}>
         
         {/* Sidebar */}
         <div className={`w-64 ${theme.sidebar} border-r ${theme.border} flex flex-col transition-colors duration-500`}>

@@ -17,7 +17,7 @@ const ParticleLab = () => {
   const handleCloseInfo = useCallback(() => setInfoPanelType(null), [setInfoPanelType]);
 
   return (
-    <div className="flex flex-col md:flex-row h-full p-4 gap-4">
+    <div className="flex flex-row h-full w-full p-4 gap-4 overflow-hidden relative">
       <ParticleCanvas onDragStart={handleDragStart} />
       <LabSidebar onDragStart={handleDragStart} />
       <div className="relative z-60">

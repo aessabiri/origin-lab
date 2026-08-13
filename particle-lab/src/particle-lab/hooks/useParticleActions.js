@@ -39,7 +39,8 @@ export const useParticleActions = ({
       });
 
       setParticles([...particles.filter(p => p.id !== particleId), ...newAtoms]);
-      setBonds([]);
+      const currentBonds = useParticleStore.getState().bonds;
+      setBonds(currentBonds.filter(b => b.particleA_id !== particleId && b.particleB_id !== particleId));
       showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
       return;
     }
@@ -58,7 +59,8 @@ export const useParticleActions = ({
         }
       });
       setParticles([...particles.filter(p => p.id !== particleId), ...newMolecules]);
-      setBonds([]);
+      const currentBonds = useParticleStore.getState().bonds;
+      setBonds(currentBonds.filter(b => b.particleA_id !== particleId && b.particleB_id !== particleId));
       showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
       return;
     }
@@ -82,6 +84,8 @@ export const useParticleActions = ({
       composition: c.composition,
     }));
     setParticles([...next, ...newComps]);
+    const currentBonds = useParticleStore.getState().bonds;
+    setBonds(currentBonds.filter(b => b.particleA_id !== particleId && b.particleB_id !== particleId));
     showMessage(`Disassembled ${PARTICLE_NAMES[particle.type]}!`);
   }, [particles, showMessage, setParticles, setBonds]);
 
