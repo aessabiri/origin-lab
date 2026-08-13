@@ -30,10 +30,13 @@ export const useStore = create(
       currentView: 'particle', // 'menu', 'hub', 'particle', 'chemistry', 'biology', 'universe'
       isCodexVisible: false,
       isSandboxMode: false,
+      isNavCollapsed: false,
       introComplete: true, // Bypass intro screen
       message: '',
 
       // --- Actions ---
+      setIsNavCollapsed: (isNavCollapsed) => set({ isNavCollapsed }),
+      toggleNav: () => set((state) => ({ isNavCollapsed: !state.isNavCollapsed })),
       setIsSandboxMode: (isSandboxMode) => set({ isSandboxMode }),
       setDiscoveredOrganelles: (discoveredOrganelles) => set({ discoveredOrganelles }),
       

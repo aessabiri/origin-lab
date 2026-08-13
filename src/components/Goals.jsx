@@ -1,148 +1,201 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useProgressionStore } from '../store/progressionStore';
 import { QUESTS, QUEST_CATEGORIES } from '../constants/quests';
-import { MATTER_DEFINITIONS } from '../constants/matterRegistry';
+import { getUniversalItemInfo } from '../utils/codexData';
 import ParticleIcon from '../particle-lab/components/ParticleIcon';
-import { PARTICLE_COLORS } from '../constants/particles';
+
+const ERA_THEMES = {
+  'All': { color: 'border-cyan-500/40 text-cyan-300', bg: 'bg-cyan-500/20' },
+  'Physics': { color: 'border-sky-500/40 text-sky-300', bg: 'bg-sky-500/20', icon: '⚛️' },
+  'Chemistry': { color: 'border-emerald-500/40 text-emerald-300', bg: 'bg-emerald-500/20', icon: '⚗️' },
+  'Biology': { color: 'border-teal-500/40 text-teal-300', bg: 'bg-teal-500/20', icon: '🧫' },
+  'Planetary': { color: 'border-indigo-500/40 text-indigo-300', bg: 'bg-indigo-500/20', icon: '🌍' },
+};
 
 const Goals = () => {
   const { completedQuests, level, xp } = useProgressionStore();
+  const [selectedEra, setSelectedEra] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const groupedQuests = useMemo(() => {
-    const groups = {};
-    Object.values(QUEST_CATEGORIES).forEach(cat => {
-      groups[cat] = QUESTS.filter(q => q.category === cat);
+  const nextLevelXp = level * 1000;
+  const levelProgress = Math.min(100, Math.round((xp % 1000) / 10));
+
+  const filteredQuests = useMemo(() => {
+    return QUESTS.filter(q => {
+      const matchesEra = selectedEra === 'All' || q.category === selectedEra;
+      const matchesSearch = !searchQuery || 
+        q.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        q.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesEra && matchesSearch;
     });
-    return groups;
-  }, []);
+  }, [selectedEra, searchQuery]);
 
-  const calculateCategoryProgress = (category) => {
-    const categoryQuests = groupedQuests[category];
-    const completedCount = categoryQuests.filter(q => completedQuests.includes(q.id)).length;
-    return {
-      completed: completedCount,
-      total: categoryQuests.length,
-      percent: Math.round((completedCount / categoryQuests.length) * 100)
-    };
-  };
+  const stats = useMemo(() => {
+    const total = QUESTS.length;
+    const completed = completedQuests.length;
+    const percent = Math.round((completed / (total || 1)) * 100);
+    return { total, completed, percent };
+  }, [completedQuests]);
 
   return (
-    <div className="w-full h-full bg-slate-900 text-white overflow-y-auto animate-fadeIn">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-700 px-8 py-6 flex justify-between items-center">
+    <div className="w-full h-full bg-[#070a13] text-white flex flex-col overflow-hidden font-sans select-none">
+      
+      {/* 1. TOP HEADER & TELEMETRY */}
+      <header className="px-8 py-6 bg-[#0c1220]/90 backdrop-blur-2xl border-b border-cyan-500/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0 shadow-2xl">
         <div>
-           <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500">
-             GOALS & MISSIONS
-           </h1>
-           <p className="text-slate-400 text-sm font-mono tracking-wider mt-1">UNIVERSAL PROGRESSION TRACKER</p>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎯</span>
+            <h1 className="text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300">
+              Missions & Goals
+            </h1>
+          </div>
+          <p className="text-xs font-mono text-slate-400 mt-1">
+            Universal Milestone Progression & Evolutionary Technology Unlocks
+          </p>
         </div>
-        
-        <div className="flex gap-6 items-center">
-            <div className="text-right">
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Level</div>
-                <div className="text-2xl font-black text-blue-400">{level}</div>
-            </div>
-            <div className="h-10 w-px bg-slate-700"></div>
-            <div className="text-right">
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Total XP</div>
-                <div className="text-2xl font-black text-purple-400">{xp.toLocaleString()}</div>
-            </div>
-        </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto p-8 pb-32 space-y-12">
+        {/* Level & XP HUD */}
+        <div className="flex items-center gap-6 bg-[#080d1a] border border-cyan-500/25 p-3 rounded-2xl shadow-inner">
+          <div className="flex flex-col items-center px-2">
+            <span className="text-[9px] font-mono text-cyan-400 uppercase font-black tracking-widest">Evolution Tier</span>
+            <span className="text-2xl font-black font-mono text-white">Tier {level}</span>
+          </div>
+
+          <div className="h-8 w-px bg-cyan-500/20" />
+
+          <div className="flex flex-col gap-1 w-44">
+            <div className="flex justify-between text-[10px] font-mono">
+              <span className="text-slate-400">XP Progress</span>
+              <span className="text-cyan-300 font-bold">{xp} / {nextLevelXp}</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-cyan-500 via-sky-400 to-indigo-500 transition-all duration-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]"
+                style={{ width: `${levelProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* 2. FILTER TABS & SEARCH BAR */}
+      <div className="px-8 py-4 bg-[#090e1b]/80 border-b border-cyan-500/15 flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
         
-        {Object.values(QUEST_CATEGORIES).map(category => {
-            const progress = calculateCategoryProgress(category);
+        {/* Era Category Tabs */}
+        <div className="flex flex-wrap gap-2">
+          {['All', ...Object.values(QUEST_CATEGORIES)].map(era => {
+            const isSelected = selectedEra === era;
+            const theme = ERA_THEMES[era] || ERA_THEMES['All'];
+
             return (
-                <section key={category} className="space-y-6">
-                    <div className="flex justify-between items-end border-b border-slate-800 pb-2">
-                        <div>
-                            <h2 className="text-2xl font-bold flex items-center gap-3">
-                                <span className={`w-3 h-3 rounded-full ${category === 'Physics' ? 'bg-blue-500' : category === 'Chemistry' ? 'bg-green-500' : 'bg-teal-500'}`}></span>
-                                {category} Era
-                            </h2>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{progress.completed} / {progress.total} Complete</span>
-                            <div className="w-48 h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                                <div 
-                                    className={`h-full transition-all duration-1000 ${category === 'Physics' ? 'bg-blue-500' : category === 'Chemistry' ? 'bg-green-500' : 'bg-teal-500'}`}
-                                    style={{ width: `${progress.percent}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {groupedQuests[category].map(quest => (
-                            <QuestCard 
-                                key={quest.id} 
-                                quest={quest} 
-                                isCompleted={completedQuests.includes(quest.id)} 
-                            />
-                        ))}
-                    </div>
-                </section>
+              <button
+                key={era}
+                onClick={() => setSelectedEra(era)}
+                className={`px-4 py-1.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all border ${
+                  isSelected 
+                    ? `${theme.bg} ${theme.color} shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-105` 
+                    : 'bg-white/5 border-transparent text-slate-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {theme.icon ? `${theme.icon} ` : ''}{era}
+              </button>
             );
-        })}
+          })}
+        </div>
 
+        {/* Search Input & Global Stats */}
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <input
+              type="text"
+              placeholder="Search objectives..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full py-1.5 pl-8 pr-3 rounded-xl bg-[#060a14] border border-cyan-500/25 text-xs text-cyan-200 placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
+            />
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-500">🔍</span>
+          </div>
+
+          <span className="text-xs font-mono text-cyan-300 font-bold whitespace-nowrap">
+            {stats.completed} / {stats.total} ({stats.percent}%)
+          </span>
+        </div>
       </div>
+
+      {/* 3. QUEST CARDS GRID */}
+      <main className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 pb-16">
+          {filteredQuests.map(quest => {
+            const isCompleted = completedQuests.includes(quest.id);
+            const rewardInfo = quest.rewardItem ? getUniversalItemInfo(quest.rewardItem) : null;
+
+            return (
+              <div
+                key={quest.id}
+                className={`relative p-5 rounded-3xl border transition-all duration-300 flex flex-col justify-between gap-4 shadow-xl ${
+                  isCompleted 
+                    ? 'bg-gradient-to-br from-emerald-950/40 via-[#0c1624]/60 to-[#080d18] border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.15)]' 
+                    : 'bg-[#0c1220]/90 border-cyan-500/20 hover:border-cyan-400/50 hover:bg-[#10192a]'
+                }`}
+              >
+                {/* Top: Header, Title & Completion Status */}
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="px-2.5 py-0.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-[10px] font-mono text-cyan-300 font-bold uppercase">
+                      {quest.category} Era
+                    </span>
+
+                    {isCompleted ? (
+                      <span className="flex items-center gap-1 text-emerald-400 font-mono text-xs font-black">
+                        <span>✓</span> COMPLETED
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 font-mono text-xs font-bold">
+                        +{quest.xp || 100} XP
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="text-base font-black text-white leading-snug">
+                    {quest.title}
+                  </h3>
+
+                  <p className="text-xs text-slate-400 mt-1 font-sans leading-relaxed">
+                    {quest.description}
+                  </p>
+                </div>
+
+                {/* Bottom: Objectives & Rewards */}
+                <div className="pt-3 border-t border-cyan-500/15 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {quest.targetItem && (
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-[10px] font-mono text-slate-300">
+                        <span>Target:</span>
+                        <strong className="text-cyan-300">{quest.targetItem}</strong>
+                      </div>
+                    )}
+                  </div>
+
+                  {rewardInfo && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-slate-500 uppercase">Reward:</span>
+                      <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-xs font-bold">
+                        <div className="w-4 h-4">
+                          <ParticleIcon type={quest.rewardItem} color={rewardInfo.color} />
+                        </div>
+                        <span>{rewardInfo.name}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </main>
+
     </div>
   );
 };
 
-const QuestCard = ({ quest, isCompleted }) => {
-    return (
-        <div className={`relative p-5 rounded-2xl border transition-all duration-300 ${
-            isCompleted 
-            ? 'bg-slate-800/30 border-emerald-500/30 opacity-80' 
-            : 'bg-slate-800/50 border-slate-700 hover:border-blue-500/50 hover:bg-slate-800'
-        }`}>
-            {isCompleted && (
-                <div className="absolute top-4 right-4 bg-emerald-500 text-white rounded-full p-1 shadow-lg shadow-emerald-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                </div>
-            )}
-
-            <div className="flex gap-4">
-                <div className="shrink-0 pt-1">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner ${isCompleted ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-900/50 text-slate-400'}`}>
-                        {quest.category === 'Physics' ? '⚛️' : quest.category === 'Chemistry' ? '⚗️' : '🧬'}
-                    </div>
-                </div>
-                
-                <div className="flex-1 space-y-1">
-                    <h3 className={`font-bold ${isCompleted ? 'text-slate-400 line-through' : 'text-white'}`}>
-                        {quest.title}
-                    </h3>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                        {quest.description}
-                    </p>
-                    
-                    <div className="pt-3 flex flex-wrap gap-2">
-                        {Object.keys(quest.requirements).map(reqId => {
-                            const info = MATTER_DEFINITIONS[reqId];
-                            if (!info) return null;
-                            return (
-                                <div key={reqId} className="flex items-center gap-1.5 px-2 py-1 bg-slate-900/50 rounded-lg border border-slate-700/50">
-                                    <div className="w-4 h-4">
-                                        <ParticleIcon type={reqId} color={PARTICLE_COLORS[reqId]} />
-                                    </div>
-                                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tight">{info.name}</span>
-                                </div>
-                            );
-                        })}
-                        <div className="ml-auto px-2 py-1 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest">
-                            +{quest.rewards.xp} XP
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export default Goals;
+export default React.memo(Goals);
