@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useMemo, useRef, useEffect, Suspense, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, PerspectiveCamera, Environment, MeshTransmissionMaterial, PresentationControls, ContactShadows, Stars } from '@react-three/drei';
+import { Float, PerspectiveCamera, Environment, MeshTransmissionMaterial, PresentationControls, ContactShadows, Stars, Html } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { useBioStore } from '../store';
@@ -9,441 +9,64 @@ import { useStore } from '../../store';
 import { getUniversalCodexData, getUniversalItemInfo } from '../../utils/codexData';
 import { PARTICLE_TYPES } from '../../constants/particles';
 import { POLYPEPTIDE_RECIPES } from '../../constants/polypeptideRecipes';
-import { BakelitePanel, NixieTube, Oscilloscope, AnalogGauge } from '../../components/VisualPrimitives';
 import ParticleIcon from '../../particle-lab/components/ParticleIcon';
+import { 
+  GENETIC_CODE, 
+  transcribeDNA, 
+  translateMRNA, 
+  PRESET_GENOMES 
+} from '../utils/geneticCode.js';
+import { 
+  analyzeProteinBiophysics, 
+  generateFolded3DModel 
+} from '../utils/biophysicsFolding.js';
 
-const ProteinFolder = () => {
-  const { synthesizedProteins, addSynthesizedProtein } = useBioStore();
-  const { discoveredItems, compounds, consumeResource, addResource } = useInventory();
-  const { isSandboxMode } = useStore();
-  
-  const [sequence, setSequence] = useState([]);
-  const [isFolding, setIsFolding] = useState(false);
-  const [foldedStructure, setFoldedStructure] = useState(null);
-  const [activeTab, setActiveTab] = useState('library'); // 'library' or 'history'
-  const [statusMessage, setStatusMessage] = useState('');
-  
-  // 1. Get and Categorize Available Amino Acids
-  const categorizedAA = useMemo(() => {
-    const codex = getUniversalCodexData();
-    const bioGroup = codex.find(g => g.name === 'Biochemistry');
-    const aaSub = bioGroup?.subcategories.find(s => s.name === 'Amino Acids');
-    
-    if (!aaSub) return {};
-    
-    const available = aaSub.particles.filter(type => isSandboxMode || discoveredItems.includes(type));
-    
-    const groups = {
-      'Hydrophobic': ['glycine', 'alanine', 'valine', 'leucine', 'isoleucine', 'proline', 'methionine', 'phenylalanine', 'tyrosine', 'tryptophan'],
-      'Polar': ['serine', 'threonine', 'cysteine', 'asparagine', 'glutamine'],
-      'Basic (+)': ['lysine', 'arginine', 'histidine'],
-      'Acidic (-)': ['aspartic-acid', 'glutamic-acid']
-    };
-
-    const result = {};
-    Object.entries(groups).forEach(([name, members]) => {
-      const found = available.filter(type => members.includes(type));
-      if (found.length > 0) result[name] = found;
-    });
-    
-    return result;
-  }, [discoveredItems, isSandboxMode]);
-
-  const handleAddAA = (type) => {
-    if (sequence.length >= 16) return;
-    setSequence([...sequence, { type, id: Date.now() + Math.random() }]);
-    setFoldedStructure(null);
-  };
-
-  const handleLoadRecipe = (recipe) => {
-    const newSeq = [];
-    Object.entries(recipe.molecules).forEach(([type, count]) => {
-      for(let i=0; i<count; i++) {
-        newSeq.push({ type, id: Date.now() + Math.random() + i });
-      }
-    });
-    setSequence(newSeq);
-    setFoldedStructure(null);
-  };
-
-  const handleRemoveAA = (index) => {
-    const newSeq = [...sequence];
-    newSeq.splice(index, 1);
-    setSequence(newSeq);
-    setFoldedStructure(null);
-  };
-
-  const handleInjectRecipe = (recipe) => {
-    if (sequence.length + Object.values(recipe.molecules).reduce((a,b) => a+b, 0) > 16) return;
-    const newItems = [];
-    Object.entries(recipe.molecules).forEach(([type, count]) => {
-      for(let i=0; i<count; i++) {
-        newItems.push({ type, id: Date.now() + Math.random() + i });
-      }
-    });
-    setSequence([...sequence, ...newItems]);
-    setFoldedStructure(null);
-  };
-
-  const handleStartFolding = () => {
-    if (sequence.length < 2) {
-        setStatusMessage('Error: Sequence too short.');
-        return;
-    }
-
-    // 1. Calculate Required Resources
-    const required = {};
-    sequence.forEach(node => {
-        required[node.type] = (required[node.type] || 0) + 1;
-    });
-
-    // 2. Check Inventory (skip in sandbox)
-    if (!isSandboxMode) {
-        for (const [type, count] of Object.entries(required)) {
-            if ((compounds[type] || 0) < count) {
-                setStatusMessage(`Error: Insufficient ${PARTICLE_TYPES[type] || type}`);
-                return;
-            }
-        }
-    }
-
-    // 3. Consume Resources
-    if (!isSandboxMode) {
-        for (const [type, count] of Object.entries(required)) {
-            consumeResource('compounds', type, count);
-        }
-    }
-
-    setIsFolding(true);
-    setStatusMessage('Folding sequence...');
-    
-    setTimeout(() => {
-      const structure = generateFoldedStructure(sequence);
-      setFoldedStructure(structure);
-      setIsFolding(false);
-      
-      // 4. Validate against Recipes
-      const seqTypes = sequence.map(s => s.type);
-      const match = POLYPEPTIDE_RECIPES.find(recipe => {
-          // Check if recipes have a defined sequence order
-          if (recipe.sequence) {
-              if (recipe.sequence.length !== seqTypes.length) return false;
-              return recipe.sequence.every((t, i) => t === seqTypes[i]);
-          }
-          // Fallback to composition check (unordered) if sequence not defined
-          const recipeCounts = recipe.molecules;
-          const seqCounts = {};
-          seqTypes.forEach(t => seqCounts[t] = (seqCounts[t] || 0) + 1);
-          
-          if (Object.keys(recipeCounts).length !== Object.keys(seqCounts).length) return false;
-          return Object.entries(recipeCounts).every(([t, c]) => seqCounts[t] === c);
-      });
-
-      const proteinName = match ? match.name : `Custom Peptide (${sequence.length}aa)`;
-      
-      // 5. Reward
-      if (match) {
-          addResource('compounds', match.type, 1);
-          setStatusMessage(`Success: Synthesized ${match.name}`);
-      } else {
-          setStatusMessage('Folded custom structure. (No recipe match)');
-      }
-
-      addSynthesizedProtein({
-          id: `PROT-${Date.now()}`,
-          name: proteinName,
-          sequence: seqTypes,
-          structure
-      });
-
-    }, 2000);
-  };
-
-  return (
-    <div className="flex h-full w-full bg-[#050505] p-6 gap-6 overflow-hidden">
-      
-      {/* LEFT: Engineering Tools */}
-      <div className="w-80 flex flex-col gap-4 shrink-0">
-        <BakelitePanel className="flex-1 flex flex-col p-4 border-4 border-black">
-           {/* Sub-tabs */}
-           <div className="flex bg-black/40 rounded-lg p-1 mb-4 border border-zinc-800">
-              {['library', 'history'].map(t => (
-                <button 
-                  key={t}
-                  onClick={() => setActiveTab(t)}
-                  className={`flex-1 py-1 text-[10px] font-black uppercase tracking-widest transition-all rounded ${activeTab === t ? 'bg-zinc-800 text-amber-500' : 'text-zinc-600 hover:text-zinc-400'}`}
-                >
-                  {t}
-                </button>
-              ))}
-           </div>
-
-           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-              {activeTab === 'library' ? (
-                <div className="space-y-6">
-                   <section>
-                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase mb-3 tracking-widest">Amino Acid Library</h4>
-                      <div className="space-y-6">
-                        {Object.entries(categorizedAA).map(([groupName, types]) => (
-                          <div key={groupName} className="space-y-2">
-                             <div className="flex items-center gap-2">
-                                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">{groupName}</span>
-                                <div className="flex-1 h-px bg-zinc-900"></div>
-                             </div>
-                             <div className="space-y-1">
-                                {types.map(type => (
-                                  <AAButton key={type} type={type} onAdd={() => handleAddAA(type)} />
-                                ))}
-                             </div>
-                          </div>
-                        ))}
-                      </div>
-                   </section>
-                   
-                   <section>
-                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase mb-3 tracking-widest">Known Peptides</h4>
-                      <div className="space-y-2">
-                        {POLYPEPTIDE_RECIPES.map(recipe => (
-                          <div key={recipe.type} className="group flex gap-1">
-                             <button 
-                               onClick={() => handleLoadRecipe(recipe)}
-                               className="flex-1 text-left p-2 bg-zinc-900 border border-zinc-800 rounded-l hover:border-indigo-500 transition-colors"
-                             >
-                                <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">{recipe.name}</span>
-                             </button>
-                             <button 
-                               onClick={() => handleInjectRecipe(recipe)}
-                               className="px-3 bg-indigo-900/30 border-y border-r border-zinc-800 rounded-r text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all text-xs font-bold"
-                               title="Append to Sequence"
-                             >
-                               +
-                             </button>
-                          </div>
-                        ))}
-                      </div>
-                   </section>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                   <h4 className="text-[10px] font-bold text-zinc-500 uppercase mb-3 tracking-widest">Synthesis History</h4>
-                   {synthesizedProteins.length === 0 ? (
-                     <p className="text-[10px] text-zinc-700 italic text-center py-10">No records found</p>
-                   ) : (
-                     synthesizedProteins.slice().reverse().map(p => (
-                       <div key={p.id} className="p-2 bg-zinc-900/50 border border-zinc-800 rounded text-[10px] font-mono text-zinc-400 flex justify-between items-center">
-                          <span>{p.name}</span>
-                          <span className="text-zinc-600">{p.sequence.length}aa</span>
-                       </div>
-                     ))
-                   )}
-                </div>
-              )}
-           </div>
-        </BakelitePanel>
-      </div>
-
-      {/* CENTER: Sequence Bay & Fold Chamber */}
-      <div className="flex-1 flex flex-col gap-6">
-        {/* The Tape (Sequence) */}
-        <BakelitePanel className="h-28 p-2 border-4 border-black relative flex items-center overflow-x-auto overflow-y-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] bg-zinc-950">
-           <div className="absolute top-1 left-4 text-[8px] font-black text-zinc-700 tracking-[0.2em] pointer-events-none">PRIMARY_PEPTIDE_CHAIN</div>
-           
-           <div className="flex gap-2 px-4 items-center min-w-full">
-              {sequence.length === 0 && (
-                <p className="w-full text-center text-zinc-800 text-xs font-mono uppercase tracking-widest">Awaiting Sequence Injection...</p>
-              )}
-              {sequence.map((aa, idx) => (
-                <SequenceItem key={aa.id} type={aa.type} onRemove={() => handleRemoveAA(idx)} />
-              ))}
-           </div>
-           
-           {/* Ribbon Effect */}
-           <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
-        </BakelitePanel>
-
-        {/* Chamber */}
-        <BakelitePanel className="flex-1 relative border-4 border-black bg-[#0a0a0a] shadow-[inset_0_0_100px_rgba(0,0,0,1)] overflow-hidden flex items-center justify-center">
-           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:40px_40px]"></div>
-           
-           <div className="absolute top-6 left-6 z-10">
-              <div className="flex items-center gap-3">
-                 <div className={`w-3 h-3 rounded-full ${isFolding ? 'bg-orange-500 animate-pulse' : 'bg-zinc-800'}`}></div>
-                 <span className="text-xs font-black text-zinc-500 tracking-widest uppercase">Folding_Engine_Status: {isFolding ? 'COMPUTING' : 'READY'}</span>
-              </div>
-           </div>
-
-           <div className="relative w-full h-full flex items-center justify-center">
-              {isFolding ? (
-                <div className="flex flex-col items-center gap-6 scale-150">
-                   <div className="w-24 h-24 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-                   <span className="text-xs font-black text-amber-500 animate-pulse tracking-widest uppercase">Analyzing Tertiary Structure</span>
-                </div>
-              ) : foldedStructure ? (
-                <div className="w-full h-full">
-                   <ProteinVisualizer3D structure={foldedStructure} />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center opacity-10 space-y-4">
-                   <div className="text-[120px] filter blur-sm">🧬</div>
-                   <span className="text-sm font-black tracking-[1em] uppercase">No Structure Mapped</span>
-                </div>
-              )}
-           </div>
-
-           {/* CRT Overlays */}
-           <div className="absolute inset-0 pointer-events-none z-20">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.4)_100%)]"></div>
-              <div className="absolute inset-0 opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,118,0.06))] [background-size:100%_2px,3px_100%]"></div>
-           </div>
-        </BakelitePanel>
-
-        {/* Dashboard */}
-        <div className="h-28 flex gap-6 shrink-0">
-           <BakelitePanel className="flex-1 border-4 border-black p-4 flex items-center justify-around bg-zinc-950/50 shadow-inner">
-              <div className="flex flex-col items-center">
-                 <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-1">ENERGY_STABILITY</span>
-                 <Oscilloscope active={!!foldedStructure} color={foldedStructure ? 'emerald' : 'amber'} />
-              </div>
-              <div className="flex flex-col items-center">
-                 <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-1">AA_INDEX</span>
-                 <NixieTube value={sequence.length} digits={2} size="sm" />
-              </div>
-              <div className="flex flex-col items-center">
-                 <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-1">BOND_ENTROPY</span>
-                 <AnalogGauge label="Entropy" value={sequence.length * 5} max={100} color="blue" />
-              </div>
-           </BakelitePanel>
-
-           <button 
-             onClick={handleStartFolding}
-             disabled={sequence.length < 2 || isFolding}
-             className={`w-56 rounded-xl border-4 border-black shadow-xl flex flex-col items-center justify-center gap-1 uppercase font-black tracking-widest transition-all
-               ${sequence.length < 2 || isFolding 
-                 ? 'bg-zinc-900 text-zinc-700 cursor-not-allowed' 
-                 : 'bg-gradient-to-b from-indigo-600 to-indigo-900 text-white hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(79,70,229,0.3)]'
-               }`}
-           >
-              <span className="text-2xl">⚙️</span>
-              <span className="text-xs">Fold Matrix</span>
-           </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const RecipeButton = ({ recipe, onClick }) => (
-  <button 
-    onClick={onClick}
-    className="w-full flex items-center justify-between p-2 bg-zinc-900 border border-zinc-800 rounded hover:border-indigo-500 transition-colors group"
-  >
-    <div className="flex flex-col items-start">
-       <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">{recipe.name}</span>
-       <span className="text-[7px] text-zinc-600 font-mono">REC_#{recipe.type.toUpperCase().slice(0,4)}</span>
-    </div>
-    <span className="text-xs group-hover:translate-x-1 transition-transform">➔</span>
-  </button>
-);
-
-// --- Rest of previous subcomponents (AAButton, SequenceItem, ProteinVisualizer, generateFoldedStructure) unchanged ---
-
-
-// --- Subcomponents ---
-
-const AAButton = ({ type, onAdd }) => {
-  const info = getUniversalItemInfo(type);
-  
-  // Property mapping for lore/gameplay
-  const props = {
-    'glycine': { property: 'Flexible', effect: '+Stability' },
-    'alanine': { property: 'Small', effect: '+Metabolism' },
-    'serine': { property: 'Polar', effect: '+Solubility' },
-    'valine': { property: 'Hydrophobic', effect: '+Folding' },
-    'leucine': { property: 'Hydrophobic', effect: '+Size' },
-    'isoleucine': { property: 'Hydrophobic', effect: '+Rigidity' },
-    'threonine': { property: 'Polar', effect: '+Bonding' },
-    'methionine': { property: 'Start Code', effect: '+Synthesis' },
-    'arginine': { property: 'Basic', effect: '+Charge' },
-    'asparagine': { property: 'Polar', effect: '+Complexity' },
-    'aspartic-acid': { property: 'Acidic', effect: '-pH Stability' },
-    'glutamic-acid': { property: 'Acidic', effect: '+Excitation' },
-    'glutamine': { property: 'Polar', effect: '+Metabolism' },
-    'proline': { property: 'Helix Breaker', effect: '+Unique Fold' },
-    'tyrosine': { property: 'Aromatic', effect: '+Signaling' },
-    'lysine': { property: 'Basic', effect: '+Folding' },
-    'histidine': { property: 'pH Buffer', effect: '+Catalysis' },
-    'tryptophan': { property: 'Bulky', effect: '+Size' },
-    'cysteine': { property: 'Disulfide', effect: '++Stability' },
-    'phenylalanine': { property: 'Aromatic', effect: '+Stability' },
-  }[type] || { property: 'Neutral', effect: '+Complexity' };
-
-  return (
-    <button 
-      onClick={onAdd}
-      className="w-full flex items-center gap-3 p-2 bg-zinc-900/50 rounded-lg border border-zinc-800 hover:border-amber-500/50 hover:bg-zinc-800 group transition-all"
-    >
-      <div className="w-10 h-10 shrink-0">
-        <ParticleIcon type={type} color={info.color} />
-      </div>
-      <div className="flex flex-col items-start overflow-hidden">
-        <div className="flex items-center gap-2">
-           <span className="text-[10px] font-black text-zinc-300 uppercase truncate">{info.name}</span>
-           <span className="text-[7px] text-amber-600 font-bold border border-amber-900/30 px-1 rounded">{props.property}</span>
-        </div>
-        <span className="text-[8px] text-zinc-600 font-mono italic">{props.effect}</span>
-      </div>
-      <span className="ml-auto text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity">+</span>
-    </button>
-  );
-};
-
-const SequenceItem = ({ type, onRemove }) => {
-  const info = getUniversalItemInfo(type);
-  return (
-    <div className="relative group shrink-0 w-12 h-12 bg-zinc-900 rounded border border-zinc-700 flex items-center justify-center shadow-lg hover:ring-2 ring-amber-500/50 transition-all">
-       <div className="w-8 h-8">
-          <ParticleIcon type={type} color={info.color} />
-       </div>
-       <button 
-         onClick={onRemove}
-         className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[8px] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border border-black shadow-md"
-       >
-         ✖
-       </button>
-    </div>
-  );
-};
-
-// --- 3D Components for Protein Visualizer ---
+// --- 3D Protein Model Geometry Components ---
 
 const atomGeometry = new THREE.SphereGeometry(1, 32, 32);
 const bondGeometry = new THREE.CylinderGeometry(0.12, 0.12, 1, 16);
+const disulfideGeometry = new THREE.CylinderGeometry(0.18, 0.18, 1, 16);
 
-const Residue = ({ position, color, label, size = 1.2 }) => {
+const ResidueMesh = React.memo(({ position, color, label, symbol, chargeType, renderMode, size = 1.25 }) => {
+  const displayColor = useMemo(() => {
+    if (renderMode === 'charge') {
+      if (chargeType === 'pos') return '#3b82f6';
+      if (chargeType === 'neg') return '#ef4444';
+      return '#64748b';
+    }
+    return color || '#38bdf8';
+  }, [renderMode, chargeType, color]);
+
   return (
     <group position={position}>
-      <mesh geometry={atomGeometry} scale={[size, size, size]} castShadow>
+      <mesh geometry={atomGeometry} scale={[size, size, size]}>
         <MeshTransmissionMaterial 
-            backside
-            samples={4}
-            thickness={0.5}
-            chromaticAberration={0.05}
-            transmission={0.9}
-            roughness={0.2}
-            color={color}
-            ior={1.1}
-            metalness={0.1}
+          backside
+          samples={4}
+          thickness={0.6}
+          chromaticAberration={0.06}
+          transmission={0.85}
+          roughness={0.15}
+          color={displayColor}
+          ior={1.15}
+          metalness={0.1}
         />
       </mesh>
-      {/* Glow Core */}
-      <mesh geometry={atomGeometry} scale={[size * 0.4, size * 0.4, size * 0.4]}>
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={4} toneMapped={false} />
+      
+      {/* Internal Luminous Quantum Core */}
+      <mesh geometry={atomGeometry} scale={[size * 0.42, size * 0.42, size * 0.42]}>
+        <meshStandardMaterial 
+          color={displayColor} 
+          emissive={displayColor} 
+          emissiveIntensity={3.5} 
+          toneMapped={false} 
+        />
       </mesh>
     </group>
   );
-};
+});
 
-const PeptideBond = ({ start, end, color = "#4f46e5" }) => {
+const PeptideCovalentBond = React.memo(({ start, end, color = "#6366f1" }) => {
   const midPoint = useMemo(() => new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5), [start, end]);
   const distance = useMemo(() => start.distanceTo(end), [start, end]);
   const direction = useMemo(() => new THREE.Vector3().subVectors(end, start).normalize(), [start, end]);
@@ -460,204 +83,706 @@ const PeptideBond = ({ start, end, color = "#4f46e5" }) => {
       <meshStandardMaterial 
         color={color} 
         emissive={color} 
-        emissiveIntensity={2} 
+        emissiveIntensity={2.5} 
         toneMapped={false} 
         transparent 
-        opacity={0.4} 
+        opacity={0.6} 
+      />
+    </mesh>
+  );
+});
+
+const DisulfideBridge3D = React.memo(({ start, end }) => {
+  const midPoint = useMemo(() => new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5), [start, end]);
+  const distance = useMemo(() => start.distanceTo(end), [start, end]);
+  const direction = useMemo(() => new THREE.Vector3().subVectors(end, start).normalize(), [start, end]);
+  
+  const quaternion = useMemo(() => {
+    const q = new THREE.Quaternion();
+    const up = new THREE.Vector3(0, 1, 0);
+    q.setFromUnitVectors(up, direction);
+    return q;
+  }, [direction]);
+
+  return (
+    <mesh position={midPoint} quaternion={quaternion} geometry={disulfideGeometry} scale={[1, distance, 1]}>
+      <meshStandardMaterial 
+        color="#fbbf24" 
+        emissive="#f59e0b" 
+        emissiveIntensity={5} 
+        toneMapped={false} 
+      />
+    </mesh>
+  );
+});
+
+const ContinuousRibbonTube = ({ curve }) => {
+  const tubeGeometry = useMemo(() => {
+    if (!curve) return null;
+    return new THREE.TubeGeometry(curve, 64, 0.45, 12, false);
+  }, [curve]);
+
+  if (!tubeGeometry) return null;
+
+  return (
+    <mesh geometry={tubeGeometry}>
+      <meshStandardMaterial 
+        color="#38bdf8" 
+        emissive="#0284c7" 
+        emissiveIntensity={1.2} 
+        roughness={0.2} 
+        metalness={0.8} 
+        transparent 
+        opacity={0.7} 
       />
     </mesh>
   );
 };
 
-const ProteinModel = ({ structure }) => {
+const Protein3DScene = ({ structure, renderMode }) => {
   const groupRef = useRef();
   
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.1;
-      groupRef.current.rotation.z = Math.sin(state.clock.getElapsedTime() * 0.5) * 0.1;
+      groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.12;
+      groupRef.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.3) * 0.08;
     }
   });
 
   const points = useMemo(() => structure.points.map(p => new THREE.Vector3(p.x, p.y, p.z)), [structure]);
 
   return (
-    <group ref={groupRef} scale={0.4}>
+    <group ref={groupRef} scale={0.42}>
+      {/* Continuous Backbone Ribbon */}
+      {renderMode !== 'spheres_only' && structure.splineCurve && (
+        <ContinuousRibbonTube curve={structure.splineCurve} />
+      )}
+
+      {/* Residue Spheres */}
       {points.map((pos, i) => (
-        <Residue 
+        <ResidueMesh 
           key={i} 
           position={pos} 
           color={structure.points[i].color} 
-          label={structure.points[i].label} 
+          label={structure.points[i].label}
+          symbol={structure.points[i].symbol}
+          chargeType={structure.points[i].chargeType}
+          renderMode={renderMode}
         />
       ))}
+
+      {/* Peptide Bonds */}
       {structure.bonds.map((bond, i) => (
-        <PeptideBond 
-          key={i} 
+        <PeptideCovalentBond 
+          key={`bond-${i}`} 
           start={points[bond.from]} 
           end={points[bond.to]} 
           color={structure.points[bond.from].color}
+        />
+      ))}
+
+      {/* Disulfide Bridges */}
+      {structure.disulfideLinks?.map((bridge, i) => (
+        <DisulfideBridge3D
+          key={`ss-${i}`}
+          start={points[bridge.from]}
+          end={points[bridge.to]}
         />
       ))}
     </group>
   );
 };
 
-const ProteinVisualizer3D = ({ structure }) => {
-  if (!structure) return null;
+// --- Main Studio Component ---
+
+const ProteinFolder = () => {
+  const { synthesizedProteins, addSynthesizedProtein } = useBioStore();
+  const { discoveredItems, compounds, consumeResource, addResource } = useInventory();
+  const { isSandboxMode } = useStore();
+  
+  // Sequencing Studio State
+  const [studioMode, setStudioMode] = useState('dna'); // 'dna' (Genetic Codon) or 'residues' (Direct AA)
+  const [dnaInput, setDnaInput] = useState('TACGGCTGCACCAGCATCTGCAGCCTGTACCAGCTGGAGAACTACTGCAACTAG');
+  const [directSequence, setDirectSequence] = useState([]);
+  
+  // Visual & Folding State
+  const [renderMode, setRenderMode] = useState('ribbon'); // 'ribbon', 'charge', 'spheres_only'
+  const [isFolding, setIsFolding] = useState(false);
+  const [foldedStructure, setFoldedStructure] = useState(null);
+  const [activeTab, setActiveTab] = useState('library'); // 'library', 'history', 'presets'
+  const [statusMessage, setStatusMessage] = useState('');
+
+  // 1. Transcribe and Translate DNA
+  const translationResult = useMemo(() => {
+    const mrna = transcribeDNA(dnaInput);
+    const translation = translateMRNA(mrna);
+    return {
+      mrna,
+      ...translation
+    };
+  }, [dnaInput]);
+
+  // Current active amino acid sequence based on mode
+  const activeSequence = useMemo(() => {
+    if (studioMode === 'dna') {
+      return translationResult.residues;
+    }
+    return directSequence;
+  }, [studioMode, translationResult.residues, directSequence]);
+
+  // Real-time biophysical telemetry computation
+  const liveBiophysics = useMemo(() => {
+    return analyzeProteinBiophysics(activeSequence);
+  }, [activeSequence]);
+
+  // Auto-generate fold on sequence changes if active
+  useEffect(() => {
+    if (activeSequence.length >= 2) {
+      const model = generateFolded3DModel(activeSequence);
+      setFoldedStructure(model);
+    } else {
+      setFoldedStructure(null);
+    }
+  }, [activeSequence]);
+
+  // Categorized Amino Acids for Manual Palettes
+  const categorizedAA = useMemo(() => {
+    const codex = getUniversalCodexData();
+    const bioGroup = codex.find(g => g.name === 'Biochemistry');
+    const aaSub = bioGroup?.subcategories.find(s => s.name === 'Amino Acids');
+    
+    if (!aaSub) return {};
+    const available = aaSub.particles.filter(type => isSandboxMode || discoveredItems.includes(type));
+    
+    const groups = {
+      'Hydrophobic (Nonpolar)': ['glycine', 'alanine', 'valine', 'leucine', 'isoleucine', 'proline', 'methionine', 'phenylalanine', 'tryptophan'],
+      'Polar (Uncharged)': ['serine', 'threonine', 'cysteine', 'asparagine', 'glutamine', 'tyrosine'],
+      'Basic (+ Charged)': ['lysine', 'arginine', 'histidine'],
+      'Acidic (- Charged)': ['aspartic-acid', 'glutamic-acid']
+    };
+
+    const result = {};
+    Object.entries(groups).forEach(([name, members]) => {
+      const found = available.filter(type => members.includes(type));
+      if (found.length > 0) result[name] = found;
+    });
+    
+    return result;
+  }, [discoveredItems, isSandboxMode]);
+
+  // Nucleotide insertion helpers for DNA mode
+  const handleAddNucleotide = useCallback((base) => {
+    if (dnaInput.length >= 72) return;
+    setDnaInput(prev => prev + base);
+  }, [dnaInput]);
+
+  const handleBackspaceDNA = useCallback(() => {
+    setDnaInput(prev => prev.slice(0, -1));
+  }, []);
+
+  const handleMutateRandomBase = useCallback(() => {
+    if (dnaInput.length === 0) return;
+    const bases = ['A', 'T', 'C', 'G'];
+    const idx = Math.floor(Math.random() * dnaInput.length);
+    const newBase = bases[Math.floor(Math.random() * bases.length)];
+    const arr = dnaInput.split('');
+    arr[idx] = newBase;
+    setDnaInput(arr.join(''));
+    setStatusMessage(`⚡ Cosmic radiation mutated base at locus #${idx + 1} to ${newBase}!`);
+  }, [dnaInput]);
+
+  // Manual Amino Acid Palette handlers
+  const handleAddDirectAA = (type) => {
+    if (directSequence.length >= 20) return;
+    setDirectSequence([...directSequence, { type, id: Date.now() + Math.random() }]);
+  };
+
+  const handleRemoveDirectAA = (index) => {
+    const newSeq = [...directSequence];
+    newSeq.splice(index, 1);
+    setDirectSequence(newSeq);
+  };
+
+  const handleLoadPreset = (preset) => {
+    setStudioMode('dna');
+    setDnaInput(preset.dna);
+    setStatusMessage(`Loaded genetic template: ${preset.name}`);
+  };
+
+  // Finalize & Synthesize to Inventory
+  const handleSynthesize = () => {
+    if (activeSequence.length < 2) {
+      setStatusMessage('Error: Sequence requires at least 2 amino acids.');
+      return;
+    }
+
+    const seqTypes = activeSequence.map(s => s.type);
+    
+    // Resource check
+    const required = {};
+    seqTypes.forEach(t => {
+      required[t] = (required[t] || 0) + 1;
+    });
+
+    if (!isSandboxMode) {
+      for (const [type, count] of Object.entries(required)) {
+        if ((compounds[type] || 0) < count) {
+          setStatusMessage(`Error: Insufficient ${type} in inventory.`);
+          return;
+        }
+      }
+      for (const [type, count] of Object.entries(required)) {
+        consumeResource('compounds', type, count);
+      }
+    }
+
+    setIsFolding(true);
+    setStatusMessage('Initiating ribosome synthesis and chaperonin folding...');
+
+    setTimeout(() => {
+      setIsFolding(false);
+      
+      const match = POLYPEPTIDE_RECIPES.find(recipe => {
+        if (recipe.sequence) {
+          if (recipe.sequence.length !== seqTypes.length) return false;
+          return recipe.sequence.every((t, i) => t === seqTypes[i]);
+        }
+        const recipeCounts = recipe.molecules || {};
+        const seqCounts = {};
+        seqTypes.forEach(t => seqCounts[t] = (seqCounts[t] || 0) + 1);
+        if (Object.keys(recipeCounts).length !== Object.keys(seqCounts).length) return false;
+        return Object.entries(recipeCounts).every(([t, c]) => seqCounts[t] === c);
+      });
+
+      const proteinName = match ? match.name : `Biopolymer-${Date.now().toString().slice(-4)} (${seqTypes.length}aa)`;
+      
+      if (match) {
+        addResource('compounds', match.type, 1);
+        setStatusMessage(`Synthesized ${match.name}! Registered to Biological Inventory.`);
+      } else {
+        setStatusMessage(`Folded custom ${proteinName}. Stability: ${liveBiophysics.stabilityScore}%`);
+      }
+
+      addSynthesizedProtein({
+        id: `PROT-${Date.now()}`,
+        name: proteinName,
+        sequence: seqTypes,
+        biophysics: liveBiophysics,
+        structure: foldedStructure,
+      });
+    }, 1200);
+  };
 
   return (
-    <Canvas shadows dpr={[1, 2]} gl={{ antialias: false }}>
-      <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={40} />
+    <div className="flex flex-col lg:flex-row h-full w-full bg-[#080c14] p-4 gap-4 text-white overflow-hidden select-none font-sans">
       
-      <Suspense fallback={null}>
-        <PresentationControls
-          global
-          config={{ mass: 1, tension: 200 }}
-          snap={{ mass: 2, tension: 400 }}
-          rotation={[0, 0, 0]}
-          polar={[-Math.PI / 3, Math.PI / 3]}
-          azimuth={[-Math.PI / 2, Math.PI / 2]}
-        >
-          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-            <ProteinModel structure={structure} />
-          </Float>
-        </PresentationControls>
-
-        <ContactShadows position={[0, -6, 0]} opacity={0.4} scale={20} blur={2} far={10} color="#000000" />
-        <Environment preset="night" />
+      {/* 1. LEFT SIDEBAR: Genetic Palette & Library */}
+      <div className="w-full lg:w-80 flex flex-col gap-3 shrink-0 bg-[#0c1220]/95 backdrop-blur-2xl rounded-3xl border border-cyan-500/20 shadow-2xl p-4 overflow-hidden">
         
-        <EffectComposer disableNormalPass>
-          <Bloom luminanceThreshold={1} mipmapBlur intensity={1.5} radius={0.3} />
-          <Noise opacity={0.05} />
-          <Vignette eskil={false} offset={0.1} darkness={1.1} />
-        </EffectComposer>
-      </Suspense>
+        {/* Navigation Tabs */}
+        <div className="flex bg-[#070a12] rounded-xl p-1 border border-cyan-500/20">
+          {['library', 'presets', 'history'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg ${
+                activeTab === tab 
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]' 
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
-      <ambientLight intensity={0.4} />
-      <pointLight position={[10, 10, 10]} intensity={2} color="#ffffff" castShadow />
-      <Stars radius={100} depth={50} count={500} factor={4} saturation={0} fade speed={1} />
-    </Canvas>
+        {/* Tab Content */}
+        <div className="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+          {activeTab === 'library' && (
+            <div className="space-y-4">
+              {/* Studio Input Mode Selector */}
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-800">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Input Source:</span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setStudioMode('dna')}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                      studioMode === 'dna' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    DNA / mRNA
+                  </button>
+                  <button
+                    onClick={() => setStudioMode('residues')}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                      studioMode === 'residues' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Residues
+                  </button>
+                </div>
+              </div>
+
+              {/* DNA Nucleotide Clicker Palette */}
+              {studioMode === 'dna' ? (
+                <div className="space-y-3 p-3 rounded-2xl bg-gradient-to-b from-[#101726] to-[#0a0f1a] border border-cyan-500/20">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-cyan-300 font-bold uppercase">
+                    <span>Nucleotide Base Palette</span>
+                    <span>5' ➔ 3'</span>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { base: 'A', name: 'Adenine', color: 'bg-emerald-600/80 hover:bg-emerald-500 border-emerald-400/50' },
+                      { base: 'T', name: 'Thymine', color: 'bg-rose-600/80 hover:bg-rose-500 border-rose-400/50' },
+                      { base: 'C', name: 'Cytosine', color: 'bg-amber-600/80 hover:bg-amber-500 border-amber-400/50' },
+                      { base: 'G', name: 'Guanine', color: 'bg-indigo-600/80 hover:bg-indigo-500 border-indigo-400/50' },
+                    ].map(n => (
+                      <button
+                        key={n.base}
+                        onClick={() => handleAddNucleotide(n.base)}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-white font-mono font-black shadow-lg transition-all active:scale-95 ${n.color}`}
+                      >
+                        <span className="text-xl leading-none">{n.base}</span>
+                        <span className="text-[7px] uppercase tracking-tighter opacity-80 mt-1">{n.name}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Quick Edit Controls */}
+                  <div className="flex gap-2 pt-2 border-t border-slate-800">
+                    <button
+                      onClick={handleBackspaceDNA}
+                      className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-bold font-mono transition-all"
+                    >
+                      ⌫ Delete Base
+                    </button>
+                    <button
+                      onClick={handleMutateRandomBase}
+                      className="flex-1 py-1.5 bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-bold font-mono transition-all flex items-center justify-center gap-1"
+                    >
+                      <span>⚡</span>
+                      <span>Mutate</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Amino Acid Palette */
+                <div className="space-y-4">
+                  {Object.entries(categorizedAA).map(([groupName, types]) => (
+                    <div key={groupName} className="space-y-2">
+                      <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">
+                        {groupName}
+                      </span>
+                      <div className="grid grid-cols-2 gap-2">
+                        {types.map(type => {
+                          const info = getUniversalItemInfo(type);
+                          return (
+                            <button
+                              key={type}
+                              onClick={() => handleAddDirectAA(type)}
+                              className="flex items-center gap-2 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/40 transition-all text-left group"
+                            >
+                              <div className="w-7 h-7 shrink-0">
+                                <ParticleIcon type={type} color={info.color} />
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-300 group-hover:text-white truncate">
+                                {info.name}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'presets' && (
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                Canonical Genetic Templates
+              </span>
+              {PRESET_GENOMES.map(preset => (
+                <div 
+                  key={preset.id}
+                  onClick={() => handleLoadPreset(preset)}
+                  className="p-3 rounded-2xl bg-gradient-to-b from-[#121a2c] to-[#0a0f1c] border border-cyan-500/20 hover:border-cyan-400/60 hover:shadow-[0_0_15px_rgba(6,182,212,0.2)] cursor-pointer transition-all space-y-1 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">
+                      {preset.name}
+                    </span>
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-cyan-950 border border-cyan-500/30 text-cyan-400 font-bold">
+                      {preset.category}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
+                    {preset.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'history' && (
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                Synthesized Proteins Registry
+              </span>
+              {synthesizedProteins.length === 0 ? (
+                <p className="text-xs text-slate-500 font-mono text-center py-8">No custom polymers synthesized yet.</p>
+              ) : (
+                synthesizedProteins.slice().reverse().map(p => (
+                  <div key={p.id} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-white block">{p.name}</span>
+                      <span className="text-[9px] font-mono text-slate-500">{p.sequence.length} Amino Acids</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                      {p.biophysics?.stabilityScore || 85}% Fold
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 2. CENTER & RIGHT: Studio Sequence Ribbon & 3D Biophysics Viewport */}
+      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+        
+        {/* Top: Interactive Genetic Code Ribbon (DNA ➔ mRNA ➔ Residues) */}
+        <div className="p-4 rounded-3xl bg-[#0c1220]/95 backdrop-blur-2xl border border-cyan-500/20 shadow-xl flex flex-col gap-3">
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              <h3 className="text-xs font-black uppercase tracking-widest text-cyan-300">
+                Ribosomal Translation Bay (Open Reading Frame)
+              </h3>
+            </div>
+
+            <span className="text-[10px] font-mono text-slate-400">
+              Length: <strong className="text-cyan-300">{activeSequence.length}</strong> Residues
+            </span>
+          </div>
+
+          {/* DNA / mRNA / Codon Visual Track */}
+          {studioMode === 'dna' ? (
+            <div className="space-y-2">
+              {/* mRNA Codon Track */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                {translationResult.codons.map((codon, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`flex flex-col items-center p-2 rounded-xl border min-w-[64px] transition-all ${
+                      codon.entry?.type === 'STOP' 
+                        ? 'bg-rose-950/70 border-rose-500/50 text-rose-300' 
+                        : 'bg-[#10192a] border-cyan-500/30 text-cyan-200 shadow-md'
+                    }`}
+                  >
+                    <span className="text-[11px] font-mono font-black tracking-widest text-white">
+                      {codon.triplet}
+                    </span>
+                    <span className="text-[9px] font-mono font-bold uppercase truncate mt-0.5">
+                      {codon.entry?.symbol || '?'} ({codon.entry?.abbr || '???'})
+                    </span>
+                  </div>
+                ))}
+
+                {translationResult.remainder && (
+                  <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-900/40 border border-dashed border-slate-700 min-w-[50px] opacity-60">
+                    <span className="text-[10px] font-mono text-slate-500">{translationResult.remainder}</span>
+                    <span className="text-[7px] text-slate-600 uppercase">Frameshift</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Direct Residue Sequence Ribbon */
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
+              {directSequence.map((aa, idx) => {
+                const info = getUniversalItemInfo(aa.type);
+                return (
+                  <div 
+                    key={aa.id} 
+                    className="group relative flex flex-col items-center p-2 rounded-xl bg-[#10192a] border border-cyan-500/30 min-w-[56px] shadow-md"
+                  >
+                    <div className="w-7 h-7">
+                      <ParticleIcon type={aa.type} color={info.color} />
+                    </div>
+                    <span className="text-[9px] font-bold text-slate-300 mt-1 truncate max-w-[50px]">
+                      {info.name}
+                    </span>
+                    <button
+                      onClick={() => handleRemoveDirectAA(idx)}
+                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Center: 3D Protein Folding Viewport */}
+        <div className="flex-1 relative rounded-3xl bg-[#060911] border border-cyan-500/25 shadow-[0_15px_60px_rgba(0,0,0,0.8)] overflow-hidden flex items-center justify-center">
+          
+          {/* Top Overlays */}
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0c1220]/80 backdrop-blur-xl border border-cyan-500/30 text-xs font-mono text-cyan-200 shadow-lg">
+              <span className={`w-2 h-2 rounded-full ${foldedStructure ? 'bg-emerald-400' : 'bg-slate-600'}`}></span>
+              <span>Conformation: <strong>{foldedStructure ? 'Tertiary Fold' : 'Linear Primary'}</strong></span>
+            </div>
+
+            {/* Render Mode Switcher */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-[#0c1220]/80 backdrop-blur-xl border border-cyan-500/30">
+              <button
+                onClick={() => setRenderMode('ribbon')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${
+                  renderMode === 'ribbon' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Ribbon
+              </button>
+              <button
+                onClick={() => setRenderMode('charge')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${
+                  renderMode === 'charge' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Electrostatics
+              </button>
+              <button
+                onClick={() => setRenderMode('spheres_only')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${
+                  renderMode === 'spheres_only' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Residues
+              </button>
+            </div>
+          </div>
+
+          {/* 3D Canvas */}
+          <div className="w-full h-full">
+            {foldedStructure ? (
+              <Canvas shadows dpr={[1, 2]} gl={{ antialias: true }}>
+                <PerspectiveCamera makeDefault position={[0, 0, 16]} fov={38} />
+                
+                <Suspense fallback={null}>
+                  <PresentationControls
+                    global
+                    config={{ mass: 1.2, tension: 220 }}
+                    snap={{ mass: 2, tension: 400 }}
+                    rotation={[0, 0, 0]}
+                    polar={[-Math.PI / 3, Math.PI / 3]}
+                    azimuth={[-Math.PI / 2, Math.PI / 2]}
+                  >
+                    <Float speed={2.5} rotationIntensity={0.6} floatIntensity={0.6}>
+                      <Protein3DScene structure={foldedStructure} renderMode={renderMode} />
+                    </Float>
+                  </PresentationControls>
+
+                  <ContactShadows position={[0, -6, 0]} opacity={0.5} scale={18} blur={2.5} far={12} color="#000000" />
+                  <Environment preset="night" />
+                  
+                  <EffectComposer disableNormalPass>
+                    <Bloom luminanceThreshold={1} mipmapBlur intensity={1.8} radius={0.35} />
+                    <Noise opacity={0.03} />
+                    <Vignette eskil={false} offset={0.1} darkness={1.1} />
+                  </EffectComposer>
+                </Suspense>
+
+                <ambientLight intensity={0.5} />
+                <pointLight position={[12, 12, 12]} intensity={2.5} color="#ffffff" castShadow />
+                <pointLight position={[-12, -12, -12]} intensity={1.5} color="#38bdf8" />
+                <Stars radius={120} depth={60} count={600} factor={4} saturation={0} fade speed={1.2} />
+              </Canvas>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-3">
+                <span className="text-5xl opacity-40">🧬</span>
+                <span className="text-xs font-mono uppercase tracking-widest">Input at least 2 amino acids to fold</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom: Live Biophysical Telemetry Dashboard & Synthesis Action */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 shrink-0">
+          
+          <div className="p-3.5 rounded-2xl bg-[#0c1220]/90 border border-cyan-500/20 shadow-lg flex flex-col justify-between">
+            <span className="text-[9px] font-mono text-cyan-400 uppercase font-black">Free Energy (ΔG)</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-mono font-black text-white">{liveBiophysics.freeEnergy}</span>
+              <span className="text-[9px] text-slate-500">kcal/mol</span>
+            </div>
+            <span className="text-[8px] font-mono text-slate-500">Hydrophobic Collapse</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#0c1220]/90 border border-emerald-500/20 shadow-lg flex flex-col justify-between">
+            <span className="text-[9px] font-mono text-emerald-400 uppercase font-black">Folding Stability</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-mono font-black text-emerald-300">{liveBiophysics.stabilityScore}%</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div className="h-full bg-emerald-400 transition-all duration-300" style={{ width: `${liveBiophysics.stabilityScore}%` }} />
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#0c1220]/90 border border-amber-500/20 shadow-lg flex flex-col justify-between">
+            <span className="text-[9px] font-mono text-amber-400 uppercase font-black">Disulfide Bridges</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-mono font-black text-amber-300">{liveBiophysics.disulfideBonds}</span>
+              <span className="text-[9px] text-slate-500">S-S links</span>
+            </div>
+            <span className="text-[8px] font-mono text-slate-500">Covalent Stabilization</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#0c1220]/90 border border-indigo-500/20 shadow-lg flex flex-col justify-between">
+            <span className="text-[9px] font-mono text-indigo-400 uppercase font-black">Secondary Structure</span>
+            <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold">
+              <span className="text-cyan-300">{liveBiophysics.secondaryFractions.helix}% α</span>
+              <span className="text-indigo-300">{liveBiophysics.secondaryFractions.sheet}% β</span>
+              <span className="text-slate-400">{liveBiophysics.secondaryFractions.loop}% loop</span>
+            </div>
+            <span className="text-[8px] font-mono text-slate-500">Chou-Fasman Estimate</span>
+          </div>
+
+          {/* Synthesize Action Button */}
+          <button
+            onClick={handleSynthesize}
+            disabled={activeSequence.length < 2 || isFolding}
+            className={`col-span-2 lg:col-span-1 p-3.5 rounded-2xl border shadow-xl flex flex-col items-center justify-center gap-1 uppercase font-black tracking-widest transition-all ${
+              activeSequence.length < 2 || isFolding
+                ? 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed'
+                : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white border-emerald-400/40 shadow-[0_0_20px_rgba(16,185,129,0.4)] active:scale-95'
+            }`}
+          >
+            <span className="text-lg leading-none">🧬</span>
+            <span className="text-[11px]">Synthesize</span>
+          </button>
+        </div>
+
+        {/* Status Toast */}
+        {statusMessage && (
+          <div className="px-4 py-2 rounded-xl bg-[#0c1424] border border-cyan-500/30 text-xs font-mono text-cyan-200 flex items-center gap-2 animate-fade-in shadow-lg">
+            <span>💡</span>
+            <span>{statusMessage}</span>
+          </div>
+        )}
+
+      </div>
+
+    </div>
   );
 };
 
-// --- Logic Helpers ---
-
-export const generateFoldedStructure = (sequence) => {
-  const isH = (type) => ['leucine', 'isoleucine', 'valine', 'phenylalanine', 'methionine'].includes(type);
-  const isP = (type) => ['serine', 'threonine', 'cysteine', 'asparagine', 'glutamine', 'lysine', 'arginine', 'histidine', 'aspartic-acid', 'glutamic-acid'].includes(type);
-
-  // Beam Search for 3D Lattice HP Model
-  const beamWidth = 200;
-  
-  // Directions: x, -x, y, -y, z, -z
-  const dirs = [
-    [1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]
-  ];
-
-  let beam = [ { path: [[0,0,0]], energy: 0 } ]; 
-  
-  for (let i = 1; i < sequence.length; i++) {
-    const nextBeam = [];
-    const currentAA = sequence[i].type;
-    const currentIsH = isH(currentAA);
-    const currentIsP = isP(currentAA);
-    
-    for (const state of beam) {
-      const lastPos = state.path[state.path.length - 1];
-      
-      for (const d of dirs) {
-        const nx = lastPos[0] + d[0];
-        const ny = lastPos[1] + d[1];
-        const nz = lastPos[2] + d[2];
-        
-        // Check self-avoiding
-        let collision = false;
-        for (const p of state.path) {
-          if (p[0] === nx && p[1] === ny && p[2] === nz) {
-            collision = true;
-            break;
-          }
-        }
-        if (collision) continue;
-        
-        // Calculate energy for new position
-        let dE = 0;
-        
-        let hNeighbors = 0;
-        let pNeighbors = 0;
-        let emptyNeighbors = 5; // one neighbor is the previous residue
-        
-        // Count neighbors among already placed residues
-        for (let j = 0; j < state.path.length - 1; j++) { 
-          const p = state.path[j];
-          const dist = Math.abs(p[0]-nx) + Math.abs(p[1]-ny) + Math.abs(p[2]-nz);
-          if (dist === 1) {
-             emptyNeighbors--;
-             const otherAA = sequence[j].type;
-             if (isH(otherAA)) hNeighbors++;
-             if (isP(otherAA)) pNeighbors++;
-          }
-        }
-        
-        if (currentIsH) {
-           dE -= hNeighbors * 2.0; // H-H contacts minimize energy
-           dE += emptyNeighbors * 0.5; // H hates solvent
-        } else if (currentIsP) {
-           dE -= pNeighbors * 0.5; // P-P H-bonds
-           dE -= emptyNeighbors * 0.5; // P likes solvent
-        }
-        
-        nextBeam.push({
-          path: [...state.path, [nx, ny, nz]],
-          energy: state.energy + dE
-        });
-      }
-    }
-    
-    nextBeam.sort((a, b) => a.energy - b.energy);
-    beam = nextBeam.slice(0, beamWidth);
-    
-    if (beam.length === 0) {
-      break; 
-    }
-  }
-
-  const bestPath = beam[0] ? beam[0].path : [[0,0,0]];
-
-  const points = [];
-  const bonds = [];
-  
-  bestPath.forEach((pos, i) => {
-    const aa = sequence[i];
-    const info = getUniversalItemInfo(aa.type) || { color: '#ffffff', name: aa.type };
-    // scale lattice
-    const scale = 5;
-    points.push({
-      x: pos[0] * scale,
-      y: pos[1] * scale,
-      z: pos[2] * scale,
-      color: info.color,
-      label: info.name.slice(0,1).toUpperCase()
-    });
-    if (i > 0) {
-      bonds.push({ from: i-1, to: i, isPeptide: true });
-    }
-  });
-
-  if (points.length > 0) {
-    const avgX = points.reduce((acc, p) => acc + p.x, 0) / points.length;
-    const avgY = points.reduce((acc, p) => acc + p.y, 0) / points.length;
-    const avgZ = points.reduce((acc, p) => acc + p.z, 0) / points.length;
-    
-    points.forEach(p => {
-      p.x -= avgX;
-      p.y -= avgY;
-      p.z -= avgZ;
-    });
-  }
-
-  return { points, bonds };
-};
-
-export default ProteinFolder;
+export { generateFolded3DModel as generateFoldedStructure };
+export default React.memo(ProteinFolder);
