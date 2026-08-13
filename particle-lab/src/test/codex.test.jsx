@@ -53,7 +53,7 @@ describe('Codex Component', () => {
 
   it('should render nothing if not visible', () => {
     render(<Codex isVisible={false} onClose={() => {}} />);
-    expect(screen.queryByText('Universal Codex')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Universal Codex/i)).not.toBeInTheDocument();
   });
 
   it('should render items as "???" if not discovered', () => {
@@ -93,7 +93,7 @@ describe('Codex Component', () => {
     
     render(<Codex isVisible={true} onClose={() => {}} />);
     
-    const searchInput = screen.getByPlaceholderText('Search...');
+    const searchInput = screen.getByPlaceholderText(/Search/i);
     fireEvent.change(searchInput, { target: { value: 'Quark' } });
     
     expect(screen.getByText('Up Quark')).toBeInTheDocument();

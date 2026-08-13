@@ -6,6 +6,9 @@ import { PARTICLE_NAMES } from '../constants/particles';
 import { useDiscoveredMatter } from '../hooks/useDiscoveredMatter';
 import { MATTER_DEFINITIONS, getMatterInfo } from '../constants/matterRegistry';
 
+import { buildLineageTree, aggregateFundamentalConstituents } from '../utils/lineageTree.js';
+import ParticleIcon from '../particle-lab/components/ParticleIcon.jsx';
+
 const TABS = {
   CODEX: 'Codex',
   LINEAGE: 'Lineage',
@@ -90,12 +93,7 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
 
   const handleParticleSelection = (particleId) => {
     setInspectedItem(particleId);
-    const info = getMatterInfo(particleId);
-    if (info.isChemical || info.category?.includes('Nucleotide') || info.category?.includes('Molecule')) {
-        setActiveTab(TABS.SPECTROSCOPE);
-    } else {
-        setActiveTab(TABS.LINEAGE);
-    }
+    setActiveTab(TABS.LINEAGE);
     if (onParticleClick) onParticleClick(particleId);
   };
 
@@ -275,72 +273,193 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
   );
 };
 
+const TreeNode = ({ node, onSelect, isRoot = false, level = 0 }) => {
+  if (!node) return null;
+  const hasChildren = node.children && node.children.length > 0;
+
+  return (
+    <div className="flex flex-col items-center select-none">
+      {/* Node Card */}
+      <button
+        onClick={() => onSelect(node.type)}
+        className={`group relative flex items-center gap-3 px-4 py-2.5 rounded-2xl border transition-all duration-200 hover:scale-105 active:scale-95 shadow-xl ${
+          isRoot 
+            ? 'bg-gradient-to-r from-[#172338] to-[#101929] border-cyan-400 ring-2 ring-cyan-400/50 shadow-[0_0_25px_rgba(6,182,212,0.3)] z-20' 
+            : 'bg-[#0f1728]/90 hover:bg-[#152038] border-cyan-500/30 hover:border-amber-400/60'
+        }`}
+      >
+        {/* Quantity Badge */}
+        {node.count > 1 && (
+          <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-xs font-black">
+            {node.count}×
+          </span>
+        )}
+
+        {/* Mini Icon */}
+        <div className="w-8 h-8 relative flex items-center justify-center">
+          <ParticleIcon type={node.type} color={node.color} />
+        </div>
+
+        {/* Text Details */}
+        <div className="flex flex-col items-start text-left">
+          <span className="text-xs font-bold text-white group-hover:text-cyan-200 transition-colors">
+            {node.name}
+          </span>
+          <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">
+            {node.category}
+          </span>
+        </div>
+
+        {/* Hover inspect tooltip */}
+        {!isRoot && (
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#0a0f18] border border-cyan-500/40 text-[9px] font-mono text-cyan-300 px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-30">
+            Focus Lineage
+          </div>
+        )}
+      </button>
+
+      {/* Children Branches */}
+      {hasChildren && (
+        <div className="flex flex-col items-center w-full mt-3">
+          {/* Vertical stem down from parent */}
+          <div className="w-0.5 h-6 bg-gradient-to-b from-cyan-400/80 to-cyan-500/30"></div>
+
+          {/* Children container with horizontal connector */}
+          <div className="relative flex justify-center gap-6 pt-3">
+            {node.children.length > 1 && (
+              <div 
+                className="absolute top-0 h-0.5 bg-cyan-500/40 rounded-full" 
+                style={{ 
+                  left: '20px', 
+                  right: '20px' 
+                }} 
+              />
+            )}
+
+            {node.children.map((child, idx) => (
+              <div key={`${child.type}-${idx}-${level}`} className="relative flex flex-col items-center">
+                {/* Vertical connector line from crossbar */}
+                {node.children.length > 1 && (
+                  <div className="w-0.5 h-3 bg-cyan-500/40 -mt-3 mb-0"></div>
+                )}
+                <TreeNode 
+                  node={child} 
+                  onSelect={onSelect} 
+                  level={level + 1} 
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const LineageView = ({ itemId, theme, onSelect }) => {
   if (!itemId) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+      <div className="flex flex-col items-center justify-center h-full text-slate-500 p-8">
         <span className="text-6xl mb-4">🌳</span>
-        <h3 className="text-2xl font-bold text-gray-400">The Tree of Matter</h3>
-        <p className="mt-2 text-gray-500">Select a substance in the Codex to see its fundamental origin.</p>
+        <h3 className="text-2xl font-black font-sans uppercase tracking-wider text-slate-300">
+          The Tree of Matter
+        </h3>
+        <p className="mt-2 text-sm text-slate-500 font-mono">
+          Select any element, molecule, or hadron in the Codex to trace its subatomic ancestry.
+        </p>
       </div>
     );
   }
 
   const info = getMatterInfo(itemId);
-  
-  const renderTree = (id, depth = 0) => {
-    const item = getMatterInfo(id);
-    if (!item) return null;
-
-    return (
-      <div key={`${id}-${depth}`} className="flex flex-col items-center">
-        <button 
-          onClick={() => onSelect(id)}
-          className={`px-4 py-2 rounded-xl border shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 group relative ${id === itemId ? 'ring-2 ring-white scale-110 z-10' : 'opacity-90'}`}
-          style={{ 
-            backgroundColor: item.color, 
-            borderColor: 'rgba(255,255,255,0.3)',
-            boxShadow: `0 10px 20px -5px ${item.color}66` 
-          }}
-        >
-          <span className="text-white font-bold drop-shadow-md whitespace-nowrap">{item.name}</span>
-          {id !== itemId && (
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-              Trace Origin
-            </div>
-          )}
-        </button>
-        
-        {item.parents && item.parents.length > 0 && (
-          <div className="flex flex-col items-center w-full">
-            <div className="h-8 w-0.5 bg-gradient-to-b from-gray-500 to-transparent"></div>
-            <div className="flex flex-wrap justify-center gap-12 mt-2">
-              {item.parents.map(p => renderTree(p, depth + 1))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
+  const treeData = buildLineageTree(itemId);
+  const fundamentalStats = aggregateFundamentalConstituents(itemId);
 
   return (
-    <div className="p-8 min-h-full flex flex-col items-center">
-      <div className="w-full flex justify-between items-center mb-12">
-        <h2 className={`text-3xl font-bold ${theme.accent}`}>Lineage: {info.name}</h2>
-        <div className="text-sm text-gray-500 italic">Click any parent to focus</div>
-      </div>
+    <div className="p-6 min-h-full flex flex-col items-center max-w-6xl mx-auto custom-scrollbar">
       
-      <div className="flex-1 w-full flex justify-center items-start pt-4 overflow-visible">
-        {renderTree(itemId)}
-      </div>
-      
-      <div className={`mt-12 p-6 rounded-2xl bg-black/40 border ${theme.border} max-w-3xl text-center shadow-inner`}>
-        <p className="text-gray-300 leading-relaxed">"{info.description}"</p>
-        <div className="mt-4 flex justify-center gap-4">
-            <span className="px-3 py-1 bg-white/5 rounded-full text-xs text-gray-400">Category: {info.category}</span>
-            <span className="px-3 py-1 bg-white/5 rounded-full text-xs text-gray-400">Source: {info.source}</span>
+      {/* Header & Subtitle */}
+      <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-cyan-500/20 mb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🧬</span>
+            <h2 className="text-2xl font-black font-sans uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300">
+              Lineage: {info.name}
+            </h2>
+          </div>
+          <p className="text-xs text-slate-400 mt-1 font-mono">
+            Recursive breakdown from macroscopic compound down to fundamental quarks & leptons
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-bold">
+            {info.category || 'Compound'}
+          </span>
         </div>
       </div>
+
+      {/* Main Interactive Tree Container */}
+      <div className="w-full flex-1 flex justify-center items-start py-6 px-4 overflow-x-auto custom-scrollbar">
+        {treeData ? (
+          <TreeNode node={treeData} onSelect={onSelect} isRoot={true} />
+        ) : (
+          <p className="text-slate-500 font-mono text-sm">No constituent sub-particles available.</p>
+        )}
+      </div>
+
+      {/* Fundamental Ledger Summary Cards */}
+      <div className="w-full mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-4 rounded-2xl bg-[#0f1726]/90 border border-amber-500/30 flex flex-col gap-1 shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono text-amber-400 uppercase font-black">Up Quarks (u)</span>
+            <span className="text-xs">⚡</span>
+          </div>
+          <span className="text-2xl font-mono font-black text-amber-300">
+            {fundamentalStats.upQuarks}
+          </span>
+          <span className="text-[9px] font-mono text-slate-500">+2/3 e charge each</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-[#0f1726]/90 border border-indigo-500/30 flex flex-col gap-1 shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono text-indigo-400 uppercase font-black">Down Quarks (d)</span>
+            <span className="text-xs">⚡</span>
+          </div>
+          <span className="text-2xl font-mono font-black text-indigo-300">
+            {fundamentalStats.downQuarks}
+          </span>
+          <span className="text-[9px] font-mono text-slate-500">-1/3 e charge each</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-[#0f1726]/90 border border-cyan-500/30 flex flex-col gap-1 shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono text-cyan-400 uppercase font-black">Electrons (e⁻)</span>
+            <span className="text-xs">✨</span>
+          </div>
+          <span className="text-2xl font-mono font-black text-cyan-300">
+            {fundamentalStats.electrons}
+          </span>
+          <span className="text-[9px] font-mono text-slate-500">-1 e charge each</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-[#0f1726]/90 border border-emerald-500/30 flex flex-col gap-1 shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono text-emerald-400 uppercase font-black">Net Charge (Q)</span>
+            <span className="text-xs">⚖️</span>
+          </div>
+          <span className="text-2xl font-mono font-black text-emerald-300">
+            {fundamentalStats.netCharge >= 0 ? `+${fundamentalStats.netCharge}` : fundamentalStats.netCharge} e
+          </span>
+          <span className="text-[9px] font-mono text-slate-500">Total electrostatic balance</span>
+        </div>
+      </div>
+
+      {/* Description card */}
+      <div className="w-full mt-4 p-4 rounded-2xl bg-[#0a0e17]/80 border border-cyan-500/15 text-center text-xs text-slate-400 font-sans">
+        "{info.description || 'Elementary constituent of universal matter.'}"
+      </div>
+
     </div>
   );
 };

@@ -49,7 +49,7 @@ describe('UI Interactions', () => {
       );
       
       // Check for a known element to confirm render success
-      expect(screen.getByText('Universal Codex')).toBeInTheDocument();
+      expect(screen.getByText(/Universal Codex/i)).toBeInTheDocument();
       
       // Ensure categories are rendered (e.g., "Fundamental", "Molecular")
       // Note: These appear as Tab Buttons AND Section Headers, so getAllByText is safer

@@ -42,12 +42,12 @@ export const radialGradient = (id, c, opacity = 0.8) => (
     </radialGradient>
   );
 
-export const PngIcon = ({ src, alt }) => (
-  <img src={src} alt={alt} className="w-full h-full object-contain pointer-events-none" />
+export const PngIcon = ({ src, alt, className = '' }) => (
+  <img src={src} alt={alt} className={`w-full h-full object-contain pointer-events-none ${className}`} />
 );
 
-export const GenericMoleculeIcon = ({ hexColor }) => (
-  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+export const GenericMoleculeIcon = ({ hexColor, className = '' }) => (
+  <svg viewBox="0 0 100 100" className={`w-full h-full overflow-visible ${className}`}>
     <NeoBond x1={50} y1={50} x2={25} y2={70} />
     <NeoBond x1={50} y1={50} x2={75} y2={70} />
     <NeoSphere x={50} y={50} r={18} color={hexColor} />
