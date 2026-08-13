@@ -95,7 +95,7 @@ const PeriodicTable = ({
           !matchesFilter ? 'opacity-20 scale-95' : ''
         } ${
           isDiscovered 
-            ? `${catStyle.color} cursor-grab active:cursor-grabbing hover:scale-110 hover:z-30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_${catStyle.hex}66] border` 
+            ? `${catStyle.color} cursor-grab active:cursor-grabbing hover:scale-110 hover:z-30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] hover:shadow-cyan-500/40 border` 
             : 'bg-slate-950/60 cursor-default opacity-30 border border-slate-800 text-slate-600'
         }`}
       >
