@@ -48,6 +48,16 @@ const LAB_ITEMS = [
     shadowGlow: 'shadow-[0_0_15px_rgba(96,165,250,0.4)]',
   },
   { 
+    id: 'anatomy', 
+    label: 'Anatomy', 
+    badge: '🦴',
+    desc: '206-Bone Skeleton',
+    color: '#f43f5e', // Rose
+    gradient: 'from-rose-500/20 to-pink-600/10',
+    borderActive: 'border-rose-400',
+    shadowGlow: 'shadow-[0_0_15px_rgba(244,63,94,0.4)]',
+  },
+  { 
     id: 'universe', 
     label: 'Cosmos', 
     badge: '✨',

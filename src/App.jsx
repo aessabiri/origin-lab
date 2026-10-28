@@ -9,6 +9,7 @@ const ChemistryApp = lazy(() => import('./chemistry-lab/ChemistryApp.jsx'));
 const BiologyApp = lazy(() => import('./biology-lab/BiologyApp.jsx'));
 const PlanetaryView = lazy(() => import('./components/PlanetaryView.jsx'));
 const Universe = lazy(() => import('./components/Universe.jsx'));
+const AnatomyLab = lazy(() => import('./anatomy-lab/AnatomyLab.jsx'));
 const Tutorials = lazy(() => import('./components/Tutorials.jsx'));
 const GameProgress = lazy(() => import('./components/GameProgress.jsx'));
 const Goals = lazy(() => import('./components/Goals.jsx'));
@@ -41,6 +42,7 @@ const App = () => {
           {currentView === 'chemistry' && <ChemistryApp />}
           {currentView === 'biology' && <BiologyApp />}
           {currentView === 'planetary' && <PlanetaryView />}
+          {currentView === 'anatomy' && <AnatomyLab />}
           {currentView === 'universe' && <Universe />}
           {currentView === 'tutorials' && <Tutorials />}
         </Suspense>

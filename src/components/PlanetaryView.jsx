@@ -410,6 +410,15 @@ const PlanetaryView = () => {
                     <div><span className="text-slate-500">Niche:</span> {selectedClade.trophicRole}</div>
                     <div><span className="text-slate-500">Innovation:</span> <strong className="text-emerald-300">{selectedClade.innovation}</strong></div>
                     <div className="text-[10px] text-slate-400 mt-1 leading-relaxed">{selectedClade.description}</div>
+                    {selectedClade.id === 'hominini' && (
+                      <button
+                        onClick={() => useStore.getState().setCurrentView('anatomy')}
+                        className="mt-3 w-full py-2.5 px-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white font-black rounded-xl text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(244,63,94,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        <span>🦴</span>
+                        <span>Assemble Homo Sapiens Body (Anatomy Lab)</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

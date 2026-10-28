@@ -5,6 +5,7 @@ import { useChemistryStore } from '../chemistry-lab/store.js';
 import { useInventory } from '../store/inventory.js';
 import { useProgressionStore } from '../store/progressionStore.js';
 import { usePlanetaryStore } from '../store/planetaryStore.js';
+import { useAnatomyStore } from '../anatomy-lab/store.js';
 
 export const resetAllOriginStores = () => {
   try { useInventory.getState().resetUniverse?.(); } catch (e) {}
@@ -14,4 +15,5 @@ export const resetAllOriginStores = () => {
   try { useChemistryStore.getState().resetLab?.(); } catch (e) {}
   try { useProgressionStore.getState().resetProgression?.(); } catch (e) {}
   try { usePlanetaryStore.getState().resetPlanet?.(); } catch (e) {}
+  try { useAnatomyStore.getState().resetSkeleton?.(); } catch (e) {}
 };
