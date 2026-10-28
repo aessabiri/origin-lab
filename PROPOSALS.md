@@ -1,56 +1,31 @@
-# Proposals for Laboratory Evolution
+# Engineering Proposals: Origin Lab
 
-Based on the `initialidea.md` vision and current codebase analysis, here are proposed enhancements to align the simulation with the "Architect of Reality" theme.
-
-## 🧬 Biology Lab: The Proving Ground
-
-**Current State:** A "Petri Dish" sandbox where agents evolve via random mutation and simple selection (eating/starving).
-**Vision:** "Designing the Seed" -> "Protein Folding" -> "Cell Assembly".
-
-### Proposal 1: The Simulation Chamber Loop
-Instead of an endless sandbox, frame the Biology Lab as an engineering bay with specific **Viability Tests**.
-
-1.  **Design Phase:** Use the `CellCreator` (already present) to configure the genome (metabolism, diet, organelles).
-2.  **Simulation Phase (The Change):**
-    *   The player hits "Run Simulation".
-    *   The system runs a **Time-Accelerated** version of the Petri Dish (using the new SpatialHash optimization).
-    *   **Goal:** The population must stabilize or reach a certain threshold (e.g., "Sustain 50 cells for 500 years").
-3.  **Result:**
-    *   **Failure:** Extinction event. The player gets a log: "Metabolic failure. Starvation imminent."
-    *   **Success:** The cell design is "Certified Viable" and added to the Global Inventory as a **Seed**.
-4.  **Export:** Only "Certified Seeds" can be planted on Earth in the Universe View (Phase 5).
-
-### Proposal 2: Organelle Puzzle (Simplified Protein Folding)
-Replace the instant "Unlock" of proteins with a mini-game.
-*   **Mechanic:** Connect amino acids (from Chemistry Lab) in specific chains to form "functional shapes".
-*   **Example:** A chain of *Gly-Ala-Val* folds into a "Pump".
-*   **Benefit:** Gives purpose to the specific amino acids synthesized in the Chemistry Lab.
+This document tracks completed proposals and defines active architectural proposals for upcoming sprints.
 
 ---
 
-## ⚗️ Chemistry Lab: Fluid Dynamics
+## 🟢 Completed Proposals
 
-**Current State:** Numeric simulation of vessel contents (temperature, pressure, list of chemicals). Visuals are likely static colors or simple bars.
-**Vision:** "NileRed Style Reactions" -> "Realistic, visual chemical simulations".
-
-### Proposal 3: Dynamic Fluid Rendering
-Enhance the `Vessel` component to visualize the simulation state more viscously.
-
-1.  **Particle Fluids:** Use a simplified SPH (Smoothed Particle Hydrodynamics) or grid-based fluid sim within the vessel canvas.
-    *   *Implementation:* Treat the liquid as 50-100 "meta-particles".
-    *   *Visuals:* Boiling = particles jittering/rising. Viscosity = slow movement.
-2.  **Color Gradients:** Instead of a single mixed color (`calculateMixtureColor`), allow distinct phases or gradients before mixing completes.
-    *   *Visual:* Pouring Acid into Water shows a streak of Red dispersing into Blue/Green.
+- [x] **Proposal 1: Environmental Bioreactor Viability Trials:** 3-stage stress tests (Thermal Shock $\to$ UV Flux $\to$ Starvation) certifying cells in `IncubationChamber.jsx`.
+- [x] **Proposal 2: 3D Biophysical Protein Folding:** Catmull-Rom spline ribbons, $\alpha$-helices, $\beta$-sheets, and disulfide bridges in `ProteinFolder.jsx`.
+- [x] **Proposal 3: Multi-Phase Chemistry & Stratification:** Immiscible fluid layering, precipitate settling, and Henry's law headspace partitioning in `chemistry-lab`.
+- [x] **Proposal 4: 206-Bone Granular Human Skeletal Assembly:** Full individual bone snap-fit matrix with clinical CT node matching in `anatomy-lab`.
 
 ---
 
-## ⚛️ Particle Lab: The Quantum Canvas
+## 🚀 Active Proposals for Upcoming Sprints
 
-**Current State:** Drag-and-drop fusion of particles using DOM elements.
-**Vision:** "Cosmic Forge".
+### Proposal A: Persistent Background Universe Clock
+* **Concept:** Run a lightweight Web Worker (`CosmicClockWorker.ts`) that ticks cosmic epochs forward even while the player works in the Particle, Chemistry, Bio, or Anatomy labs.
+* **Benefit:** Eliminates the static feeling of the universe; players feel the passage of cosmic deep time.
 
-### Proposal 4: Unified Canvas Rendering
-(Technical Proposal)
-*   **Issue:** As players build complex macromolecules (DNA, Proteins) atom-by-atom, the DOM (HTML Divs) will lag.
-*   **Solution:** Port `ParticleCanvas.jsx` to use the same **HTML5 Canvas** engine as the Biology Lab.
-*   **Benefit:** Enables rendering of massive structures (thousands of atoms) or "gas clouds" in the sandbox without performance drops.
+### Proposal B: Astrophysical Nucleosynthesis Gating
+* **Concept:** Connect bone assembly and hemoglobin synthesis to background cosmic epochs.
+* **Mechanism:**
+  - Before stars ignite, only $H$ and $He$ are available.
+  - When Supernovae occur in the background, a cosmic notification alerts the player: *"Stellar core collapse has forged Calcium & Phosphorus!"*
+  - Unlocks hydroxyapatite bone mineral synthesis in the Anatomy Lab.
+
+### Proposal C: The 3D-to-Genomic Blueprint Compiler
+* **Concept:** A translation engine (`blueprintCompiler.js`) that reads the player's assembled 3D anatomy (bone ratios, muscular posture, neural volume) and encodes it into an encrypted synthetic genome string packaged into LUCA.
+* **Benefit:** Gives direct mechanical causality between what the player builds in the 3D Anatomy Lab and what emerges on Earth.

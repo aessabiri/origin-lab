@@ -1,10 +1,10 @@
-# Detailed Codebase Analysis: Particle Lab
+# Detailed Codebase Analysis: Origin Lab (Particle Module)
 
-This document provides a detailed breakdown of the Particle Lab application, analyzing the role and function of every file in the project.
+> **Architectural Note:** This document analyzes the foundational **Particle Lab (Physics)** module. In the modern **Origin Lab** architecture, this module functions as Pillar 2 of the 6-pillar Demiurge simulation (Cosmic Universe $\to$ **Particle Lab** $\to$ Chemistry Lab $\to$ Biology Lab $\to$ 206-Bone Anatomy Lab $\to$ Planetary Biosphere).
 
 ## Project Overview
 
-Particle Lab is a sophisticated, data-driven educational game developed with React. It allows users to explore the world of particle physics and chemistry, from fundamental quarks and leptons to complex molecules and even DNA. The application is built around a core principle of "assembly," where users combine particles according to predefined recipes to discover new ones.
+Particle Lab is a data-driven educational simulation game. It allows users to explore particle physics and chemistry, from fundamental quarks and leptons to complex molecules, DNA, and ribosomes. Output from this module feeds the Universal Ledger (`src/store/inventory.js`) to provide raw materials for molecular chemistry, cellular biology, and bone mineral synthesis.
 
 The architecture is well-structured, separating concerns into distinct data files, custom hooks for logic, and presentational components. State is managed centrally and persisted to `localStorage`, providing a seamless user experience across sessions.
 

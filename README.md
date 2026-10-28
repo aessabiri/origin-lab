@@ -1,77 +1,84 @@
-# 🌌 Origin Lab — From Quarks to Planetary Civilization
+# 🌌 Origin Lab — The Cosmic Architect & 206-Bone Demiurge Sandbox
 
-**Origin Lab** is an interactive, multi-disciplinary scientific simulation sandbox gamifying the evolution of universal matter from subatomic quantum physics to macroscopic cellular life and planetary civilizations.
-
----
-
-## 🔬 The 5 Scientific Laboratories & Epochs
-
-### ⚛️ 1. Physics Lab (Particle Physics & Quantum Mechanics)
-* **Mechanics**: 60 FPS HTML5 Canvas simulation with Coulomb electrostatic forces, strong nuclear binding, Lennard-Jones molecular potentials, and gravitational clustering.
-* **Quantum Features**:
-  * Elementary vector particle icons (Quarks with $+2/3e, -1/3e$ fractional charges, Leptons, Gauge Bosons, Baryons, Antimatter annihilation).
-  * Isotope fusion & beta/alpha radioactive decay timeout cascades.
-  * **Interactive Periodic Table**: Categorized element families, standard atomic weights, atomic series filters, and pin controls.
-  * **Recursive Subatomic Lineage Tree**: Trace any macroscopic element or compound down to its exact constituent protons, neutrons, electrons, and fundamental quarks.
-
-### ⚗️ 2. Chemistry Lab (Thermodynamics & Reaction Kinetics)
-* **Mechanics**: Real-time numerical integration of Arrhenius chemical kinetics, enthalpy ($\Delta H$), Gibbs free energy ($\Delta G$), phase transitions, and boiling/condensation curves.
-* **Apparatus**: Beakers, Erlenmeyer Flasks, Distillation Condensers, High-Pressure Autoclaves, and Bunsen Burners.
-* **Dynamic Systems**: Local and global reagent exchange, dynamic acid-base pH titration with universal indicator color mapping, saturated solubility curves, and toxic gas detection with active ventilation.
-
-### 🧫 3. Biology Lab (Genetics, Protein Folding & Cellular Ecology)
-* **Interactive Genetic Code Studio**:
-  * 64-Codon translation engine transcribing $5' \rightarrow 3'$ coding DNA into mRNA and amino acid residues.
-  * Point mutation tools and frame-shift detection.
-  * **Real-time 3D Biophysical Protein Folding**: Continuous Catmull-Rom spline ribbons, translucent residue spheres, disulfide ($S-S$) bridges, and live $\Delta G$ thermodynamic telemetry.
-* **LUCA Cell Builder**: Drag-and-drop organelle engineering (Nucleus, Mitochondria, Ribosomes, Lipid Membranes).
-* **Agent-Based Petri Dish**: 32-bit bitwise spatial hashing, 60 FPS in-place agent simulation, phototropism, predator-prey dynamics, and Darwinian mitosis with genome mutation.
-
-### 🌍 4. Planetary View (Darwinian Planetary Biosphere)
-* Real-time planetary evolution engine seeded with LUCA.
-* Interactive environmental controllers: Volcanic $CO_2$ venting, Ocean temperature regulators, and Solar radiation shields.
-* Simulates the Great Oxidation Event, Snowball Earth, Cambrian Explosion, Terrestrial Conquest, and Civilization rise.
-
-### ✨ 5. Cosmic Timeline & Stellar Nursery (Astrophysics)
-* Big Bang nucleosynthesis timeline, Dark Ages expansion, and Stellar Nursery star formation.
-* Time-scrubbing controls and procedural stellar lifecycle progression.
+**Origin Lab** is an interactive, multi-scale scientific simulation game. You act as the **Cosmic Architect (Demiurge)**: engineering human macro-anatomy in 3D, compiling it into a synthetic genetic seed, and deploying it into primordial Earth while a **living universe evolves in the background**.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🧭 The 6 Core Pillars
 
-* **Frontend**: [React 18](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-* **3D Visualizations**: [Three.js](https://threejs.org/) / [@react-three/fiber](https://docs.pmnd.rs/react-three-fiber) / [@react-three/drei](https://github.com/pmndrs/drei)
-* **State Management**: [Zustand](https://github.com/pmndrs/zustand) with Universal Ledger (`useInventory`)
-* **Styling**: Vanilla Tailwind CSS with custom sci-fi glassmorphism design system
-* **Testing**: [Vitest](https://vitest.dev/) (32 Test Suites, 142 Unit & Integration Tests)
+```mermaid
+flowchart LR
+    U["🌌 Living Background Universe\n(Big Bang ➔ Supernovae ➔ Earth)"] -.->|Element Nucleosynthesis\nH, C, N, O, Ca, P, Fe| L["🧪 Labs (Physics, Chem, Bio)"]
+    A["🦴 3D Anatomy Constructor\n(206-Bone Human Scaffold)"] -->|Genomic Compilation| S["🌱 Primordial Seed (LUCA)\n(Encoded Morphogenetic Blueprint)"]
+    S -->|Panspermia Inoculation| E["🌍 Planetary Evolution\n(Hadean ➔ Anthropocene)"]
+    E -->|Unfolds Blueprint| C["👁️ Sentience Awakens\n(Self-Aware Observer)"]
+    C -->|Cosmic Ouroboros| U
+```
 
 ---
 
-## 🚀 Getting Started
+### 🌌 1. [Living Background Universe](file:///home/tsylop/protocol/origin-lab/src/universe-simulation/UniverseSimulationView.jsx)
+* **Real-Time Cosmic Evolution:** Runs continuously in the background across 6 GLSL epochs:
+  1. **Big Bang Singularity:** Inflation & 4D quantum noise.
+  2. **Quark-Gluon Plasma:** Relativistic particle thermodynamics.
+  3. **Stellar Dawn:** Jeans collapse synthesizing Carbon, Nitrogen, and Oxygen.
+  4. **Galaxy Accretion:** Spiral density waves with multi-threaded N-body computation.
+  5. **Solar System & Supernovae:** Stellar nucleosynthesis generating **Calcium & Phosphorus** (required for bone mineral matrix) and **Iron** (for blood).
+  6. **Habitable Earth:** Magma ocean cooling, volatile outgassing, and ocean condensation.
+* **Ambient Backdrop & PiP:** View the cosmic clock from anywhere in the game.
 
-### 1. Install Dependencies
+### ⚛️ 2. [Particle Lab](file:///home/tsylop/protocol/origin-lab/src/particle-lab/ParticleLabApp.jsx) (Subatomic Physics)
+* HTML5 Canvas engine with Coulomb forces, strong nuclear binding, and radioactive decay cascades.
+* Fuse Quarks $\to$ Nucleons $\to$ Complete Periodic Table (118 elements).
+* Assemble foundational organic molecules: Nucleotides, Amino Acids, and DNA/RNA backbones.
+
+### ⚗️ 3. [Chemistry Lab](file:///home/tsylop/protocol/origin-lab/src/chemistry-lab/ChemistryApp.jsx) (Thermodynamics & Kinetics)
+* Tick-based Arrhenius chemical kinetics with $\Delta H$, $\Delta G$, and dynamic pH titrations.
+* Modular glassware: Autoclaves, Condensers, Distillation Columns, and Bunsen burners.
+* Synthesize prebiotic compounds: Strecker glycine, Formose sugars, and lipid micelles.
+
+### 🧫 4. [Biology Lab & 3D Protein Folding](file:///home/tsylop/protocol/origin-lab/src/biology-lab/BiologyApp.jsx)
+* **64-Codon Genetic Studio:** $5' \to 3'$ DNA transcription $\to$ mRNA translation $\to$ amino acids.
+* **Real-Time 3D Protein Folding:** Parametric Catmull-Rom ribbons, $\alpha$-helices, $\beta$-sheets, and covalent disulfide ($S-S$) bridges with live $\Delta G$ thermodynamic telemetry.
+* **Agent-Based Bioreactor:** 32-bit spatial hashing simulation with Darwinian natural selection.
+
+### 🦴 5. [206-Bone Anatomy Lab](file:///home/tsylop/protocol/origin-lab/src/anatomy-lab/AnatomyLab.jsx) (The Macro-Architect)
+* **Full Granular Human Assembly:** Pick up and snap all **206 individual human bones** (80 Axial, 126 Appendicular) with Latin nomenclature and landmark coordinates.
+* **4 Anatomical Layers:**
+  1. *Articular Cartilage & Ligaments:* Intervertebral discs, menisci, costal cartilage.
+  2. *Myofascial Musculature:* Real-time strain heatmaps (tight/spastic vs. atrophied).
+  3. *Pulsatile Vascular Loop:* 4-chamber heart with systolic arterial pulse waves.
+  4. *Neural Connectome:* Brain hemispheres, spinal cord, and synaptic action potentials.
+* **Closed-Chain Biomechanics:** Posture sliders physically deform the skeletal rig in real time.
+
+### 🌍 6. [Planetary Evolution & The Cosmic Ouroboros](file:///home/tsylop/protocol/origin-lab/src/components/PlanetaryView.jsx)
+* Deploy your engineered **Panspermia Seed** into Earth's primordial oceans.
+* Guide evolution through mass extinctions, volcanic calderas, and asteroid strikes.
+* When the 206-bone observer awakens with 42 Hz Gamma brainwaves, the loop completes: transcend back into the Singularity with ascended cosmic mastery!
+
+---
+
+## 🛠️ Tech Stack & Performance
+
+* **Core:** React 18 + Vite (Production build in <7s, code-split under 440 kB).
+* **3D & Shaders:** Three.js + WebGL custom GLSL shaders (60 FPS guaranteed).
+* **State Management:** Zustand with Universal Ledger (`useInventory`) connecting all labs.
+* **Automated Tests:** Vitest (36 test suites, 169 unit & integration tests, 100% green).
+
+---
+
+## 🚀 Quick Start
+
 ```bash
+# 1. Install dependencies
 npm install
-```
 
-### 2. Run Development Server
-```bash
+# 2. Start development server
 npm run dev
-```
-Open `http://localhost:5173` to start experimenting.
 
-### 3. Run Test Suite
-```bash
-npm test run
-```
+# 3. Run automated test suite
+npm test -- --run
 
-### 4. Build for Production
-```bash
+# 4. Build production bundle
 npm run build
 ```
-
----
-
-## 🌐 Zero-Config Vercel Deployment
-The repository is structured with `package.json`, `index.html`, and `vite.config.mjs` directly in the root directory. Vercel automatically detects the Vite framework and builds the project with zero configuration.

@@ -1,77 +1,77 @@
-# Development Plan: Project Singularity
+# Master Development Plan: The Cosmic Demiurge Architecture
 
-This document outlines the step-by-step implementation strategy to transform the Particle Lab into the full "Genesis Simulation" vision.
-
-## 📋 Strategy: The Backbone First
-The goal is to connect the isolated labs into one linear progression system before expanding the content.
+> **Execution Date:** Ready for tomorrow's development sprint.  
+> **Core Objective:** Connect the **Living Background Universe**, the **Astrophysical Element Bridge**, and the **3D Macro-Blueprint Genomic Compiler**.
 
 ---
 
-## 🏗️ Phase 1: The Universe Engine (Global State)
-*Goal: Connect the isolated labs into one linear progression system.*
+## 🎯 Sprint Overview
 
-- [x] **Create `UniverseStore`:** (Completed `src/store/universeStore.js`)
-    - Tracks the current **Era** (Void, Big Bang, Particle, Stellar, Chemical, Biological).
-    - Controls "Cosmic Gates" (locking/unlocking labs).
-    - Manages the **Cosmic Inventory** (distinct from lab inventory).
-- [ ] **Integrate Store:**
-    - Update `App.jsx` to read from `UniverseStore`.
-    - Implement conditional rendering based on the current Era.
-
-## 🌑 Phase 2: The Void & Big Bang (The Beginning)
-*Goal: Give the player agency over the start of existence.*
-
-- [ ] **The Void Screen Component:**
-    - Interactive canvas for "Before the Big Bang".
-    - Visuals: Quantum fluctuations (particles appearing/disappearing).
-    - Interaction: Click to stabilize fluctuations.
-- [ ] **Cinematic Transition:**
-    - Connect the "Stability Threshold" to the `big_bang.mp4` video.
-    - Auto-transition to **Particle Lab** after video ends.
-
-## ⚛️ Phase 3: Particle Lab & Nucleosynthesis
-*Goal: Turn atomic discovery into cosmic scale production.*
-
-- [ ] **Unlock Mechanic:**
-    - Player manually crafts the first atom of a type (Discovery).
-- [ ] **Cosmic Production UI:**
-    - New panel in Universe View: "Stellar Nucleosynthesis".
-    - Allow player to "automate" production of discovered atoms (e.g., H, He).
-    - Output goes to **Cosmic Inventory**.
-
-## 🌌 Phase 4: Stellar Evolution
-*Goal: Use particles to build the map.*
-
-- [ ] **Star Formation System:**
-    - Action: "Ignite Star" (Costs H + He from Cosmic Inventory).
-    - Visual: Spawns a star on the Universe Map.
-- [ ] **Supernova Event:**
-    - Scripted event where massive stars die.
-    - **Reward:** Grants heavy elements (C, O, Fe) to Cosmic Inventory.
-    - **Unlock:** Opens the **Chemistry Lab**.
-
-## ⚗️ Phase 5: The Chemistry Bridge
-*Goal: From Stardust to Soup.*
-
-- [ ] **Inventory Link:**
-    - Update `ChemistryApp` to check Cosmic Inventory for reactants.
-    - Prevent reactions if the universe lacks the raw elements (e.g., no Oxygen = no Water).
-- [ ] **The "Soup" Objective:**
-    - Specific goal: Synthesize Amino Acids.
-    - **Unlock:** Opens the **Biology Lab**.
-
-## 🧬 Phase 6: Biology & The Seed
-*Goal: Design the Ancestor.*
-
-- [ ] **LUCA Builder:**
-    - Use organic molecules to build the cell components.
-- [ ] **Seeding Mechanic:**
-    - "Drop" the cell into the Earth view.
-    - Triggers the planetary simulation.
+```mermaid
+flowchart TD
+    M1["⏱️ Milestone 1\nLiving Background Universe Engine\n(Persistent Clock & Ambient HUD)"] --> M2["💥 Milestone 2\nAstrophysical Element Gating\n(Supernovae ➔ Ca, P, Fe for Bones)"]
+    M2 --> M3["🧬 Milestone 3\nGenomic Blueprint Compiler\n(3D Anatomy ➔ LUCA Seed)"]
+    M3 --> M4["🌱 Milestone 4\nPanspermia Inoculation & Loop\n(Deploy Seed ➔ Unfold on Earth)"]
+```
 
 ---
 
-## 🚀 Immediate Next Steps
-1.  **Integrate Universe Store:** Modify `App.jsx` to control flow.
-2.  **Build Void Screen:** Create the interactive intro.
-3.  **Link Inventory:** connect Particle Lab output to Universe Store.
+## 📋 Actionable Milestones & Tasks
+
+### ⏱️ Milestone 1: Living Background Universe Simulation Clock
+* **Goal:** Keep the cosmic simulation ticking in the background regardless of active view.
+* **Tasks:**
+  - [ ] **Background Simulation Web Worker (`src/universe-simulation/workers/CosmicClockWorker.ts`):**
+    - Runs a lightweight cosmic epoch timer (13.8 Ga scaled progression).
+    - Dispatches epoch transitions (`BIG_BANG` $\to$ `PLASMA` $\to$ `STELLAR_DAWN` $\to$ `GALAXY` $\to$ `SOLAR_SYSTEM` $\to$ `EARTH`).
+  - [ ] **Ambient Cosmic Skybox / Mini-PiP HUD:**
+    - Mount a subtle, non-intrusive cosmic epoch indicator badge in the top navigation bar.
+    - Shows current cosmic time (e.g. `100 My - Stellar Dawn`) with 1-click teleport to full 3D Universe.
+
+---
+
+### 💥 Milestone 2: Astrophysical Element Gating & Resource Bridge
+* **Goal:** Scientifically gate creation in Particle, Chemistry, and Anatomy labs by cosmic nucleosynthesis.
+* **Tasks:**
+  - [ ] **Epoch Resource Matrix (`src/constants/cosmicEpochGating.js`):**
+    - `BIG_BANG` / `PLASMA`: Unlocks Hydrogen ($H$), Helium ($He$), Lithium ($Li$).
+    - `STELLAR_DAWN`: Unlocks core fusion products: Carbon ($C$), Nitrogen ($N$), Oxygen ($O$).
+    - `SOLAR_SYSTEM` (Supernovae & Kilonovae): Unlocks heavy elements:
+      - **Calcium ($Ca$) & Phosphorus ($P$):** Required for the hydroxyapatite bone mineral matrix!
+      - **Iron ($Fe$):** Required for hemoglobin vascular circulation!
+  - [ ] **Inventory & Bone Snapping Gate:**
+    - In `AnatomyWorkbench.jsx`: Display required bone mineral resources ($Ca + P$).
+    - If supernova epoch has not ignited, show helpful cosmic tip: *"Awaiting Stellar Supernova Nucleosynthesis for Calcium & Phosphorus."*
+
+---
+
+### 🧬 Milestone 3: 3D Macro-Blueprint to Genomic Compiler
+* **Goal:** Compile the player's 3D human anatomy design into an encoded cellular seed.
+* **Tasks:**
+  - [ ] **Blueprint Compiler Engine (`src/anatomy-lab/utils/blueprintCompiler.js`):**
+    - Reads `assembledBones.length`, active muscular tone, and neural volume from `useAnatomyStore`.
+    - Translates 206 bones $\to$ Calcium/Collagen demand and osteogenesis gene regulatory network.
+    - Translates neural connectome $\to$ Encephalization potential (EQ 7.6) and synaptic codon sequence.
+    - Generates a **Certified Panspermia Seed (LUCA)** stored in `useInventory`.
+  - [ ] **Compilation UI Modal (`src/anatomy-lab/components/GenomicCompileModal.jsx`):**
+    - Inspiring sci-fi visualization: 3D skeleton compresses and condenses into a glowing double-helix DNA strand inside a lipid membrane!
+    - Action: `[PACKAGE INTO PRIMORDIAL SEED (LUCA)]`.
+
+---
+
+### 🌱 Milestone 4: Panspermia Inoculation & The Complete Cycle
+* **Goal:** Deploy the compiled seed to Earth and watch evolution unfold your design.
+* **Tasks:**
+  - [ ] **Panspermia Inoculation Animation in `PlanetaryView.jsx`:**
+    - When dropping the certified seed into the ocean, trigger a hydrothermal vent cinematic sequence.
+    - Seed's starting stats (Metabolism, Robustness, EQ Potential) determine evolutionary speed along the cladogram.
+  - [ ] **End-to-End Regression & Verification:**
+    - Verify all 36 test suites and 169+ tests continue to pass 100% green.
+    - Ensure clean Vite production build in <7s.
+
+---
+
+## 🛠️ Tech Stack & Guardrails
+* **No Breaking Changes:** Zero disruption to existing Particle, Chemistry, or Biology labs.
+* **Zero Cognitive Friction:** Clean, OLED-dark aesthetic (`#06080e`), atomic micro-actions, instant tactile feedback.
+* **Performance:** Persistent worker throttled to <1% CPU overhead; 60 FPS WebGL guarantee.

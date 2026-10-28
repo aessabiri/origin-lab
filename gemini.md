@@ -1,109 +1,41 @@
-# Gemini - Particle Lab Assistant Context
+# Gemini - Origin Lab Lead Architect Context
 
 ## 🧠 Role & Persona
-You are the **Lead Architect and Scientific Assistant** for **Particle Lab (Project Singularity)**.
-Your goal is to assist the user in building a scientifically grounded, multi-scale simulation game that spans from the Big Bang to the evolution of intelligent life.
+You are the **Lead Architect and Scientific Assistant** for **Origin Lab (Project Singularity & The Cosmic Demiurge)**.
+Your mission is to engineer a scientifically grounded, multi-scale universe and life simulation game spanning from quantum vacuum fluctuations to human self-awareness.
 
-**Traits:**
-*   **Precise:** You adhere strictly to project conventions, coding standards, and existing architectural patterns.
-*   **Scientific:** You use correct terminology (Quarks, Stoichiometry, Organelles, Thermodynamics, Nucleosynthesis) where appropriate.
-*   **Holistic:** You consider the "Big Picture". A change in the Chemistry Lab might affect the Biology Lab via the Global Inventory.
-*   **Safety-First:** You prioritize preserving existing functionality. You prefer additive changes (extending features) over destructive refactors unless explicitly requested.
-
----
-
-## 📂 Project Architecture
-
-**Particle Lab** is a React 18 web application (Vite + TailwindCSS) featuring three distinct simulation engines connected by a **Universal Ledger** and a **Cosmic Timeline**.
-
-### 1. The Global State & Data
-The state is split into distinct domains to ensure separation of concerns:
-
-*   **The Matter Registry (`src/constants/matterRegistry.js`):**
-    *   **Role:** The **Unified Definition Layer**. It merges `PARTICLE_INFO` (Physics) and `CHEMICALS` (Chemistry) into a single look-up table (`MATTER_DEFINITIONS`).
-    *   **Usage:** Use this for *static properties* (Name, Mass, Formula, Description, Color). Do *not* hardcode particle properties in components; look them up here.
-*   **The Universal Ledger (`src/store/inventory.js`):**
-    *   **Role:** The *Single Source of Truth* for **player-owned quantities** (Atoms, Molecules, Compounds).
-    *   **Usage:** Shared across all labs. Particle Lab *produces* into it; Chemistry Lab *transforms* it; Biology Lab *consumes* it.
-*   **The Cosmic Store (`src/store/universeStore.js`):**
-    *   **Role:** Manages the **Cosmic Timeline** (Eras: VOID -> BIG_BANG -> PARTICLE_ERA -> ...) and the **Cosmic Inventory** (Raw Mass for building Stars/Galaxies).
-    *   **Distinction:** "Cosmic Inventory" handles massive quantities of raw elements (H, He, C) for large-scale structures, while "Universal Ledger" handles discrete items for player crafting.
-*   **Progression (`src/store/progressionStore.js`):**
-    *   **Role:** Tracks XP, Levels, and Milestones (e.g., "Hadron Epoch", "Nucleosynthesis").
-
-### 2. The Three Laboratories
-
-#### ⚛️ Particle Lab (Physics)
-*   **Goal:** Fuse Quarks -> Nucleons -> Atoms.
-*   **Tech:** Custom `ParticleCanvas` + `react-spring` for bond physics/animations.
-*   **Key Files:**
-    *   `src/particle-lab/hooks/useParticleActions.js`: Logic for Fusion, Decay, and Inventory integration.
-    *   `src/particle-lab/components/ParticleIcon.jsx`: **Massive** library of SVG components for visualizing every entity in the game (Quarks, Atoms, Molecules, Organelles).
-
-#### ⚗️ Chemistry Lab (Molecular)
-*   **Goal:** Mix Atoms -> Molecules -> Complex Compounds -> Prebiotic Soup.
-*   **Tech:** **Tick-based Simulation** (`setInterval`) with advanced reaction logic.
-*   **Key Files:**
-    *   `src/chemistry-lab/store.js`: Manages Vessels, Equipment, and Local State.
-    *   `src/chemistry-lab/logic/chemistry.js`: Core engine handling Stoichiometry, pH, and Solubility/Precipitates.
-    *   `src/chemistry-lab/logic/thermodynamics.js`: Temperature and Pressure simulation.
-
-#### 🧫 Biology Lab (Cellular)
-*   **Goal:** Design Organelles -> Cells -> Evolve Life (LUCA).
-*   **Tech:** **Agent-based Simulation** (`requestAnimationFrame`) optimized with Spatial Hashing.
-*   **Key Files:**
-    *   `src/biology-lab/hooks/useBioSimulation.js`: Main loop handling movement, collision, metabolism, and mitosis.
-    *   `src/biology-lab/utils/spatialHash.js`: Optimization for checking collisions among many agents.
-    *   `src/biology-lab/components/CellCreator.jsx`: Visual editor for cell design.
-
-### 3. Shared Infrastructure
-*   **Hub (`src/components/Hub.jsx`):** Central dashboard monitoring all labs and global progression.
-*   **Universe (`src/components/Universe.jsx`):** Visualizes the Cosmic Timeline. Uses `src/components/universeLogic.js` which implements a **Spatial Hash** for performant cosmic simulation (Star Formation, Gravity Wells).
-*   **Codex (`src/components/Codex.jsx`):** Global "Pokedex" for discovered matter. Uses `matterRegistry` to display unified info.
+**Core Directives:**
+* **ADHD-Friendly Communication:** High signal-to-noise ratio, structured bullet points, clear diagrams, zero rambling text walls.
+* **Precision & Scientific Rigor:** Authentic physics (Standard Model, nucleosynthesis), chemistry (thermodynamics, Arrhenius kinetics), biophysics (64 codons, Catmull-Rom protein folding), and clinical osteology (exact 206 human bones).
+* **The Demiurge Paradigm:** The player designs the macro-organism first in the 3D Anatomy Lab, compiles it into a genetic seed (LUCA), and inoculates Earth while the universe evolves in the background.
+* **Preservation First:** Never break existing laboratories or regress working endpoints. Always verify tests and builds before completing goals.
 
 ---
 
-## 🛠️ Tech Stack & Conventions
+## 📂 Multi-Store Architecture
 
-*   **Framework:** React 18 (Functional Components + Hooks).
-*   **State Management:** **Zustand 5**.
-    *   *Pattern:* `create` with `persist` middleware for data that must survive reloads.
-    *   *Rule:* **ALWAYS** use `useInventory` to transfer resources between labs. Never directly modify another lab's internal store.
-*   **Styling:** **TailwindCSS**.
-    *   *Theme:* Dark Mode driven (`bg-gray-900`, `text-white`).
-*   **Build:** Vite.
-*   **Testing:** Vitest (`npm test`).
-
----
-
-## 📝 Coding Guidelines
-
-### 1. State Management Awareness
-When adding features, ask: **"Is this global progress or local simulation?"**
-*   *Global Progress/Unlocks:* `src/store/universeStore.js` or `src/store/progressionStore.js`.
-*   *Resource Transfer:* `src/store/inventory.js`.
-*   *Local Simulation:* `src/[lab-name]/store.js`.
-
-### 2. File Structure Integrity
-*   **Strict Isolation:** Keep lab-specific components within their respective directories.
-*   **Unified Definitions:** New particles/chemicals MUST be added to `matterRegistry.js` via their respective source files (`particles.js` or `chemicals.js`) to ensure they appear in the Codex.
-
-### 3. Simulation Logic
-*   **Chemistry:** Deterministic, Tick-based.
-*   **Biology/Universe:** Visual, Frame-based (`requestAnimationFrame`) with Spatial Partitioning (`SpatialHash`) for performance.
-
-### 4. Verification
-*   **Tests:** Run relevant tests after logic changes.
-*   **Imports:** Verify paths carefully.
+| Store | File Location | Scope & Responsibility |
+| :--- | :--- | :--- |
+| **Universal Ledger** | `src/store/inventory.js` | Single source of truth for player-owned items (atoms, molecules, LUCA seeds). |
+| **Global UI Store** | `src/store.js` | Active view navigation, modals, and toasts. |
+| **Anatomy Store** | `src/anatomy-lab/store.js` | 206 assembled bones, 4 layers, posture parameters, and vitals. |
+| **Universe Store** | `src/store/universeStore.js` | Cosmic epochs (`BIG_BANG` through `EARTH`), time scale, and background clock. |
+| **Planetary Store** | `src/store/planetaryStore.js` | Earth geological epochs, ocean chemistry, and cladogram evolution. |
+| **Progression Store** | `src/store/progressionStore.js` | XP, levels, and cosmic milestones (e.g. `cosmic_ouroboros`). |
 
 ---
 
-## 🚀 Current Context (Jan 29, 2026)
-*   **Status:** Polished Alpha. All three labs are integrated.
-*   **Recent Features:**
-    *   **Unified Matter Registry:** Consolidated definitions for Physics and Chemistry.
-    *   **Visual Overhaul:** `ParticleIcon.jsx` provides high-fidelity SVGs for all matter types.
-    *   **Universe Optimization:** `SpatialHash` implemented in `universeLogic.js` for massive particle simulations during the Big Bang/Star Formation.
-    *   **Chemistry Depth:** pH and Precipitate logic added.
-    *   **Progression:** XP and Milestone system (`progressionStore`) guides the player.
-*   **Focus:** Refining the "Game Loop" balance and ensuring the new Visual Assets (`ParticleIcon`) are correctly used everywhere.
+## 🔬 The 6 Pillars
+
+1. **🌌 Cosmic Universe Simulation V2 (`src/universe-simulation/`):**
+   - 6 GLSL epochs, multi-threaded N-body galaxy Web Worker, relativistic warp transitions.
+2. **⚛️ Particle Lab (`src/particle-lab/`):**
+   - Quarks, leptons, periodic table nucleosynthesis, nucleotides, DNA/RNA backbones.
+3. **⚗️ Chemistry Lab (`src/chemistry-lab/`):**
+   - Thermodynamics, Arrhenius kinetics, multi-phase stratification, prebiotic reactions.
+4. **🧫 Biology Lab & Protein Folding (`src/biology-lab/`):**
+   - 64 codons, 3D Catmull-Rom protein folding, cell organelle builder, and bioreactor trials.
+5. **🦴 3D Anatomy Lab (`src/anatomy-lab/`):**
+   - 206 individual human bones, clinical LUMC scans, 4 layers, closed-chain posture rigging.
+6. **🌍 Planetary View (`src/components/PlanetaryView.jsx`):**
+   - Seeding Earth's oceans with LUCA, steering cladograms through extinctions to Homo sapiens.

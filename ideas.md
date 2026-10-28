@@ -1,31 +1,29 @@
-# Project Ideas for Particle Lab
+# Forward-Looking Expansion Ideas: Origin Lab
 
-This file contains a list of potential ideas for new features, expansions, and improvements for the Particle Lab application.
+This document tracks future features and ambitious ideas for Origin Lab beyond the current sprint.
 
-## User Idea: Chemistry Lab
+---
 
-A new mode or a separate application based on the "Particle Lab" concept, but focused on chemistry.
+## 💡 Top Architectural Expansions
 
-*   **Concept:** "Chemistry lab mix chemical to unlock new chemical in the style of quarks upward. new canvas"
-*   **Gameplay:** Instead of particles, users would start with a set of basic elements or simple molecules. They would then combine them in a "chemistry lab" environment to synthesize new compounds.
-*   **Progression:** Unlocking new chemicals would be similar to the particle discovery system.
-*   **Canvas:** A new canvas would be designed to represent a lab environment, with beakers, burners, and other chemistry equipment.
+### 1. 🔬 Deep-Tissue Cellular Histology View
+* **Concept:** Seamless zoom from the 3D bone or muscle in Anatomy Lab down into osteocytes, collagen triple-helices, and hydroxyapatite crystal lattices.
+* **Tech:** Continuous LOD scaling using Three.js level-of-detail and dynamic texture mipmaps.
 
-## Additional Ideas
+### 2. 🧬 Real-Time AlphaFold / Biophysical Residue Docking
+* **Concept:** Interactive drug/ligand binding where players fold synthetic enzymes to break down toxic planetary contaminants (e.g. sulfur dioxide or plastic polymers).
+* **Tech:** Extension of the existing `biophysicsFolding.js` energy minimization beam search.
 
-### Major Features
+### 3. 🌌 Exoplanetary Terraforming & Multiverse Branching
+* **Concept:** Instead of only Earth, deploy the compiled Panspermia Seed to Mars, Titan, or TRAPPIST-1e with custom gravities (e.g., lower gravity produces taller skeletons with lower bone mineral density!).
+* **Tech:** Procedural planetary shader parameters modifying the skeletal rig dimensions.
 
-*   **Fusion/Fission:** Implement nuclear fusion and fission as a core game mechanic. This would allow for the creation of heavier elements and introduce new gameplay challenges related to energy production and stability.
-*   **Challenge/Puzzle Mode:** Introduce a mode with specific goals and constraints. For example, a puzzle could require the user to create a specific molecule using a limited set of starting elements.
+### 4. 🧠 Neural Connectome Synapse Routing Mini-Game
+* **Concept:** Trace action potential pathways through the thalamus, amygdala, and prefrontal cortex to calibrate emotional and rational traits for the evolving civilization.
+* **Tech:** Particle flow along Catmull-Rom splines in the neural layer.
 
-### Expansions
+---
 
-*   **Universe & Timeline:** Develop the `Universe.jsx` and `Timeline.jsx` components into full features. The Universe could be a place to "grow" stars and observe their life cycles, while the Timeline could be an interactive visualization of the user's journey through the history of the universe.
-*   **Advanced Chemistry:** Expand the recipe system to include more complex organic molecules, polymers, and even simple proteins. This would provide a deeper crafting system and allow users to explore the building blocks of life.
-*   **Deeper Particle Physics:** Introduce more advanced concepts such as antimatter, different types of quarks and leptons, and the fundamental forces.
-
-### Optimizations and Refinements
-
-*   **Performance Optimization:** For a large number of particles, move the physics calculations to a Web Worker to keep the UI responsive.
-*   **Interactive Environment:** Add environmental variables like temperature and pressure to the simulation, which could affect particle behavior and reaction rates.
-*   **Component Refactoring:** Break down large components like `App.jsx` into smaller, more manageable pieces to improve code readability and maintainability.
+## ⚡ Technical Optimizations Under Consideration
+* **WebGPU Shaders:** Migrate heavy particle and stellar field calculations from WebGL to WebGPU compute pipelines.
+* **Audio Synthesis Overhaul:** Expand Web Audio API procedural synthesis for dynamic orchestral swells matching cosmic epochs.
