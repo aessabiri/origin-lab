@@ -1,152 +1,312 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useBioStore } from '../store';
-import { useBioSimulation } from '../hooks/useBioSimulation';
-import PetriDish from './PetriDish'; // Renamed logically in UI but kept file for now
-import { BakelitePanel, NixieTube, AnalogGauge, Oscilloscope } from '../../components/VisualPrimitives';
+import PetriDish from './PetriDish';
+import { Oscilloscope } from '../../components/VisualPrimitives';
 
-const IncubationChamber = ({ onInject, hasDesign, isRunning, agents }) => {
-  const [activeTab, setActiveTab] = useState('environment'); // 'environment' | 'telemetry'
+const IncubationChamber = ({ onInject, hasDesign, isRunning, agents = [] }) => {
+  const [activeTab, setActiveTab] = useState('environment'); // 'environment' | 'telemetry' | 'trial'
+  const { 
+    environment = { temperature: 37, nutrients: 80, radiation: 0 }, 
+    setEnvironment,
+    stressTrial = {},
+    startStressTrial,
+    cancelStressTrial,
+    seedCertifiedOrganismToEarth
+  } = useBioStore();
   
-  // Environment Controls State (Mocked functionality for UI, hook up later)
-  const [temp, setTemp] = useState(37.0);
-  const [radiation, setRadiation] = useState(0);
-  const [nutrients, setNutrients] = useState(80);
+  const temp = environment.temperature ?? 37.0;
+  const radiation = environment.radiation ?? 0;
+  const nutrients = environment.nutrients ?? 80;
+
+  const setTemp = (val) => setEnvironment({ temperature: val });
+  const setRadiation = (val) => setEnvironment({ radiation: val });
+  const setNutrients = (val) => setEnvironment({ nutrients: val });
 
   return (
-    <div className="flex-1 w-full h-full flex items-center justify-center p-8 relative overflow-hidden bg-[#050505]">
+    <div className="flex-1 w-full h-full flex items-center justify-center p-6 relative overflow-hidden bg-[#070a13] select-none">
        
-       {/* Machine Chassis */}
-       <div className="relative w-[90vh] aspect-square bg-[#1a1a1a] rounded-[3rem] border-8 border-[#2a2a2a] shadow-2xl flex flex-col overflow-hidden group">
+       {/* High-Craft Bioreactor Chassis */}
+       <div className="relative w-full max-w-4xl h-[86vh] bg-[#0c1220]/95 backdrop-blur-2xl rounded-3xl border border-teal-500/25 shadow-[0_24px_64px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
           
-          {/* Top Control Panel */}
-          <div className="h-24 bg-[#111] border-b-4 border-[#333] flex justify-between items-center px-8 shadow-md z-20">
+          {/* Top Control Bar & Telemetry HUD */}
+          <div className="h-20 bg-[#090f1d] border-b border-teal-500/20 flex justify-between items-center px-8 shrink-0">
              <div className="flex items-center gap-4">
-                <div className={`w-4 h-4 rounded-full ${isRunning ? 'bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]' : 'bg-red-900'}`}></div>
+                <div className={`w-3.5 h-3.5 rounded-full ${isRunning ? 'bg-emerald-400 animate-pulse shadow-[0_0_12px_#34d399]' : 'bg-slate-700'}`}></div>
                 <div className="flex flex-col">
-                   <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Chamber_Status</span>
-                   <span className={`text-lg font-mono font-bold ${isRunning ? 'text-green-500' : 'text-zinc-600'}`}>
-                      {isRunning ? 'LIFE_DETECTED' : 'STANDBY'}
+                   <span className="text-[9px] font-mono font-black text-teal-400 uppercase tracking-widest">Bioreactor Status</span>
+                   <span className={`text-base font-mono font-black ${isRunning ? 'text-emerald-300' : 'text-slate-500'}`}>
+                      {isRunning ? 'BIOSPHERE ACTIVE' : 'SYSTEM STANDBY'}
                    </span>
                 </div>
              </div>
              
-             {/* Data Screen */}
-             <div className="w-72 h-16 bg-black border-2 border-zinc-800 rounded flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-green-500/5 scanline pointer-events-none"></div>
-                <div className="text-center font-mono">
-                   <span className="text-[8px] text-green-700 block">POPULATION_DENSITY</span>
-                   <span className="text-2xl text-green-500 font-bold">{agents.length.toString().padStart(3, '0')}</span>
-                   <span className="text-[8px] text-green-700 block">ENTITIES</span>
+             {/* Live Population Screen */}
+             <div className="flex items-center gap-4 px-5 py-2 bg-[#060a14] border border-teal-500/30 rounded-2xl shadow-inner">
+                <div className="flex flex-col items-center">
+                   <span className="text-[8px] font-mono font-bold text-slate-500 uppercase">Population Count</span>
+                   <span className="text-2xl font-mono font-black text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">
+                      {agents.length.toString().padStart(3, '0')}
+                   </span>
+                </div>
+                <div className="h-6 w-px bg-teal-500/20" />
+                <div className="flex flex-col items-center">
+                   <span className="text-[8px] font-mono font-bold text-slate-500 uppercase">Thermal Core</span>
+                   <span className="text-sm font-mono font-bold text-amber-300">
+                      {temp.toFixed(1)}°C
+                   </span>
                 </div>
              </div>
           </div>
 
-          {/* Main Tank Viewport */}
-          <div className="flex-1 relative bg-[#081a1a] shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] overflow-hidden">
-             {/* Fluid Effect */}
-             <div className="absolute inset-0 bg-gradient-to-b from-teal-900/10 to-teal-900/30 pointer-events-none z-10"></div>
+          {/* Main Tank Viewport (Petri Dish Canvas) */}
+          <div className="flex-1 relative bg-[#040811] shadow-[inset_0_0_80px_rgba(0,0,0,0.9)] overflow-hidden">
+             {/* Fluid Ambient Wash */}
+             <div className="absolute inset-0 bg-gradient-to-b from-teal-950/20 via-transparent to-cyan-950/30 pointer-events-none z-10" />
              
              {/* The Simulation Canvas */}
              <div className="absolute inset-0 z-0">
                 <PetriDish />
              </div>
 
-             {/* HUD Overlays */}
-             <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-                <div className="bg-black/40 backdrop-blur-sm border border-teal-500/30 p-2 rounded text-[10px] text-teal-400 font-mono">
-                   TEMP: {temp.toFixed(1)}°C
+             {/* HUD Environmental Corner Overlay */}
+             <div className="absolute top-4 left-4 z-20 flex gap-2 pointer-events-none">
+                <div className="bg-[#090f1d]/90 backdrop-blur-md border border-teal-500/30 px-3 py-1.5 rounded-xl text-[10px] text-teal-300 font-mono shadow-md">
+                   TEMP: <strong className="text-white">{temp.toFixed(1)}°C</strong>
                 </div>
-                <div className="bg-black/40 backdrop-blur-sm border border-teal-500/30 p-2 rounded text-[10px] text-teal-400 font-mono">
-                   RAD: {radiation}%
+                <div className="bg-[#090f1d]/90 backdrop-blur-md border border-teal-500/30 px-3 py-1.5 rounded-xl text-[10px] text-teal-300 font-mono shadow-md">
+                   NUTRIENTS: <strong className="text-white">{nutrients}%</strong>
+                </div>
+                <div className="bg-[#090f1d]/90 backdrop-blur-md border border-teal-500/30 px-3 py-1.5 rounded-xl text-[10px] text-teal-300 font-mono shadow-md">
+                   MUTATION (RAD): <strong className="text-amber-400">{radiation}%</strong>
                 </div>
              </div>
 
-             {/* Glass Reflection */}
-             <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-20 rounded-b-[2.5rem]"></div>
+             {/* Sleek Lens Reflection */}
+             <div className="absolute inset-0 bg-gradient-to-tr from-white/3 via-transparent to-transparent pointer-events-none z-20" />
           </div>
 
-          {/* Bottom Control Deck */}
-          <div className="h-48 bg-[#111] border-t-4 border-[#333] flex relative z-30">
-             {/* Left Panel: Tabs */}
-             <div className="w-16 border-r border-[#333] flex flex-col items-center py-4 gap-4">
+          {/* Bottom Telemetry & Control Deck */}
+          <div className="h-40 bg-[#090f1d] border-t border-teal-500/20 flex relative z-30 shrink-0">
+             {/* Left Tab Switcher */}
+             <div className="w-20 border-r border-teal-500/15 flex flex-col items-center py-4 gap-3">
                 <button 
                   onClick={() => setActiveTab('environment')}
-                  className={`w-10 h-10 rounded flex items-center justify-center transition-all ${activeTab === 'environment' ? 'bg-teal-900 text-teal-400 shadow-[0_0_10px_rgba(20,184,166,0.5)]' : 'bg-[#222] text-zinc-600 hover:text-zinc-400'}`}
-                  title="Environment"
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer border ${
+                    activeTab === 'environment' 
+                      ? 'bg-teal-500/20 border-teal-400/50 text-teal-300 shadow-[0_0_15px_rgba(20,184,166,0.3)]' 
+                      : 'bg-slate-900/60 border-transparent text-slate-500 hover:text-white hover:bg-slate-800'
+                  }`}
+                  title="Environmental Dials"
                 >
-                  🌡️
+                  <span className="text-lg">🌡️</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('telemetry')}
-                  className={`w-10 h-10 rounded flex items-center justify-center transition-all ${activeTab === 'telemetry' ? 'bg-amber-900 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-[#222] text-zinc-600 hover:text-zinc-400'}`}
-                  title="Telemetry"
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer border ${
+                    activeTab === 'telemetry' 
+                      ? 'bg-teal-500/20 border-teal-400/50 text-teal-300 shadow-[0_0_15px_rgba(20,184,166,0.3)]' 
+                      : 'bg-slate-900/60 border-transparent text-slate-500 hover:text-white hover:bg-slate-800'
+                  }`}
+                  title="Waveform Telemetry"
                 >
-                  📊
+                  <span className="text-lg">📊</span>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('trial')}
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer border relative ${
+                    activeTab === 'trial' 
+                      ? 'bg-teal-500/20 border-teal-400/50 text-teal-300 shadow-[0_0_15px_rgba(20,184,166,0.3)]' 
+                      : 'bg-slate-900/60 border-transparent text-slate-500 hover:text-white hover:bg-slate-800'
+                  }`}
+                  title="Stress Certification Trial"
+                >
+                  <span className="text-lg">🛡️</span>
+                  {stressTrial?.active && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full animate-ping" />
+                  )}
+                  {stressTrial?.certified && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full shadow-[0_0_8px_#34d399]" />
+                  )}
                 </button>
              </div>
 
-             {/* Middle Panel: Controls */}
-             <div className="flex-1 p-6 flex gap-8 items-center justify-center">
+             {/* Middle Parameter Sliders / Oscilloscope / Stress Trial */}
+             <div className="flex-1 p-5 flex gap-8 items-center justify-center">
                 {activeTab === 'environment' && (
-                   <>
-                      <div className="flex flex-col items-center gap-2">
-                         <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Temperature</span>
+                   <div className="grid grid-cols-3 gap-6 w-full max-w-xl">
+                      <div className="flex flex-col gap-2 p-3 rounded-2xl bg-[#060a14] border border-teal-500/15">
+                         <div className="flex justify-between items-center text-[10px] font-mono">
+                            <span className="text-slate-400 uppercase font-bold">Temperature</span>
+                            <span className="text-teal-300 font-black">{temp.toFixed(1)}°C</span>
+                         </div>
                          <input 
-                           type="range" min="0" max="100" value={temp} 
+                           type="range" min="0" max="100" step="0.5" value={temp} 
                            onChange={(e) => setTemp(parseFloat(e.target.value))}
-                           className="w-32 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-teal-500" 
+                           className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-400" 
                          />
                       </div>
-                      <div className="flex flex-col items-center gap-2">
-                         <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Nutrients</span>
+
+                      <div className="flex flex-col gap-2 p-3 rounded-2xl bg-[#060a14] border border-teal-500/15">
+                         <div className="flex justify-between items-center text-[10px] font-mono">
+                            <span className="text-slate-400 uppercase font-bold">Nutrient Broth</span>
+                            <span className="text-emerald-300 font-black">{nutrients}%</span>
+                         </div>
                          <input 
                            type="range" min="0" max="100" value={nutrients} 
                            onChange={(e) => setNutrients(parseFloat(e.target.value))}
-                           className="w-32 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-green-500" 
+                           className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400" 
                          />
                       </div>
-                      <div className="flex flex-col items-center gap-2">
-                         <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Radiation</span>
+
+                      <div className="flex flex-col gap-2 p-3 rounded-2xl bg-[#060a14] border border-teal-500/15">
+                         <div className="flex justify-between items-center text-[10px] font-mono">
+                            <span className="text-slate-400 uppercase font-bold">UV Radiation</span>
+                            <span className="text-amber-400 font-black">{radiation}%</span>
+                         </div>
                          <input 
                            type="range" min="0" max="100" value={radiation} 
                            onChange={(e) => setRadiation(parseFloat(e.target.value))}
-                           className="w-32 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500" 
+                           className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400" 
                          />
                       </div>
-                   </>
+                   </div>
                 )}
 
                 {activeTab === 'telemetry' && (
-                   <div className="flex gap-4 w-full h-full">
-                      <div className="flex-1 bg-black border border-zinc-800 rounded p-2 relative overflow-hidden">
-                         <span className="absolute top-1 left-1 text-[8px] text-amber-600 font-mono">POPULATION_HISTORY</span>
+                   <div className="flex gap-4 w-full h-full max-w-xl">
+                      <div className="flex-1 bg-[#060a14] border border-teal-500/20 rounded-2xl p-2 relative overflow-hidden">
+                         <span className="absolute top-1.5 left-2 text-[8px] text-amber-400 font-mono font-bold uppercase">Biomass Variance</span>
                          <Oscilloscope active={isRunning} color="amber" />
                       </div>
-                      <div className="flex-1 bg-black border border-zinc-800 rounded p-2 relative overflow-hidden">
-                         <span className="absolute top-1 left-1 text-[8px] text-teal-600 font-mono">ENERGY_AVG</span>
-                         <Oscilloscope active={isRunning} color="teal" speed={0.5} />
+                      <div className="flex-1 bg-[#060a14] border border-teal-500/20 rounded-2xl p-2 relative overflow-hidden">
+                         <span className="absolute top-1.5 left-2 text-[8px] text-cyan-400 font-mono font-bold uppercase">Metabolic ATP Drift</span>
+                         <Oscilloscope active={isRunning} color="teal" />
                       </div>
+                   </div>
+                )}
+
+                {activeTab === 'trial' && (
+                   <div className="w-full max-w-xl flex flex-col justify-center gap-3">
+                      {stressTrial?.active ? (
+                        <div className="flex flex-col gap-2.5 p-3.5 bg-[#060a14] rounded-2xl border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+                           <div className="flex justify-between items-center text-xs font-mono">
+                              <span className="text-amber-300 font-black flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                                {stressTrial.message}
+                              </span>
+                              <span className="text-slate-400 text-[10px]">
+                                {stressTrial.elapsed.toFixed(0)}s / {stressTrial.totalDuration}s
+                              </span>
+                           </div>
+
+                           {/* Progress Bar */}
+                           <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-gradient-to-r from-amber-500 via-rose-500 to-teal-400 transition-all duration-300"
+                                style={{ width: `${Math.min(100, (stressTrial.elapsed / stressTrial.totalDuration) * 100)}%` }}
+                              />
+                           </div>
+
+                           {/* 3-Stage Badges */}
+                           <div className="grid grid-cols-3 gap-2 text-[9px] font-mono text-center mt-1">
+                              <div className={`p-1 rounded-lg border ${stressTrial.stage === 'thermal_shock' ? 'bg-rose-500/20 border-rose-400 text-rose-300 font-bold' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                                 1. Thermal Shock (88°C)
+                              </div>
+                              <div className={`p-1 rounded-lg border ${stressTrial.stage === 'uv_flux' ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                                 2. UV Flux (85%)
+                              </div>
+                              <div className={`p-1 rounded-lg border ${stressTrial.stage === 'starvation' ? 'bg-teal-500/20 border-teal-400 text-teal-300 font-bold' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                                 3. Starvation (5%)
+                              </div>
+                           </div>
+
+                           <button 
+                             onClick={cancelStressTrial}
+                             className="mt-1 py-1 px-3 bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/30 rounded-xl text-[10px] font-mono font-bold transition-all active:scale-95"
+                           >
+                             Abort Trial
+                           </button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-2 p-3.5 bg-[#060a14] rounded-2xl border border-teal-500/20">
+                           <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                 <span className="text-lg">🛡️</span>
+                                 <div>
+                                    <h4 className="text-xs font-mono font-black text-slate-200 uppercase">Viability Stress Protocol</h4>
+                                    <p className="text-[10px] text-slate-400 font-sans">Archean heat, UV radiation, and starvation challenge</p>
+                                 </div>
+                              </div>
+                              {stressTrial?.fitnessScore !== null && (
+                                 <div className="text-right">
+                                    <span className="text-[9px] font-mono text-slate-500 uppercase block">Fitness Score</span>
+                                    <span className={`text-base font-mono font-black ${stressTrial?.certified ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                       {stressTrial.fitnessScore}/100
+                                    </span>
+                                 </div>
+                              )}
+                           </div>
+
+                           <div className="text-[10px] font-mono text-slate-300 bg-[#090f1d] p-2 rounded-xl border border-teal-500/15">
+                              {stressTrial?.message || 'Ready to evaluate organism fitness and membrane stability.'}
+                           </div>
+
+                           <div className="flex gap-2 mt-1">
+                              <button 
+                                onClick={startStressTrial}
+                                disabled={agents.length === 0}
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 ${
+                                   agents.length > 0 
+                                     ? 'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white shadow-md active:scale-95' 
+                                     : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+                                }`}
+                              >
+                                 <span>⚡</span>
+                                 <span>{agents.length > 0 ? 'START 30s STRESS TRIAL' : 'INJECT ORGANISM FIRST'}</span>
+                              </button>
+
+                              {stressTrial?.certified && (
+                                 <button 
+                                   onClick={seedCertifiedOrganismToEarth}
+                                   className="py-2 px-4 bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white rounded-xl text-xs font-mono font-black transition-all shadow-[0_0_15px_rgba(14,165,233,0.4)] active:scale-95 flex items-center gap-1.5"
+                                 >
+                                    <span>🌍</span>
+                                    <span>SEED EARTH</span>
+                                 </button>
+                              )}
+                           </div>
+                        </div>
+                      )}
                    </div>
                 )}
              </div>
 
-             {/* Right Panel: Inject */}
-             <div className="w-48 border-l border-[#333] flex items-center justify-center p-4">
+             {/* Right Panel: Inject LUCA / Seed Ocean Button */}
+             <div className="w-56 border-l border-teal-500/15 flex flex-col items-center justify-center p-4 gap-2">
                 <button 
                   onClick={onInject}
                   disabled={!hasDesign}
                   className={`
-                    relative w-full h-full rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2
+                    w-full flex-1 rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-lg
                     ${hasDesign 
-                      ? 'bg-gradient-to-b from-[#222] to-black border-amber-500/50 hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] active:scale-95' 
-                      : 'bg-[#111] border-zinc-800 text-zinc-700 cursor-not-allowed'}
+                      ? 'bg-gradient-to-br from-teal-500 via-emerald-600 to-sky-600 border-teal-300/40 text-white hover:shadow-[0_0_24px_rgba(20,184,166,0.5)] active:scale-95' 
+                      : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed opacity-50'}
                   `}
                 >
-                   <span className={`text-3xl ${hasDesign ? 'animate-pulse' : ''}`}>{hasDesign ? '⚡' : '🚫'}</span>
-                   <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${hasDesign ? 'text-amber-500' : 'text-zinc-700'}`}>
-                      {hasDesign ? 'INJECT' : 'NO_DNA'}
+                   <span className="text-xl">{hasDesign ? '⚡' : '🔒'}</span>
+                   <span className="text-[9px] font-mono font-black uppercase tracking-widest">
+                      {hasDesign ? 'INJECT LUCA' : 'DESIGN EMPTY'}
                    </span>
                 </button>
+
+                {stressTrial?.certified && (
+                  <button 
+                    onClick={seedCertifiedOrganismToEarth}
+                    className="w-full py-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 border border-sky-400/50 text-white text-[9px] font-mono font-black uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.3)] active:scale-95 transition-all"
+                  >
+                    🌍 SEED PLANETARY OCEAN
+                  </button>
+                )}
              </div>
           </div>
        </div>

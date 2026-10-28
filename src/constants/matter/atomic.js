@@ -1,10 +1,10 @@
-import { PARTICLE_TYPES } from '../particles';
+import { PARTICLE_TYPES } from '../particles.js';
+import { ATOMIC_NUMBER_TO_TYPE } from '../periodicTableLayout.js';
 
 const {
   UP_QUARK, DOWN_QUARK, ELECTRON,
-  PROTON, NEUTRON, HYDROGEN, HELIUM, CARBON, NITROGEN, OXYGEN, PHOSPHORUS, SULFUR, IRON,
-  SODIUM, CHLORINE, SILICON, MAGNESIUM, POTASSIUM, CALCIUM, ALUMINIUM,
-  DEUTERIUM, TRITIUM, HELIUM_3, CARBON_14, URANIUM_235, URANIUM_238
+  PROTON, NEUTRON, HYDROGEN,
+  DEUTERIUM, TRITIUM, HELIUM_3, CARBON_14, URANIUM_234, URANIUM_235, URANIUM_238
 } = PARTICLE_TYPES;
 
 export const ATOMIC_MATTER = {
@@ -13,22 +13,16 @@ export const ATOMIC_MATTER = {
   [HYDROGEN]: { parents: [PROTON, ELECTRON] },
   [DEUTERIUM]: { parents: [PROTON, NEUTRON, ELECTRON] },
   [TRITIUM]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [HELIUM]: { parents: [PROTON, NEUTRON, ELECTRON] },
   [HELIUM_3]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [CARBON]: { parents: [PROTON, NEUTRON, ELECTRON] },
   [CARBON_14]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [NITROGEN]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [OXYGEN]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [PHOSPHORUS]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [SULFUR]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [IRON]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [SODIUM]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [CHLORINE]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [SILICON]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [MAGNESIUM]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [POTASSIUM]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [CALCIUM]: { parents: [PROTON, NEUTRON, ELECTRON] },
-  [ALUMINIUM]: { parents: [PROTON, NEUTRON, ELECTRON] },
+  [URANIUM_234]: { parents: [PROTON, NEUTRON, ELECTRON] },
   [URANIUM_235]: { parents: [PROTON, NEUTRON, ELECTRON] },
   [URANIUM_238]: { parents: [PROTON, NEUTRON, ELECTRON] },
 };
+
+// Automatically populate all elements from the Periodic Table into atomic matter registry
+Object.values(ATOMIC_NUMBER_TO_TYPE).forEach(atomType => {
+  if (atomType && !ATOMIC_MATTER[atomType]) {
+    ATOMIC_MATTER[atomType] = { parents: [PROTON, NEUTRON, ELECTRON] };
+  }
+});

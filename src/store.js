@@ -14,7 +14,6 @@ export const useStore = create(
         earthEntered: false,
         lifePlanted: false,
       },
-      introComplete: false,
       
       // --- Global Settings ---
       globalSettings: {

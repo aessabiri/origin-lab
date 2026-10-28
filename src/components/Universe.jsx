@@ -4,6 +4,8 @@ import { Stars, OrbitControls, Float, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store';
 import { useInventory } from '../store/inventory';
+import { usePlanetaryStore } from '../store/planetaryStore';
+import { useProgressionStore } from '../store/progressionStore';
 
 // --- CONSTANTS & DATA ---
 const ERAS = {
@@ -309,7 +311,7 @@ const SpectroscopyHUD = ({ data, onDismiss }) => {
                                             backgroundColor: data.score > 80 ? '#22c55e' : (data.score > 40 ? '#3b82f6' : '#94a3b8') 
                                         }} 
                                     />
-                                    <div className="absolute inset-0 bg-[url('https://raw.githubusercontent.com/pmndrs/drei-assets/master/clouds/cloud1.png')] bg-cover opacity-50 mix-blend-overlay" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,rgba(255,255,255,0.45),transparent_65%)] opacity-70 mix-blend-overlay" />
                                 </div>
                             )}
                             {/* Scanning Overlay */}
@@ -412,7 +414,20 @@ const SpectroscopyHUD = ({ data, onDismiss }) => {
                     </button>
                     <button 
                         disabled={stage !== 'result'}
-                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest px-8 py-3 rounded-xl shadow-lg shadow-blue-900/20 transition-all"
+                        onClick={() => {
+                            if (data.score > 70) {
+                                useStore.getState().setUniverseMilestone('earthEntered', true);
+                                useProgressionStore.getState().addXp(1500);
+                                useStore.getState().showMessage(`Target habitable exoplanet selected! Navigating to Planetary Biosphere...`);
+                                useStore.getState().setCurrentView('planetary');
+                                onDismiss();
+                            } else {
+                                useProgressionStore.getState().addXp(500);
+                                useStore.getState().showMessage(`Spectroscopy survey logged in Universal Archives (+500 XP)`);
+                                onDismiss();
+                            }
+                        }}
+                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest px-8 py-3 rounded-xl shadow-lg shadow-blue-900/20 transition-all cursor-pointer"
                     >
                         {data.score > 70 ? 'Colonize Planet' : 'Log Discovery'}
                     </button>
@@ -704,21 +719,47 @@ const DistantNebulas = ({ count = 10 }) => {
 };
 
 const BackgroundStars = ({ count = 400 }) => {
-  const stars = useMemo(() => {
-    return Array.from({ length: count }).map(() => ({
-        pos: [(Math.random()-0.5)*150, (Math.random()-0.5)*150, (Math.random()-0.5)*150],
-        color: ['#ef4444', '#f97316', '#fbbf24', '#ffffff', '#3b82f6'][Math.floor(Math.random()*5)]
-    }));
+  const { positions, colors } = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const palette = [
+      new THREE.Color('#ef4444'),
+      new THREE.Color('#f97316'),
+      new THREE.Color('#fbbf24'),
+      new THREE.Color('#ffffff'),
+      new THREE.Color('#38bdf8'),
+    ];
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 150;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 150;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 150;
+
+      const c = palette[Math.floor(Math.random() * palette.length)];
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
+    }
+    return { positions: pos, colors: col };
   }, [count]);
+
   return (
-    <>
-      {stars.map((star, i) => (
-        <mesh key={i} position={star.pos}>
-            <sphereGeometry args={[0.04, 8, 8]} />
-            <meshBasicMaterial color={star.color} toneMapped={false} />
-        </mesh>
-      ))}
-    </>
+    <points>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={count}
+          array={positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={count}
+          array={colors}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial size={1.2} vertexColors transparent opacity={0.8} sizeAttenuation={false} />
+    </points>
   );
 };
 
@@ -737,7 +778,7 @@ const createGlowTexture = () => {
     return new THREE.CanvasTexture(canvas);
 };
 
-const StellarNursery = ({ position }) => {
+const StellarNursery = ({ position, isCollapsing = false }) => {
     const glowTex = useMemo(() => createGlowTexture(), []);
     useEffect(() => () => glowTex.dispose(), [glowTex]);
     
@@ -760,6 +801,7 @@ const StellarNursery = ({ position }) => {
     // Refs for InstancedMeshes
     const cloudMeshRef = useRef();
     const starMeshRef = useRef();
+    const collapseRef = useRef(0);
     
     // Setup Instances
     useEffect(() => {
@@ -806,6 +848,58 @@ const StellarNursery = ({ position }) => {
         starMeshRef.current.instanceColor.needsUpdate = true;
 
     }, [allClouds, allStars]);
+
+    // Dynamic N-body Jeans Gravitational Collapse
+    useFrame((state, delta) => {
+        if (!cloudMeshRef.current || !starMeshRef.current) return;
+
+        if (isCollapsing) {
+            collapseRef.current = Math.min(1, collapseRef.current + delta * 0.9);
+        } else if (collapseRef.current > 0) {
+            collapseRef.current = Math.max(0, collapseRef.current - delta * 0.3);
+        }
+
+        const factor = collapseRef.current;
+        if (factor > 0 || isCollapsing) {
+            const dummy = new THREE.Object3D();
+            const localDummy = new THREE.Object3D();
+
+            allClouds.forEach((cloud, i) => {
+                dummy.position.set(...cloud.parentPos);
+                dummy.rotation.set(0, 0, cloud.parentTilt);
+                dummy.updateMatrix();
+
+                // Compress inwards toward pillar center line
+                const compressedX = cloud.pos[0] * (1 - factor * 0.65);
+                const compressedZ = cloud.pos[2] * (1 - factor * 0.65);
+                const compressedScale = cloud.scale.map(s => s * (1 - factor * 0.35));
+
+                localDummy.position.set(compressedX, cloud.pos[1], compressedZ);
+                localDummy.rotation.set(...cloud.rot);
+                localDummy.scale.set(...compressedScale);
+                localDummy.updateMatrix();
+
+                const combinedMatrix = dummy.matrix.clone().multiply(localDummy.matrix);
+                cloudMeshRef.current.setMatrixAt(i, combinedMatrix);
+            });
+            cloudMeshRef.current.instanceMatrix.needsUpdate = true;
+
+            // Flash protostar cores
+            allStars.forEach((star, i) => {
+                dummy.position.set(...star.parentPos);
+                dummy.rotation.set(0, 0, star.parentTilt);
+                dummy.updateMatrix();
+
+                localDummy.position.set(...star.pos);
+                localDummy.scale.setScalar(star.size * (1 + factor * 2.8));
+                localDummy.updateMatrix();
+
+                const combinedMatrix = dummy.matrix.clone().multiply(localDummy.matrix);
+                starMeshRef.current.setMatrixAt(i, combinedMatrix);
+            });
+            starMeshRef.current.instanceMatrix.needsUpdate = true;
+        }
+    });
 
     // Star Glow Points
     const glowPoints = useMemo(() => {
@@ -1029,6 +1123,10 @@ const Universe = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   
+  // Gravitational Collapse State
+  const [isCollapsing, setIsCollapsing] = useState(false);
+  const [collapseNotification, setCollapseNotification] = useState(null);
+  
   const videoRef = useRef();
   const controlsRef = useRef();
 
@@ -1046,6 +1144,26 @@ const Universe = () => {
     
     // Pass target immediately to HUD; HUD handles the "Scanning -> Analyzed" animation timing
     setScanResult(target);
+  };
+
+  const handleGravitationalCollapse = () => {
+    if (isCollapsing) return;
+    setIsCollapsing(true);
+    setCollapseNotification('⚡ JEANS COLLAPSE: Gas clouds compress into protostellar cores! +25 Helium, +10 Carbon synthesized!');
+
+    try {
+      useInventory.getState().addItem('helium', 25);
+      useInventory.getState().addItem('carbon', 10);
+      useProgressionStore.getState().completeMilestone('stellar_formation');
+    } catch (_) {}
+
+    setTimeout(() => {
+      setIsCollapsing(false);
+    }, 3500);
+
+    setTimeout(() => {
+      setCollapseNotification(null);
+    }, 5000);
   };
   
   const handleDismissScan = () => {
@@ -1068,22 +1186,42 @@ const Universe = () => {
          <SpectroscopyHUD data={scanResult} onDismiss={handleDismissScan} />
       )}
 
+      {/* Collapse Notification Banner */}
+      {collapseNotification && (
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl bg-[#090f1d]/90 border border-cyan-400/50 backdrop-blur-xl flex items-center gap-3 shadow-[0_0_30px_rgba(6,182,212,0.3)] animate-pulse">
+          <span className="text-xl">⚡</span>
+          <span className="text-xs font-mono font-bold text-cyan-200 tracking-wide">{collapseNotification}</span>
+        </div>
+      )}
+
       {/* VIEW CONTROLS */}
       {introComplete && (
         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-6 pointer-events-none">
             
-            {/* Scanner Button (Only in Stellar Era) */}
-            <div className="h-16 flex items-center justify-center pointer-events-auto">
+            {/* Action Buttons (Only in Stellar Era) */}
+            <div className="h-16 flex items-center justify-center pointer-events-auto gap-3">
                 {activeEra === ERAS.STELLAR && !isScanning && (
+                  <>
                     <button 
                         onClick={handleScan}
-                        className="group relative px-8 py-3 bg-slate-900/80 backdrop-blur border border-blue-500/30 rounded-full overflow-hidden transition-all hover:scale-105 hover:border-blue-400 active:scale-95 shadow-[0_0_30px_rgba(59,130,246,0.2)]"
+                        className="group relative px-6 py-2.5 bg-slate-900/80 backdrop-blur border border-blue-500/30 rounded-full overflow-hidden transition-all hover:scale-105 hover:border-blue-400 active:scale-95 shadow-[0_0_30px_rgba(59,130,246,0.2)]"
                     >
                         <div className="absolute inset-0 bg-blue-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                         <span className="relative z-10 font-black uppercase text-[10px] tracking-[0.2em] text-blue-200 group-hover:text-white flex items-center gap-2">
-                            <span className="text-lg">🔭</span> Initiate Long-Range Scan
+                            <span className="text-base">🔭</span> Long-Range Scan
                         </span>
                     </button>
+                    <button 
+                        onClick={handleGravitationalCollapse}
+                        disabled={isCollapsing}
+                        className="group relative px-6 py-2.5 bg-indigo-950/80 backdrop-blur border border-cyan-500/40 rounded-full overflow-hidden transition-all hover:scale-105 hover:border-cyan-300 active:scale-95 shadow-[0_0_30px_rgba(6,182,212,0.3)] disabled:opacity-50"
+                    >
+                        <div className="absolute inset-0 bg-cyan-500/15 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                        <span className="relative z-10 font-black uppercase text-[10px] tracking-[0.2em] text-cyan-200 group-hover:text-white flex items-center gap-2">
+                            <span className="text-base">⚡</span> {isCollapsing ? 'Collapsing...' : 'Ignite Protostar'}
+                        </span>
+                    </button>
+                  </>
                 )}
             </div>
 
@@ -1139,7 +1277,7 @@ const Universe = () => {
                 {isScanning && <ScanningRing />}
                 <CosmicDust count={2000} radius={100} />
                 <DistantNebulas />
-                <StellarNursery position={[5, 2, -5]} />
+                <StellarNursery position={[5, 2, -5]} isCollapsing={isCollapsing} />
                 <BackgroundStars count={400} />
               </group>
             </>

@@ -18,20 +18,23 @@ const ELEMENT_CATEGORIES = {
   post_transition: { name: 'Post-Transition', color: 'bg-teal-500/20 border-teal-400/40 text-teal-300', hex: '#14b8a6' },
   metalloid: { name: 'Metalloids', color: 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300', hex: '#10b981' },
   halogen: { name: 'Halogens', color: 'bg-yellow-500/20 border-yellow-400/40 text-yellow-300', hex: '#eab308' },
+  lanthanide: { name: 'Lanthanides', color: 'bg-violet-500/20 border-violet-400/40 text-violet-300', hex: '#8b5cf6' },
   actinide: { name: 'Actinides / Heavy', color: 'bg-fuchsia-500/20 border-fuchsia-400/40 text-fuchsia-300', hex: '#d946ef' },
 };
 
 const getElementCategory = (atomicNumber) => {
   if ([1, 6, 7, 8, 15, 16, 34].includes(atomicNumber)) return 'nonmetal';
-  if ([2, 10, 18, 36, 86].includes(atomicNumber)) return 'noble';
-  if ([3, 11, 19].includes(atomicNumber)) return 'alkali';
-  if ([4, 12, 20, 88].includes(atomicNumber)) return 'alkaline';
-  if ([9, 17, 35].includes(atomicNumber)) return 'halogen';
-  if ([5, 14, 32, 33].includes(atomicNumber)) return 'metalloid';
-  if ([13, 31, 50, 82, 84].includes(atomicNumber)) return 'post_transition';
+  if ([2, 10, 18, 36, 54, 86, 118].includes(atomicNumber)) return 'noble';
+  if ([3, 11, 19, 37, 55, 87].includes(atomicNumber)) return 'alkali';
+  if ([4, 12, 20, 38, 56, 88].includes(atomicNumber)) return 'alkaline';
+  if ([9, 17, 35, 53, 85].includes(atomicNumber)) return 'halogen';
+  if ([5, 14, 32, 33, 51, 52].includes(atomicNumber)) return 'metalloid';
+  if ([13, 31, 49, 50, 81, 82, 83, 84].includes(atomicNumber)) return 'post_transition';
+  if (atomicNumber >= 57 && atomicNumber <= 71) return 'lanthanide';
   if (atomicNumber >= 89 && atomicNumber <= 103) return 'actinide';
   if (atomicNumber >= 21 && atomicNumber <= 30) return 'transition';
-  if (atomicNumber === 47 || atomicNumber === 79) return 'transition';
+  if (atomicNumber >= 39 && atomicNumber <= 48) return 'transition';
+  if (atomicNumber >= 72 && atomicNumber <= 80) return 'transition';
   return 'transition';
 };
 
@@ -107,7 +110,7 @@ const PeriodicTable = ({
 
         {/* Center: Chemical Symbol */}
         <div className="font-mono text-base font-black tracking-tight leading-none text-white drop-shadow-md">
-          {isDiscovered ? PARTICLE_NAMES[type]?.substring(0, 2) : '?'}
+          {isDiscovered ? (info.symbol || PARTICLE_NAMES[type]?.substring(0, 2)) : '?'}
         </div>
 
         {/* Bottom: Name */}

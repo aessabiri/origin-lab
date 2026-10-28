@@ -295,7 +295,7 @@ export const useChemistryStore = create(
         // --- Local Inventory Check ---
         const available = state.localInventory[chemicalId] || 0;
         
-        if (state.gameMode !== 'sandbox' && available < 1) { // Check existence, not quantity
+        if (state.gameMode !== 'sandbox' && !useStore.getState().isSandboxMode && available < 1) { // Check existence, not quantity
              get().setMessage(`Not unlocked in Local Store! Import first.`);
              return;
         }

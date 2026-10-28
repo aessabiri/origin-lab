@@ -90,6 +90,10 @@ export const processReactions = (vessel, timeSpeed) => {
 
         if (!tempOk || !pressureOk) continue;
 
+        // --- Hardware / Apparatus Feature Checks ---
+        if (reaction.conditions?.requiresSpark && !vessel.features?.hasSpark && vessel.variant !== 'spark') continue;
+        if (reaction.conditions?.requiresVoltage && !vessel.features?.hasVoltageControl && vessel.variant !== 'electrochemical') continue;
+
         let RATE_MULTIPLIER = PHYSICS_CONSTANTS.BASE_REACTION_RATE * timeSpeed;
 
         // --- Catalyst Check (Feedback Loop) ---
@@ -236,4 +240,91 @@ export const calculateMixtureColor = (contents, currentPH) => {
     b = Math.round(b / totalWeight);
 
     return `rgb(${r}, ${g}, ${b})`;
+};
+
+// Hydrophobic / Non-polar substances that form an immiscible organic top layer
+export const ORGANIC_PHASE_IDS = new Set([
+  'lipid', 'fatty-acid', 'phospholipid', 'cholesterol', 'benzene', 'hexane', 'propane', 'butane', 'oil', 'ethyl-acetate'
+]);
+
+// Volatile gases that partition into vessel headspace
+export const HEADSPACE_GAS_IDS = new Set([
+  'hydrogen', 'methane', 'ammonia', 'carbon-dioxide', 'carbon-monoxide', 'hydrogen-cyanide',
+  'hydrogen-sulfide', 'oxygen', 'nitrogen', 'chlorine', 'fluorine', 'acetylene', 'formaldehyde',
+  'nitrous-oxide', 'sulfur-dioxide', 'nitrogen-dioxide'
+]);
+
+// Multi-Phase Fluid Physics: Stratifies contents into Organic, Aqueous, Precipitate, and Headspace
+export const calculateMultiPhase = (contents = {}, temp = 20, pressure = 1) => {
+  const { dissolved, precipitates } = calculatePrecipitates(contents, temp);
+  
+  let organicVol = 0;
+  let aqueousVol = 0;
+  let precipitateVol = 0;
+  let headspaceVol = 0;
+
+  const organicContents = {};
+  const aqueousContents = {};
+  const headspaceContents = {};
+
+  Object.entries(contents).forEach(([id, amount]) => {
+    if (amount <= 0.01) return;
+    const chem = MATTER_DEFINITIONS[id];
+    const isPrecipitate = (precipitates[id] || 0) > 0;
+    const isGas = chem?.state === 'gas' || (chem?.boilingPoint !== undefined && temp >= chem.boilingPoint) || HEADSPACE_GAS_IDS.has(id);
+
+    if (isPrecipitate) {
+      precipitateVol += precipitates[id];
+    }
+
+    if (isGas) {
+      headspaceVol += amount;
+      headspaceContents[id] = amount;
+    } else if (ORGANIC_PHASE_IDS.has(id)) {
+      const dissAmt = dissolved[id] || amount;
+      organicVol += dissAmt;
+      organicContents[id] = dissAmt;
+    } else {
+      const dissAmt = dissolved[id] || amount;
+      aqueousVol += dissAmt;
+      aqueousContents[id] = dissAmt;
+    }
+  });
+
+  const phValue = calculatePH(contents);
+  const aqueousColor = calculateMixtureColor(aqueousContents, phValue);
+  
+  // Organic phase color: blends warm amber/golden lipid sheen
+  let organicColor = '#f59e0b'; // amber lipid
+  if (organicContents['benzene']) organicColor = '#94a3b8'; // clear hydrocarbon sheen
+  else if (organicContents['cholesterol']) organicColor = '#fde68a';
+  else if (organicContents['ethyl-acetate']) organicColor = '#38bdf8';
+
+  // Headspace gas tint
+  let headspaceColor = 'rgba(255, 255, 255, 0.08)';
+  if (headspaceContents['chlorine']) headspaceColor = 'rgba(132, 204, 22, 0.28)'; // yellowish-green
+  else if (headspaceContents['nitrogen-dioxide']) headspaceColor = 'rgba(180, 83, 9, 0.35)'; // reddish-brown
+  else if (headspaceContents['methane'] || headspaceContents['ammonia'] || headspaceContents['hydrogen-cyanide']) {
+    headspaceColor = 'rgba(56, 189, 248, 0.18)'; // primordial cyan haze
+  } else if (headspaceContents['hydrogen-sulfide']) {
+    headspaceColor = 'rgba(234, 179, 8, 0.22)'; // sulfur yellow haze
+  }
+
+  return {
+    organicVolume: organicVol,
+    aqueousVolume: aqueousVol,
+    precipitateVolume: precipitateVol,
+    headspaceVolume: headspaceVol,
+    totalLiquidVolume: organicVol + aqueousVol,
+    organicColor,
+    aqueousColor,
+    headspaceColor,
+    hasOrganicPhase: organicVol > 0.5,
+    hasAqueousPhase: aqueousVol > 0.5,
+    hasPrecipitate: precipitateVol > 0.5,
+    hasHeadspaceGas: headspaceVol > 0.5,
+    dissolved,
+    precipitates,
+    phValue
+  };
 };

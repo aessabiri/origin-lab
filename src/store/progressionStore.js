@@ -94,6 +94,46 @@ const MILESTONES = [
     category: 'Biology',
     requirements: { particles: ['dna', 'ribosome', 'atp'] }
   },
+  {
+    id: 'great_oxidation',
+    title: 'The Great Oxidation Event',
+    description: 'Cyanobacteria transform Earth\'s atmosphere, flooding oceans and air with diatomic oxygen.',
+    xpReward: 12000,
+    requiredLevel: 10,
+    category: 'Evolutionary',
+  },
+  {
+    id: 'cambrian_explosion',
+    title: 'The Cambrian Explosion',
+    description: 'Metazoan radiation fills the oceans with bilateral bodies, eyes, and complex ecosystems.',
+    xpReward: 15000,
+    requiredLevel: 11,
+    category: 'Evolutionary',
+  },
+  {
+    id: 'terrestrial_invasion',
+    title: 'Devonian Land Invasion',
+    description: 'Tiktaalik and early tetrapods venture from the shallows onto dry land.',
+    xpReward: 20000,
+    requiredLevel: 12,
+    category: 'Evolutionary',
+  },
+  {
+    id: 'cephalization',
+    title: 'Neocortex & Cephalization',
+    description: 'Complex brains, limbic emotional architecture, and sensory integration emerge in mammals.',
+    xpReward: 25000,
+    requiredLevel: 13,
+    category: 'Cognitive',
+  },
+  {
+    id: 'anthropocene',
+    title: 'The Anthropocene: Cosmic Ouroboros',
+    description: 'Consciousness awakens: Homo sapiens builds instruments to uncover the Big Bang origin of the cosmos.',
+    xpReward: 50000,
+    requiredLevel: 14,
+    category: 'Cosmic',
+  },
 ];
 
 export const useProgressionStore = create(
@@ -139,30 +179,28 @@ export const useProgressionStore = create(
         const quest = QUESTS.find(q => q.id === id);
         if (quest) {
             set({ completedQuests: [...completedQuests, id] });
-            addXp(quest.rewards.xp);
+            const xpVal = quest.rewards?.xp || quest.xp || 100;
+            addXp(xpVal);
             
             // Handle specialized rewards (e.g. Unlocks)
-            if (quest.rewards.unlockChemicals || quest.rewards.unlockEquipment) {
-                // If the chemistry lab is active, we might need to tell its store.
-                // However, the unified system should ideally check this store.
-            }
             return true;
         }
         return false;
       },
 
-      checkProgress: (discoveredItems) => {
+      checkProgress: (discoveredItems = []) => {
          const state = get();
          if (useStore.getState().isSandboxMode) return [];
 
          let newlyCompleted = [];
 
+         // 1. Check Quests
          QUESTS.forEach(quest => {
              if (state.completedQuests.includes(quest.id)) return;
              
-             const reqIds = Object.keys(quest.requirements);
+             const reqIds = Object.keys(quest.requirements || {});
              const isMet = reqIds.every(reqId => {
-                 if (reqId === 'LUCA_SURVIVAL') return false; // Manual trigger
+                 if (reqId === 'LUCA_SURVIVAL') return false; // Manual trigger via biology simulation
                  return discoveredItems.includes(reqId);
              });
 
@@ -172,9 +210,28 @@ export const useProgressionStore = create(
              }
          });
 
+         // 2. Check Milestones
+         MILESTONES.forEach(milestone => {
+             if (state.completedMilestones.includes(milestone.id)) return;
+             if (milestone.requirements?.particles) {
+                 const isMet = milestone.requirements.particles.every(p => discoveredItems.includes(p));
+                 if (isMet) {
+                     state.completeMilestone(milestone.id);
+                     newlyCompleted.push(milestone);
+                 }
+             }
+         });
+
          return newlyCompleted;
       },
       
+      resetProgression: () => set({
+        xp: 0,
+        level: 1,
+        completedMilestones: ['big_bang'],
+        completedQuests: []
+      }),
+
       getMilestones: () => MILESTONES,
       getQuests: () => QUESTS,
     }),

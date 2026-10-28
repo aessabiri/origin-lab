@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { calculateMixtureColor, processReactions, calculatePrecipitates } from '../logic/chemistry';
+import { calculateMixtureColor, processReactions, calculatePrecipitates, calculateMultiPhase } from '../logic/chemistry';
 import { audioSystem } from '../logic/audio';
 import { useChemistryStore } from '../store';
 
@@ -113,6 +113,92 @@ describe('Advanced Logic Coverage', () => {
             const loop2 = audioSystem.activeLoops.get('vessel_1-boil');
             
             expect(loop1).toBe(loop2); // Should be same instance
+        });
+    });
+
+    describe('Phase 3A: Prebiotic Synthesis & Multi-Phase Fluid Physics', () => {
+        it('should stratify immiscible organic (lipid) and polar aqueous (water) phases', () => {
+            const contents = {
+                water: 100,
+                'sodium-chloride': 10,
+                lipid: 40,
+                methane: 20
+            };
+            const multi = calculateMultiPhase(contents, 25, 1);
+            expect(multi.hasOrganicPhase).toBe(true);
+            expect(multi.hasAqueousPhase).toBe(true);
+            expect(multi.hasHeadspaceGas).toBe(true);
+            expect(multi.organicVolume).toBeCloseTo(40, 0);
+            expect(multi.aqueousVolume).toBeGreaterThan(100);
+            expect(multi.headspaceVolume).toBeCloseTo(20, 0);
+        });
+
+        it('should only fire Miller-Urey Arc in Spark Chamber or with hasSpark feature', () => {
+            const flaskVessel = {
+                id: 'flask_1',
+                variant: 'flask',
+                temp: 80,
+                pressure: 10,
+                features: {},
+                contents: { methane: 10, ammonia: 10, water: 10 }
+            };
+            const resFlask = processReactions(flaskVessel, 1);
+            // In regular flask, should not trigger spark arc reaction
+            expect(resFlask.outputsToAdd?.['formaldehyde']).toBeUndefined();
+
+            const sparkVessel = {
+                id: 'spark_1',
+                variant: 'spark',
+                temp: 80,
+                pressure: 10,
+                features: { hasSpark: true },
+                contents: { methane: 10, ammonia: 10, water: 10 }
+            };
+            const resSpark = processReactions(sparkVessel, 1);
+            expect(resSpark.outputsToAdd?.['formaldehyde']).toBeGreaterThan(0);
+            expect(resSpark.outputsToAdd?.['hydrogen-cyanide']).toBeGreaterThan(0);
+        });
+
+        it('should only perform water electrolysis with electrochemical voltage', () => {
+            const normalBeaker = {
+                id: 'beaker_1',
+                variant: 'beaker',
+                temp: 25,
+                pressure: 1,
+                features: {},
+                contents: { water: 50 }
+            };
+            const resBeaker = processReactions(normalBeaker, 1);
+            expect(resBeaker.outputsToAdd?.['hydrogen']).toBeUndefined();
+
+            const electroCell = {
+                id: 'cell_1',
+                variant: 'electrochemical',
+                temp: 25,
+                pressure: 1,
+                features: { hasVoltageControl: true },
+                contents: { water: 50 }
+            };
+            const resElectro = processReactions(electroCell, 1);
+            expect(resElectro.outputsToAdd?.['hydrogen']).toBeGreaterThan(0);
+            expect(resElectro.outputsToAdd?.['oxygen']).toBeGreaterThan(0);
+        });
+
+        it('should synthesize Glycine from Formaldehyde and HCN via Strecker pathway', () => {
+            const vessel = {
+                id: 'v_strecker',
+                variant: 'flask',
+                temp: 65,
+                pressure: 1,
+                features: {},
+                contents: {
+                    formaldehyde: 20,
+                    'hydrogen-cyanide': 20,
+                    water: 50
+                }
+            };
+            const result = processReactions(vessel, 1);
+            expect(result.outputsToAdd?.['glycine']).toBeGreaterThan(0);
         });
     });
 });

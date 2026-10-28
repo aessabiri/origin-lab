@@ -1,28 +1,33 @@
 import React from 'react';
 
 /**
- * Nixie Tube Display
- * Renders numbers with a vintage neon glow effect.
+ * High-Precision Digital Telemetry Tube
+ * Renders glowing digital numerals with crisp ambient highlights
  */
 export const NixieTube = ({ value, digits = 3, size = 'md' }) => {
   const strValue = String(Math.floor(value)).padStart(digits, '0');
   
   const sizeClasses = {
-    sm: 'text-2xl h-10 w-6',
-    md: 'text-4xl h-14 w-10',
-    lg: 'text-6xl h-20 w-14'
+    sm: 'text-lg h-8 w-6',
+    md: 'text-2xl h-11 w-8',
+    lg: 'text-4xl h-16 w-12'
   };
 
   return (
-    <div className="flex gap-1 bg-black/40 p-2 rounded-lg border-b-4 border-black/60 shadow-inner">
+    <div className="flex gap-1.5 bg-[#060a14]/90 p-2 rounded-xl border border-cyan-500/20 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]">
       {strValue.split('').map((char, i) => (
         <div 
           key={i} 
-          className={`${sizeClasses[size]} relative bg-zinc-900 border border-amber-900/30 rounded flex items-center justify-center font-mono overflow-hidden`}
+          className={`${sizeClasses[size]} relative bg-[#090f1d] border border-cyan-500/30 rounded-lg flex items-center justify-center font-mono overflow-hidden shadow-inner`}
         >
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none"></div>
-          <span className="absolute inset-0 flex items-center justify-center text-amber-950/20 pointer-events-none">8</span>
-          <span className="relative z-10 text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)] animate-pulse">
+          {/* Subtle Scanline Overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:100%_3px] pointer-events-none" />
+          {/* Ghost Number Backplate */}
+          <span className="absolute inset-0 flex items-center justify-center text-cyan-950/40 font-black pointer-events-none select-none">
+            8
+          </span>
+          {/* Active Glowing Numeral */}
+          <span className="relative z-10 text-cyan-300 font-black drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
             {char}
           </span>
         </div>
@@ -32,66 +37,119 @@ export const NixieTube = ({ value, digits = 3, size = 'md' }) => {
 };
 
 /**
- * Analog Gauge (High Precision SVG)
+ * Precision Digital Telemetry Gauge (High Precision SVG Arc)
  */
 export const AnalogGauge = ({ label, value, min = 0, max = 100, color = 'emerald' }) => {
   const percent = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
   const rotation = -135 + (percent * 2.7); 
   
   const colorMap = {
-    emerald: '#10b981',
-    amber: '#f59e0b',
-    red: '#ef4444',
-    blue: '#3b82f6'
+    emerald: { stroke: '#10b981', glow: 'rgba(16,185,129,0.5)', text: 'text-emerald-400' },
+    amber: { stroke: '#f59e0b', glow: 'rgba(245,158,11,0.5)', text: 'text-amber-400' },
+    red: { stroke: '#ef4444', glow: 'rgba(239,68,68,0.5)', text: 'text-rose-400' },
+    blue: { stroke: '#38bdf8', glow: 'rgba(56,189,248,0.5)', text: 'text-cyan-400' }
   };
   const activeColor = colorMap[color] || colorMap.emerald;
 
   return (
-    <div className="flex flex-col items-center group">
+    <div className="flex flex-col items-center group select-none">
       <div className="relative w-24 h-24">
-        <div className="absolute inset-0 rounded-full border-4 border-zinc-800 shadow-[0_4px_10px_rgba(0,0,0,0.5)] bg-zinc-900"></div>
+        {/* Bezel Ring */}
+        <div className="absolute inset-0 rounded-full border border-cyan-500/25 shadow-[0_4px_16px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] bg-[#090e1b]"></div>
+        
         <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full p-2 -rotate-90">
-          <circle cx="50" cy="50" r="40" fill="none" stroke="#18181b" strokeWidth="8" strokeDasharray="188.5" strokeDashoffset="62.8" className="rotate-[135deg] origin-center" />
-          <circle cx="50" cy="50" r="40" fill="none" stroke={activeColor} strokeWidth="8" strokeDasharray="188.5" strokeDashoffset={188.5 - (percent * 1.885)} className="rotate-[135deg] origin-center transition-all duration-1000 ease-out opacity-40" />
+          {/* Track Arc */}
+          <circle 
+            cx="50" cy="50" r="38" 
+            fill="none" 
+            stroke="#1e293b" 
+            strokeWidth="6" 
+            strokeDasharray="179" 
+            strokeDashoffset="59.7" 
+            className="rotate-[135deg] origin-center" 
+          />
+          {/* Active Value Arc */}
+          <circle 
+            cx="50" cy="50" r="38" 
+            fill="none" 
+            stroke={activeColor.stroke} 
+            strokeWidth="6" 
+            strokeDasharray="179" 
+            strokeDashoffset={179 - (percent * 1.79)} 
+            strokeLinecap="round"
+            className="rotate-[135deg] origin-center transition-all duration-700 ease-out" 
+            style={{ filter: `drop-shadow(0 0 4px ${activeColor.glow})` }}
+          />
+          {/* Tick Markers */}
           {[...Array(9)].map((_, i) => (
-            <line key={i} x1="50" y1="15" x2="50" y2="20" stroke="#3f3f46" strokeWidth="2" transform={`rotate(${-135 + (i * 33.75)} 50 50)`} />
+            <line 
+              key={i} 
+              x1="50" y1="17" x2="50" y2="21" 
+              stroke="#475569" 
+              strokeWidth="1.5" 
+              transform={`rotate(${-135 + (i * 33.75)} 50 50)`} 
+            />
           ))}
         </svg>
+
+        {/* Center Pivot & Needle */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-           <div className="w-2 h-2 bg-zinc-700 rounded-full border border-zinc-900 z-20"></div>
-           <div className="absolute w-0.5 h-10 bg-red-600 origin-bottom transition-transform duration-700 ease-out z-10" style={{ transform: `translateY(-50%) rotate(${rotation}deg)`, boxShadow: '0 0 5px rgba(220,38,38,0.5)' }}></div>
+           <div className="w-2.5 h-2.5 bg-slate-300 rounded-full border border-slate-900 shadow-md z-20"></div>
+           <div 
+             className="absolute w-0.5 h-10 bg-gradient-to-t from-cyan-500 to-white origin-bottom transition-transform duration-500 ease-out z-10" 
+             style={{ 
+               transform: `translateY(-50%) rotate(${rotation}deg)`, 
+               boxShadow: `0 0 6px ${activeColor.stroke}` 
+             }}
+           />
         </div>
-        <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-30"></div>
       </div>
+      
+      {/* Telemetry Labels */}
       <div className="mt-2 flex flex-col items-center text-center">
-        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">{label}</span>
-        <span className="text-[10px] font-mono font-bold text-white">{Math.floor(value)}</span>
+        <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest">{label}</span>
+        <span className={`text-xs font-mono font-black ${activeColor.text}`}>
+          {Math.floor(value)}
+        </span>
       </div>
     </div>
   );
 };
 
 /**
- * Oscilloscope Display
+ * High-Precision Telemetry Oscilloscope
  */
 export const Oscilloscope = ({ color = 'emerald', active = true }) => {
-  const colorMap = { emerald: 'stroke-emerald-500', amber: 'stroke-amber-500', red: 'stroke-red-500' };
+  const colorMap = { 
+    emerald: 'stroke-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.8)]', 
+    amber: 'stroke-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]', 
+    red: 'stroke-rose-400 drop-shadow-[0_0_6px_rgba(244,63,94,0.8)]',
+    teal: 'stroke-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]'
+  };
+
   return (
-    <div className="w-full h-16 bg-[#050505] border-2 border-zinc-800 rounded shadow-inner overflow-hidden relative">
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:10px_10px]"></div>
+    <div className="w-full h-16 bg-[#060a14] border border-cyan-500/25 rounded-xl shadow-inner overflow-hidden relative">
+      {/* Precision Telemetry Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(56,189,248,0.06)_1px,transparent_1px),linear-gradient(rgba(56,189,248,0.06)_1px,transparent_1px)] [background-size:12px_12px]" />
       <svg viewBox="0 0 200 60" className="w-full h-full relative z-10">
-        <path d="M 0 30 Q 25 10 50 30 T 100 30 T 150 30 T 200 30" fill="none" strokeWidth="2" className={`${colorMap[color]} transition-all ${active ? 'animate-wave' : 'opacity-20'}`} />
+        <path 
+          d="M 0 30 Q 25 10 50 30 T 100 30 T 150 30 T 200 30" 
+          fill="none" 
+          strokeWidth="2" 
+          className={`${colorMap[color] || colorMap.emerald} transition-all ${active ? 'animate-wave' : 'opacity-25'}`} 
+        />
       </svg>
-      <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/40 pointer-events-none" />
     </div>
   );
 };
 
 /**
- * Bakelite Texture Wrapper
+ * Quantum Telemetry Panel (Formerly BakelitePanel)
+ * Upgraded into a cohesive OLED Sci-Fi Glassmorphic Card
  */
 export const BakelitePanel = ({ children, className = '' }) => (
-  <div className={`bg-[#1a1a1a] bg-[radial-gradient(#2a2a2a_1px,transparent_1px)] [background-size:4px_4px] border-2 border-[#0a0a0a] shadow-[inset_0_2px_10px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)] rounded-xl overflow-hidden ${className}`}>
+  <div className={`bg-[#0c1220]/90 backdrop-blur-2xl border border-cyan-500/20 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.08)] rounded-2xl overflow-hidden ${className}`}>
     {children}
   </div>
 );
@@ -100,7 +158,6 @@ export const BakelitePanel = ({ children, className = '' }) => (
  * NeoSphere
  */
 export const NeoSphere = ({ color, size = 40, label, glow = true, x, y, r }) => {
-  // Support both x/y/r props (SVG) and style-based positioning (DOM)
   const isSvg = x !== undefined && y !== undefined;
   
   const content = (
@@ -109,11 +166,21 @@ export const NeoSphere = ({ color, size = 40, label, glow = true, x, y, r }) => 
       <circle 
         r={r || size/2} 
         fill={color} 
-        className={glow ? 'shadow-lg' : ''}
-        style={{ filter: glow ? 'drop-shadow(0 0 5px currentColor)' : 'none' }}
+        style={{ filter: glow ? `drop-shadow(0 0 6px ${color})` : 'none' }}
       />
-      <circle r={r || size/2} fill="url(#neo-grad)" opacity="0.4" />
-      {label && <text y={isSvg ? 4 : '0.35em'} textAnchor="middle" fill="white" fontSize={r ? r * 0.8 : 12} fontWeight="bold">{label}</text>}
+      <circle r={r || size/2} fill="url(#neo-grad)" opacity="0.35" />
+      {label && (
+        <text 
+          y={isSvg ? 4 : '0.35em'} 
+          textAnchor="middle" 
+          fill="#ffffff" 
+          fontSize={r ? r * 0.8 : 12} 
+          fontWeight="900"
+          fontFamily="monospace"
+        >
+          {label}
+        </text>
+      )}
     </g>
   );
 
@@ -124,7 +191,7 @@ export const NeoSphere = ({ color, size = 40, label, glow = true, x, y, r }) => 
       <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
         <defs>
           <radialGradient id="neo-grad" cx="30%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="white" stopOpacity="0.6" />
+            <stop offset="0%" stopColor="white" stopOpacity="0.7" />
             <stop offset="100%" stopColor="black" stopOpacity="0.4" />
           </radialGradient>
         </defs>
@@ -137,27 +204,36 @@ export const NeoSphere = ({ color, size = 40, label, glow = true, x, y, r }) => 
 /**
  * NeoBond
  */
-export const NeoBond = ({ x1, y1, x2, y2, type = 'single', color = 'stroke-gray-400' }) => {
-  const widthMap = { single: 6, double: 10, triple: 14 };
-  const innerWidthMap = { single: 2, double: 4, triple: 6 };
+export const NeoBond = ({ x1, y1, x2, y2, type = 'single', color = 'stroke-cyan-500/40' }) => {
+  const widthMap = { single: 5, double: 8, triple: 12 };
+  const innerWidthMap = { single: 2, double: 3, triple: 5 };
   return (
     <g className="pointer-events-none">
-      <line x1={x1} y1={y1} x2={x2} y2={y2} className={color} strokeWidth={widthMap[type]} strokeLinecap="round" opacity="0.3" />
-      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth={innerWidthMap[type]} strokeLinecap="round" opacity="0.6" />
+      <line x1={x1} y1={y1} x2={x2} y2={y2} className={color} strokeWidth={widthMap[type]} strokeLinecap="round" opacity="0.4" />
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth={innerWidthMap[type]} strokeLinecap="round" opacity="0.75" />
     </g>
   );
 };
 
 /**
- * Vintage Toggle Switch
+ * Precision Telemetry Toggle Switch
  */
 export const ToggleSwitch = ({ label, checked, onChange }) => (
-  <div className="flex flex-col items-center gap-2">
-    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
-    <button onClick={onChange} className={`w-10 h-16 bg-zinc-900 border-4 border-zinc-800 rounded-lg p-1 transition-all flex flex-col items-center justify-between shadow-inner`}>
-      <div className={`w-6 h-6 rounded border-2 transition-all ${checked ? 'bg-zinc-800 border-zinc-700 order-last' : 'bg-red-900 border-red-800'}`}></div>
-      <div className={`w-1 h-4 bg-zinc-800 rounded-full`}></div>
-      <div className={`w-6 h-6 rounded border-2 transition-all ${!checked ? 'bg-zinc-800 border-zinc-700 order-first' : 'bg-emerald-900 border-emerald-800'}`}></div>
+  <div className="flex flex-col items-center gap-2 select-none">
+    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">{label}</span>
+    <button 
+      onClick={onChange} 
+      className={`w-12 h-6 rounded-full p-0.5 transition-all duration-300 flex items-center border ${
+        checked 
+          ? 'bg-cyan-950/80 border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.4)] justify-end' 
+          : 'bg-slate-900 border-slate-700 justify-start'
+      }`}
+    >
+      <div className={`w-4.5 h-4.5 rounded-full transition-all duration-300 shadow-md ${
+        checked 
+          ? 'bg-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.8)]' 
+          : 'bg-slate-500'
+      }`} />
     </button>
   </div>
 );

@@ -12,26 +12,29 @@ const Tutorials = () => {
   const [selectedReaction, setSelectedReaction] = useState(null);
 
   return (
-    <div className="w-full h-full bg-slate-900 text-white overflow-y-auto animate-fadeIn relative">
+    <div className="w-full h-full bg-[#070a13] text-white overflow-y-auto animate-fadeIn relative select-none custom-scrollbar">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-700 px-8 py-6 flex justify-between items-center">
+      <div className="sticky top-0 z-40 bg-[#0c1220]/95 backdrop-blur-2xl border-b border-cyan-500/20 px-8 py-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl">
         <div>
-           <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500">
-             ACADEMY
-           </h1>
-           <p className="text-slate-400 text-sm font-mono tracking-wider mt-1">UNIVERSAL FABRICATION MANUAL</p>
+           <div className="flex items-center gap-3">
+             <span className="text-2xl">📚</span>
+             <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 uppercase tracking-widest font-sans">
+               Universal Academy
+             </h1>
+           </div>
+           <p className="text-slate-400 text-xs font-mono tracking-wider mt-1">Fabrication Principles & Synthesis Manuals</p>
         </div>
         
         {/* Tabs */}
-        <div className="flex gap-2 p-1 bg-slate-800 rounded-lg">
+        <div className="flex gap-2 p-1 bg-[#070b14] border border-cyan-500/20 rounded-2xl">
            {['physics', 'chemistry', 'biology'].map(tab => (
              <button
                key={tab}
                onClick={() => setActiveTab(tab)}
-               className={`px-6 py-2 rounded-md font-bold uppercase text-sm tracking-wider transition-all ${
+               className={`px-5 py-2 rounded-xl font-mono font-bold uppercase text-xs tracking-wider transition-all cursor-pointer ${
                  activeTab === tab 
-                   ? 'bg-blue-600 text-white shadow-lg' 
-                   : 'text-slate-400 hover:text-white hover:bg-white/5'
+                   ? 'bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
+                   : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
                }`}
              >
                {tab}

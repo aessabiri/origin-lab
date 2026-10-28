@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useInventory } from './src/store/inventory';
-import { useDiscoveredMatter } from './src/hooks/useDiscoveredMatter';
-import { useParticleStore } from './src/particle-lab/store';
+import { useInventory } from '../store/inventory';
+import { useDiscoveredMatter } from '../hooks/useDiscoveredMatter';
+import { useParticleStore } from '../particle-lab/store';
 import React from 'react';
 
 // Mock hook

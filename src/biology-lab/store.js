@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useInventory } from '../store/inventory.js';
+import { useProgressionStore } from '../store/progressionStore.js';
+import { usePlanetaryStore } from '../store/planetaryStore.js';
 
 // Initial Resources available in the "Soup"
 const INITIAL_SOUP = {
@@ -22,6 +24,23 @@ export const useBioStore = create(
       foodItems: [],
       toxins: [],
       worldSize: { width: 800, height: 800 },
+      environment: {
+        temperature: 37.0, // °C
+        nutrients: 80,     // %
+        radiation: 0,      // %
+      },
+
+      // Bioreactor Stress Testing & Environmental Viability Certification
+      stressTrial: {
+        active: false,
+        stage: 'idle', // 'idle' | 'thermal_shock' | 'uv_flux' | 'starvation' | 'complete'
+        elapsed: 0,
+        totalDuration: 30,
+        initialAgents: 0,
+        fitnessScore: null,
+        certified: false,
+        message: 'Awaiting Stress Trial initiation.',
+      },
       
       // Simulation Status
       isRunning: false,
@@ -46,6 +65,9 @@ export const useBioStore = create(
       setFoodItems: (foodItems) => set({ foodItems }),
       setToxins: (toxins) => set({ toxins }),
       setWorldSize: (width, height) => set({ worldSize: { width, height } }),
+      setEnvironment: (environment) => set((state) => ({
+        environment: { ...state.environment, ...environment }
+      })),
       
       updateAgent: (id, updates) => set((state) => ({
         agents: state.agents.map(a => a.id === id ? { ...a, ...updates } : a)
@@ -195,12 +217,193 @@ export const useBioStore = create(
         });
       },
 
+      // Stress Trial & Bioreactor Certification Actions
+      startStressTrial: () => set(state => {
+        const agentCount = state.agents.length;
+        if (agentCount === 0) {
+          return {
+            stressTrial: {
+              ...state.stressTrial,
+              message: 'No protocells detected. Inject LUCA or build a cell design first!'
+            }
+          };
+        }
+
+        return {
+          isRunning: true,
+          stressTrial: {
+            active: true,
+            stage: 'thermal_shock',
+            elapsed: 0,
+            totalDuration: 30,
+            initialAgents: agentCount,
+            fitnessScore: null,
+            certified: false,
+            message: 'STAGE 1/3: THERMAL SHOCK APPLIED (88.0°C)'
+          },
+          environment: {
+            temperature: 88.0,
+            nutrients: 60,
+            radiation: 15
+          }
+        };
+      }),
+
+      updateStressTrial: (deltaSec) => set(state => {
+        if (!state.stressTrial.active) return state;
+
+        const newElapsed = state.stressTrial.elapsed + deltaSec;
+        const total = state.stressTrial.totalDuration;
+        const livingAgents = state.agents.filter(a => a.energy > 0).length;
+
+        // Stage 1 (0s - 10s): Thermal Shock (88°C)
+        // Stage 2 (10s - 20s): UV Radiation Flux (85% Radiation)
+        // Stage 3 (20s - 30s): Nutrient Starvation (5% Nutrients)
+        if (newElapsed < 10) {
+          return {
+            stressTrial: {
+              ...state.stressTrial,
+              elapsed: newElapsed,
+              stage: 'thermal_shock',
+              message: `STAGE 1/3: THERMAL SHOCK (88°C) • ${(10 - newElapsed).toFixed(0)}s remaining`
+            }
+          };
+        } else if (newElapsed < 20) {
+          return {
+            stressTrial: {
+              ...state.stressTrial,
+              elapsed: newElapsed,
+              stage: 'uv_flux',
+              message: `STAGE 2/3: UV RADIATION FLUX (85%) • ${(20 - newElapsed).toFixed(0)}s remaining`
+            },
+            environment: {
+              temperature: 45.0,
+              nutrients: 40,
+              radiation: 85
+            }
+          };
+        } else if (newElapsed < total) {
+          return {
+            stressTrial: {
+              ...state.stressTrial,
+              elapsed: newElapsed,
+              stage: 'starvation',
+              message: `STAGE 3/3: NUTRIENT STARVATION (5%) • ${(total - newElapsed).toFixed(0)}s remaining`
+            },
+            environment: {
+              temperature: 37.0,
+              nutrients: 5,
+              radiation: 10
+            }
+          };
+        }
+
+        // Trial Finished! Calculate Fitness Score
+        const initial = Math.max(1, state.stressTrial.initialAgents);
+        const survivalRatio = Math.min(1, livingAgents / initial);
+        const baseScore = Math.round(survivalRatio * 60);
+        const longevityBonus = livingAgents > 0 ? 30 : 5;
+        const finalScore = Math.min(100, baseScore + longevityBonus);
+        const isCertified = finalScore >= 60 && livingAgents > 0;
+
+        if (isCertified) {
+          try {
+            useProgressionStore.getState().completeQuest('bio_luca');
+            useInventory.getState().markDiscovered('CERTIFIED_LUCA');
+          } catch (e) {}
+        }
+
+        return {
+          environment: {
+            temperature: 37.0,
+            nutrients: 80,
+            radiation: 0
+          },
+          stressTrial: {
+            active: false,
+            stage: 'complete',
+            elapsed: total,
+            totalDuration: total,
+            initialAgents: initial,
+            fitnessScore: finalScore,
+            certified: isCertified,
+            message: isCertified
+              ? `🏆 TRIAL PASSED! Fitness Score: ${finalScore}/100. Strain certified for Earth seeding!`
+              : `❌ TRIAL FAILED. Fitness Score: ${finalScore}/100. Cells failed environmental tolerance.`
+          }
+        };
+      }),
+
+      cancelStressTrial: () => set(state => ({
+        stressTrial: {
+          active: false,
+          stage: 'idle',
+          elapsed: 0,
+          totalDuration: 30,
+          initialAgents: 0,
+          fitnessScore: null,
+          certified: false,
+          message: 'Stress trial aborted.'
+        },
+        environment: {
+          temperature: 37.0,
+          nutrients: 80,
+          radiation: 0
+        }
+      })),
+
+      seedCertifiedOrganismToEarth: () => {
+        const state = get();
+        const livingAgent = state.agents.find(a => a.energy > 0) || state.agents[0];
+        const design = state.currentCellDesign;
+        const fitness = state.stressTrial.fitnessScore || 85;
+
+        // Determine traits
+        const hasPhototroph = Boolean(livingAgent?.genome?.diet === 2 || design?.organelles?.some(o => o.type === 'chloroplast' || o.type === 'phototroph'));
+        const hasChemotroph = !hasPhototroph;
+
+        const organismToSeed = {
+          name: livingAgent?.id === 'LUCA' ? 'LUCA Primordialis' : `Protocell Strain ${fitness}`,
+          traits: {
+            phototroph: hasPhototroph,
+            chemotroph: hasChemotroph,
+            fitness: fitness,
+            membrane: design?.membrane || 'Phospholipid Bilayer'
+          },
+          genome: livingAgent?.genome || { speed: 1, metabolism: 0.5, sense: 100, diet: hasPhototroph ? 2 : 0 }
+        };
+
+        // Seed planetary ocean
+        usePlanetaryStore.getState().seedPlanet(organismToSeed);
+        try {
+          useProgressionStore.getState().completeQuest('bio_luca');
+          useProgressionStore.getState().checkProgress(['CERTIFIED_LUCA', 'LUCA_SURVIVAL', 'EARTH_SEEDED']);
+        } catch (e) {}
+
+        set(s => ({
+          stressTrial: {
+            ...s.stressTrial,
+            message: '🌍 Protocell successfully deposited into Earth Archean Ocean!'
+          }
+        }));
+      },
+
       resetSimulation: () => set({
         agents: [],
         soup: { ...INITIAL_SOUP },
         foodItems: [],
         toxins: [],
         isRunning: false,
+        stressTrial: {
+          active: false,
+          stage: 'idle',
+          elapsed: 0,
+          totalDuration: 30,
+          initialAgents: 0,
+          fitnessScore: null,
+          certified: false,
+          message: 'Awaiting Stress Trial initiation.',
+        }
       }),
     }),
     {

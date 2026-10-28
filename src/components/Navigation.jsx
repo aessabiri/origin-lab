@@ -4,6 +4,7 @@ import { useBioStore } from '../biology-lab/store';
 import { useChemistryStore } from '../chemistry-lab/store';
 import { useParticleStore } from '../particle-lab/store';
 import { useInventory } from '../store/inventory';
+import { resetAllOriginStores } from '../utils/storeReset.js';
 
 const LAB_ITEMS = [
   { 
@@ -134,11 +135,7 @@ const Navigation = () => {
 
   const handleReset = () => {
     if (window.confirm("WARNING: This will collapse the universe back into a singularity. All progress will be lost. Are you sure?")) {
-      resetUniverse(); 
-      executeGlobalReset(); 
-      executeParticleReset(); 
-      resetSimulation(); 
-      resetLab(); 
+      resetAllOriginStores();
       setIntroComplete(true); 
       setCurrentView('particle'); 
     }

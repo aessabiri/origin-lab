@@ -9,6 +9,7 @@ const ERA_THEMES = {
   'Physics': { color: 'border-sky-500/40 text-sky-300', bg: 'bg-sky-500/20', icon: '⚛️' },
   'Chemistry': { color: 'border-emerald-500/40 text-emerald-300', bg: 'bg-emerald-500/20', icon: '⚗️' },
   'Biology': { color: 'border-teal-500/40 text-teal-300', bg: 'bg-teal-500/20', icon: '🧫' },
+  'Cosmic': { color: 'border-purple-500/40 text-purple-300', bg: 'bg-purple-500/20', icon: '🌌' },
   'Planetary': { color: 'border-indigo-500/40 text-indigo-300', bg: 'bg-indigo-500/20', icon: '🌍' },
 };
 
@@ -151,7 +152,7 @@ const Goals = () => {
                       </span>
                     ) : (
                       <span className="text-amber-400 font-mono text-xs font-bold">
-                        +{quest.xp || 100} XP
+                        +{quest.rewards?.xp || quest.xp || 100} XP
                       </span>
                     )}
                   </div>
@@ -166,27 +167,43 @@ const Goals = () => {
                 </div>
 
                 {/* Bottom: Objectives & Rewards */}
-                <div className="pt-3 border-t border-cyan-500/15 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {quest.targetItem && (
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-[10px] font-mono text-slate-300">
-                        <span>Target:</span>
-                        <strong className="text-cyan-300">{quest.targetItem}</strong>
-                      </div>
-                    )}
+                <div className="pt-3 border-t border-cyan-500/15 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] font-mono text-slate-500 uppercase mr-1">Required:</span>
+                    {Object.entries(quest.requirements || {}).map(([reqKey, count]) => {
+                      const reqInfo = getUniversalItemInfo(reqKey);
+                      return (
+                        <div key={reqKey} className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-900/80 border border-cyan-500/20 text-[10px] font-mono text-slate-300">
+                          <div className="w-3.5 h-3.5">
+                            <ParticleIcon type={reqKey} color={reqInfo.color} />
+                          </div>
+                          <span className="text-cyan-300 font-bold">{count}x {reqInfo.name}</span>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {rewardInfo && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-slate-500 uppercase">Reward:</span>
+                  {/* Rewards Badge */}
+                  <div className="flex items-center gap-2">
+                    {quest.rewards?.unlockChemicals && (
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono text-emerald-300 font-bold">
+                        Unlocks {quest.rewards.unlockChemicals.length} Reagents
+                      </span>
+                    )}
+                    {quest.rewards?.unlockEquipment && (
+                      <span className="px-2 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/30 text-[10px] font-mono text-sky-300 font-bold">
+                        Unlocks Apparatus
+                      </span>
+                    )}
+                    {rewardInfo && (
                       <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-xs font-bold">
                         <div className="w-4 h-4">
                           <ParticleIcon type={quest.rewardItem} color={rewardInfo.color} />
                         </div>
                         <span>{rewardInfo.name}</span>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             );

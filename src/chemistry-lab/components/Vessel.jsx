@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useChemistryStore } from '../store';
 import { MATTER_DEFINITIONS } from '../../constants/matterRegistry';
 import { VESSEL_STATS } from '../data/constants';
-import { calculatePH, calculateMixtureColor, calculatePrecipitates } from '../logic/chemistry';
+import { calculatePH, calculateMixtureColor, calculatePrecipitates, calculateMultiPhase } from '../logic/chemistry';
 import QuantityModal from './QuantityModal';
 import Condenser from './Condenser';
 import VesselVisuals from './VesselVisuals';
@@ -18,11 +18,15 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
 
   const [modalState, setModalState] = useState({ isOpen: false, chemicalId: null });
   const [showUpgradeMenu, setShowUpgradeMenu] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   
-  const currentStats = VESSEL_STATS[vessel.type || (id === 'chamber' ? 'reinforced' : 'glass')] || VESSEL_STATS.glass;
+  const currentStats = VESSEL_STATS[vessel?.type || (id === 'chamber' ? 'reinforced' : 'glass')] || VESSEL_STATS.glass;
+
+  if (!vessel) return null;
 
   const handleDrop = (e) => {
     e.preventDefault();
+    setIsDragOver(false);
     if (vessel.status === 'broken') return;
     if (!vessel.isOpen) return; 
     const chemicalId = e.dataTransfer.getData('chemicalId');
@@ -38,97 +42,125 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
     setModalState({ isOpen: false, chemicalId: null });
   };
 
-  const handleDragOver = (e) => e.preventDefault();
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    if (!isDragOver) setIsDragOver(true);
+  };
 
-  const totalVolume = Object.values(vessel.contents).reduce((a, b) => a + b, 0);
-  const fillPercentage = Math.min((totalVolume / vessel.maxVol) * 100, 100);
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
 
-  const phValue = useMemo(() => calculatePH(vessel.contents), [vessel.contents]);
-  
-  const { dissolved, precipitates } = useMemo(() => calculatePrecipitates(vessel.contents, vessel.temp), [vessel.contents, vessel.temp]);
-  const hasPrecipitate = Object.keys(precipitates).length > 0;
+  const multiPhase = useMemo(() => {
+    return calculateMultiPhase(vessel.contents || {}, vessel.temp, vessel.pressure);
+  }, [vessel.contents, vessel.temp, vessel.pressure]);
 
-  const fluidColor = useMemo(() => {
-    return calculateMixtureColor(dissolved, phValue); 
-  }, [dissolved, phValue]);
+  const totalVolume = Object.values(vessel.contents || {}).reduce((a, b) => a + b, 0);
+  const fillPercentage = Math.min((totalVolume / (vessel.maxVol || 500)) * 100, 100);
 
-  // Naming Logic
+  const phValue = multiPhase.phValue;
+  const hasPrecipitate = multiPhase.hasPrecipitate;
+  const fluidColor = multiPhase.aqueousColor;
+
+  // Dynamic naming logic
   const mixtureName = useMemo(() => {
-     if (hasPrecipitate) return 'Saturated / Precipitate';
-     
-     const entries = Object.entries(vessel.contents);
-     if (entries.length === 0) return 'Empty';
-     
-     const sorted = entries.sort((a, b) => b[1] - a[1]);
-     const dominantId = sorted[0][0];
-     const dominant = MATTER_DEFINITIONS[dominantId];
-     if (!dominant) return 'Unknown';
+    if (hasPrecipitate) return 'Saturated / Precipitate';
+    
+    const entries = Object.entries(vessel.contents || {});
+    if (entries.length === 0) return 'Empty Vessel';
+    
+    const sorted = entries.sort((a, b) => b[1] - a[1]);
+    const dominantId = sorted[0][0];
+    const dominant = MATTER_DEFINITIONS[dominantId];
+    if (!dominant) return 'Unknown Substance';
 
-     // Determine effective state
-     let effectiveState = dominant.state;
-     if (dominant.meltingPoint !== undefined) {
-         effectiveState = vessel.temp < dominant.meltingPoint ? 'solid' : 'liquid';
-     }
-     if (dominant.boilingPoint !== undefined && vessel.temp >= dominant.boilingPoint) {
-         effectiveState = 'gas';
-     }
+    let effectiveState = dominant.state;
+    if (dominant.meltingPoint !== undefined) {
+      effectiveState = vessel.temp < dominant.meltingPoint ? 'solid' : 'liquid';
+    }
+    if (dominant.boilingPoint !== undefined && vessel.temp >= dominant.boilingPoint) {
+      effectiveState = 'gas';
+    }
 
-     if (dominantId === 'water' && entries.length > 1 && effectiveState === 'liquid') {
-        const soluteId = sorted[1][0];
-        const solute = MATTER_DEFINITIONS[soluteId];
-        return `Aq. ${solute?.name || 'Solution'}`;
-     }
-     
-     if (effectiveState === 'solid') return `${dominant.name} (Solid)`;
-     if (effectiveState === 'gas') return `${dominant.name} (Gas)`;
-     return `${dominant.name} Mix`;
+    if (dominantId === 'water' && entries.length > 1 && effectiveState === 'liquid') {
+      const soluteId = sorted[1][0];
+      const solute = MATTER_DEFINITIONS[soluteId];
+      return `Aq. ${solute?.name || 'Solution'}`;
+    }
+    
+    if (effectiveState === 'solid') return `${dominant.name} (Solid)`;
+    if (effectiveState === 'gas') return `${dominant.name} (Vapor)`;
+    return `${dominant.name} Mix`;
   }, [vessel.contents, vessel.temp, hasPrecipitate]);
 
   const handleBottle = () => {
     bottleVessel(id);
   };
 
+  // --- CRITICAL FAILURE DISPLAY ---
   if (vessel.status === 'broken') {
-      return (
-          <div className="flex flex-col items-center gap-4 p-4 bg-gray-900 rounded-xl border border-red-900/50 shadow-lg min-w-[200px] h-[400px] justify-center opacity-75 relative">
-             <div className="text-red-500 font-bold animate-pulse text-sm tracking-widest">CRITICAL FAILURE</div>
-             <div className="text-6xl filter grayscale brightness-50">⚗️</div>
-             <p className="text-xs text-gray-500 text-center px-2">
-                Vessel destroyed by {vessel.pressure > currentStats.maxPress ? 'overpressure' : 'thermal shock'}.
-             </p>
-             <button 
-                onClick={() => repairVessel(id)}
-                className="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm transition-colors border border-gray-600"
-             >
-                Replace Glassware
-             </button>
-             
-             <button 
-                onClick={() => setShowUpgradeMenu(true)}
-                className="absolute top-2 right-2 p-2 text-gray-500 hover:text-white"
-             >
-                 ⚙️
-             </button>
-             
-             {showUpgradeMenu && (
-                <div className="absolute top-10 right-0 z-50 bg-gray-800 p-4 rounded-xl border border-gray-600 w-64 shadow-2xl text-left">
-                    <h3 className="text-sm font-bold text-white mb-2">Replace With...</h3>
-                    <div className="space-y-2">
-                        {Object.entries(VESSEL_STATS).map(([typeKey, stat]) => (
-                            <button
-                                key={typeKey}
-                                onClick={() => { upgradeVessel(id, typeKey); setShowUpgradeMenu(false); }}
-                                className="w-full text-left p-2 rounded border border-gray-700 hover:bg-gray-700 text-xs text-gray-300"
-                            >
-                                <div className="font-bold">{stat.name}</div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-             )}
+    return (
+      <div className="flex flex-col items-center gap-4 p-6 bg-[#1a080c]/90 backdrop-blur-xl rounded-3xl border-2 border-rose-500/50 shadow-[0_0_40px_rgba(244,63,94,0.3)] min-w-[240px] h-[480px] justify-center relative overflow-hidden animate-fade-in">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(244,63,94,0.15)_0,transparent_70%)] pointer-events-none" />
+        
+        <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/40 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(244,63,94,0.4)] animate-bounce">
+          💥
+        </div>
+
+        <div className="text-center space-y-1 relative z-10">
+          <div className="text-rose-400 font-mono font-black text-xs tracking-widest uppercase">
+            STRUCTURAL BREACH
           </div>
-      )
-   }
+          <p className="text-[11px] text-slate-400 font-sans max-w-[200px] leading-snug">
+            Vessel ruptured due to {vessel.pressure > currentStats.maxPress ? 'overpressure' : 'thermal shock'}.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 w-full max-w-[180px] relative z-10 mt-2">
+          <button 
+            onClick={() => repairVessel(id)}
+            className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-mono font-bold transition-all border border-slate-600 hover:border-slate-400 active:scale-95 shadow-lg"
+          >
+            Reconstruct Glassware
+          </button>
+          
+          <button 
+            onClick={() => setShowUpgradeMenu(true)}
+            className="w-full py-2 px-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white rounded-xl text-xs font-mono font-black transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)] active:scale-95"
+          >
+            Upgrade Alloy ⚙️
+          </button>
+        </div>
+
+        {/* Upgrade Selection Modal */}
+        {showUpgradeMenu && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md" onClick={() => setShowUpgradeMenu(false)}>
+            <div className="bg-[#0b101f] p-6 rounded-3xl border border-slate-700 w-80 shadow-2xl space-y-4" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                <h3 className="text-sm font-mono font-black uppercase text-slate-200">Select Apparatus Material</h3>
+                <button onClick={() => setShowUpgradeMenu(false)} className="text-slate-400 hover:text-white">✕</button>
+              </div>
+              <div className="space-y-2">
+                {Object.entries(VESSEL_STATS).map(([typeKey, stat]) => (
+                  <button
+                    key={typeKey}
+                    onClick={() => { upgradeVessel(id, typeKey); setShowUpgradeMenu(false); }}
+                    className="w-full text-left p-3 rounded-xl border border-slate-800 hover:border-emerald-500/50 bg-[#070d18] hover:bg-[#0c1628] transition-all flex flex-col gap-1"
+                  >
+                    <div className="font-bold text-xs text-slate-200">{stat.name}</div>
+                    <div className="text-[10px] font-mono text-slate-500 flex justify-between">
+                      <span>Max {stat.maxTemp}°C</span>
+                      <span>Max {stat.maxPress} atm</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -136,144 +168,128 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
         isOpen={modalState.isOpen}
         onClose={() => setModalState({ isOpen: false, chemicalId: null })}
         onConfirm={handleConfirmPour}
-        chemicalName={MATTER_DEFINITIONS[modalState.chemicalId]?.name || 'Unknown'}
+        chemicalName={MATTER_DEFINITIONS[modalState.chemicalId]?.name || 'Chemical'}
       />
       
+      {/* Vessel Configuration / Upgrade Modal */}
       {showUpgradeMenu && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowUpgradeMenu(false)}>
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-600 w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-white">Upgrade Vessel</h3>
-                    <button onClick={() => setShowUpgradeMenu(false)} className="text-gray-400 hover:text-white">✕</button>
-                </div>
-                <div className="space-y-3">
-                    {Object.entries(VESSEL_STATS).map(([typeKey, stat]) => (
-                        <button
-                            key={typeKey}
-                            onClick={() => { upgradeVessel(id, typeKey); setShowUpgradeMenu(false); }}
-                            className={`w-full text-left p-3 rounded-lg border-2 transition-all relative overflow-hidden ${vessel.type === typeKey ? 'bg-amber-500/10 border-amber-500' : 'bg-gray-750 border-gray-700 hover:border-gray-500 hover:bg-gray-700'}`}
-                        >
-                            <div className="flex justify-between items-center relative z-10">
-                                <span className={`font-bold ${vessel.type === typeKey ? 'text-amber-400' : 'text-gray-200'}`}>{stat.name}</span>
-                                {vessel.type === typeKey && <span className="text-amber-500">✓</span>}
-                            </div>
-                            <div className="text-xs text-gray-400 mt-2 grid grid-cols-2 gap-2 relative z-10">
-                                <span className="flex items-center gap-1">🌡️ Max {stat.maxTemp}°C</span>
-                                <span className="flex items-center gap-1">⏲️ Max {stat.maxPress} atm</span>
-                            </div>
-                        </button>
-                    ))}
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md" onClick={() => setShowUpgradeMenu(false)}>
+          <div className="bg-[#0c1222] p-6 rounded-3xl border border-emerald-500/30 w-88 shadow-[0_20px_60px_rgba(0,0,0,0.9)] space-y-4 animate-scale-up" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+              <div>
+                <h3 className="text-sm font-mono font-black uppercase tracking-wider text-slate-100">Vessel Configuration</h3>
+                <span className="text-[10px] text-slate-400">Upgrade material tolerances</span>
+              </div>
+              <button onClick={() => setShowUpgradeMenu(false)} className="text-slate-400 hover:text-white p-1">✕</button>
             </div>
+
+            <div className="space-y-2.5">
+              {Object.entries(VESSEL_STATS).map(([typeKey, stat]) => {
+                const isSelected = (vessel.type || 'glass') === typeKey;
+                return (
+                  <button
+                    key={typeKey}
+                    onClick={() => { upgradeVessel(id, typeKey); setShowUpgradeMenu(false); }}
+                    className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all relative overflow-hidden ${
+                      isSelected 
+                        ? 'bg-emerald-500/10 border-emerald-400/80 shadow-[0_0_15px_rgba(16,185,129,0.2)]' 
+                        : 'bg-[#070c18] border-slate-800 hover:border-slate-600 hover:bg-[#0c1527]'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center relative z-10">
+                      <span className={`font-mono font-bold text-xs ${isSelected ? 'text-emerald-300' : 'text-slate-200'}`}>
+                        {stat.name}
+                      </span>
+                      {isSelected && <span className="text-emerald-400 text-xs font-black">ACTIVE</span>}
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-400 mt-2 grid grid-cols-2 gap-2 relative z-10">
+                      <span className="flex items-center gap-1">🌡️ Max: {stat.maxTemp}°C</span>
+                      <span className="flex items-center gap-1">⏲️ Max: {stat.maxPress} atm</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
       
-      <div className="flex flex-col items-center gap-2 relative">
+      <div className="flex flex-col items-center gap-1.5 relative select-none">
+        
+        {/* Top Digital Telemetry Monitor */}
         <VesselMonitor 
-            id={id}
-            vessel={vessel}
-            totalVolume={totalVolume}
-            phValue={phValue}
-            mixtureName={mixtureName}
-            onConfigure={() => setShowUpgradeMenu(true)}
+          id={id}
+          vessel={vessel}
+          totalVolume={totalVolume}
+          phValue={phValue}
+          mixtureName={mixtureName}
+          onConfigure={() => setShowUpgradeMenu(true)}
         />
 
-        {/* Cable */}
-        <div className="w-1 h-4 bg-gray-700 absolute top-[76px] z-0"></div>
+        {/* Cable Connector Line */}
+        <div className="w-1 h-3 bg-gradient-to-b from-slate-700 to-slate-800 z-0" />
 
-        <div className={`flex flex-col items-center gap-2 p-4 bg-gray-800 rounded-xl border-2 shadow-lg min-w-[220px] z-10 transition-colors duration-500 ${currentStats.style}`}>
-          {/* Lid Status Indicator */}
-          <div className="absolute top-2 right-2 z-20">
-             <span className={`text-[10px] px-1 rounded ${vessel.isOpen ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400 border border-red-800'}`}>
-                {vessel.isOpen ? 'OPEN' : 'SEALED'}
-             </span>
-          </div>
-
-          {/* The Vessel Container */}
-          <div className={`flex items-end ${hasCondenser ? 'min-w-[200px] pr-12' : ''}`}>
-              <div 
-                className="relative w-32 h-40 z-10"
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-              >
-                <VesselVisuals 
-                    variant={vessel.variant || 'flask'} 
-                    fillPercentage={fillPercentage} 
-                    fluidColor={fluidColor}
-                    hasPrecipitate={hasPrecipitate}
-                >
-                    {/* Visual Effects Layer - passed as children */}
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                        {/* 1. Standard Boiling Bubbles */}
-                        {vessel.temp > 95 && totalVolume > 0 && (
-                            <div className="absolute bottom-0 w-full h-full flex items-end justify-around pb-2 opacity-40">
-                                <div className="animate-bounce delay-75 w-2 h-2 bg-white rounded-full" />
-                                <div className="animate-bounce delay-200 w-1 h-1 bg-white rounded-full" />
-                                <div className="animate-bounce delay-500 w-1.5 h-1.5 bg-white rounded-full" />
-                            </div>
-                        )}
-
-                        {/* 2. Reaction Specific Visuals */}
-                        {vessel.activeVisual === 'bubble' && (
-                            <div className="absolute bottom-0 w-full h-full flex items-end justify-around pb-4">
-                                {[...Array(6)].map((_, i) => (
-                                    <div 
-                                        key={i}
-                                        className="w-1.5 h-1.5 bg-white/60 rounded-full animate-[ping_1.5s_infinite]"
-                                        style={{ animationDelay: `${i * 0.2}s`, left: `${i * 15}%` }}
-                                    />
-                                ))}
-                            </div>
-                        )}
-
-                        {vessel.activeVisual === 'fume' && (
-                            <div className="absolute top-0 w-full h-1/2 flex justify-center opacity-60">
-                                <div className="w-12 h-20 bg-gradient-to-t from-white/20 to-transparent blur-xl animate-pulse" />
-                            </div>
-                        )}
-
-                        {vessel.activeVisual === 'steam' && (
-                            <div className="absolute top-0 w-full h-full flex flex-col items-center pt-2 opacity-80">
-                                <div className="w-16 h-10 bg-white/20 blur-lg rounded-full animate-bounce" />
-                                <div className="w-10 h-8 bg-white/10 blur-md rounded-full animate-pulse delay-75" />
-                            </div>
-                        )}
-
-                        {vessel.activeVisual === 'solidify' && (
-                            <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px] animate-pulse" />
-                        )}
-
-                        {vessel.activeVisual === 'distill' && (
-                            <div className="absolute top-0 w-full h-full">
-                                <div className="absolute right-2 top-4 w-1 h-2 bg-white/40 rounded-full animate-bounce" />
-                                <div className="absolute right-4 top-8 w-1 h-2 bg-white/40 rounded-full animate-bounce delay-100" />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Label Overlay */}
-                    <div className="absolute top-2 w-full flex justify-center opacity-50">
-                        <span className="text-[10px] font-mono text-white/50 bg-black/20 px-1 rounded">{currentStats.name.split(' ')[0]}</span>
-                    </div>
-                    
-                    {/* Bottle Button */}
-                    {totalVolume > 0 && vessel.isOpen && (
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-auto">
-                        <button 
-                          onClick={handleBottle}
-                          className="bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold py-1 px-3 rounded-full shadow-lg transform hover:scale-105 transition-all"
-                        >
-                          Bottle
-                        </button>
-                      </div>
-                    )}
-                </VesselVisuals>
-              </div>
+        {/* Main Station Pedestal & Vessel Shell */}
+        <div 
+          className={`flex flex-col items-center gap-3 p-4 bg-[#0a1020]/90 backdrop-blur-2xl rounded-3xl border-2 transition-all duration-300 shadow-[0_15px_40px_rgba(0,0,0,0.7)] min-w-[240px] z-10 relative group ${
+            isDragOver 
+              ? 'border-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.4)] bg-[#0d1830]' 
+              : 'border-slate-800 hover:border-slate-700'
+          }`}
+        >
+          
+          {/* Reaction Glassware Area */}
+          <div className={`flex items-end ${hasCondenser ? 'min-w-[210px] pr-10' : ''}`}>
+            
+            <div 
+              className="relative w-36 h-44 z-10 flex items-center justify-center"
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+            >
               
-              {/* Attached Condenser */}
-              {hasCondenser && <Condenser connectedVesselId={id} />}
+              {/* Glassware Procedural Visuals */}
+              <VesselVisuals 
+                variant={vessel.variant || 'flask'} 
+                fillPercentage={fillPercentage} 
+                fluidColor={fluidColor}
+                hasPrecipitate={hasPrecipitate}
+                temp={vessel.temp}
+                activeVisual={vessel.activeVisual}
+                multiPhase={multiPhase}
+              >
+                {/* Floating Harvest / Bottle Action Overlay */}
+                {totalVolume > 0 && vessel.isOpen && (
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex flex-col items-center justify-center gap-2 pointer-events-auto backdrop-blur-[1px]">
+                    <button 
+                      onClick={handleBottle}
+                      className="px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-[11px] font-mono font-black rounded-xl shadow-xl transform hover:scale-105 active:scale-95 transition-all border border-emerald-300/40"
+                    >
+                      BOTTLE SAMPLE ⚗️
+                    </button>
+                    <span className="text-[9px] font-mono text-emerald-200">
+                      Yield: {Math.round(totalVolume)} mL
+                    </span>
+                  </div>
+                )}
+              </VesselVisuals>
+
+              {/* Drag-over Reagent Guide */}
+              {isDragOver && (
+                <div className="absolute inset-0 rounded-2xl border-2 border-dashed border-emerald-400 bg-emerald-500/10 flex items-center justify-center pointer-events-none animate-pulse">
+                  <span className="text-[11px] font-mono font-black text-emerald-300 bg-[#060b17]/90 px-3 py-1 rounded-full border border-emerald-400/50">
+                    DROP TO POUR
+                  </span>
+                </div>
+              )}
+
+            </div>
+            
+            {/* Attached Distillation Condenser */}
+            {hasCondenser && <Condenser />}
           </div>
 
+          {/* Bottom Hardware Controls Console */}
           <VesselControls 
             id={id}
             hasTempControl={hasTempControl}
@@ -281,9 +297,10 @@ const Vessel = ({ id, hasTempControl, hasPressureControl, hasCondenser }) => {
             currentStats={currentStats}
           />
         </div>
+
       </div>
     </>
   );
 };
 
-export default Vessel;
+export default React.memo(Vessel);

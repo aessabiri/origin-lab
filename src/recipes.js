@@ -560,6 +560,330 @@ export const RECIPES = [
     },
   },
   {
+    type: PARTICLE_TYPES.RUBIDIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 37,
+      [PARTICLE_TYPES.NEUTRON]: 48,
+      [PARTICLE_TYPES.ELECTRON]: 37,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.STRONTIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 38,
+      [PARTICLE_TYPES.NEUTRON]: 50,
+      [PARTICLE_TYPES.ELECTRON]: 38,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.YTTRIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 39,
+      [PARTICLE_TYPES.NEUTRON]: 50,
+      [PARTICLE_TYPES.ELECTRON]: 39,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.ZIRCONIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 40,
+      [PARTICLE_TYPES.NEUTRON]: 51,
+      [PARTICLE_TYPES.ELECTRON]: 40,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.NIOBIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 41,
+      [PARTICLE_TYPES.NEUTRON]: 52,
+      [PARTICLE_TYPES.ELECTRON]: 41,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.MOLYBDENUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 42,
+      [PARTICLE_TYPES.NEUTRON]: 54,
+      [PARTICLE_TYPES.ELECTRON]: 42,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.TECHNETIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 43,
+      [PARTICLE_TYPES.NEUTRON]: 55,
+      [PARTICLE_TYPES.ELECTRON]: 43,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.RUTHENIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 44,
+      [PARTICLE_TYPES.NEUTRON]: 57,
+      [PARTICLE_TYPES.ELECTRON]: 44,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.RHODIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 45,
+      [PARTICLE_TYPES.NEUTRON]: 58,
+      [PARTICLE_TYPES.ELECTRON]: 45,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.PALLADIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 46,
+      [PARTICLE_TYPES.NEUTRON]: 60,
+      [PARTICLE_TYPES.ELECTRON]: 46,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.CADMIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 48,
+      [PARTICLE_TYPES.NEUTRON]: 64,
+      [PARTICLE_TYPES.ELECTRON]: 48,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.INDIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 49,
+      [PARTICLE_TYPES.NEUTRON]: 66,
+      [PARTICLE_TYPES.ELECTRON]: 49,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.ANTIMONY,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 51,
+      [PARTICLE_TYPES.NEUTRON]: 71,
+      [PARTICLE_TYPES.ELECTRON]: 51,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.TELLURIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 52,
+      [PARTICLE_TYPES.NEUTRON]: 76,
+      [PARTICLE_TYPES.ELECTRON]: 52,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.IODINE,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 53,
+      [PARTICLE_TYPES.NEUTRON]: 74,
+      [PARTICLE_TYPES.ELECTRON]: 53,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.XENON,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 54,
+      [PARTICLE_TYPES.NEUTRON]: 77,
+      [PARTICLE_TYPES.ELECTRON]: 54,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.CAESIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 55,
+      [PARTICLE_TYPES.NEUTRON]: 78,
+      [PARTICLE_TYPES.ELECTRON]: 55,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.BARIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 56,
+      [PARTICLE_TYPES.NEUTRON]: 81,
+      [PARTICLE_TYPES.ELECTRON]: 56,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.LANTHANUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 57,
+      [PARTICLE_TYPES.NEUTRON]: 82,
+      [PARTICLE_TYPES.ELECTRON]: 57,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.NEODYMIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 60,
+      [PARTICLE_TYPES.NEUTRON]: 84,
+      [PARTICLE_TYPES.ELECTRON]: 60,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.TUNGSTEN,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 74,
+      [PARTICLE_TYPES.NEUTRON]: 110,
+      [PARTICLE_TYPES.ELECTRON]: 74,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.OSMIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 76,
+      [PARTICLE_TYPES.NEUTRON]: 114,
+      [PARTICLE_TYPES.ELECTRON]: 76,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.PLATINUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 78,
+      [PARTICLE_TYPES.NEUTRON]: 117,
+      [PARTICLE_TYPES.ELECTRON]: 78,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.MERCURY,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 80,
+      [PARTICLE_TYPES.NEUTRON]: 121,
+      [PARTICLE_TYPES.ELECTRON]: 80,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.BISMUTH,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 83,
+      [PARTICLE_TYPES.NEUTRON]: 126,
+      [PARTICLE_TYPES.ELECTRON]: 83,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.POLONIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 84,
+      [PARTICLE_TYPES.NEUTRON]: 126,
+      [PARTICLE_TYPES.ELECTRON]: 84,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.RADON,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 86,
+      [PARTICLE_TYPES.NEUTRON]: 136,
+      [PARTICLE_TYPES.ELECTRON]: 86,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.FRANCIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 87,
+      [PARTICLE_TYPES.NEUTRON]: 136,
+      [PARTICLE_TYPES.ELECTRON]: 87,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.RADIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 88,
+      [PARTICLE_TYPES.NEUTRON]: 138,
+      [PARTICLE_TYPES.ELECTRON]: 88,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.ACTINIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 89,
+      [PARTICLE_TYPES.NEUTRON]: 138,
+      [PARTICLE_TYPES.ELECTRON]: 89,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.THORIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 90,
+      [PARTICLE_TYPES.NEUTRON]: 142,
+      [PARTICLE_TYPES.ELECTRON]: 90,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.PROTACTINIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 91,
+      [PARTICLE_TYPES.NEUTRON]: 140,
+      [PARTICLE_TYPES.ELECTRON]: 91,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.URANIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 92,
+      [PARTICLE_TYPES.NEUTRON]: 146,
+      [PARTICLE_TYPES.ELECTRON]: 92,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.PLUTONIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 94,
+      [PARTICLE_TYPES.NEUTRON]: 150,
+      [PARTICLE_TYPES.ELECTRON]: 94,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.AMERICIUM,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 95,
+      [PARTICLE_TYPES.NEUTRON]: 148,
+      [PARTICLE_TYPES.ELECTRON]: 95,
+    },
+  },
+  {
+    type: PARTICLE_TYPES.OGANESSON,
+    category: PARTICLE_CATEGORIES.ATOM,
+    ingredients: {
+      [PARTICLE_TYPES.PROTON]: 118,
+      [PARTICLE_TYPES.NEUTRON]: 176,
+      [PARTICLE_TYPES.ELECTRON]: 118,
+    },
+  },
+  {
     type: PARTICLE_TYPES.ALPHA_PARTICLE,
     category: PARTICLE_CATEGORIES.SECONDARY,
     ingredients: {

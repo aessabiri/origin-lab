@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useBioStore } from '../store';
 import { SpatialHash } from '../utils/spatialHash';
 import { syncSynthesisUtil } from '../../hooks/useResourceSync';
+import { useProgressionStore } from '../../store/progressionStore';
+import { useInventory } from '../../store/inventory';
 
 const FOOD_VALUE = 20; 
 const BASE_PHOTOSYNTHESIS = 0.8;
@@ -22,6 +24,7 @@ export const useBioSimulation = () => {
   const lastFrameTime = useRef(0);
   const lastStoreUpdate = useRef(0);
   const foodSpawnTimer = useRef(0);
+  const pendingSoupConsumedRef = useRef(0);
   
   const agentsRef = useRef([]);
   const foodRef = useRef([]);
@@ -54,10 +57,16 @@ export const useBioSimulation = () => {
       lastFrameTime.current = timestamp;
 
       if (isRunning) {
-        let soupConsumed = 0;
         let nextAgentsCount = 0;
         let nextFoodCount = 0;
         const newBorns = [];
+        const bioState = useBioStore.getState();
+        const env = bioState.environment || { temperature: 37, nutrients: 80, radiation: 0 };
+        
+        // Progress active Bioreactor Stress Trial
+        if (bioState.stressTrial?.active) {
+          bioState.updateStressTrial(deltaTime / 1000);
+        }
         
         const cx = worldSize.width / 2;
         const cy = worldSize.height / 2;
@@ -79,9 +88,10 @@ export const useBioSimulation = () => {
           if (!f.eaten) foodHash.current.insert(f);
         }
 
-        // --- 1. Food Spawning Logic ---
+        // --- 1. Food Spawning Logic (Scaled by Nutrients) ---
         foodSpawnTimer.current += deltaTime;
-        if (foodSpawnTimer.current > 200) { 
+        const spawnInterval = Math.max(80, 320 - ((env.nutrients || 80) / 100) * 220);
+        if (foodSpawnTimer.current > spawnInterval) { 
            if (soup.glucose > 0) {
              const angle = Math.random() * Math.PI * 2;
              const r = Math.sqrt(Math.random()) * radius;
@@ -94,7 +104,7 @@ export const useBioSimulation = () => {
              };
              currentFood.push(newFood);
              
-             soupConsumed += 1;
+             pendingSoupConsumedRef.current += 1;
              foodSpawnTimer.current = 0;
            }
         }
@@ -112,8 +122,9 @@ export const useBioSimulation = () => {
           const size = a.radius || 10;
           const bmr = genome.metabolism || 0.1;
 
-          // --- A. Metabolism ---
-          const burn = (bmr * (deltaTime / 16)); 
+          // --- A. Metabolism (Scaled by Temperature) ---
+          const tempFactor = Math.max(0.2, (env.temperature || 37) / 37);
+          const burn = (bmr * (deltaTime / 16)) * tempFactor; 
           a.energy -= burn;
 
           // --- B. Movement & Physics ---
@@ -155,20 +166,29 @@ export const useBioSimulation = () => {
              }
           }
 
+          let vx = a.vx || 0;
+          let vy = a.vy || 0;
+
           // Apply Forces
           if (targetX !== null) {
             const angle = Math.atan2(targetY - a.y, targetX - a.x);
-            a.vx += Math.cos(angle) * 0.5 * speed;
-            a.vy += Math.sin(angle) * 0.5 * speed;
+            vx += Math.cos(angle) * 0.5 * speed;
+            vy += Math.sin(angle) * 0.5 * speed;
           } else {
-            a.vx += (Math.random() - 0.5) * 0.5 * speed;
-            a.vy += (Math.random() - 0.5) * 0.5 * speed;
+            vx += (Math.random() - 0.5) * 0.5 * speed;
+            vy += (Math.random() - 0.5) * 0.5 * speed;
           }
 
-          a.vx *= 0.92;
-          a.vy *= 0.92;
-          a.x += a.vx;
-          a.y += a.vy;
+          vx *= 0.92;
+          vy *= 0.92;
+          a.vx = vx;
+          a.vy = vy;
+          a.x += vx;
+          a.y += vy;
+
+          // Proton Gradient & ATP Motility Expenditure
+          const motilityBurn = (vx * vx + vy * vy) * 0.04;
+          a.energy -= motilityBurn;
 
           // Boundary
           const dx = a.x - cx;
@@ -182,10 +202,16 @@ export const useBioSimulation = () => {
              a.vy *= -0.5;
           }
 
-          // --- C. Feeding Interactions ---
+          // --- C. Feeding Interactions & Energy Capture ---
           if (diet === 2) { 
-             a.energy += BASE_PHOTOSYNTHESIS * (size / 10); 
+             // Photoautotroph: Upper illumination gradient
+             const lightFactor = Math.max(0.2, (cy - a.y + radius) / (2 * radius));
+             a.energy += BASE_PHOTOSYNTHESIS * (size / 10) * lightFactor; 
           } else if (diet === 0) { 
+             // Chemotroph: Hydrothermal center gradient bonus
+             if (dist < 160) {
+               a.energy += 0.25;
+             }
              const contactFood = foodHash.current.query(a.x, a.y, size + 5);
              
              for (let j = 0; j < contactFood.length; j++) {
@@ -238,12 +264,13 @@ export const useBioSimulation = () => {
                  syncSynthesisUtil(enzymeType, 1);
              }
 
-             const mRate = 0.1;
+             // Scaled by environmental radiation
+             const mRate = 0.05 + ((env.radiation || 0) / 100) * 0.4;
              const childGenome = {
                ...genome,
                speed: genome.speed * (1 + (Math.random() - 0.5) * mRate),
                metabolism: genome.metabolism * (1 + (Math.random() - 0.5) * mRate),
-               sense: genome.sense * (1 + (Math.random() - 0.5) * mRate),
+               sense: (genome.sense || 100) * (1 + (Math.random() - 0.5) * mRate),
              };
              
              const child = {
@@ -258,6 +285,12 @@ export const useBioSimulation = () => {
                genome: childGenome
              };
              newBorns.push(child);
+
+             // Trigger global LUCA survival & quest unlock
+             try {
+               useProgressionStore.getState().completeQuest('bio_luca');
+               useInventory.getState().markDiscovered('LUCA_SURVIVAL');
+             } catch (e) {}
           }
 
           // --- F. Death Check & Compaction ---
@@ -296,15 +329,10 @@ export const useBioSimulation = () => {
           setAgents([...currentAgents]);
           setFoodItems([...currentFood]);
           
-          if (soupConsumed > 0) {
-            updateSoup({ glucose: Math.max(0, soup.glucose - soupConsumed) });
+          if (pendingSoupConsumedRef.current > 0) {
+            updateSoup({ glucose: Math.max(0, soup.glucose - pendingSoupConsumedRef.current) });
+            pendingSoupConsumedRef.current = 0;
           }
-        } else if (soupConsumed > 0) {
-          // If we consumed soup but didn't update store, we still need to update soup?
-          // Actually, just update soup in the store throttle to avoid frequent re-renders.
-          // We can accumulate soupConsumed over multiple frames.
-          // Wait, soupConsumed is local to the frame here.
-          // Let's just accumulate it.
         }
       }
 

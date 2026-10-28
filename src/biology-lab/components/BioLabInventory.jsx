@@ -2,7 +2,6 @@ import React from 'react';
 import { useBioStore } from '../store';
 import { PARTICLE_TYPES } from '../../constants/particles';
 import ResourceExchange from '../../components/ResourceExchange.jsx';
-import { BakelitePanel } from '../../components/VisualPrimitives';
 
 const BioLabInventory = () => {
   const soup = useBioStore(state => state.soup);
@@ -47,82 +46,79 @@ const BioLabInventory = () => {
   };
 
   return (
-    <div className="flex h-full gap-6 p-6 bg-[#050505] relative overflow-hidden">
-      
-      {/* Decorative Wires / Tubes Background */}
-      <div className="absolute top-0 bottom-0 left-1/2 w-px bg-zinc-800 opacity-20"></div>
+    <div className="flex h-full gap-6 p-6 bg-[#070a13] relative overflow-hidden select-none">
       
       {/* LEFT: Unified Exchange (The Cabinet) */}
       <div className="flex-1 relative z-10">
-         <BakelitePanel className="h-full rounded-none border-4 border-black shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+         <div className="h-full bg-[#0c1220]/90 backdrop-blur-2xl border border-teal-500/25 rounded-3xl p-4 shadow-2xl overflow-hidden flex flex-col">
             <ResourceExchange 
-                labName="Bio-Resource Cabinet"
+                labName="Biological Resource Cabinet"
                 onImport={handleImport}
                 allowedCategories={['Biochemistry', 'Molecular']}
                 excludedCategories={['Atomic']} 
                 excludedTypes={[PARTICLE_TYPES.OXYGEN_GAS, PARTICLE_TYPES.NITROGEN_GAS]} 
             />
-         </BakelitePanel>
+         </div>
       </div>
 
       {/* RIGHT: Status Monitor (The Console) */}
-      <div className="w-96 flex flex-col gap-6 relative z-10">
-        <BakelitePanel className="flex-1 p-6 border-4 border-black flex flex-col">
-           <div className="mb-6 pb-4 border-b border-zinc-800 flex justify-between items-center">
+      <div className="w-96 flex flex-col gap-5 relative z-10">
+        <div className="flex-1 p-6 bg-[#0c1220]/90 backdrop-blur-2xl border border-teal-500/25 rounded-3xl shadow-2xl flex flex-col justify-between">
+           <div className="pb-4 border-b border-teal-500/20 flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-black text-amber-500 tracking-tighter italic">SOUP_CONC</h3>
-                <p className="text-[8px] text-zinc-600 font-mono">PRIMARY_NUTRITION_LEVELS</p>
+                <h3 className="text-base font-black text-teal-300 tracking-wider uppercase font-mono">
+                  Broth Concentration
+                </h3>
+                <p className="text-[9px] text-slate-400 font-mono mt-0.5">Primary Nutrition Telemetry</p>
               </div>
-              <div className="w-4 h-4 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e] animate-pulse"></div>
+              <div className="w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse"></div>
            </div>
 
-           <div className="space-y-8 flex-1 flex flex-col justify-around">
-              <ResourceMonitor name="GLUCOSE" value={soup.glucose} max={500} color="text-yellow-500" glow="shadow-yellow-500/20" />
-              <ResourceMonitor name="AMINO_ACIDS" value={soup.aminoAcids} max={500} color="text-indigo-400" glow="shadow-indigo-500/20" />
-              <ResourceMonitor name="LIPIDS" value={soup.lipids} max={500} color="text-emerald-400" glow="shadow-emerald-500/20" />
+           <div className="space-y-6 flex-1 flex flex-col justify-center py-4">
+              <ResourceMonitor name="GLUCOSE" value={soup.glucose} max={500} color="text-amber-400" barColor="bg-amber-400" />
+              <ResourceMonitor name="AMINO ACIDS" value={soup.aminoAcids} max={500} color="text-cyan-400" barColor="bg-cyan-400" />
+              <ResourceMonitor name="LIPIDS" value={soup.lipids} max={500} color="text-emerald-400" barColor="bg-emerald-400" />
            </div>
 
-           {/* Console Buttons */}
-           <div className="mt-8 grid grid-cols-2 gap-4">
-              <div className="h-12 bg-zinc-900 border-2 border-zinc-800 rounded flex items-center justify-center shadow-inner">
-                 <span className="text-[10px] font-black text-zinc-600">AUTO_MODE</span>
-              </div>
-              <div className="h-12 bg-red-950/20 border-2 border-red-900/30 rounded flex items-center justify-center">
-                 <span className="text-[10px] font-black text-red-900">EMRG_FLUSH</span>
-              </div>
+           {/* Console Actions */}
+           <div className="pt-4 border-t border-teal-500/20 flex gap-3">
+              <button 
+                onClick={() => updateSoup({ glucose: 100, aminoAcids: 50, lipids: 20 })}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-300 font-mono text-[10px] font-bold uppercase hover:bg-teal-500/25 active:scale-95 transition-all cursor-pointer"
+              >
+                 Replenish Broth
+              </button>
            </div>
-        </BakelitePanel>
+        </div>
 
-        {/* Small Bottom Panel (The ID plate) */}
-        <BakelitePanel className="h-20 p-4 border-4 border-black flex items-center justify-between">
+        {/* Small Bottom Panel */}
+        <div className="h-20 p-4 bg-[#0c1220]/90 border border-teal-500/25 rounded-2xl flex items-center justify-between shadow-xl">
            <div className="flex flex-col">
-              <span className="text-[8px] text-zinc-500 font-mono">STATION_ID</span>
-              <span className="text-xs font-black text-zinc-300 tracking-widest">BIO_LOG_092</span>
+              <span className="text-[9px] text-slate-500 font-mono">STATION ID</span>
+              <span className="text-xs font-mono font-bold text-teal-300 tracking-widest">BIO_STORAGE_01</span>
            </div>
-           <div className="flex gap-1">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className={`w-2 h-4 border border-zinc-800 ${i === 1 ? 'bg-amber-500 shadow-[0_0_5px_#fbbf24]' : 'bg-black'}`}></div>
-              ))}
+           <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-teal-950/80 border border-teal-500/30 text-[10px] font-mono text-teal-300 font-bold">
+              <span>●</span> TELEMETRY OK
            </div>
-        </BakelitePanel>
+        </div>
       </div>
     </div>
   );
 };
 
-const ResourceMonitor = ({ name, value, max, color, glow }) => (
-  <div className="space-y-2">
+const ResourceMonitor = ({ name, value, max, color, barColor }) => (
+  <div className="space-y-1.5">
     <div className="flex justify-between items-baseline">
-      <span className="text-[10px] font-black text-zinc-500 tracking-widest">{name}</span>
-      <span className={`text-2xl font-mono ${color} drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]`}>
-        {Math.floor(value)}<span className="text-xs text-zinc-700 ml-1">μmol</span>
+      <span className="text-[10px] font-mono font-bold text-slate-400 tracking-wider">{name}</span>
+      <span className={`text-xl font-mono font-black ${color}`}>
+        {Math.floor(value)}<span className="text-[10px] text-slate-500 ml-1 font-normal">μmol</span>
       </span>
     </div>
-    <div className={`w-full h-4 bg-black border-2 border-zinc-800 rounded p-0.5 shadow-inner`}>
+    <div className="w-full h-2.5 bg-[#070b14] border border-teal-500/20 rounded-full p-0.5 overflow-hidden">
        <div 
-         className={`h-full bg-current transition-all duration-1000 ease-out rounded-sm ${color} ${glow} shadow-lg`} 
+         className={`h-full transition-all duration-700 ease-out rounded-full ${barColor} shadow-[0_0_8px_currentColor]`} 
          style={{ width: `${Math.min(100, (value / max) * 100)}%` }}
-       ></div>
+       />
     </div>
   </div>
 );

@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Codex from './Codex';
-import Spectroscope3D from './Spectroscope3D';
+const Spectroscope3D = lazy(() => import('./Spectroscope3D'));
 import { useStore } from '../store';
+import { useParticleStore } from '../particle-lab/store';
+import { useProgressionStore } from '../store/progressionStore';
+import { resetAllOriginStores } from '../utils/storeReset';
 import { PARTICLE_NAMES } from '../constants/particles';
 import { useDiscoveredMatter } from '../hooks/useDiscoveredMatter';
 import { MATTER_DEFINITIONS, getMatterInfo } from '../constants/matterRegistry';
@@ -63,13 +66,13 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
   const [isHiddenForDrag, setIsHiddenForDrag] = useState(false);
 
   const {
-    uiScale, setUiScale,
     executeReset,
     isSandboxMode,
-    goalPath,
-    currentGoalIndex,
     currentView
   } = useStore();
+
+  const { uiScale = 1, setUiScale } = useParticleStore();
+  const { level = 1, xp = 0, completedQuests = [], completedMilestones = [] } = useProgressionStore();
 
   const { discoveredAtoms, discoveredMolecules } = useDiscoveredMatter();
   const theme = THEME_MAP[currentView] || THEME_MAP.particle;
@@ -133,7 +136,13 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
         return (
             <div className="p-8 h-full flex flex-col">
                 <div className="flex-1 min-h-0">
-                    <Spectroscope3D itemId={inspectedItem} />
+                    <Suspense fallback={
+                      <div className="w-full h-full flex items-center justify-center font-mono text-xs text-cyan-400">
+                        Initializing 3D Spectroscope...
+                      </div>
+                    }>
+                      <Spectroscope3D itemId={inspectedItem} />
+                    </Suspense>
                 </div>
                 <div className="mt-6 flex justify-center gap-8">
                     <button 
@@ -181,11 +190,11 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
             
             <div className="bg-red-900/20 p-8 rounded-xl border border-red-800 mb-8 w-full">
               <h3 className="text-xl font-bold text-red-200 mb-2">Factory Reset</h3>
-              <p className="text-red-300/70 mb-6">Irreversible. Wipes all progress, discovered particles, and resets the simulation to the beginning.</p>
+              <p className="text-red-300/70 mb-6">Irreversible. Wipes all progress, inventory ledger, discovered particles, and resets all simulation labs to singularity.</p>
               <button 
                 onClick={() => {
-                  if (confirm('Are you absolutely sure? This cannot be undone.')) {
-                    executeReset();
+                  if (confirm('Are you absolutely sure? All labs and discoveries will be reset.')) {
+                    resetAllOriginStores();
                     onClose();
                   }
                 }}
@@ -197,34 +206,44 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
 
             <div className={`bg-gray-800/50 p-6 rounded-xl border ${theme.border} w-full`}>
               <h3 className="text-xl font-bold text-gray-200 mb-2">Version Info</h3>
-              <p className="text-gray-400 font-mono">Origin Lab v0.2.0-beta</p>
+              <p className="text-gray-400 font-mono">Origin Lab v0.3.0</p>
               <p className="text-gray-500 text-sm mt-2">Running in {isSandboxMode ? 'Sandbox' : 'Adventure'} Mode</p>
             </div>
           </div>
         );
       case TABS.GOALS:
+        const nextLevelXp = level * 1000;
+        const progressPct = Math.min(100, Math.round((xp % 1000) / 10));
+
         return (
-          <div className="p-8">
-            <h2 className={`text-3xl font-bold ${theme.accent} mb-8`}>Research Goals</h2>
-            <div className={`bg-gray-800/50 p-6 rounded-xl border ${theme.border}`}>
-              <p className="text-gray-300">Current Path: <span className={`font-bold ${theme.accent} capitalize`}>{goalPath}</span></p>
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-sm text-gray-400">
-                  <span>Progress</span>
-                  <span>{currentGoalIndex} / ??</span>
+          <div className="p-8 max-w-3xl mx-auto">
+            <h2 className={`text-3xl font-black ${theme.accent} mb-8 flex items-center gap-3`}>
+              <span>🎯</span> Research Telemetry & Goals
+            </h2>
+            <div className={`bg-[#0c1220] p-6 rounded-2xl border border-cyan-500/20 shadow-xl space-y-4`}>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 font-bold">Evolution Level</span>
+                <span className="text-xl font-mono font-black text-white">Tier {level}</span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-mono text-slate-400">
+                  <span>Experience Progress</span>
+                  <span className="text-cyan-300 font-bold">{xp} / {nextLevelXp} XP</span>
                 </div>
-                <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
                   <div 
-                    className={`bg-white h-full transition-all duration-500`} 
-                    style={{ width: `${Math.min(100, (currentGoalIndex / 10) * 100)}%` }}
-                  ></div>
+                    className="bg-gradient-to-r from-cyan-500 to-indigo-500 h-full transition-all duration-500" 
+                    style={{ width: `${progressPct}%` }}
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-              <StatCard label="Atoms Discovered" value={discoveredAtoms.length} color="text-blue-400" border={theme.border} />
-              <StatCard label="Molecules Discovered" value={discoveredMolecules.length} color="text-green-400" border={theme.border} />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+              <StatCard label="Atoms" value={discoveredAtoms.length} color="text-cyan-400" border="border-cyan-500/20" />
+              <StatCard label="Molecules" value={discoveredMolecules.length} color="text-emerald-400" border="border-emerald-500/20" />
+              <StatCard label="Quests" value={completedQuests.length} color="text-amber-400" border="border-amber-500/20" />
+              <StatCard label="Milestones" value={completedMilestones.length} color="text-purple-400" border="border-purple-500/20" />
             </div>
           </div>
         );

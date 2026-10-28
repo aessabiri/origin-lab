@@ -58,5 +58,35 @@ export const EQUIPMENT = [
     stats: { maxTemp: 800, maxPress: 10, maxVol: 500, isOpen: false },
     features: { hasTempControl: true, hasPressureControl: false, hasCondenser: true }, // Special flag
     description: 'Reaction flask with an attached Liebig condenser for separation.'
+  },
+  {
+    id: 'spark_chamber',
+    name: 'Miller-Urey Spark Chamber',
+    type: 'glass',
+    icon: 'spark',
+    cost: 0,
+    stats: { maxTemp: 1000, maxPress: 80, maxVol: 500, isOpen: false },
+    features: { hasTempControl: true, hasPressureControl: true, hasSpark: true },
+    description: 'Electric arc electrodes simulate lightning in primordial prebiotic atmospheres.'
+  },
+  {
+    id: 'electrochemical_cell',
+    name: 'Electrochemical Cell',
+    type: 'reinforced',
+    icon: 'electrochemical',
+    cost: 0,
+    stats: { maxTemp: 400, maxPress: 40, maxVol: 500, isOpen: false },
+    features: { hasTempControl: true, hasVoltageControl: true },
+    description: 'Immersed platinum/graphite electrodes for redox catalysis and water splitting.'
+  },
+  {
+    id: 'fractional_column',
+    name: 'Fractional Distillation Column',
+    type: 'glass',
+    icon: 'column',
+    cost: 0,
+    stats: { maxTemp: 800, maxPress: 20, maxVol: 600, isOpen: false },
+    features: { hasTempControl: true, hasPressureControl: false, hasCondenser: true, hasFractionalColumn: true },
+    description: 'Vigreux column with fractionating stages for high-purity prebiotic separation.'
   }
 ];

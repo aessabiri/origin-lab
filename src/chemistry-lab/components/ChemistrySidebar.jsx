@@ -1,129 +1,257 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useChemistryStore } from '../store';
 import { EQUIPMENT } from '../data/equipment';
 import ResourceExchange from '../../components/ResourceExchange.jsx';
 import ChemicalIcon from './ChemicalIcon.jsx';
 import { MATTER_DEFINITIONS } from '../../constants/matterRegistry.js';
 
+const CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'atomic', label: 'Elements' },
+  { id: 'molecular', label: 'Molecules' },
+  { id: 'acid-base', label: 'Acids/Bases' },
+  { id: 'bio', label: 'Biomolecules' },
+];
+
 const ChemistrySidebar = () => {
   const [activeTab, setActiveTab] = useState('storage'); // 'storage' | 'equipment'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showGlobalImport, setShowGlobalImport] = useState(false);
+
   const localInventory = useChemistryStore(state => state.localInventory);
   const addToLocalInventory = useChemistryStore(state => state.addToLocalInventory);
-  
+  const setInspectedChemical = useChemistryStore(state => state.setInspectedChemical);
+
   const handleImport = (itemId, amount) => {
     addToLocalInventory(itemId, amount);
   };
 
   const handleDragStart = (e, chemicalId) => {
-    // Vessel.jsx expects 'chemicalId' directly
     e.dataTransfer.setData('chemicalId', chemicalId);
     e.dataTransfer.effectAllowed = 'copy';
   };
 
-  return (
-    <div className="w-full h-full bg-gray-900 flex flex-col border-r border-gray-800">
+  // Filtered reagents in local pantry
+  const filteredReagents = useMemo(() => {
+    const entries = Object.entries(localInventory || {});
+    return entries.filter(([id]) => {
+      const chem = MATTER_DEFINITIONS[id] || { name: id, category: '' };
+      const matchesSearch = chem.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            (chem.formula && chem.formula.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                            id.toLowerCase().includes(searchQuery.toLowerCase());
       
-      {/* Tabs */}
-      <div className="flex border-b border-gray-800">
+      if (!matchesSearch) return false;
+
+      if (selectedCategory === 'all') return true;
+      if (selectedCategory === 'atomic') return chem.category === 'Atom' || chem.category === 'Isotope';
+      if (selectedCategory === 'molecular') return ['Molecule', 'Compound', 'Gas', 'Solution'].includes(chem.category);
+      if (selectedCategory === 'acid-base') return ['Acid', 'Base'].includes(chem.category) || id.includes('acid') || id.includes('hydroxide');
+      if (selectedCategory === 'bio') return ['Biochemistry', 'Amino Acid', 'Protein', 'Sugar', 'Lipid'].some(c => (chem.category || '').includes(c));
+
+      return true;
+    });
+  }, [localInventory, searchQuery, selectedCategory]);
+
+  return (
+    <div className="w-full h-full bg-[#070c18] flex flex-col border-r border-slate-800/80 text-white select-none">
+      
+      {/* Top Sidebar Header */}
+      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between bg-[#050914]/80">
+        <div className="flex items-center gap-2.5">
+          <span className="text-lg">⚗️</span>
+          <div>
+            <h3 className="text-xs font-mono font-black uppercase tracking-wider text-slate-200">Lab Repository</h3>
+            <span className="text-[9px] font-mono text-emerald-400">Pantry & Apparatus Dock</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Tab Navigation */}
+      <div className="flex border-b border-slate-800 bg-[#050914] p-1.5 gap-1.5">
         <button 
           onClick={() => setActiveTab('storage')}
-          className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'storage' ? 'bg-gray-800 text-amber-500 border-b-2 border-amber-500' : 'text-gray-500 hover:text-gray-300'}`}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'storage' 
+              ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm' 
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+          }`}
         >
-          Storage
+          <span>🧪</span>
+          <span>Reagents</span>
         </button>
+
         <button 
           onClick={() => setActiveTab('equipment')}
-          className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'equipment' ? 'bg-gray-800 text-amber-500 border-b-2 border-amber-500' : 'text-gray-500 hover:text-gray-300'}`}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'equipment' 
+              ? 'bg-gradient-to-r from-cyan-500/20 to-sky-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm' 
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+          }`}
         >
-          Equipment
+          <span>⚙️</span>
+          <span>Apparatus</span>
         </button>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-hidden relative">
+      {/* Tab Content */}
+      <div className="flex-1 overflow-hidden relative flex flex-col">
         
-        {/* Storage Tab */}
+        {/* TAB 1: REAGENTS & PANTRY */}
         {activeTab === 'storage' && (
-          <div className="absolute inset-0 flex flex-col">
-            {/* Import Area (Top) */}
-            <div className="h-1/2 border-b border-gray-800 relative">
-               <div className="absolute top-2 left-2 z-10 bg-gray-900/80 px-2 py-1 rounded text-[10px] font-mono text-amber-500 uppercase">Global Import</div>
-               <ResourceExchange 
-                 labName="Chemistry Lab"
-                 onImport={handleImport}
-                 allowedCategories={['Atomic', 'Molecular', 'Biochemistry']}
-                 excludedCategories={['Fundamental']} 
-                 excludedSubcategories={['Hadrons']}
-               />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            
+            {/* Global Import Bridge Accordion */}
+            <div className="border-b border-slate-800 bg-[#060b17]">
+              <button
+                onClick={() => setShowGlobalImport(!showGlobalImport)}
+                className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-mono font-bold text-slate-300 hover:text-emerald-300 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span>🌐</span>
+                  <span>Global Import Ledger</span>
+                </div>
+                <span className="text-[10px] text-emerald-400 font-mono">
+                  {showGlobalImport ? '▲ HIDE' : '▼ OPEN'}
+                </span>
+              </button>
+
+              {showGlobalImport && (
+                <div className="h-64 border-t border-slate-800 relative bg-[#040812]">
+                  <ResourceExchange 
+                    labName="Chemistry Lab"
+                    onImport={handleImport}
+                    allowedCategories={['Atomic', 'Molecular', 'Biochemistry']}
+                    excludedCategories={['Fundamental']} 
+                    excludedSubcategories={['Hadrons']}
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Local Inventory List (Bottom) */}
-            <div 
-                className="flex-1 overflow-y-auto p-4 bg-gray-900 transition-colors"
-                onDragOver={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.add('bg-gray-800');
-                }}
-                onDragLeave={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.remove('bg-gray-800');
-                }}
-                onDrop={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.remove('bg-gray-800');
-                    const chemicalId = e.dataTransfer.getData('chemicalId');
-                    if (chemicalId) {
-                        handleImport(chemicalId, 1);
-                    }
-                }}
-            >
-               <h3 className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest pointer-events-none">Local Bench (Drop Here)</h3>
-               
-               {Object.keys(localInventory).length === 0 ? (
-                 <div className="text-center mt-8 text-gray-600 text-xs italic">
-                   Bench is empty.<br/>Import items from above.
-                 </div>
-               ) : (
-                 <div className="grid grid-cols-2 gap-2">
-                   {Object.entries(localInventory).map(([id, amount]) => {
-                     const chemical = MATTER_DEFINITIONS[id] || { name: id, color: '#999', formula: '?' };
-                     return (
-                       <div 
-                         key={id}
-                         draggable
-                         onDragStart={(e) => handleDragStart(e, id)} 
-                         className="p-2 bg-gray-800 border border-gray-700 rounded hover:border-amber-500 cursor-grab active:cursor-grabbing group relative flex flex-col items-center gap-2"
-                       >
-                          <ChemicalIcon 
-                            id={id} 
-                            color={chemical.color} 
-                            state={chemical.state} 
-                            formula={chemical.formula} 
-                            iconType={chemical.iconType} 
-                            className="w-12 h-12"
-                          />
-                          <div className="w-full text-center">
-                            <div className="text-[10px] font-bold text-gray-200 truncate w-full">{chemical.name}</div>
-                            <div className="text-[9px] text-emerald-500 font-mono">Available</div>
-                          </div>
-                          
-                          {/* Tooltip */}
-                          <div className="absolute opacity-0 group-hover:opacity-100 bottom-full mb-2 px-2 py-1 bg-black text-white text-[10px] rounded whitespace-nowrap pointer-events-none z-50 shadow-lg">
-                             Drag to Vessel
-                          </div>
-                       </div>
-                     );
-                   })}
-                 </div>
-               )}
+            {/* Local Reagents Controls: Search & Categories */}
+            <div className="p-3 border-b border-slate-800/80 bg-[#060a16] space-y-2">
+              
+              {/* Search Bar */}
+              <div className="relative">
+                <input 
+                  type="text"
+                  placeholder="Search reagents or formulas..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#091022] border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 font-mono outline-none focus:border-emerald-400/80 transition-colors pl-8"
+                />
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-500">🔍</span>
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-500 hover:text-slate-300"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Category Filter Chips */}
+              <div className="flex gap-1 overflow-x-auto custom-scrollbar pb-1">
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold whitespace-nowrap transition-all ${
+                      selectedCategory === cat.id
+                        ? 'bg-emerald-500/20 border border-emerald-400 text-emerald-300'
+                        : 'bg-slate-800/50 border border-transparent text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
             </div>
+
+            {/* Local Reagents Card Grid */}
+            <div 
+              className="flex-1 overflow-y-auto p-3 custom-scrollbar bg-[#050914]"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const chemicalId = e.dataTransfer.getData('chemicalId');
+                if (chemicalId) {
+                  handleImport(chemicalId, 1);
+                }
+              }}
+            >
+              <div className="flex justify-between items-center mb-2 px-1">
+                <span className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest">
+                  BENCH REAGENTS ({filteredReagents.length})
+                </span>
+                <span className="text-[9px] font-mono text-slate-500">Drag to Vessel</span>
+              </div>
+
+              {filteredReagents.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center text-slate-500 gap-2">
+                  <span className="text-2xl opacity-40">🧪</span>
+                  <span className="text-xs font-mono font-bold text-slate-400">No Reagents in Bench</span>
+                  <p className="text-[11px] text-slate-500 max-w-[200px]">
+                    Open the <strong className="text-emerald-400">Global Import Ledger</strong> above to transfer unlocked matter.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {filteredReagents.map(([id]) => {
+                    const chemical = MATTER_DEFINITIONS[id] || { name: id, color: '#10b981', formula: '?' };
+                    return (
+                      <div 
+                        key={id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, id)}
+                        className="p-2.5 bg-[#091022] border border-slate-800 hover:border-emerald-500/50 rounded-2xl cursor-grab active:cursor-grabbing group relative flex flex-col items-center gap-1.5 transition-all hover:bg-[#0c162f] shadow-md hover:shadow-emerald-950/30"
+                      >
+                        {/* Inspect Info Button on Top Right */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setInspectedChemical(id);
+                          }}
+                          className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-400 hover:text-cyan-300 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                          title="Inspect Molecular Properties"
+                        >
+                          ℹ️
+                        </button>
+
+                        <ChemicalIcon 
+                          id={id} 
+                          color={chemical.color} 
+                          state={chemical.state} 
+                          formula={chemical.formula} 
+                          iconType={chemical.iconType} 
+                          className="w-11 h-11"
+                        />
+
+                        <div className="w-full text-center">
+                          <div className="text-[11px] font-bold text-slate-200 truncate w-full" title={chemical.name}>
+                            {chemical.name}
+                          </div>
+                          <div className="text-[9px] text-emerald-400 font-mono mt-0.5">
+                            {chemical.formula || 'Available'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 
-        {/* Equipment Tab */}
+        {/* TAB 2: APPARATUS & EQUIPMENT */}
         {activeTab === 'equipment' && (
-          <div className="absolute inset-0 p-4 overflow-y-auto">
-             <InventoryEquipmentList />
+          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar bg-[#050914]">
+            <InventoryEquipmentList />
           </div>
         )}
 
@@ -134,48 +262,69 @@ const ChemistrySidebar = () => {
 
 const InventoryEquipmentList = () => {
   const createVessel = useChemistryStore(state => state.createVessel);
-  // Unlocked check removed: All equipment available all the time.
-  
-  const visibleEquipment = EQUIPMENT;
 
   const handleDragStart = (e, item) => {
     e.dataTransfer.setData('application/json', JSON.stringify({ type: 'equipment', data: item }));
     e.dataTransfer.effectAllowed = 'copy';
   };
 
+  const getEquipmentEmoji = (icon) => {
+    switch (icon) {
+      case 'beaker': return '🥛';
+      case 'flask': return '⚗️';
+      case 'reactor': return '☢️';
+      case 'crucible': return '🔥';
+      case 'vial': return '🧪';
+      case 'condenser': return '💧';
+      case 'spark': return '⚡';
+      case 'electrochemical': return '🔋';
+      case 'column': return '🔬';
+      default: return '⚗️';
+    }
+  };
+
   return (
-    <div className="space-y-2">
-        {visibleEquipment.map((item) => (
-          <div 
-            key={item.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, item)}
-            className="flex items-center gap-3 p-3 bg-gray-800 rounded border border-gray-700 hover:border-amber-500 hover:bg-gray-700 cursor-grab active:cursor-grabbing transition-all group"
-          >
-            <div className="w-8 h-8 bg-gray-900 rounded flex items-center justify-center text-lg">
-               {item.icon === 'beaker' && '🥛'}
-               {item.icon === 'flask' && '⚗️'}
-               {item.icon === 'reactor' && '☢️'}
-               {item.icon === 'crucible' && '🔥'}
-               {item.icon === 'vial' && '🧪'}
-               {item.icon === 'condenser' && '💧'}
-            </div>
-            <div className="flex-1">
-                <h4 className="text-gray-200 text-xs font-bold">{item.name}</h4>
-                <div className="text-[9px] text-gray-500 flex gap-2">
-                    <span>{item.stats.maxVol}ml</span>
-                </div>
-            </div>
-            <button 
-                onClick={() => createVessel(item)}
-                className="text-gray-500 hover:text-green-400 font-bold"
-            >
-                +
-            </button>
+    <div className="space-y-2.5">
+      <div className="px-1 mb-1">
+        <span className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest">
+          GLASSWARE & HARDWARE ({EQUIPMENT.length})
+        </span>
+      </div>
+
+      {EQUIPMENT.map((item) => (
+        <div 
+          key={item.id}
+          draggable
+          onDragStart={(e) => handleDragStart(e, item)}
+          className="flex items-center gap-3 p-3 bg-[#091022] rounded-2xl border border-slate-800 hover:border-cyan-500/50 hover:bg-[#0c162f] cursor-grab active:cursor-grabbing transition-all group shadow-md"
+        >
+          {/* Hardware Icon */}
+          <div className="w-10 h-10 bg-[#050914] rounded-xl flex items-center justify-center text-xl border border-slate-800 shadow-inner group-hover:border-cyan-500/30">
+            {getEquipmentEmoji(item.icon)}
           </div>
-        ))}
+
+          {/* Specs */}
+          <div className="flex-1 min-w-0">
+            <h4 className="text-slate-200 text-xs font-mono font-bold truncate">{item.name}</h4>
+            <div className="text-[9px] font-mono text-slate-400 flex items-center gap-2 mt-0.5">
+              <span className="text-cyan-300">{item.stats.maxVol}ml</span>
+              <span>•</span>
+              <span>Max {item.stats.maxTemp}°C</span>
+            </div>
+          </div>
+
+          {/* Deploy Button */}
+          <button 
+            onClick={() => createVessel(item)}
+            className="px-2.5 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 rounded-xl text-xs font-mono font-black transition-all border border-cyan-500/30 active:scale-95 shadow-sm"
+            title="Deploy apparatus to workbench"
+          >
+            + ADD
+          </button>
+        </div>
+      ))}
     </div>
   );
-}
+};
 
-export default ChemistrySidebar;
+export default React.memo(ChemistrySidebar);

@@ -197,7 +197,48 @@ const MANUAL_REACTIONS = [
     heat: 58 // Standard enthalpy of neutralization is ~57 kJ/mol
   },
 
-  // --- PREBIOTIC CHEMISTRY (The Origins of Life) ---
+  // --- PREBIOTIC CHEMISTRY & APPARATUS PATHWAYS (The Origins of Life) ---
+
+  // 1. Miller-Urey Arc: CH4 + NH3 + H2O -> Formaldehyde + HCN + H2 (Spark Discharge)
+  {
+    inputs: { 'methane': 1, 'ammonia': 1, 'water': 1 },
+    conditions: { tempMin: 60, requiresSpark: true },
+    outputs: { 'formaldehyde': 1, 'hydrogen-cyanide': 1, 'hydrogen': 1 },
+    visual: 'fume',
+    heat: 40
+  },
+  // 2. Strecker Amino Acid Synthesis: Formaldehyde + HCN + Water -> Glycine
+  {
+    inputs: { 'formaldehyde': 1, 'hydrogen-cyanide': 1, 'water': 1 },
+    conditions: { tempMin: 50 },
+    outputs: { 'glycine': 1 },
+    visual: 'solidify',
+    heat: 25
+  },
+  // 3. Formose Reaction: 5 Formaldehyde -> Ribose (Prebiotic RNA Backbone)
+  {
+    inputs: { 'formaldehyde': 5 },
+    conditions: { tempMin: 70 },
+    outputs: { 'ribose': 1 },
+    visual: 'dissolve',
+    heat: 15
+  },
+  // 4. Water Electrolysis: 2 H2O -> 2 H2 + O2 (Electrochemical Cell)
+  {
+    inputs: { 'water': 2 },
+    conditions: { requiresVoltage: true },
+    outputs: { 'hydrogen': 2, 'oxygen': 1 },
+    visual: 'bubble',
+    heat: 10
+  },
+  // 5. Abiotic Fischer-Tropsch: CO + H2 -> Fatty Acid + Water
+  {
+    inputs: { 'carbon-monoxide': 4, 'hydrogen': 9 },
+    conditions: { tempMin: 180, pressureMin: 20 },
+    outputs: { 'fatty-acid': 1, 'water': 4 },
+    visual: 'solidify',
+    heat: 35
+  },
 
   // Fatty Acid Synthesis (Abiotic Fischer-Tropsch): 8 C + 16 H + 2 O -> Fatty Acid
   {

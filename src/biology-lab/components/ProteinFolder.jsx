@@ -40,16 +40,14 @@ const ResidueMesh = React.memo(({ position, color, label, symbol, chargeType, re
   return (
     <group position={position}>
       <mesh geometry={atomGeometry} scale={[size, size, size]}>
-        <MeshTransmissionMaterial 
-          backside
-          samples={4}
-          thickness={0.6}
-          chromaticAberration={0.06}
-          transmission={0.85}
-          roughness={0.15}
+        <meshPhysicalMaterial 
           color={displayColor}
-          ior={1.15}
-          metalness={0.1}
+          transmission={0.65}
+          roughness={0.18}
+          metalness={0.08}
+          clearcoat={0.9}
+          clearcoatRoughness={0.1}
+          ior={1.25}
         />
       </mesh>
       
@@ -58,7 +56,7 @@ const ResidueMesh = React.memo(({ position, color, label, symbol, chargeType, re
         <meshStandardMaterial 
           color={displayColor} 
           emissive={displayColor} 
-          emissiveIntensity={3.5} 
+          emissiveIntensity={2.8} 
           toneMapped={false} 
         />
       </mesh>
