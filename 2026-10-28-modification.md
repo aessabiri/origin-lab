@@ -48,17 +48,11 @@
 | `src/anatomy-lab/engine/BiomechanicsRig.js` | **NEW** | Ported kinematic joint rigging from `3danatomy` `main`. |
 | `src/anatomy-lab/store.js` | **NEW** | Zustand store tracking 206 assembled bones, 5 layers, posture parameters, and vitals. |
 | `src/anatomy-lab/AnatomyLab.jsx` | **NEW** | Master view combining 3D canvas, biomechanics HUD, and assembly workbench. |
-| `src/anatomy-lab/components/AnatomyCanvas.jsx` | **NEW** | 3D WebGL viewport with ghost bone holograms, snapping, and TransformControls gizmos. |
-| `src/anatomy-lab/components/AnatomyWorkbench.jsx` | **NEW** | 206-bone selector, search filter, region chips, and Latin anatomical inspection card. |
-| `src/anatomy-lab/components/BiomechanicsHUD.jsx` | **NEW** | Posture sliders, kinetic coupling modes, and dynamic muscle strain readouts. |
-| `src/anatomy-lab/components/ConsciousnessAwakening.jsx` | **NEW** | Climactic sentience awakening modal with procedural audio heartbeat. |
-| `src/components/Navigation.jsx` | **MODIFIED** | Added Anatomy Lab item (`🦴 206-Bone Skeleton`). |
-| `src/App.jsx` | **MODIFIED** | Added lazy-loading route for `AnatomyLab`. |
-| `src/store/progressionStore.js` | **MODIFIED** | Added milestones: `complete_human_osteogenesis` and `cosmic_ouroboros`. |
-| `src/components/PlanetaryView.jsx` | **MODIFIED** | Added bridge button on `hominini` clade leading to Anatomy Lab. |
-| `src/utils/storeReset.js` | **MODIFIED** | Added `useAnatomyStore.resetSkeleton()` to global reset sequence. |
+| `src/anatomy-lab/utils/boneMatcher.js` | **NEW** | High-precision mapping from LUMC 3D clinical CT nodes to `ALL_206_BONES`. |
+| `src/anatomy-lab/utils/anatomicalLayers.js` | **NEW** | Procedural generator for Cartilage/Ligaments, Pulsatile Vascular Loop, Neural Connectome, and 7 micro-bones (Hyoid & Auditory Ossicles). |
+| `src/anatomy-lab/components/AnatomyCanvas.jsx` | **MODIFIED** | Integrated 100% 206-bone 3D mesh linking, 4 anatomical layers, closed-chain posture deformation, camera focal tweening, and animated systolic pulse wave. |
 | `src/test/universe_simulation_v2.test.js` | **NEW** | Automated tests verifying all 6 cosmic epochs and time scaling. |
-| `src/anatomy-lab/tests/skeletal_database.test.js` | **NEW** | Automated tests verifying all 206 bones and kinematics solver. |
+| `src/anatomy-lab/tests/skeletal_database.test.js` | **MODIFIED** | Automated tests expanded to 8/8 verifying 206 bones, layer generation, and clinical node matching. |
 
 ---
 
@@ -66,12 +60,12 @@
 
 - **Vitest Unit & Integration Suites:**
   - Total Test Files: 36 passed (36)
-  - Total Tests: 167 passed (167)
+  - Total Tests: 169 passed (169)
   - Duration: ~6.6s
-  - Skeletal Database Suite (`src/anatomy-lab/tests/skeletal_database.test.js`): 6/6 passed, verifying 206 exact bone count (80 axial, 126 appendicular), unique IDs, valid Latin anatomical names, ossification classification, and kinetic chain solver coupling.
+  - Skeletal Database Suite (`src/anatomy-lab/tests/skeletal_database.test.js`): 8/8 passed, verifying 206 exact bone count (80 axial, 126 appendicular), unique IDs, valid Latin anatomical names, ossification classification, closed-chain kinematics solver coupling, clinical node matching, and all 4 procedural anatomical layers.
   - Universe Simulation V2 Suite (`src/test/universe_simulation_v2.test.js`): 4/4 passed, verifying full epoch progression across Big Bang, Cosmic Dark Ages, Stellar Dawn, Galaxy Formation, Solar System, and Earth formation, plus time-scaling and stage resets.
 - **Production Bundle Build:**
   - Command: `npm run build`
-  - Result: Clean exit code 0 in 6.81s.
+  - Result: Clean exit code 0 in 6.91s.
   - Zero chunk generation or TypeScript compilation errors.
 

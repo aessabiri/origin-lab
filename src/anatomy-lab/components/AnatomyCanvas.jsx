@@ -4,6 +4,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { createMedicalMaterials } from '../utils/MedicalMaterials.js';
+import { matchMeshToBone } from '../utils/boneMatcher.js';
+import {
+  createProceduralMicroBones,
+  createCartilageAndLigamentsLayer,
+  createVascularLoopLayer,
+  createNeuralConnectomeLayer
+} from '../utils/anatomicalLayers.js';
 import { useAnatomyStore } from '../store.js';
 import { ALL_206_BONES } from '../data/humanSkeletalDatabase.js';
 
@@ -15,7 +22,7 @@ const AnatomyCanvas = () => {
   const controlsRef = useRef(null);
   const animationFrameRef = useRef(null);
 
-  // Mesh and Node References
+  // Mesh and Layer References
   const humanGroupRef = useRef(null);
   const skeletalMeshesRef = useRef([]);
   const muscleMeshesRef = useRef([]);
@@ -25,6 +32,26 @@ const AnatomyCanvas = () => {
   const layerNervesRef = useRef(null);
   const layerVascularRef = useRef(null);
   const materialsRef = useRef(null);
+
+  // Animated Components
+  const heartMeshRef = useRef(null);
+  const synPointsRef = useRef(null);
+  const shockwaveMeshRef = useRef(null);
+  const cameraTargetRef = useRef(new THREE.Vector3(0, 0.9, 0));
+
+  // Kinematic Joint Group References
+  const kinematicJointsRef = useRef({
+    pelvis: null,
+    lumbar: [],
+    thoracic: [],
+    cervical: [],
+    head: null,
+    mandible: null,
+    leftShoulder: null,
+    rightShoulder: null,
+    leftFemur: null,
+    rightFemur: null,
+  });
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadStatus, setLoadStatus] = useState('Mounting Clinical Viewport...');
@@ -37,8 +64,9 @@ const AnatomyCanvas = () => {
   const postureParams = useAnatomyStore(state => state.postureParams);
   const overactiveMuscles = useAnatomyStore(state => state.overactiveMuscles);
   const underactiveMuscles = useAnatomyStore(state => state.underactiveMuscles);
+  const vitalSigns = useAnatomyStore(state => state.vitalSigns);
 
-  // 1. Initialize Scene, Lights, Camera & PBR Renderer
+  // 1. Initialize Scene, Camera, Renderer, Layers & Models
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -74,7 +102,7 @@ const AnatomyCanvas = () => {
     controls.dampingFactor = 0.05;
     controls.target.set(0, 0.9, 0);
     controls.maxDistance = 6.0;
-    controls.minDistance = 0.4;
+    controls.minDistance = 0.35;
     controlsRef.current = controls;
 
     // Lighting
@@ -98,17 +126,36 @@ const AnatomyCanvas = () => {
     gridHelper.position.y = 0;
     scene.add(gridHelper);
 
-    // Root Assembly Hierarchies
+    // Shockwave Ring for Bone Assembly Feedback
+    const shockwaveGeo = new THREE.RingGeometry(0.01, 0.04, 32);
+    const shockwaveMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0,
+      side: THREE.DoubleSide,
+    });
+    const shockwaveMesh = new THREE.Mesh(shockwaveGeo, shockwaveMat);
+    shockwaveMesh.visible = false;
+    scene.add(shockwaveMesh);
+    shockwaveMeshRef.current = shockwaveMesh;
+
+    // Root Master Group
     const humanGroup = new THREE.Group();
     humanGroup.name = 'HumanAssemblyMaster';
     scene.add(humanGroup);
     humanGroupRef.current = humanGroup;
 
+    // Layer Hierarchies
     const layerSkeletal = new THREE.Group();
+    layerSkeletal.name = 'LayerSkeletal';
     const layerLigaments = new THREE.Group();
+    layerLigaments.name = 'LayerLigaments';
     const layerMuscles = new THREE.Group();
+    layerMuscles.name = 'LayerMuscles';
     const layerNerves = new THREE.Group();
+    layerNerves.name = 'LayerNerves';
     const layerVascular = new THREE.Group();
+    layerVascular.name = 'LayerVascular';
 
     humanGroup.add(layerSkeletal);
     humanGroup.add(layerLigaments);
@@ -147,15 +194,25 @@ const AnatomyCanvas = () => {
         const skelScene = skeletonGltf.scene;
         const meshes = [];
 
+        // 1. Process Unilateral Right & Axial Bones
         skelScene.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
-            meshes.push(child);
+            const bone = matchMeshToBone(child.name);
+            if (bone) {
+              child.userData.boneId = bone.id;
+            }
+            if (child.name.toLowerCase().includes('cart')) {
+              child.material = materials.hyalineCartilage;
+              layerLigaments.add(child.clone());
+            } else {
+              meshes.push(child);
+            }
           }
         });
 
-        // Mirror Left Limbs if model contains unilateral right scan
+        // 2. Mirror Left Limbs
         const mirroredLimbs = new THREE.Group();
         mirroredLimbs.name = 'MirroredLeftSkeleton';
         mirroredLimbs.scale.x = -1;
@@ -166,17 +223,39 @@ const AnatomyCanvas = () => {
             clone.position.copy(child.position);
             clone.rotation.copy(child.rotation);
             clone.scale.copy(child.scale);
-            clone.name = child.name.replace(/\.r/g, '.l');
-            mirroredLimbs.add(clone);
-            meshes.push(clone);
+            clone.name = child.name.replace(/\.r/g, '.l').replace(/right/gi, 'left');
+            const bone = matchMeshToBone(clone.name);
+            if (bone) {
+              clone.userData.boneId = bone.id;
+            }
+            if (child.name.toLowerCase().includes('cart')) {
+              clone.material = materials.hyalineCartilage;
+              layerLigaments.add(clone);
+            } else {
+              mirroredLimbs.add(clone);
+              meshes.push(clone);
+            }
           }
         });
 
         layerSkeletal.add(skelScene);
         layerSkeletal.add(mirroredLimbs);
+
+        // 3. Ingest Procedural Micro-Bones (Auditory ossicles & hyoid bone)
+        const microBones = createProceduralMicroBones(materials);
+        layerSkeletal.add(microBones.group);
+        microBones.meshes.forEach((m) => {
+          const bone = matchMeshToBone(m.name);
+          if (bone) m.userData.boneId = bone.id;
+          meshes.push(m);
+        });
         skeletalMeshesRef.current = meshes;
 
-        // Process Muscle Meshes
+        // 4. Ingest Procedural Cartilage & Ligaments
+        const cartilageLayer = createCartilageAndLigamentsLayer(materials);
+        layerLigaments.add(cartilageLayer);
+
+        // 5. Ingest Muscular Layer
         const muscleMeshes = [];
         fullbodyGltf.scene.traverse((child) => {
           if (child.isMesh) {
@@ -187,7 +266,30 @@ const AnatomyCanvas = () => {
         layerMuscles.add(fullbodyGltf.scene);
         muscleMeshesRef.current = muscleMeshes;
 
-        // Normalize Human Height to 1.75m
+        // 6. Ingest Pulsatile Vascular Loop Layer
+        const vascular = createVascularLoopLayer(materials);
+        layerVascular.add(vascular.group);
+        heartMeshRef.current = vascular.heartMesh;
+
+        // 7. Ingest Neural Connectome Layer
+        const neural = createNeuralConnectomeLayer(materials);
+        layerNerves.add(neural.group);
+        synPointsRef.current = neural.synPoints;
+
+        // 8. Cache Joint Pointers for Kinematics
+        const kJoints = kinematicJointsRef.current;
+        skelScene.traverse((node) => {
+          const n = (node.name || '').toLowerCase();
+          if (n.includes('hip') || n.includes('pelvis')) kJoints.pelvis = node;
+          if (n.includes('lumbar')) kJoints.lumbar.push(node);
+          if (n.includes('thoracic')) kJoints.thoracic.push(node);
+          if (n.includes('cervical')) kJoints.cervical.push(node);
+          if (n.includes('frontal') || n.includes('occipital')) kJoints.head = node;
+          if (n.includes('mandible')) kJoints.mandible = node;
+          if (n.includes('femur.r')) kJoints.rightFemur = node;
+        });
+
+        // 9. Normalize Scale to Standard Anatomical Standing Height (1.75m)
         const bbox = new THREE.Box3().setFromObject(humanGroup);
         const size = bbox.getSize(new THREE.Vector3());
         const scaleFactor = 1.75 / (size.y > 0 ? size.y : 1.75);
@@ -216,11 +318,43 @@ const AnatomyCanvas = () => {
 
     // Animation Loop
     let lastTime = 0;
+    let shockwaveTime = 0;
+
     const animate = (time) => {
       const delta = (time - lastTime) * 0.001;
       lastTime = time;
 
+      // 1. Orbit Controls damping
       controls.update();
+
+      // 2. Camera target smooth interpolation
+      controls.target.lerp(cameraTargetRef.current, 0.08);
+
+      // 3. Pulsatile Heartbeat Animation (Synced to BPM)
+      if (heartMeshRef.current) {
+        const bpm = vitalSigns.heartRate > 0 ? vitalSigns.heartRate : 60;
+        const freq = (bpm / 60) * Math.PI * 2;
+        const pulse = Math.sin(time * 0.001 * freq);
+        const s = 1.0 + Math.max(0, pulse) * 0.12;
+        heartMeshRef.current.scale.set(s, s, s);
+      }
+
+      // 4. Synaptic Action Potentials Glow Animation
+      if (synPointsRef.current) {
+        synPointsRef.current.rotation.y += delta * 0.15;
+      }
+
+      // 5. Shockwave Expansion Feedback
+      if (shockwaveMeshRef.current && shockwaveMeshRef.current.visible) {
+        shockwaveTime += delta;
+        const currentScale = 1.0 + shockwaveTime * 3.5;
+        shockwaveMeshRef.current.scale.set(currentScale, currentScale, currentScale);
+        shockwaveMeshRef.current.material.opacity = Math.max(0, 0.8 - shockwaveTime * 2.2);
+        if (shockwaveTime > 0.4) {
+          shockwaveMeshRef.current.visible = false;
+        }
+      }
+
       renderer.render(scene, camera);
       animationFrameRef.current = requestAnimationFrame(animate);
     };
@@ -235,7 +369,7 @@ const AnatomyCanvas = () => {
         renderer.domElement.parentElement.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, [vitalSigns.heartRate]);
 
   // 2. Sync Layer Visibility
   useEffect(() => {
@@ -252,11 +386,8 @@ const AnatomyCanvas = () => {
     if (!materials) return;
 
     skeletalMeshesRef.current.forEach((mesh) => {
-      const name = (mesh.name || '').toLowerCase();
-      // Match mesh name against assembled database
-      const matchedBone = ALL_206_BONES.find(b => 
-        name.includes(b.id) || (b.meshNode && name.includes(b.meshNode)) || name.includes(b.name.toLowerCase())
-      );
+      const boneId = mesh.userData.boneId;
+      const matchedBone = boneId ? ALL_206_BONES.find(b => b.id === boneId) : matchMeshToBone(mesh.name);
 
       const isAssembled = matchedBone ? assembledBones.includes(matchedBone.id) : (assembledBones.length > 50);
       const isSelected = matchedBone && matchedBone.id === selectedBoneId;
@@ -288,7 +419,77 @@ const AnatomyCanvas = () => {
     });
   }, [overactiveMuscles, underactiveMuscles]);
 
-  // 5. Click-to-Pick Raycaster
+  // 5. Closed-Chain Kinematic Posture Deformation
+  useEffect(() => {
+    const k = kinematicJointsRef.current;
+    if (!k.pelvis) return;
+
+    const {
+      pelvisTilt = 0,
+      pelvisDrop = 0,
+      pelvisRotation = 0,
+      lumbarLordosis = 0,
+      thoracicKyphosis = 0,
+      cervicalForwardHead = 0,
+      rightKneeValgus = 0,
+    } = postureParams;
+
+    // Pelvis
+    k.pelvis.rotation.x = pelvisTilt;
+    k.pelvis.rotation.z = pelvisDrop;
+    k.pelvis.rotation.y = pelvisRotation;
+
+    // Lumbar Spine
+    k.lumbar.forEach((vert, idx) => {
+      const fraction = (idx + 1) / (k.lumbar.length || 1);
+      vert.rotation.x = lumbarLordosis * fraction * 0.35;
+      vert.rotation.z = pelvisDrop * fraction * 0.25;
+    });
+
+    // Thoracic Spine
+    k.thoracic.forEach((vert, idx) => {
+      const fraction = (idx + 1) / (k.thoracic.length || 1);
+      vert.rotation.x = -thoracicKyphosis * fraction * 0.3;
+    });
+
+    // Cervical Spine & Forward Head
+    k.cervical.forEach((vert, idx) => {
+      const fraction = (idx + 1) / (k.cervical.length || 1);
+      vert.rotation.x = cervicalForwardHead * fraction * 0.3;
+      vert.position.z = cervicalForwardHead * fraction * 0.02;
+    });
+
+    // Head
+    if (k.head) {
+      k.head.rotation.x = -cervicalForwardHead * 0.2;
+    }
+
+    // Femur Valgus
+    if (k.rightFemur) {
+      k.rightFemur.rotation.z = -rightKneeValgus;
+    }
+  }, [postureParams]);
+
+  // 6. Camera Focal Lerp to Selected Bone
+  useEffect(() => {
+    if (!selectedBoneId) return;
+    const mesh = skeletalMeshesRef.current.find(m => m.userData.boneId === selectedBoneId);
+    if (!mesh) return;
+
+    const box = new THREE.Box3().setFromObject(mesh);
+    const center = box.getCenter(new THREE.Vector3());
+    cameraTargetRef.current.copy(center);
+
+    // Trigger Shockwave Feedback Ring
+    if (shockwaveMeshRef.current) {
+      shockwaveMeshRef.current.position.copy(center);
+      shockwaveMeshRef.current.visible = true;
+      shockwaveMeshRef.current.scale.set(1, 1, 1);
+      shockwaveMeshRef.current.material.opacity = 0.8;
+    }
+  }, [selectedBoneId]);
+
+  // 7. Click-to-Pick Raycaster
   const handlePointerDown = useCallback((e) => {
     if (!containerRef.current || !cameraRef.current || !sceneRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -303,11 +504,8 @@ const AnatomyCanvas = () => {
 
     if (intersects.length > 0) {
       const hit = intersects[0].object;
-      const hitName = (hit.name || '').toLowerCase();
-
-      const bone = ALL_206_BONES.find(b => 
-        hitName.includes(b.id) || (b.meshNode && hitName.includes(b.meshNode)) || hitName.includes(b.name.toLowerCase())
-      );
+      const boneId = hit.userData.boneId;
+      const bone = boneId ? ALL_206_BONES.find(b => b.id === boneId) : matchMeshToBone(hit.name);
 
       if (bone) {
         setSelectedBoneId(bone.id);
@@ -333,7 +531,7 @@ const AnatomyCanvas = () => {
 
       {/* Viewport Floating Watermark */}
       <div className="absolute bottom-4 left-6 pointer-events-none select-none text-[9px] font-mono text-slate-500">
-        Leiden University Medical Center (LUMC) Clinical Musculoskeletal Atlas
+        Leiden University Medical Center (LUMC) Clinical Musculoskeletal Atlas • 206 Granular Bones
       </div>
     </div>
   );

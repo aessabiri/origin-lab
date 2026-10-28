@@ -2,6 +2,14 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ALL_206_BONES, TOTAL_BONE_COUNT, BONE_SUBGROUPS } from '../data/humanSkeletalDatabase.js';
 import { useAnatomyStore } from '../store.js';
 import { KineticChainSolver } from '../utils/KineticChainSolver.js';
+import { matchMeshToBone } from '../utils/boneMatcher.js';
+import { createMedicalMaterials } from '../utils/MedicalMaterials.js';
+import {
+  createProceduralMicroBones,
+  createCartilageAndLigamentsLayer,
+  createVascularLoopLayer,
+  createNeuralConnectomeLayer
+} from '../utils/anatomicalLayers.js';
 
 describe('206-Bone Human Skeletal Matrix Tests', () => {
   beforeEach(() => {
@@ -69,5 +77,33 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     const strains = KineticChainSolver.calculateMuscleStrains(solved);
     expect(strains.overactive).toBeInstanceOf(Array);
     expect(strains.underactive).toBeInstanceOf(Array);
+  });
+
+  it('should accurately match clinical CT scan mesh nodes to individual bones', () => {
+    expect(matchMeshToBone('Femur.r')?.id).toBe('femur_r');
+    expect(matchMeshToBone('Atlas (C1)')?.id).toBe('vertebra_c1');
+    expect(matchMeshToBone('Axis (C2)')?.id).toBe('vertebra_c2');
+    expect(matchMeshToBone('Lumbar vertebrae (L5)')?.id).toBe('vertebra_l5');
+    expect(matchMeshToBone('Thoracic vertebrae (T12)')?.id).toBe('vertebra_t12');
+    expect(matchMeshToBone('Rib (1st).r')?.id).toBe('rib_1_r');
+    expect(matchMeshToBone('Body of sternum')?.id).toBe('sternum');
+    expect(matchMeshToBone('1st metacarpal bone.r')?.id).toBe('metacarpal_1_r');
+    expect(matchMeshToBone('Calcaneus.r')?.id).toBe('calcaneus_r');
+  });
+
+  it('should generate all 4 anatomical layers and procedural micro-bones', () => {
+    const materials = createMedicalMaterials();
+
+    const micro = createProceduralMicroBones(materials);
+    expect(micro.meshes).toHaveLength(7); // hyoid + 6 ear ossicles
+
+    const cartilage = createCartilageAndLigamentsLayer(materials);
+    expect(cartilage.children.length).toBeGreaterThan(5);
+
+    const vascular = createVascularLoopLayer(materials);
+    expect(vascular.heartMesh).toBeDefined();
+
+    const neural = createNeuralConnectomeLayer(materials);
+    expect(neural.synPoints).toBeDefined();
   });
 });
