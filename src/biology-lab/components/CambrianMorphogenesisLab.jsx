@@ -421,8 +421,9 @@ const CambrianMorphogenesisLab = ({ onOpenAnatomy }) => {
               {[
                 { id: 'osteoid', label: '🦴 Osteoid (206 Bones)' },
                 { id: 'myofibril', label: '💪 Myofibril & Ligaments' },
-                { id: 'endothelial', label: '🫀 Heart & Vascular' },
-                { id: 'neural', label: '🧠 Brain & Connectome' },
+                { id: 'visceral', label: '🫁 Visceral & Lymph Organs' },
+                { id: 'endothelial', label: '🫀 HD Heart & Vascular' },
+                { id: 'neural', label: '🧠 HD Brain & Connectome' },
               ].map((t) => (
                 <button
                   key={t.id}

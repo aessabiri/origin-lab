@@ -104,12 +104,14 @@ const AnatomyCanvas = () => {
   const layerSkeletalRef = useRef(null);
   const layerMusclesRef = useRef(null);
   const layerLigamentsRef = useRef(null);
+  const layerOrgansRef = useRef(null);
   const layerNervesRef = useRef(null);
   const layerVascularRef = useRef(null);
   const materialsRef = useRef(null);
 
   // Animated Components & Interaction Refs
   const heartMeshRef = useRef(null);
+  const hdHeartNodesRef = useRef([]);
   const synPointsRef = useRef(null);
   const shockwaveMeshRef = useRef(null);
   const shockwaveTimeRef = useRef(0);
@@ -326,6 +328,8 @@ const AnatomyCanvas = () => {
     layerLigaments.name = 'LayerLigaments';
     const layerMuscles = new THREE.Group();
     layerMuscles.name = 'LayerMuscles';
+    const layerOrgans = new THREE.Group();
+    layerOrgans.name = 'LayerOrgans';
     const layerNerves = new THREE.Group();
     layerNerves.name = 'LayerNerves';
     const layerVascular = new THREE.Group();
@@ -334,6 +338,7 @@ const AnatomyCanvas = () => {
     humanGroup.add(layerSkeletal);
     humanGroup.add(layerLigaments);
     humanGroup.add(layerMuscles);
+    humanGroup.add(layerOrgans);
     humanGroup.add(layerNerves);
     humanGroup.add(layerVascular);
 
@@ -342,12 +347,14 @@ const AnatomyCanvas = () => {
     layerSkeletal.visible = !!initVis.skeleton;
     layerLigaments.visible = !!initVis.ligaments;
     layerMuscles.visible = !!initVis.muscles;
+    layerOrgans.visible = !!initVis.organs;
     layerNerves.visible = !!initVis.nerves;
     layerVascular.visible = !!initVis.circulation;
 
     layerSkeletalRef.current = layerSkeletal;
     layerLigamentsRef.current = layerLigaments;
     layerMusclesRef.current = layerMuscles;
+    layerOrgansRef.current = layerOrgans;
     layerNervesRef.current = layerNerves;
     layerVascularRef.current = layerVascular;
 
@@ -360,9 +367,10 @@ const AnatomyCanvas = () => {
     const materials = createMedicalMaterials();
     materialsRef.current = materials;
 
-    // Load Medical GLB Models
+    // Load Medical GLB Models (Using local /draco/ WASM decoder for offline high-speed decompression)
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    dracoLoader.setDecoderPath('/draco/');
+    dracoLoader.preload();
     const gltfLoader = new GLTFLoader();
     gltfLoader.setDRACOLoader(dracoLoader);
 
@@ -385,10 +393,27 @@ const AnatomyCanvas = () => {
         });
         if (!isMounted) return;
 
-        setLoadStatus('Loading LUMC Clinical Vascular, Neural & Ligament Scan (6.1 MB)...');
-        const lowerLimbGltf = await new Promise((resolve) => {
-          gltfLoader.load('/models/lumc_lower_limb.glb', resolve, undefined, () => resolve(null));
-        });
+        setLoadStatus('Loading HD Cardiovascular, Nervous, Visceral, Lymphatic & Joint Scans...');
+        const safeLoad = (url) =>
+          new Promise((resolve) => {
+            gltfLoader.load(url, resolve, undefined, () => resolve(null));
+          });
+
+        const [
+          lowerLimbGltf,
+          cardiovascularGltf,
+          nervousGltf,
+          visceralGltf,
+          lymphaticGltf,
+          jointsGltf,
+        ] = await Promise.all([
+          safeLoad('/models/lumc_lower_limb.glb'),
+          safeLoad('/models/cardiovascular.glb'),
+          safeLoad('/models/nervous.glb'),
+          safeLoad('/models/visceral.glb'),
+          safeLoad('/models/lymphatic.glb'),
+          safeLoad('/models/joints.glb'),
+        ]);
         if (!isMounted) return;
 
         setLoadStatus('Assembling 206-Bone Interactive Rig & Bilateral Limbs...');
@@ -498,9 +523,25 @@ const AnatomyCanvas = () => {
         });
         skeletalMeshesRef.current = meshes;
 
-        // 4. Ingest Procedural Cartilage & Ligaments (23 Intervertebral Discs + Upper Joint Capsules)
-        const cartilageLayer = createCartilageAndLigamentsLayer(materials);
-        layerLigaments.add(cartilageLayer);
+        // 4. Ingest High-Definition Full-Body Joints & Ligaments (joints.glb: 349 structures, fallback to procedural)
+        if (jointsGltf && jointsGltf.scene) {
+          jointsGltf.scene.traverse((child) => {
+            if (child.isMesh) {
+              if (child.userData?.za_name) child.name = child.userData.za_name;
+              if (child.material) {
+                child.material.side = THREE.DoubleSide;
+                child.material.roughness = 0.35;
+              }
+              child.frustumCulled = true;
+              GeometryOptimizer.registerMesh(child);
+              optimizableMeshes.push(child);
+            }
+          });
+          layerLigaments.add(jointsGltf.scene);
+        } else {
+          const cartilageLayer = createCartilageAndLigamentsLayer(materials);
+          layerLigaments.add(cartilageLayer);
+        }
 
         // 5. Ingest Muscular Layer (Convert Z-Anatomy centimeter units [~170cm] -> meters [~1.70m] via 0.01 scale)
         const muscleScene = fullbodyGltf.scene;
@@ -521,15 +562,69 @@ const AnatomyCanvas = () => {
         layerMuscles.add(muscleScene);
         muscleMeshesRef.current = muscleMeshes;
 
-        // 6. Ingest Pulsatile Multi-Chamber Heart & Vascular Loop Layer
-        const vascular = createVascularLoopLayer(materials);
-        layerVascular.add(vascular.group);
-        heartMeshRef.current = vascular.heartMesh;
+        // 5b. Ingest High-Definition Visceral & Lymphatic Organs Layer (visceral.glb + lymphatic.glb: 276 structures)
+        const ingestHDSystem = (gltfObj, targetLayer) => {
+          if (!gltfObj || !gltfObj.scene) return;
+          gltfObj.scene.traverse((child) => {
+            if (child.userData?.za_name) child.name = child.userData.za_name;
+            if (child.isMesh) {
+              if (child.material) {
+                child.material.side = THREE.DoubleSide;
+                child.material.roughness = Math.min(child.material.roughness ?? 0.35, 0.38);
+              }
+              child.castShadow = true;
+              child.receiveShadow = true;
+              child.frustumCulled = true;
+              GeometryOptimizer.registerMesh(child);
+              optimizableMeshes.push(child);
+            }
+          });
+          targetLayer.add(gltfObj.scene);
+        };
+        ingestHDSystem(visceralGltf, layerOrgans);
+        ingestHDSystem(lymphaticGltf, layerOrgans);
 
-        // 7. Ingest Gyri-Sculpted Brain & Neural Connectome Layer
+        // 6. Ingest High-Definition Cardiovascular System (cardiovascular.glb: 676 structures including 4-Chamber Heart, Valves, Coronary & Systemic Vessels)
+        if (cardiovascularGltf && cardiovascularGltf.scene) {
+          const hdHeartNodes = [];
+          cardiovascularGltf.scene.traverse((child) => {
+            const zaName = child.userData?.za_name || child.name || '';
+            if (zaName) child.name = zaName;
+            if (child.isMesh) {
+              if (child.material) {
+                child.material.side = THREE.DoubleSide;
+                child.material.roughness = 0.25;
+              }
+              child.frustumCulled = true;
+              GeometryOptimizer.registerMesh(child);
+              optimizableMeshes.push(child);
+            }
+            if (/^(left ventricle|right ventricle|left atrium|right atrium)$/i.test(zaName.trim())) {
+              child.userData.restPos = child.position.clone();
+              child.userData.restScale = child.scale.clone();
+              hdHeartNodes.push(child);
+            }
+          });
+          hdHeartNodesRef.current = hdHeartNodes;
+          layerVascular.add(cardiovascularGltf.scene);
+        } else {
+          const vascular = createVascularLoopLayer(materials);
+          layerVascular.add(vascular.group);
+          heartMeshRef.current = vascular.heartMesh;
+        }
+
+        // 7. Ingest High-Definition Nervous System (nervous.glb: 580 structures including Cerebral Lobes, Cerebellum, Ventricles, Spinal Cord & Peripheral Nerves)
         const neural = createNeuralConnectomeLayer(materials);
-        layerNerves.add(neural.group);
         synPointsRef.current = neural.synPoints;
+        if (nervousGltf && nervousGltf.scene) {
+          ingestHDSystem(nervousGltf, layerNerves);
+          // Keep the glowing synaptic action-potential particle cloud overlaid on the HD brain & spinal cord
+          if (neural.synPoints) {
+            layerNerves.add(neural.synPoints);
+          }
+        } else {
+          layerNerves.add(neural.group);
+        }
 
         // 7b. Ingest LUMC Clinical 462-Node Lower-Limb Scan (46 Arteries, 42 Veins, 47 Nerves, 72 Ligaments, 14 Fascia, 38 Bursae)
         if (lowerLimbGltf && lowerLimbGltf.scene) {
@@ -727,12 +822,28 @@ const AnatomyCanvas = () => {
       controls.target.lerp(cameraTargetRef.current, 0.08);
       if (controls.enabled) controls.update();
 
-      // 2. Pulsatile Ventricular Systole/Diastole Heartbeat Animation
-      if (heartMeshRef.current) {
-        const bpm = heartRateRef.current > 0 ? heartRateRef.current : 60;
-        const freq = (bpm / 60) * Math.PI * 2;
-        const pulse = Math.sin(time * 0.001 * freq);
-        const systole = Math.max(0, pulse);
+      // 2. Pulsatile Ventricular Systole/Diastole Heartbeat Animation (Supports both HD Z-Anatomy 4-chamber heart and procedural fallback)
+      const bpm = heartRateRef.current > 0 ? heartRateRef.current : 60;
+      const freq = (bpm / 60) * Math.PI * 2;
+      const pulse = Math.sin(time * 0.001 * freq);
+      const systole = Math.max(0, pulse);
+
+      if (hdHeartNodesRef.current && hdHeartNodesRef.current.length > 0) {
+        // Pivot-compensated cardiac contraction around the heart's true anatomical center (0.018, 1.285, 0.035)
+        const s = 1.0 + systole * 0.055;
+        const cx = 0.018;
+        const cy = 1.285;
+        const cz = 0.035;
+        hdHeartNodesRef.current.forEach((node) => {
+          const rp = node.userData.restPos || { x: 0, y: 0, z: 0 };
+          node.scale.set(s, s, s);
+          node.position.set(
+            rp.x + (1 - s) * cx,
+            rp.y + (1 - s) * cy,
+            rp.z + (1 - s) * cz
+          );
+        });
+      } else if (heartMeshRef.current) {
         heartMeshRef.current.scale.set(
           1.0 + systole * 0.09,
           1.0 - systole * 0.05,
@@ -786,6 +897,7 @@ const AnatomyCanvas = () => {
     if (layerSkeletalRef.current) layerSkeletalRef.current.visible = !!layerVisibility.skeleton;
     if (layerLigamentsRef.current) layerLigamentsRef.current.visible = !!layerVisibility.ligaments;
     if (layerMusclesRef.current) layerMusclesRef.current.visible = !!layerVisibility.muscles;
+    if (layerOrgansRef.current) layerOrgansRef.current.visible = !!layerVisibility.organs;
     if (layerNervesRef.current) layerNervesRef.current.visible = !!layerVisibility.nerves;
     if (layerVascularRef.current) layerVascularRef.current.visible = !!layerVisibility.circulation;
   }, [layerVisibility]);

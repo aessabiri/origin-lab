@@ -4,10 +4,11 @@ import { ALL_206_BONES, BONE_SUBGROUPS, TOTAL_BONE_COUNT } from '../data/humanSk
 
 const LAYERS = [
   { id: 'skeleton', label: 'Skeleton', icon: '🦴', count: '206 Bones' },
-  { id: 'ligaments', label: 'Ligaments', icon: '🧬', count: 'Articular Cartilage' },
+  { id: 'ligaments', label: 'Ligaments', icon: '🧬', count: '349 Joints & Discs' },
   { id: 'muscles', label: 'Muscles', icon: '💪', count: 'Myofascial Slings' },
-  { id: 'circulation', label: 'Vascular', icon: '🫀', count: 'Cardiac Loop' },
-  { id: 'nerves', label: 'Neural', icon: '🧠', count: 'Connectome' },
+  { id: 'organs', label: 'Organs', icon: '🫁', count: '276 Visceral & Lymph' },
+  { id: 'circulation', label: 'Vascular', icon: '🫀', count: '676 Heart & Vessels' },
+  { id: 'nerves', label: 'Neural', icon: '🧠', count: '580 Brain & Nerves' },
 ];
 
 const AnatomyWorkbench = () => {
@@ -99,7 +100,7 @@ const AnatomyWorkbench = () => {
       </div>
 
       {/* 2. LAYER SELECTOR TABS */}
-      <div className="p-2 border-b border-slate-800 bg-[#060a14] grid grid-cols-5 gap-1">
+      <div className="p-2 border-b border-slate-800 bg-[#060a14] grid grid-cols-6 gap-1">
         {LAYERS.map((layer) => {
           const isVisible = layerVisibility[layer.id];
           return (
@@ -126,12 +127,13 @@ const AnatomyWorkbench = () => {
           <span>🧬 Bio-Lab 3D Tissue Synthesizer</span>
           <span className="text-slate-500">Clinical CT + Organ Merge</span>
         </div>
-        <div className="grid grid-cols-4 gap-1">
+        <div className="grid grid-cols-5 gap-1">
           {[
             { id: 'osteoid', label: 'Osteoid', icon: '🦴', title: 'Bio-Print 206 Bones & 23 Discs' },
-            { id: 'myofibril', label: 'Myofibril', icon: '💪', title: 'Bio-Print Muscles & Lower-Limb Fascia/Ligaments' },
-            { id: 'endothelial', label: 'Vascular', icon: '🫀', title: 'Bio-Print 4-Chamber Heart & 88 Clinical Vessels' },
-            { id: 'neural', label: 'Neural', icon: '🧠', title: 'Bio-Print Gyri Neocortex & 47 Clinical Nerves' },
+            { id: 'myofibril', label: 'Myofibril', icon: '💪', title: 'Bio-Print Muscles & 349 Joint Ligaments' },
+            { id: 'visceral', label: 'Organs', icon: '🫁', title: 'Bio-Print 276 HD Lungs, Liver, Stomach, Spleen & Lymph' },
+            { id: 'endothelial', label: 'Vascular', icon: '🫀', title: 'Bio-Print 676 HD 4-Chamber Heart, Valves & Vessels' },
+            { id: 'neural', label: 'Neural', icon: '🧠', title: 'Bio-Print 580 HD Brain, Spinal Cord & Nerves' },
           ].map((t) => {
             const active = !!bioprintedTissues[t.id];
             return (

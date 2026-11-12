@@ -175,14 +175,17 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
   it('should bio-print tissues from the Biology Lab bridge into the 3D Anatomy store', () => {
     const store = useAnatomyStore.getState();
     store.synthesizeBioTissue('osteoid');
+    store.synthesizeBioTissue('visceral');
     store.synthesizeBioTissue('endothelial');
     store.synthesizeBioTissue('neural');
 
     const next = useAnatomyStore.getState();
     expect(next.bioprintedTissues.osteoid).toBe(true);
+    expect(next.bioprintedTissues.visceral).toBe(true);
     expect(next.bioprintedTissues.endothelial).toBe(true);
     expect(next.bioprintedTissues.neural).toBe(true);
     expect(next.assembledBones).toHaveLength(206);
+    expect(next.layerVisibility.organs).toBe(true);
     expect(next.layerVisibility.circulation).toBe(true);
     expect(next.layerVisibility.nerves).toBe(true);
     expect(next.vitalSigns.heartRate).toBe(72);

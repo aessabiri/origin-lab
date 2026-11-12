@@ -33,12 +33,13 @@ export const useAnatomyStore = create(
       activeRegion: 'all',
       searchQuery: '',
 
-      // 5 Anatomical Layers
-      activeLayer: 'skeleton', // 'skeleton' | 'ligaments' | 'muscles' | 'circulation' | 'nerves'
+      // 6 Anatomical Layers
+      activeLayer: 'skeleton', // 'skeleton' | 'ligaments' | 'muscles' | 'organs' | 'circulation' | 'nerves'
       layerVisibility: {
         skeleton: true,
         ligaments: true,
         muscles: false,
+        organs: false,
         circulation: false,
         nerves: false,
       },
@@ -62,6 +63,7 @@ export const useAnatomyStore = create(
       bioprintedTissues: {
         osteoid: false,
         myofibril: false,
+        visceral: false,
         endothelial: false,
         neural: false,
       },
@@ -133,6 +135,7 @@ export const useAnatomyStore = create(
               skeleton: true,
               ligaments: true,
               muscles: true,
+              organs: true,
               circulation: true,
               nerves: true,
             },
@@ -163,6 +166,7 @@ export const useAnatomyStore = create(
             skeleton: true,
             ligaments: true,
             muscles: true,
+            organs: true,
             circulation: true,
             nerves: true,
           },
@@ -192,6 +196,7 @@ export const useAnatomyStore = create(
           bioprintedTissues: {
             osteoid: false,
             myofibril: false,
+            visceral: false,
             endothelial: false,
             neural: false,
           },
@@ -199,6 +204,7 @@ export const useAnatomyStore = create(
             skeleton: true,
             ligaments: false,
             muscles: false,
+            organs: false,
             circulation: false,
             nerves: false,
           },
@@ -255,7 +261,10 @@ export const useAnatomyStore = create(
         } else if (tissueType === 'myofibril') {
           nextVis.muscles = true;
           nextVis.ligaments = true;
-          msg = '💪 Bio-Printed Striated Myofibril Slings & Clinical Lower-Limb Fascia/Ligaments Materialized!';
+          msg = '💪 Bio-Printed Striated Myofibril Slings & 349 Full-Body Joint Capsules/Ligaments Materialized!';
+        } else if (tissueType === 'visceral') {
+          nextVis.organs = true;
+          msg = '🫁 Bio-Printed 276 HD Visceral & Lymphoid Organs (Lungs, Liver, Stomach, Pancreas, Spleen, Thymus, Colon)!';
         } else if (tissueType === 'endothelial') {
           nextVis.circulation = true;
           nextVitals = {
