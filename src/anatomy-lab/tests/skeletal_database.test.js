@@ -2,8 +2,11 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ALL_206_BONES, TOTAL_BONE_COUNT, BONE_SUBGROUPS } from '../data/humanSkeletalDatabase.js';
 import { useAnatomyStore } from '../store.js';
 import { KineticChainSolver } from '../utils/KineticChainSolver.js';
-import { matchMeshToBone } from '../utils/boneMatcher.js';
+import { matchMeshToBone, normalizeGLTFNodeName, isRightSideAnatomyNode } from '../utils/boneMatcher.js';
+import { doesMeshMatchMuscleList } from '../components/AnatomyCanvas.jsx';
+import { GeometryOptimizer } from '../utils/GeometryOptimizer.js';
 import { createMedicalMaterials } from '../utils/MedicalMaterials.js';
+import * as THREE from 'three';
 import {
   createProceduralMicroBones,
   createCartilageAndLigamentsLayer,
@@ -124,5 +127,64 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
 
     const neural = createNeuralConnectomeLayer(materials);
     expect(neural.synPoints).toBeDefined();
+  });
+
+  it('should recover and match sanitized GLTFLoader node names (Femurr -> Femur.r, Medial_cuneiform_boner -> cuneiform_medial_r)', () => {
+    expect(normalizeGLTFNodeName('Femurr', 'Bones_right')).toBe('Femur.r');
+    expect(normalizeGLTFNodeName('Medial_cuneiform_boner', 'Bones_right')).toBe('Medial cuneiform bone.r');
+    expect(normalizeGLTFNodeName('Scapular', 'Bones_right')).toBe('Scapula.r');
+
+    expect(matchMeshToBone('Femurr', 'Bones_right')?.id).toBe('femur_r');
+    expect(matchMeshToBone('Tibiar', 'Bones_right')?.id).toBe('tibia_r');
+    expect(matchMeshToBone('Fibular', 'Bones_right')?.id).toBe('fibula_r');
+    expect(matchMeshToBone('Humerusr', 'Bones_right')?.id).toBe('humerus_r');
+    expect(matchMeshToBone('Medial_cuneiform_boner', 'Bones_right')?.id).toBe('medial_cuneiform_r');
+    expect(matchMeshToBone('First_distal_phalanx_of_footr', 'Bones_right')?.id).toBe('phalanx_foot_distal_1_r');
+
+    // Mirrored left counterparts
+    expect(matchMeshToBone('Femur.l', 'Bones_left')?.id).toBe('femur_l');
+    expect(matchMeshToBone('Tibia.l', 'Bones_left')?.id).toBe('tibia_l');
+    expect(matchMeshToBone('Humerus.l', 'Bones_left')?.id).toBe('humerus_l');
+    expect(matchMeshToBone('Medial cuneiform bone.l', 'Bones_left')?.id).toBe('medial_cuneiform_l');
+
+    expect(isRightSideAnatomyNode({ name: 'Femurr', parent: { name: 'Bones_right', parent: null } })).toBe(true);
+  });
+
+  it('should match sanitized GLTFLoader multi-word muscle names in doesMeshMatchMuscleList', () => {
+    const tightList = [{ id: 'gluteus_maximus', name: 'Right Gluteus Maximus' }];
+    expect(doesMeshMatchMuscleList('Gluteus_maximus_muscler', tightList)).toBe(true);
+    expect(doesMeshMatchMuscleList('Gluteus_maximus_musclel', tightList)).toBe(false);
+  });
+
+  it('should decimate high-poly meshes via GeometryOptimizer and share buffers across mirrored limbs', () => {
+    const sphereGeo = new THREE.SphereGeometry(1, 32, 32);
+    const rightMesh = new THREE.Mesh(sphereGeo);
+    const leftMirroredMesh = new THREE.Mesh(sphereGeo);
+
+    GeometryOptimizer.registerMesh(rightMesh);
+    GeometryOptimizer.registerMesh(leftMirroredMesh);
+
+    const origCount = sphereGeo.index.count;
+    GeometryOptimizer.applySceneLOD([rightMesh, leftMirroredMesh], 0.35);
+
+    expect(rightMesh.geometry.index.count).toBeLessThan(origCount);
+    // Both right and mirrored left mesh share the exact same decimated BufferGeometry instance
+    expect(rightMesh.geometry).toBe(leftMirroredMesh.geometry);
+  });
+
+  it('should bio-print tissues from the Biology Lab bridge into the 3D Anatomy store', () => {
+    const store = useAnatomyStore.getState();
+    store.synthesizeBioTissue('osteoid');
+    store.synthesizeBioTissue('endothelial');
+    store.synthesizeBioTissue('neural');
+
+    const next = useAnatomyStore.getState();
+    expect(next.bioprintedTissues.osteoid).toBe(true);
+    expect(next.bioprintedTissues.endothelial).toBe(true);
+    expect(next.bioprintedTissues.neural).toBe(true);
+    expect(next.assembledBones).toHaveLength(206);
+    expect(next.layerVisibility.circulation).toBe(true);
+    expect(next.layerVisibility.nerves).toBe(true);
+    expect(next.vitalSigns.heartRate).toBe(72);
   });
 });

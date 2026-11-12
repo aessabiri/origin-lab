@@ -68,6 +68,8 @@ export function computeMorphogenesisMetrics(config = {}) {
 const CambrianMorphogenesisLab = ({ onOpenAnatomy }) => {
   const mountRef = useRef(null);
   const { morphogenesisConfig, setMorphogenesisConfig } = useBioStore();
+  const bioprintedTissues = useAnatomyStore((s) => s.bioprintedTissues) || {};
+  const synthesizeBioTissue = useAnatomyStore((s) => s.synthesizeBioTissue);
 
   const metrics = useMemo(
     () => computeMorphogenesisMetrics(morphogenesisConfig),
@@ -408,6 +410,33 @@ const CambrianMorphogenesisLab = ({ onOpenAnatomy }) => {
               onChange={(e) => setMorphogenesisConfig({ segments: Number(e.target.value) })}
               className="w-full h-1.5 accent-teal-400 bg-slate-800 rounded-lg cursor-pointer"
             />
+          </div>
+
+          {/* 6. 3D Bio-Tissue Printing Bridge into Anatomy Lab */}
+          <div className="pt-2 border-t border-teal-500/20 space-y-1.5">
+            <label className="text-[9px] font-mono font-bold text-teal-300 uppercase block">
+              6. Merge Bio-Tissues into 3D Anatomy Rig
+            </label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { id: 'osteoid', label: '🦴 Osteoid (206 Bones)' },
+                { id: 'myofibril', label: '💪 Myofibril & Ligaments' },
+                { id: 'endothelial', label: '🫀 Heart & Vascular' },
+                { id: 'neural', label: '🧠 Brain & Connectome' },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => synthesizeBioTissue && synthesizeBioTissue(t.id)}
+                  className={`py-1.5 px-2 rounded-xl font-mono text-[8.5px] font-bold uppercase border transition-all cursor-pointer text-left ${
+                    bioprintedTissues[t.id]
+                      ? 'bg-emerald-500/25 border-emerald-400 text-emerald-200'
+                      : 'bg-[#080d18] border-teal-500/30 text-teal-200 hover:bg-teal-500/20'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

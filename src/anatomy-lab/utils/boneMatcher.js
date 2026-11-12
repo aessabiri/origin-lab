@@ -2,44 +2,104 @@ import { ALL_206_BONES } from '../data/humanSkeletalDatabase.js';
 
 /**
  * High-Precision Anatomical Bone Matcher
- * Maps 3D GLTF mesh nodes from LUMC clinical CT scan and procedural geometry to ALL_206_BONES.
+ * Maps 3D GLTF mesh nodes from LUMC clinical CT scan (both raw GLTF names and
+ * THREE.PropertyBinding.sanitizeNodeName strings where '.' is stripped and ' ' -> '_')
+ * and procedural geometry to ALL_206_BONES.
  */
 
-// Pre-index bones by ID
 const BONE_BY_ID = new Map();
-ALL_206_BONES.forEach(bone => BONE_BY_ID.set(bone.id, bone));
+ALL_206_BONES.forEach((bone) => BONE_BY_ID.set(bone.id, bone));
 
 /**
- * Match a 3D Mesh name to a bone entry from ALL_206_BONES
+ * Restores a GLTFLoader-sanitized node name (e.g. 'Medial_cuneiform_boner' or 'Rib_1str')
+ * into a normalized human-readable form with explicit '.r' / '.l' suffix when applicable.
+ */
+export function normalizeGLTFNodeName(rawInput, parentGroupName = '') {
+  if (!rawInput) return '';
+  let s = String(rawInput).trim();
+
+  // Direct bone IDs should stay untouched
+  if (BONE_BY_ID.has(s)) return s;
+
+  // Replace underscores with spaces except for explicit _l / _r suffixes
+  const hasExplicitLeft = /(\.l\.?$|\bleft\b|_l$)/i.test(s);
+  const hasExplicitRight = /(\.r\.?$|\bright\b|_r$)/i.test(s);
+
+  let cleaned = s.replace(/_/g, ' ');
+
+  if (!hasExplicitLeft && !hasExplicitRight) {
+    const parentLower = String(parentGroupName || '').toLowerCase();
+    if (parentLower.includes('bones_right') || parentLower.includes('cartilages_right')) {
+      // Strip trailing 'r' if GLTFLoader merged '.r' into the word (e.g. 'Femurr' -> 'Femur.r')
+      cleaned = cleaned.replace(/r$/i, '') + '.r';
+    } else if (parentLower.includes('bones_left') || parentLower.includes('cartilages_left') || parentLower.includes('mirroredleft')) {
+      cleaned = cleaned.replace(/[rl]$/i, '') + '.l';
+    } else if (
+      /(bone|muscle|artery|vein|nerve|ligament|fascia|bursa|tendon|head|part|belly|femur|tibia|fibula|humerus|radius|ulna|clavicle|scapula|patella|talus|calcaneus|scaphoid|capitate|hamate|pisiform|trapezium|trapezoid|triquetrum|finger|foot|hand|canine|incisor|premolar|tooth|\))[rl]$/i.test(
+        cleaned
+      )
+    ) {
+      const sideChar = cleaned.slice(-1).toLowerCase();
+      cleaned = cleaned.slice(0, -1) + '.' + sideChar;
+    }
+  }
+
+  return cleaned;
+}
+
+/**
+ * Determines whether a Three.js Object3D or node name belongs to the right side of the body.
+ */
+export function isRightSideAnatomyNode(nodeOrName) {
+  if (!nodeOrName) return false;
+  if (typeof nodeOrName === 'object') {
+    let curr = nodeOrName.parent;
+    while (curr) {
+      const pName = (curr.name || '').toLowerCase();
+      if (pName.includes('bones_right') || pName.includes('cartilages_right')) return true;
+      if (pName.includes('mirroredleft') || pName.includes('bones_left')) return false;
+      curr = curr.parent;
+    }
+    const raw = nodeOrName.userData?.name || nodeOrName.name || '';
+    const norm = normalizeGLTFNodeName(raw, nodeOrName.parent?.name);
+    return /(\.r\.?$|\bright\b|_r$)/i.test(norm);
+  }
+  const norm = normalizeGLTFNodeName(String(nodeOrName));
+  return /(\.r\.?$|\bright\b|_r$)/i.test(norm);
+}
+
+/**
+ * Match a 3D Mesh name (raw or GLTFLoader-sanitized) to a bone entry from ALL_206_BONES
  * @param {string} rawNodeName
+ * @param {string} [parentGroupName]
  * @returns {object|null}
  */
-export function matchMeshToBone(rawNodeName) {
+export function matchMeshToBone(rawNodeName, parentGroupName = '') {
   if (!rawNodeName) return null;
-  const n = rawNodeName.toLowerCase();
-
-  const nodeIsLeft = /(\.l\.?$|\bleft\b|_l$)/i.test(n);
-  const nodeIsRight = /(\.r\.?$|\bright\b|_r$)/i.test(n);
-  const sideSuffix = nodeIsLeft ? 'l' : (nodeIsRight ? 'r' : 'r');
 
   // Direct ID check if node was assigned id
   if (BONE_BY_ID.has(rawNodeName)) {
     return BONE_BY_ID.get(rawNodeName);
   }
 
+  const normalized = normalizeGLTFNodeName(rawNodeName, parentGroupName);
+  const n = normalized.toLowerCase();
+
+  const nodeIsLeft = /(\.l\.?$|\bleft\b|\bl\b|_l$)/i.test(n);
+
   // 1. Vertebrae
-  if (n.includes('atlas') || n.includes('(c1)')) return BONE_BY_ID.get('vertebra_c1') || null;
-  if (n.includes('axis') || n.includes('(c2)')) return BONE_BY_ID.get('vertebra_c2') || null;
+  if (n.includes('atlas') || n.includes('c1')) return BONE_BY_ID.get('vertebra_c1') || null;
+  if (n.includes('axis') || n.includes('c2')) return BONE_BY_ID.get('vertebra_c2') || null;
   if (n.includes('cervical')) {
-    const m = n.match(/\(c(\d+)\)/);
+    const m = n.match(/c(\d+)/);
     if (m) return BONE_BY_ID.get(`vertebra_c${m[1]}`) || null;
   }
   if (n.includes('thoracic')) {
-    const m = n.match(/\(t(\d+)\)/);
+    const m = n.match(/t(\d+)/);
     if (m) return BONE_BY_ID.get(`vertebra_t${m[1]}`) || null;
   }
   if (n.includes('lumbar')) {
-    const m = n.match(/\(l(\d+)\)/);
+    const m = n.match(/l(\d+)/);
     if (m) return BONE_BY_ID.get(`vertebra_l${m[1]}`) || null;
   }
 
@@ -110,7 +170,19 @@ export function matchMeshToBone(rawNodeName) {
 
   // Hand Phalanges
   if (n.includes('finger') && !n.includes('foot')) {
-    const fingerNum = n.match(/(\d+)/)?.[1] || (n.includes('first') ? '1' : n.includes('second') ? '2' : n.includes('third') ? '3' : n.includes('fourth') ? '4' : n.includes('fifth') ? '5' : null);
+    const fingerNum =
+      n.match(/(\d+)/)?.[1] ||
+      (n.includes('first')
+        ? '1'
+        : n.includes('second')
+        ? '2'
+        : n.includes('third')
+        ? '3'
+        : n.includes('fourth')
+        ? '4'
+        : n.includes('fifth')
+        ? '5'
+        : null);
     if (fingerNum) {
       const side = nodeIsLeft ? 'l' : 'r';
       if (n.includes('distal')) return BONE_BY_ID.get(`phalanx_hand_distal_${fingerNum}_${side}`) || null;
@@ -120,12 +192,12 @@ export function matchMeshToBone(rawNodeName) {
   }
 
   // 5. Lower Limb & Pelvic Girdle
-  if (n.includes('hip') || n.includes('pelvis') || n.includes('os_coxae')) {
+  if (n.includes('hip') || n.includes('pelvis') || n.includes('os coxae')) {
     return nodeIsLeft ? BONE_BY_ID.get('pelvis_l') : BONE_BY_ID.get('pelvis_r');
   }
   if (n.includes('femur')) return nodeIsLeft ? BONE_BY_ID.get('femur_l') : BONE_BY_ID.get('femur_r');
   if (n.includes('patella')) return nodeIsLeft ? BONE_BY_ID.get('patella_l') : BONE_BY_ID.get('patella_r');
-  if (n.includes('tibia')) return nodeIsLeft ? BONE_BY_ID.get('tibia_l') : BONE_BY_ID.get('tibia_r');
+  if (n.includes('tibia') && !n.includes('fibula')) return nodeIsLeft ? BONE_BY_ID.get('tibia_l') : BONE_BY_ID.get('tibia_r');
   if (n.includes('fibula')) return nodeIsLeft ? BONE_BY_ID.get('fibula_l') : BONE_BY_ID.get('fibula_r');
 
   // Tarsals
@@ -133,16 +205,19 @@ export function matchMeshToBone(rawNodeName) {
   if (n.includes('calcaneus')) return nodeIsLeft ? BONE_BY_ID.get('calcaneus_l') : BONE_BY_ID.get('calcaneus_r');
   if (n.includes('cuboid')) return nodeIsLeft ? BONE_BY_ID.get('cuboid_l') : BONE_BY_ID.get('cuboid_r');
   if (n.includes('navicular')) return nodeIsLeft ? BONE_BY_ID.get('navicular_l') : BONE_BY_ID.get('navicular_r');
-  if (n.includes('medial cuneiform')) return nodeIsLeft ? BONE_BY_ID.get('medial_cuneiform_l') : BONE_BY_ID.get('medial_cuneiform_r');
-  if (n.includes('intermediate cuneiform')) return nodeIsLeft ? BONE_BY_ID.get('intermediate_cuneiform_l') : BONE_BY_ID.get('intermediate_cuneiform_r');
-  if (n.includes('lateral cuneiform')) return nodeIsLeft ? BONE_BY_ID.get('lateral_cuneiform_l') : BONE_BY_ID.get('lateral_cuneiform_r');
+  if (n.includes('medial') && n.includes('cuneiform')) return nodeIsLeft ? BONE_BY_ID.get('medial_cuneiform_l') : BONE_BY_ID.get('medial_cuneiform_r');
+  if (n.includes('intermediate') && n.includes('cuneiform')) return nodeIsLeft ? BONE_BY_ID.get('intermediate_cuneiform_l') : BONE_BY_ID.get('intermediate_cuneiform_r');
+  if (n.includes('lateral') && n.includes('cuneiform')) return nodeIsLeft ? BONE_BY_ID.get('lateral_cuneiform_l') : BONE_BY_ID.get('lateral_cuneiform_r');
 
   // Metatarsals
   if (n.includes('metatarsal')) {
-    const wordNums = { 'first': '1', 'second': '2', 'third': '3', 'fourth': '4', 'fifth': '5', '1st': '1', '2nd': '2', '3rd': '3', '4th': '4', '5th': '5' };
+    const wordNums = { first: '1', second: '2', third: '3', fourth: '4', fifth: '5', '1st': '1', '2nd': '2', '3rd': '3', '4th': '4', '5th': '5' };
     let num = null;
     for (const [w, val] of Object.entries(wordNums)) {
-      if (n.includes(w)) { num = val; break; }
+      if (n.includes(w)) {
+        num = val;
+        break;
+      }
     }
     if (num) {
       const id = `metatarsal_${num}_${nodeIsLeft ? 'l' : 'r'}`;
@@ -152,10 +227,13 @@ export function matchMeshToBone(rawNodeName) {
 
   // Foot Phalanges
   if (n.includes('foot') || n.includes('toe')) {
-    const wordNums = { 'first': '1', 'second': '2', 'third': '3', 'fourth': '4', 'fifth': '5', '1st': '1', '2nd': '2', '3rd': '3', '4th': '4', '5th': '5' };
+    const wordNums = { first: '1', second: '2', third: '3', fourth: '4', fifth: '5', '1st': '1', '2nd': '2', '3rd': '3', '4th': '4', '5th': '5' };
     let fingerNum = null;
     for (const [w, val] of Object.entries(wordNums)) {
-      if (n.includes(w)) { fingerNum = val; break; }
+      if (n.includes(w)) {
+        fingerNum = val;
+        break;
+      }
     }
     if (fingerNum) {
       const side = nodeIsLeft ? 'l' : 'r';

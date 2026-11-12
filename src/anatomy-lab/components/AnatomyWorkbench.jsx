@@ -23,6 +23,8 @@ const AnatomyWorkbench = () => {
   const toggleLayer = useAnatomyStore(state => state.toggleLayer);
   const vitalSigns = useAnatomyStore(state => state.vitalSigns);
   const consciousnessScore = useAnatomyStore(state => state.consciousnessScore);
+  const bioprintedTissues = useAnatomyStore(state => state.bioprintedTissues) || {};
+  const synthesizeBioTissue = useAnatomyStore(state => state.synthesizeBioTissue);
 
   const [activeSubgroup, setActiveSubgroup] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,6 +118,39 @@ const AnatomyWorkbench = () => {
             </button>
           );
         })}
+      </div>
+
+      {/* 2b. BIO-LAB TO 3D ANATOMY TISSUE BIOPRINTING BRIDGE */}
+      <div className="px-3 py-2 border-b border-slate-800 bg-[#040812] space-y-1.5">
+        <div className="flex items-center justify-between text-[8.5px] font-mono uppercase tracking-wider text-teal-400 font-bold">
+          <span>🧬 Bio-Lab 3D Tissue Synthesizer</span>
+          <span className="text-slate-500">Clinical CT + Organ Merge</span>
+        </div>
+        <div className="grid grid-cols-4 gap-1">
+          {[
+            { id: 'osteoid', label: 'Osteoid', icon: '🦴', title: 'Bio-Print 206 Bones & 23 Discs' },
+            { id: 'myofibril', label: 'Myofibril', icon: '💪', title: 'Bio-Print Muscles & Lower-Limb Fascia/Ligaments' },
+            { id: 'endothelial', label: 'Vascular', icon: '🫀', title: 'Bio-Print 4-Chamber Heart & 88 Clinical Vessels' },
+            { id: 'neural', label: 'Neural', icon: '🧠', title: 'Bio-Print Gyri Neocortex & 47 Clinical Nerves' },
+          ].map((t) => {
+            const active = !!bioprintedTissues[t.id];
+            return (
+              <button
+                key={t.id}
+                onClick={() => synthesizeBioTissue && synthesizeBioTissue(t.id)}
+                title={t.title}
+                className={`py-1 px-1 rounded-lg text-[8px] font-mono font-bold border transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                  active
+                    ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200'
+                    : 'border-teal-500/25 bg-teal-500/10 text-teal-300 hover:bg-teal-500/25'
+                }`}
+              >
+                <span>{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 3. SELECTED BONE SCIENTIFIC INSPECTION CARD */}

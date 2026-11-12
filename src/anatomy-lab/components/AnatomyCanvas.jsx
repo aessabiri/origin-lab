@@ -5,7 +5,12 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { createMedicalMaterials } from '../utils/MedicalMaterials.js';
-import { matchMeshToBone } from '../utils/boneMatcher.js';
+import {
+  matchMeshToBone,
+  normalizeGLTFNodeName,
+  isRightSideAnatomyNode
+} from '../utils/boneMatcher.js';
+import { GeometryOptimizer } from '../utils/GeometryOptimizer.js';
 import { BiomechanicalVisualOverlays } from '../utils/BiomechanicalVisualOverlays.js';
 import {
   createProceduralMicroBones,
@@ -48,29 +53,30 @@ const MUSCLE_KEYWORD_ALIASES = [
   { trigger: ['serratus'], meshTerms: ['serratus anterior'] },
 ];
 
-function doesMeshMatchMuscleList(meshName, muscleList) {
+export function doesMeshMatchMuscleList(meshName, muscleList) {
   if (!meshName || !Array.isArray(muscleList) || muscleList.length === 0) return false;
-  const lowerMesh = meshName.toLowerCase();
-  const meshIsRight = /(\.r\.?$|\bright\b)/i.test(lowerMesh);
-  const meshIsLeft = /(\.l\.?$|\bleft\b)/i.test(lowerMesh);
+  const normalizedMesh = normalizeGLTFNodeName(meshName).toLowerCase();
+  const meshIsRight = /(\.r\.?$|_r$|\bright\b)/i.test(normalizedMesh);
+  const meshIsLeft = /(\.l\.?$|_l$|\bleft\b)/i.test(normalizedMesh);
 
   for (const item of muscleList) {
     const rawText = typeof item === 'string'
       ? item.toLowerCase()
       : `${item.id || ''} ${item.name || ''}`.toLowerCase();
+    const normalizedItem = rawText.replace(/_/g, ' ').trim();
 
-    const itemMentionsRight = rawText.includes('right');
-    const itemMentionsLeft = rawText.includes('left');
+    const itemMentionsRight = normalizedItem.includes('right');
+    const itemMentionsLeft = normalizedItem.includes('left');
     if (itemMentionsRight && !itemMentionsLeft && meshIsLeft) continue;
     if (itemMentionsLeft && !itemMentionsRight && meshIsRight) continue;
 
-    if (lowerMesh.includes(rawText.trim()) && rawText.trim().length > 3) {
+    if (normalizedMesh.includes(normalizedItem) && normalizedItem.length > 3) {
       return true;
     }
 
     for (const rule of MUSCLE_KEYWORD_ALIASES) {
-      if (rule.trigger.some(t => rawText.includes(t))) {
-        if (rule.meshTerms.some(term => lowerMesh.includes(term))) {
+      if (rule.trigger.some(t => rawText.includes(t) || normalizedItem.includes(t.replace(/_/g, ' ')))) {
+        if (rule.meshTerms.some(term => normalizedMesh.includes(term))) {
           return true;
         }
       }
@@ -94,6 +100,7 @@ const AnatomyCanvas = () => {
   const humanGroupRef = useRef(null);
   const skeletalMeshesRef = useRef([]);
   const muscleMeshesRef = useRef([]);
+  const optimizableMeshesRef = useRef([]);
   const layerSkeletalRef = useRef(null);
   const layerMusclesRef = useRef(null);
   const layerLigamentsRef = useRef(null);
@@ -147,6 +154,7 @@ const AnatomyCanvas = () => {
   const overactiveMuscles = useAnatomyStore(state => state.overactiveMuscles);
   const underactiveMuscles = useAnatomyStore(state => state.underactiveMuscles);
   const vitalSigns = useAnatomyStore(state => state.vitalSigns);
+  const meshLodRatio = useAnatomyStore(state => state.meshLodRatio) || 1.0;
 
   // Keep refs synced for animation loop & async callbacks
   heartRateRef.current = vitalSigns.heartRate;
@@ -377,10 +385,17 @@ const AnatomyCanvas = () => {
         });
         if (!isMounted) return;
 
-        setLoadStatus('Assembling 206-Bone Interactive Rig...');
+        setLoadStatus('Loading LUMC Clinical Vascular, Neural & Ligament Scan (6.1 MB)...');
+        const lowerLimbGltf = await new Promise((resolve) => {
+          gltfLoader.load('/models/lumc_lower_limb.glb', resolve, undefined, () => resolve(null));
+        });
+        if (!isMounted) return;
+
+        setLoadStatus('Assembling 206-Bone Interactive Rig & Bilateral Limbs...');
         const skelScene = skeletonGltf.scene;
         const meshes = [];
         const rawSkelMeshes = [];
+        const optimizableMeshes = [];
 
         skelScene.traverse((child) => {
           if (child.isMesh) rawSkelMeshes.push(child);
@@ -399,51 +414,70 @@ const AnatomyCanvas = () => {
         rawSkelMeshes.forEach((child) => {
           child.castShadow = true;
           child.receiveShadow = true;
+          child.frustumCulled = true;
           cacheRestTransform(child);
 
-          const rawName = child.name || '';
-          const lowerName = rawName.toLowerCase();
-          const isRightSide = /(\.r\.?$|\bright\b)/i.test(rawName);
-          const isCartilage = lowerName.includes('cart') || lowerName.includes('disc') || lowerName.includes('meniscus');
+          const parentName = child.parent?.name || '';
+          const isRightSide = isRightSideAnatomyNode(child);
+          const normalizedName = normalizeGLTFNodeName(child.name || '', parentName);
+          child.name = normalizedName;
+          const lowerName = normalizedName.toLowerCase();
+          const isCartilage =
+            parentName.toLowerCase().includes('cartilage') ||
+            lowerName.includes('cart') ||
+            lowerName.includes('disc') ||
+            lowerName.includes('meniscus');
+
+          GeometryOptimizer.registerMesh(child);
+          optimizableMeshes.push(child);
 
           if (isCartilage) {
             child.material = materials.hyalineCartilage;
-            // Clone into ligaments layer and hide original in skeletal layer to prevent double rendering
-            const rightCart = child.clone();
-            rightCart.material = materials.hyalineCartilage;
+            // Clone into ligaments layer sharing GPU geometry buffer
+            const rightCart = new THREE.Mesh(child.geometry, materials.hyalineCartilage);
+            rightCart.position.copy(child.position);
+            rightCart.rotation.copy(child.rotation);
+            rightCart.scale.copy(child.scale);
+            rightCart.name = normalizedName;
             layerLigaments.add(rightCart);
+            optimizableMeshes.push(rightCart);
             child.visible = false;
 
             if (isRightSide) {
-              const leftCart = child.clone();
-              leftCart.visible = true;
-              leftCart.geometry = child.geometry.clone();
-              leftCart.material = materials.hyalineCartilage;
-              leftCart.name = rawName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
+              const leftCart = new THREE.Mesh(child.geometry, materials.hyalineCartilage);
+              leftCart.position.copy(child.position);
+              leftCart.rotation.copy(child.rotation);
+              leftCart.scale.copy(child.scale);
+              leftCart.name = normalizedName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
               mirroredCartilages.add(leftCart);
+              optimizableMeshes.push(leftCart);
             }
           } else {
-            const bone = matchMeshToBone(rawName);
+            const bone = matchMeshToBone(normalizedName, parentName);
             if (bone) {
               child.userData.boneId = bone.id;
             }
             meshes.push(child);
 
-            // Mirror right-side bones (including Scapula.r. with trailing dot) to left side
+            // Mirror all 98 right-side bones (Femur.r, Tibia.r, Fibula.r, Humerus.r, Radius.r, Ulna.r, Foot/Hand bones) to left side
             if (isRightSide) {
-              const clone = new THREE.Mesh(child.geometry.clone(), child.material);
+              // Share child.geometry buffer directly (zero duplicate GPU VRAM allocation)
+              const clone = new THREE.Mesh(child.geometry, child.material);
               clone.castShadow = true;
               clone.receiveShadow = true;
+              clone.frustumCulled = true;
               clone.position.copy(child.position);
               clone.rotation.copy(child.rotation);
               clone.scale.copy(child.scale);
-              clone.name = rawName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
+              clone.name = normalizedName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
               cacheRestTransform(clone);
 
-              const mirroredBone = matchMeshToBone(clone.name);
+              const mirroredBone = matchMeshToBone(clone.name, 'Bones_left');
               if (mirroredBone) {
                 clone.userData.boneId = mirroredBone.id;
               }
+              GeometryOptimizer.registerMesh(clone);
+              optimizableMeshes.push(clone);
               mirroredLimbs.add(clone);
               meshes.push(clone);
             }
@@ -464,7 +498,7 @@ const AnatomyCanvas = () => {
         });
         skeletalMeshesRef.current = meshes;
 
-        // 4. Ingest Procedural Cartilage & Ligaments
+        // 4. Ingest Procedural Cartilage & Ligaments (23 Intervertebral Discs + Upper Joint Capsules)
         const cartilageLayer = createCartilageAndLigamentsLayer(materials);
         layerLigaments.add(cartilageLayer);
 
@@ -476,24 +510,151 @@ const AnatomyCanvas = () => {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
+            child.frustumCulled = true;
+            child.name = normalizeGLTFNodeName(child.name || '', child.parent?.name || '');
             child.material = materials.striatedMuscle;
+            GeometryOptimizer.registerMesh(child);
+            optimizableMeshes.push(child);
             muscleMeshes.push(child);
           }
         });
         layerMuscles.add(muscleScene);
         muscleMeshesRef.current = muscleMeshes;
 
-        // 6. Ingest Pulsatile Vascular Loop Layer
+        // 6. Ingest Pulsatile Multi-Chamber Heart & Vascular Loop Layer
         const vascular = createVascularLoopLayer(materials);
         layerVascular.add(vascular.group);
         heartMeshRef.current = vascular.heartMesh;
 
-        // 7. Ingest Neural Connectome Layer
+        // 7. Ingest Gyri-Sculpted Brain & Neural Connectome Layer
         const neural = createNeuralConnectomeLayer(materials);
         layerNerves.add(neural.group);
         synPointsRef.current = neural.synPoints;
 
-        // 8. Cache Joint Pointers for Closed-Chain Kinematics
+        // 7b. Ingest LUMC Clinical 462-Node Lower-Limb Scan (46 Arteries, 42 Veins, 47 Nerves, 72 Ligaments, 14 Fascia, 38 Bursae)
+        if (lowerLimbGltf && lowerLimbGltf.scene) {
+          const rightLowerVascular = new THREE.Group();
+          rightLowerVascular.name = 'ClinicalRightLowerVascular';
+          const leftLowerVascular = new THREE.Group();
+          leftLowerVascular.name = 'ClinicalLeftLowerVascular';
+          leftLowerVascular.scale.x = -1;
+
+          const rightLowerNerves = new THREE.Group();
+          rightLowerNerves.name = 'ClinicalRightLowerNerves';
+          const leftLowerNerves = new THREE.Group();
+          leftLowerNerves.name = 'ClinicalLeftLowerNerves';
+          leftLowerNerves.scale.x = -1;
+
+          const rightLowerLigaments = new THREE.Group();
+          rightLowerLigaments.name = 'ClinicalRightLowerLigaments';
+
+          const getAncestorCategory = (node) => {
+            let cur = node.parent;
+            while (cur) {
+              const pn = (cur.name || '').toLowerCase();
+              if (pn.includes('arter')) return 'artery';
+              if (pn.includes('vein') || pn.includes('venous')) return 'vein';
+              if (pn.includes('nerv')) return 'nerve';
+              if (pn.includes('ligament') || pn.includes('fascia') || pn.includes('bursa') || pn.includes('retinac')) return 'ligament';
+              if (pn.includes('cartilage') || pn.includes('menisc')) return 'cartilage';
+              if (pn.includes('bone') || pn.includes('muscle')) return 'skip';
+              cur = cur.parent;
+            }
+            return '';
+          };
+
+          const rawLowerMeshes = [];
+          lowerLimbGltf.scene.traverse((child) => {
+            if (child.isMesh) rawLowerMeshes.push(child);
+          });
+
+          rawLowerMeshes.forEach((child) => {
+            const normName = normalizeGLTFNodeName(child.name || '', child.parent?.name || '');
+            const lower = normName.toLowerCase();
+            const cat = getAncestorCategory(child);
+
+            // Skip duplicate bones or muscles already loaded from lumc_skeleton.glb / fullbody.glb
+            if (cat === 'skip') return;
+
+            let targetRightGroup = null;
+            let targetLeftGroup = null;
+            let mat = null;
+
+            if (cat === 'artery' || lower.includes('artery') || lower.includes('arteria')) {
+              mat = materials.arterialVessel;
+              targetRightGroup = rightLowerVascular;
+              targetLeftGroup = leftLowerVascular;
+            } else if (cat === 'vein' || lower.includes('vein') || lower.includes('saphenous')) {
+              mat = materials.venousVessel;
+              targetRightGroup = rightLowerVascular;
+              targetLeftGroup = leftLowerVascular;
+            } else if (
+              cat === 'nerve' ||
+              lower.includes('nerve') ||
+              lower.includes('sciatic') ||
+              lower.includes('cutaneous') ||
+              lower.includes('plexus')
+            ) {
+              mat = materials.neuralPathway;
+              targetRightGroup = rightLowerNerves;
+              targetLeftGroup = leftLowerNerves;
+            } else if (
+              cat === 'ligament' ||
+              cat === 'cartilage' ||
+              lower.includes('ligament') ||
+              lower.includes('fascia') ||
+              lower.includes('bursa') ||
+              lower.includes('meniscus') ||
+              lower.includes('retinaculum') ||
+              lower.includes('capsule') ||
+              lower.includes('tendon')
+            ) {
+              mat =
+                cat === 'cartilage' || lower.includes('cartilage') || lower.includes('meniscus')
+                  ? materials.hyalineCartilage
+                  : materials.fibrousLigament;
+              targetRightGroup = rightLowerLigaments;
+              targetLeftGroup = mirroredCartilages;
+            }
+
+            if (targetRightGroup && mat) {
+              GeometryOptimizer.registerMesh(child);
+              const rightMesh = new THREE.Mesh(child.geometry, mat);
+              rightMesh.position.copy(child.position);
+              rightMesh.rotation.copy(child.rotation);
+              rightMesh.scale.copy(child.scale);
+              rightMesh.name = normName;
+              rightMesh.frustumCulled = true;
+              targetRightGroup.add(rightMesh);
+              optimizableMeshes.push(rightMesh);
+
+              if (targetLeftGroup) {
+                const leftMesh = new THREE.Mesh(child.geometry, mat);
+                leftMesh.position.copy(child.position);
+                leftMesh.rotation.copy(child.rotation);
+                leftMesh.scale.copy(child.scale);
+                leftMesh.name = normName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
+                leftMesh.frustumCulled = true;
+                targetLeftGroup.add(leftMesh);
+                optimizableMeshes.push(leftMesh);
+              }
+            }
+          });
+
+          layerVascular.add(rightLowerVascular);
+          layerVascular.add(leftLowerVascular);
+          layerNerves.add(rightLowerNerves);
+          layerNerves.add(leftLowerNerves);
+          layerLigaments.add(rightLowerLigaments);
+        }
+
+        optimizableMeshesRef.current = optimizableMeshes;
+        const initialLod = useAnatomyStore.getState().meshLodRatio || 1.0;
+        if (initialLod < 0.99) {
+          GeometryOptimizer.applySceneLOD(optimizableMeshes, initialLod);
+        }
+
+        // 8. Cache Joint Pointers for Closed-Chain Kinematics (Using boneId & normalized names)
         const kJoints = {
           pelvis: null,
           lumbar: [],
@@ -508,18 +669,19 @@ const AnatomyCanvas = () => {
         };
         layerSkeletal.traverse((node) => {
           const n = (node.name || '').toLowerCase();
-          if (n.includes('hip') || n.includes('pelvis') || n.includes('sacrum')) {
+          const bId = node.userData?.boneId || '';
+          if (bId === 'sacrum' || bId === 'os_coxae_r' || n.includes('hip') || n.includes('pelvis') || n.includes('sacrum')) {
             if (!kJoints.pelvis) kJoints.pelvis = node;
           }
-          if (n.includes('lumbar')) kJoints.lumbar.push(node);
-          if (n.includes('thoracic')) kJoints.thoracic.push(node);
-          if (n.includes('cervical') || n.includes('atlas') || n.includes('axis')) kJoints.cervical.push(node);
-          if (n.includes('frontal')) kJoints.head = node;
-          if (n.includes('mandible')) kJoints.mandible = node;
-          if (n.includes('femur') && /(\.r\.?$|\bright\b)/i.test(n)) kJoints.rightFemur = node;
-          if (n.includes('femur') && /(\.l\.?$|\bleft\b)/i.test(n)) kJoints.leftFemur = node;
-          if (n.includes('tibia') && /(\.r\.?$|\bright\b)/i.test(n)) kJoints.rightTibia = node;
-          if (n.includes('tibia') && /(\.l\.?$|\bleft\b)/i.test(n)) kJoints.leftTibia = node;
+          if (bId.startsWith('vertebra_l') || n.includes('lumbar')) kJoints.lumbar.push(node);
+          if (bId.startsWith('vertebra_t') || n.includes('thoracic')) kJoints.thoracic.push(node);
+          if (bId.startsWith('vertebra_c') || n.includes('cervical') || n.includes('atlas') || n.includes('axis')) kJoints.cervical.push(node);
+          if (bId === 'frontal' || n.includes('frontal')) kJoints.head = node;
+          if (bId === 'mandible' || n.includes('mandible')) kJoints.mandible = node;
+          if (bId === 'femur_r' || (n.includes('femur') && /(\.r\.?$|\bright\b)/i.test(n))) kJoints.rightFemur = node;
+          if (bId === 'femur_l' || (n.includes('femur') && /(\.l\.?$|\bleft\b)/i.test(n))) kJoints.leftFemur = node;
+          if (bId === 'tibia_r' || (n.includes('tibia') && /(\.r\.?$|\bright\b)/i.test(n))) kJoints.rightTibia = node;
+          if (bId === 'tibia_l' || (n.includes('tibia') && /(\.l\.?$|\bleft\b)/i.test(n))) kJoints.leftTibia = node;
         });
         kinematicJointsRef.current = kJoints;
 
@@ -565,13 +727,17 @@ const AnatomyCanvas = () => {
       controls.target.lerp(cameraTargetRef.current, 0.08);
       if (controls.enabled) controls.update();
 
-      // 2. Pulsatile Heartbeat Animation (Synced to live heartRateRef without recreating WebGL)
+      // 2. Pulsatile Ventricular Systole/Diastole Heartbeat Animation
       if (heartMeshRef.current) {
         const bpm = heartRateRef.current > 0 ? heartRateRef.current : 60;
         const freq = (bpm / 60) * Math.PI * 2;
         const pulse = Math.sin(time * 0.001 * freq);
-        const s = 1.0 + Math.max(0, pulse) * 0.12;
-        heartMeshRef.current.scale.set(s, s, s);
+        const systole = Math.max(0, pulse);
+        heartMeshRef.current.scale.set(
+          1.0 + systole * 0.09,
+          1.0 - systole * 0.05,
+          1.0 + systole * 0.09
+        );
       }
 
       // 3. Synaptic Action Potentials Glow Animation
@@ -663,6 +829,13 @@ const AnatomyCanvas = () => {
   useEffect(() => {
     applyMuscleMaterials();
   }, [overactiveMuscles, underactiveMuscles, applyMuscleMaterials]);
+
+  // 5b. Hardware GPU Mesh LOD Decimation (Ultra 100% / Balanced 65% / Low-Spec 35%)
+  useEffect(() => {
+    if (optimizableMeshesRef.current.length > 0) {
+      GeometryOptimizer.applySceneLOD(optimizableMeshesRef.current, meshLodRatio);
+    }
+  }, [meshLodRatio]);
 
   // 6. Closed-Chain Kinematic Posture Deformation (Relative to Cached Rest Pose)
   useEffect(() => {

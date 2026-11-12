@@ -55,6 +55,17 @@ export const useAnatomyStore = create(
       overactiveMuscles: [],
       underactiveMuscles: [],
 
+      // Hardware GPU Optimization LOD Ratio (1.0 = Ultra, 0.65 = Balanced, 0.35 = Low-Spec)
+      meshLodRatio: 1.0,
+
+      // Bio Lab -> 3D Anatomy Lab Tissue Bioprinting Bridge
+      bioprintedTissues: {
+        osteoid: false,
+        myofibril: false,
+        endothelial: false,
+        neural: false,
+      },
+
       // Vital Signs & Sentience Telemetry
       vitalSigns: {
         heartRate: 0,
@@ -178,6 +189,12 @@ export const useAnatomyStore = create(
           postureParams: { ...DEFAULT_POSTURE_PARAMS },
           overactiveMuscles: [],
           underactiveMuscles: [],
+          bioprintedTissues: {
+            osteoid: false,
+            myofibril: false,
+            endothelial: false,
+            neural: false,
+          },
           layerVisibility: {
             skeleton: true,
             ligaments: false,
@@ -212,6 +229,70 @@ export const useAnatomyStore = create(
           [layerKey]: !state.layerVisibility[layerKey],
         }
       })),
+
+      setMeshLodRatio: (ratio) => {
+        const clamped = Math.max(0.25, Math.min(1.0, Number(ratio) || 1.0));
+        set({ meshLodRatio: clamped });
+      },
+
+      // Bio Lab -> 3D Anatomy Lab Tissue Bioprinting Bridge
+      synthesizeBioTissue: (tissueType) => {
+        const state = get();
+        const nextTissues = {
+          ...state.bioprintedTissues,
+          [tissueType]: true,
+        };
+        const nextVis = { ...state.layerVisibility };
+        let nextBones = state.assembledBones;
+        let nextVitals = { ...state.vitalSigns };
+        let msg = '';
+
+        if (tissueType === 'osteoid') {
+          nextVis.skeleton = true;
+          nextVis.ligaments = true;
+          nextBones = ALL_206_BONES.map(b => b.id);
+          msg = '🦴 Bio-Printed Calcified Osteoid & Hyaline Matrix: All 206 Bones + 23 Intervertebral Discs Materialized!';
+        } else if (tissueType === 'myofibril') {
+          nextVis.muscles = true;
+          nextVis.ligaments = true;
+          msg = '💪 Bio-Printed Striated Myofibril Slings & Clinical Lower-Limb Fascia/Ligaments Materialized!';
+        } else if (tissueType === 'endothelial') {
+          nextVis.circulation = true;
+          nextVitals = {
+            ...nextVitals,
+            heartRate: 72,
+            bloodPressureSys: 120,
+            bloodPressureDia: 80,
+            oxygenSaturation: 99,
+          };
+          msg = '🫀 Bio-Printed Multi-Chamber Heart, Coronary Vessels & Clinical Femoral/Popliteal/Tibial Vascular Tree!';
+        } else if (tissueType === 'neural') {
+          nextVis.nerves = true;
+          nextVitals = {
+            ...nextVitals,
+            eegBand: 'Gamma (Self-Awareness)',
+            eegFrequency: 42.5,
+          };
+          msg = '🧠 Bio-Printed Gyri-Folded Neocortex, Brachial Plexus & Clinical Sciatic/Tibial/Peroneal Connectome!';
+        }
+
+        const countActive = Object.values(nextTissues).filter(Boolean).length;
+        const nextConsciousness = Math.max(state.consciousnessScore, Math.min(100, countActive * 25));
+
+        set({
+          bioprintedTissues: nextTissues,
+          layerVisibility: nextVis,
+          assembledBones: nextBones,
+          vitalSigns: nextVitals,
+          consciousnessScore: nextConsciousness,
+          isAwakened: nextConsciousness >= 100 || state.isAwakened,
+        });
+
+        if (msg) {
+          useStore.getState().showMessage(msg);
+        }
+        return nextTissues;
+      },
 
       // Posture & Kinetic Chain Update
       setGravityMultiplier: (gravityMultiplier) => {

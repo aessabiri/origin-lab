@@ -35,6 +35,8 @@ const BiomechanicsHUD = () => {
   const underactiveMuscles = useAnatomyStore(state => state.underactiveMuscles);
   const gravityMultiplier = useAnatomyStore(state => state.gravityMultiplier) || 1.0;
   const setGravityMultiplier = useAnatomyStore(state => state.setGravityMultiplier);
+  const meshLodRatio = useAnatomyStore(state => state.meshLodRatio) || 1.0;
+  const setMeshLodRatio = useAnatomyStore(state => state.setMeshLodRatio);
 
   const compiledGenome = useCosmicClockStore(state => state.compiledGenome);
   const setCompiledGenome = useCosmicClockStore(state => state.setCompiledGenome);
@@ -154,6 +156,34 @@ const BiomechanicsHUD = () => {
                   }`}
                 >
                   {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 0b. GPU Hardware Mesh LOD Optimizer */}
+          <div>
+            <div className="flex items-center justify-between text-[9px] font-bold uppercase text-slate-400 mb-1.5">
+              <span>Hardware GPU Mesh LOD:</span>
+              <span className="text-emerald-300">{Math.round(meshLodRatio * 100)}% Vertex Density</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {[
+                { label: 'Ultra (100%)', val: 1.0, title: 'Full Clinical CT Resolution' },
+                { label: 'Balanced (65%)', val: 0.65, title: 'Mid-Range Hardware Decimation' },
+                { label: 'Low-Spec (35%)', val: 0.35, title: 'Integrated GPU High-FPS Mode' },
+              ].map((lod) => (
+                <button
+                  key={lod.val}
+                  onClick={() => setMeshLodRatio && setMeshLodRatio(lod.val)}
+                  title={lod.title}
+                  className={`py-1 px-1.5 rounded-lg text-[8.5px] font-bold border transition-all cursor-pointer ${
+                    Math.abs(meshLodRatio - lod.val) < 0.05
+                      ? 'bg-emerald-500/25 border-emerald-400 text-emerald-200'
+                      : 'bg-[#050914] border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {lod.label}
                 </button>
               ))}
             </div>
