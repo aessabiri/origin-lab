@@ -166,6 +166,11 @@ export class SimulationManager {
   }
 
   private performSeamlessZoom(epoch: Epoch) {
+    if (!this.warpPass || !this.warpPass.uniforms || !this.warpPass.uniforms.intensity) {
+      this.performStageSwitch(epoch);
+      return;
+    }
+
     const startTime = performance.now();
     const duration = 2000;
     const startPos = this.camera.position.clone();
@@ -177,10 +182,12 @@ export class SimulationManager {
         const progress = Math.min(1.0, (now - startTime) / duration);
         const eased = progress * (2 - progress); 
         
-        this.warpPass.uniforms.intensity.value = progress * 0.5;
+        if (this.warpPass?.uniforms?.intensity) {
+          this.warpPass.uniforms.intensity.value = progress * 0.5;
+        }
         
         if (progress < 0.5) {
-            const targetPos = this.currentStage!.getFocusTarget() || new THREE.Vector3(35, 0, 0);
+            const targetPos = this.currentStage?.getFocusTarget?.() || new THREE.Vector3(35, 0, 0);
             this.camera.position.lerpVectors(startPos, targetPos.clone().add(new THREE.Vector3(0, 0, 5)), eased);
         } else if (progress >= 0.5 && !stageSwitched) {
             stageSwitched = true;
@@ -194,7 +201,7 @@ export class SimulationManager {
         
         this.camera.updateProjectionMatrix();
         if (progress < 1.0) requestAnimationFrame(animateZoom);
-        else this.warpPass.uniforms.intensity.value = 0;
+        else if (this.warpPass?.uniforms?.intensity) this.warpPass.uniforms.intensity.value = 0;
     };
     animateZoom();
   }

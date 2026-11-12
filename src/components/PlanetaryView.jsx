@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { usePlanetaryStore } from '../store/planetaryStore';
 import { useStore } from '../store';
+import PlanetGlobe3D from './PlanetGlobe3D';
 
 const TABS = {
   CLADOGRAM: 'CLADOGRAM',
@@ -21,6 +22,7 @@ const PlanetaryView = () => {
 
   const [activeTab, setActiveTab] = useState(TABS.CLADOGRAM);
   const [selectedClade, setSelectedClade] = useState(null);
+  const [globeMode, setGlobeMode] = useState('3d');
 
   const tempC = (temperature - 273.15).toFixed(1);
 
@@ -239,53 +241,75 @@ const PlanetaryView = () => {
             </div>
           )}
 
+          {/* 3D GLSL Planetary Biosphere Globe / 2D Schematic Switcher */}
+          <div className="absolute top-4 right-4 z-20">
+            <button
+              onClick={() => setGlobeMode(globeMode === '3d' ? '2d' : '3d')}
+              className="px-3 py-1 rounded-xl bg-[#060a14]/90 border border-cyan-500/40 text-cyan-300 font-mono text-[9px] font-bold uppercase tracking-wider hover:bg-cyan-950/60 transition-all cursor-pointer"
+            >
+              {globeMode === '3d' ? '🌐 3D GLSL Globe' : '⭕ 2D Atlas'}
+            </button>
+          </div>
+
           {/* 3D-Look Planetary Globe */}
           <div className="relative flex items-center justify-center my-auto">
-            {/* Outer Atmospheric Aura */}
-            <div className={`w-72 h-72 sm:w-84 sm:h-84 md:w-96 md:h-96 rounded-full transition-all duration-1000 ${atmosphereGlow}`} />
+            {globeMode === '3d' ? (
+              <PlanetGlobe3D
+                era={era}
+                temperature={temperature}
+                atmosphere={atmosphere}
+                ecoMetrics={ecoMetrics}
+                activeCatastrophe={activeCatastrophe}
+              />
+            ) : (
+              <>
+                {/* Outer Atmospheric Aura */}
+                <div className={`w-72 h-72 sm:w-84 sm:h-84 md:w-96 md:h-96 rounded-full transition-all duration-1000 ${atmosphereGlow}`} />
 
-            {/* Globe Sphere */}
-            <div className={`absolute w-72 h-72 sm:w-84 sm:h-84 md:w-96 md:h-96 rounded-full border shadow-[inset_-35px_-35px_120px_rgba(0,0,0,0.95)] transition-all duration-1000 overflow-hidden ${earthStyle}`}>
-              
-              {/* Planetary Gradient & Surface Texture */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${earthInner} animate-[spin_160s_linear_infinite]`}>
-                {/* Surface continent patches */}
-                {era !== 'HADEAN' && (
-                  <div className="absolute inset-0 opacity-40 mix-blend-overlay bg-[radial-gradient(circle_at_30%_40%,rgba(34,197,94,0.7)_15%,transparent_50%),radial-gradient(circle_at_70%_60%,rgba(16,185,129,0.6)_20%,transparent_60%)]" />
-                )}
-              </div>
+                {/* Globe Sphere */}
+                <div className={`absolute w-72 h-72 sm:w-84 sm:h-84 md:w-96 md:h-96 rounded-full border shadow-[inset_-35px_-35px_120px_rgba(0,0,0,0.95)] transition-all duration-1000 overflow-hidden ${earthStyle}`}>
+                  
+                  {/* Planetary Gradient & Surface Texture */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${earthInner} animate-[spin_160s_linear_infinite]`}>
+                    {/* Surface continent patches */}
+                    {era !== 'HADEAN' && (
+                      <div className="absolute inset-0 opacity-40 mix-blend-overlay bg-[radial-gradient(circle_at_30%_40%,rgba(34,197,94,0.7)_15%,transparent_50%),radial-gradient(circle_at_70%_60%,rgba(16,185,129,0.6)_20%,transparent_60%)]" />
+                    )}
+                  </div>
 
-              {/* Dynamic Atmospheric Clouds Layer */}
-              <div className={`absolute inset-0 ${cloudOpacity} bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.45)_12%,transparent_65%),radial-gradient(circle_at_20%_80%,rgba(255,255,255,0.3)_10%,transparent_50%)] animate-[spin_90s_linear_infinite_reverse] mix-blend-screen pointer-events-none`} />
+                  {/* Dynamic Atmospheric Clouds Layer */}
+                  <div className={`absolute inset-0 ${cloudOpacity} bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.45)_12%,transparent_65%),radial-gradient(circle_at_20%_80%,rgba(255,255,255,0.3)_10%,transparent_50%)] animate-[spin_90s_linear_infinite_reverse] mix-blend-screen pointer-events-none`} />
 
-              {/* Active Catastrophe FX Overlays */}
-              {activeCatastrophe?.type === 'ASTEROID_IMPACT' && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-24 h-24 rounded-full border-4 border-amber-400 bg-red-600/40 animate-ping" />
-                  <div className="absolute inset-0 bg-red-500/25 mix-blend-color-dodge animate-pulse" />
+                  {/* Active Catastrophe FX Overlays */}
+                  {activeCatastrophe?.type === 'ASTEROID_IMPACT' && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-24 h-24 rounded-full border-4 border-amber-400 bg-red-600/40 animate-ping" />
+                      <div className="absolute inset-0 bg-red-500/25 mix-blend-color-dodge animate-pulse" />
+                    </div>
+                  )}
+
+                  {activeCatastrophe?.type === 'SUPERVOLCANO' && (
+                    <div className="absolute inset-0 bg-stone-900/60 mix-blend-multiply backdrop-grayscale animate-pulse pointer-events-none" />
+                  )}
+
+                  {activeCatastrophe?.type === 'SOLAR_SUPERFLARE' && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/30 via-transparent to-purple-500/30 mix-blend-screen animate-pulse pointer-events-none" />
+                  )}
+
+                  {/* Anthropocene Technosphere: Twinkling Night City Lights */}
+                  {era === 'ANTHROPOCENE' && (
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_65%_45%,rgba(251,191,36,0.85)_2px,transparent_4px),radial-gradient(circle_at_35%_65%,rgba(56,189,248,0.7)_2px,transparent_4px)] [background-size:20px_20px] opacity-75 mix-blend-screen animate-pulse pointer-events-none" />
+                  )}
                 </div>
-              )}
 
-              {activeCatastrophe?.type === 'SUPERVOLCANO' && (
-                <div className="absolute inset-0 bg-stone-900/60 mix-blend-multiply backdrop-grayscale animate-pulse pointer-events-none" />
-              )}
-
-              {activeCatastrophe?.type === 'SOLAR_SUPERFLARE' && (
-                <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/30 via-transparent to-purple-500/30 mix-blend-screen animate-pulse pointer-events-none" />
-              )}
-
-              {/* Anthropocene Technosphere: Twinkling Night City Lights */}
-              {era === 'ANTHROPOCENE' && (
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_65%_45%,rgba(251,191,36,0.85)_2px,transparent_4px),radial-gradient(circle_at_35%_65%,rgba(56,189,248,0.7)_2px,transparent_4px)] [background-size:20px_20px] opacity-75 mix-blend-screen animate-pulse pointer-events-none" />
-              )}
-            </div>
-
-            {/* Orbiting Anthropocene Satellites Ring */}
-            {era === 'ANTHROPOCENE' && (
-              <div className="absolute w-[115%] h-[115%] rounded-full border border-dashed border-cyan-400/40 animate-[spin_40s_linear_infinite] pointer-events-none">
-                <div className="w-2.5 h-2.5 bg-cyan-300 rounded-full shadow-[0_0_8px_#38bdf8] absolute -top-1 left-1/2 -translate-x-1/2" />
-                <div className="w-2 h-2 bg-amber-300 rounded-full shadow-[0_0_6px_#f59e0b] absolute -bottom-1 left-1/2 -translate-x-1/2" />
-              </div>
+                {/* Orbiting Anthropocene Satellites Ring */}
+                {era === 'ANTHROPOCENE' && (
+                  <div className="absolute w-[115%] h-[115%] rounded-full border border-dashed border-cyan-400/40 animate-[spin_40s_linear_infinite] pointer-events-none">
+                    <div className="w-2.5 h-2.5 bg-cyan-300 rounded-full shadow-[0_0_8px_#38bdf8] absolute -top-1 left-1/2 -translate-x-1/2" />
+                    <div className="w-2 h-2 bg-amber-300 rounded-full shadow-[0_0_6px_#f59e0b] absolute -bottom-1 left-1/2 -translate-x-1/2" />
+                  </div>
+                )}
+              </>
             )}
           </div>
 

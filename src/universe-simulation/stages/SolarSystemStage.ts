@@ -122,7 +122,8 @@ export class SolarSystemStage extends Stage {
   private createPlanetTexture(color: number, type: 'rocky' | 'gas', name: string): THREE.CanvasTexture {
     const canvas = document.createElement('canvas');
     canvas.width = 1024; canvas.height = 512;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return new THREE.CanvasTexture(canvas);
     const baseColor = new THREE.Color(color);
     ctx.fillStyle = '#' + baseColor.getHexString();
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -162,7 +163,8 @@ export class SolarSystemStage extends Stage {
   private createRingTexture(): THREE.CanvasTexture {
     const canvas = document.createElement('canvas');
     canvas.width = 512; canvas.height = 64;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return new THREE.CanvasTexture(canvas);
     const grd = ctx.createLinearGradient(0, 0, 512, 0);
     grd.addColorStop(0, 'rgba(136, 119, 102, 0)');
     grd.addColorStop(0.2, 'rgba(136, 119, 102, 0.8)');

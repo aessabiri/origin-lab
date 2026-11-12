@@ -165,37 +165,90 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", 
   50% { box-shadow: 0 0 28px 8px rgba(52, 211, 153, 0.9); }
 }
 
-/* OLED Modern UI Craft Design Tokens & Utilities */
+/* OLED Modern UI Craft & Argon Swiss-OLED Design System */
 :root {
-  --bg-canvas: #070a13;
-  --bg-surface: #0c1220;
-  --bg-surface-elevated: #111a2d;
+  --bg-oled: #030508;
+  --bg-canvas: #04070e;
+  --bg-surface: #090e1a;
+  --bg-surface-elevated: #0f172a;
+  --bg-glass: rgba(8, 13, 24, 0.82);
+  --border-hairline: rgba(255, 255, 255, 0.08);
   --border-subtle: rgba(56, 189, 248, 0.2);
   --border-focus: rgba(56, 189, 248, 0.5);
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-violet: #8b5cf6;
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-display: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-oled);
+  color: #f8fafc;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono, .tabular-telemetry {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.argon-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.argon-hairline {
+  border-color: var(--border-hairline);
+}
+
+.argon-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  line-height: 1;
 }
 
 .oled-card {
-  background: rgba(12, 18, 32, 0.88);
+  background: rgba(9, 14, 26, 0.88);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   border-radius: 1.25rem;
 }
 
 .oled-card-interactive {
-  background: rgba(12, 18, 32, 0.88);
+  background: rgba(9, 14, 26, 0.88);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   border-radius: 1.25rem;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .oled-card-interactive:hover {
-  background: rgba(16, 24, 42, 0.95);
+  background: rgba(15, 23, 42, 0.95);
   border-color: rgba(56, 189, 248, 0.45);
-  box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.85), 0 0 20px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
 }
 

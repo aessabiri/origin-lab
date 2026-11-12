@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useAnatomyStore } from '../store.js';
 import { POSTURE_CONDITIONS } from '../data/postureConditions.js';
+import { compileAnatomyToGenome } from '../utils/blueprintCompiler.js';
+import { useCosmicClockStore } from '../../store/cosmicClockStore.js';
+import { useInventory } from '../../store/inventory.js';
+import { useStore } from '../../store.js';
 
 const GIZMO_JOINTS = [
   { id: null, label: 'Off' },
@@ -14,6 +18,8 @@ const GIZMO_JOINTS = [
 
 const BiomechanicsHUD = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const assembledBones = useAnatomyStore(state => state.assembledBones);
+  const muscleStrainMap = useAnatomyStore(state => state.muscleStrainMap);
   const postureParams = useAnatomyStore(state => state.postureParams);
   const setPostureParam = useAnatomyStore(state => state.setPostureParam);
   const kineticMode = useAnatomyStore(state => state.kineticMode);
@@ -27,6 +33,20 @@ const BiomechanicsHUD = () => {
   const setActiveGizmoJoint = useAnatomyStore(state => state.setActiveGizmoJoint);
   const overactiveMuscles = useAnatomyStore(state => state.overactiveMuscles);
   const underactiveMuscles = useAnatomyStore(state => state.underactiveMuscles);
+
+  const compiledGenome = useCosmicClockStore(state => state.compiledGenome);
+  const setCompiledGenome = useCosmicClockStore(state => state.setCompiledGenome);
+
+  const handleCompileGenome = () => {
+    const blueprint = compileAnatomyToGenome(assembledBones, postureParams, muscleStrainMap);
+    setCompiledGenome(blueprint);
+    const inv = useInventory.getState();
+    inv.addResource('compounds', 'dna', 5);
+    inv.addResource('compounds', 'rna', 5);
+    useStore.getState().showMessage(
+      `🧬 Demiurge Blueprint Compiled: ${blueprint.morphotypeClass} (${blueprint.integrityScore}% Integrity | ${blueprint.codonSignature})`
+    );
+  };
 
   const radToDeg = (r) => Math.round((r || 0) * (180 / Math.PI));
 
@@ -56,7 +76,7 @@ const BiomechanicsHUD = () => {
 
         <button
           onClick={toggleVectors}
-          className={`px-3 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-wider border backdrop-blur-xl transition-all active:scale-95 ${
+          className={`px-3 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-wider border backdrop-blur-xl transition-all active:scale-95 cursor-pointer ${
             showVectors
               ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
               : 'bg-[#070c18]/80 border-slate-800 text-slate-400 hover:text-white'
@@ -65,7 +85,30 @@ const BiomechanicsHUD = () => {
         >
           {showVectors ? '📐 Vectors: ON' : '📐 Vectors: OFF'}
         </button>
+
+        <button
+          onClick={handleCompileGenome}
+          className="px-3.5 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-wider border bg-gradient-to-r from-emerald-500/25 to-teal-500/25 border-emerald-400/50 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:from-emerald-500/40 hover:to-teal-500/40 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+          title="Compile 206-Bone Skeleton & Biomechanics into a Genomic Seed for the Biology Lab"
+        >
+          <span>🧬</span>
+          <span>Compile to DNA Seed</span>
+        </button>
       </div>
+
+      {compiledGenome && (
+        <div className="pointer-events-auto mt-2 w-88 bg-[#061216]/90 backdrop-blur-xl border border-emerald-500/35 rounded-xl px-3 py-2 flex items-center justify-between text-[9px] shadow-lg">
+          <div>
+            <div className="text-emerald-300 font-bold uppercase">{compiledGenome.morphotypeClass}</div>
+            <div className="text-slate-400">
+              Codon: <span className="text-cyan-300">{compiledGenome.codonSignature}</span> · MET +{compiledGenome.metabolismBonus} · STB +{compiledGenome.stabilityBonus}
+            </div>
+          </div>
+          <span className="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 font-bold">
+            {compiledGenome.integrityScore}%
+          </span>
+        </div>
+      )}
 
       {/* Expanded Biomechanical Console */}
       {isOpen && (
