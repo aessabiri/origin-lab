@@ -391,13 +391,13 @@ export const POSTURE_CONDITIONS = {
     },
   },
 
-  ayoub_case: {
-    id: 'ayoub_case',
-    name: "★ Ayoub's Compound Trauma-to-Jaw Cascade",
-    category: 'Full Kinetic Chain (Personal Case)',
+  compound_cascade: {
+    id: 'compound_cascade',
+    name: 'Compound Foot-to-Jaw Kinetic Cascade',
+    category: 'Full Kinetic Chain',
     severity: 'Compound Multi-Planar',
-    description: 'Chronological ascending cascade: Left knee patellar trauma (2015) → Left toe motor amnesia → Right foot arch collapse (Pes Planus) → Right knee valgus → Right dropped hip & APT → Thoracic kyphosis → Forward head posture → Downward myofascial pull on mandible (jaw retraction).',
-    kineticChainImpact: 'Trauma at the left knee forced compensatory over-reliance on the right leg, initiating a spiral of foot pronation, pelvic obliquity, spinal curve, and anterior neck tension pulling on the lower jaw.',
+    description: 'Ascending biomechanical cascade: Right foot arch collapse (Pes Planus) → Internal tibial torsion → Right knee valgus → Right dropped hip & Anterior Pelvic Tilt → Thoracic kyphosis → Forward head posture → Downward myofascial traction on mandible.',
+    kineticChainImpact: 'Unilateral arch collapse initiates an ascending spiral of foot pronation, pelvic obliquity, spinal compensation, and anterior cervical fascial tension pulling on the lower jaw.',
     parameters: {
       pelvisTilt: -0.28,
       pelvisDrop: 0.24,

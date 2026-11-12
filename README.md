@@ -27,7 +27,7 @@ flowchart LR
   6. **Habitable Earth:** Magma ocean cooling, volatile outgassing, and ocean condensation.
 * **Ambient Backdrop & PiP:** View the cosmic clock from anywhere in the game.
 
-### ⚛️ 2. [Particle Lab](file:///home/tsylop/protocol/origin-lab/src/particle-lab/ParticleLabApp.jsx) (Subatomic Physics)
+### ⚛️ 2. [Particle Lab](file:///home/tsylop/protocol/origin-lab/src/particle-lab/ParticleLab.jsx) (Subatomic Physics)
 * HTML5 Canvas engine with Coulomb forces, strong nuclear binding, and radioactive decay cascades.
 * Fuse Quarks $\to$ Nucleons $\to$ Complete Periodic Table (118 elements).
 * Assemble foundational organic molecules: Nucleotides, Amino Acids, and DNA/RNA backbones.

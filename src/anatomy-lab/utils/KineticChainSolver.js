@@ -175,7 +175,7 @@ export class KineticChainSolver {
     addMuscle('tibialis_posterior_left', 'Left Tibialis Posterior', 0.28, lPronationMag * 0.12, 'foot', 'Medial longitudinal arch decelerator');
     // Abductor Hallucis (Great Toe Abduction & Arch Spring)
     addMuscle('abductor_hallucis_right', 'Right Abductor Hallucis', 0.12, rPronationMag * 0.06, 'foot', 'Overstretched dynamic medial arch stabilizer');
-    addMuscle('abductor_hallucis_left', 'Left Abductor Hallucis', 0.12, 0.045, 'foot', 'Neurologically inhibited / lost motor drive (2015 Trauma)');
+    addMuscle('abductor_hallucis_left', 'Left Abductor Hallucis', 0.12, lPronationMag * 0.06, 'foot', 'Dynamic medial arch stabilizer');
     // Peroneus Longus & Brevis (Lateral Eversion)
     addMuscle('peroneus_longus_right', 'Right Peroneus Longus / Brevis', 0.30, -rPronationMag * 0.09, 'foot', 'Shortened & hyperactive evertor');
     addMuscle('peroneus_longus_left', 'Left Peroneus Longus / Brevis', 0.30, -lPronationMag * 0.09, 'foot', 'Evertor complex');

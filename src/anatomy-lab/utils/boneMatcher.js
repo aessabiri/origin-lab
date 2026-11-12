@@ -18,8 +18,9 @@ export function matchMeshToBone(rawNodeName) {
   if (!rawNodeName) return null;
   const n = rawNodeName.toLowerCase();
 
-  const nodeIsLeft = n.includes('.l') || n.includes('left');
-  const nodeIsRight = n.includes('.r') || n.includes('right');
+  const nodeIsLeft = /(\.l\.?$|\bleft\b|_l$)/i.test(n);
+  const nodeIsRight = /(\.r\.?$|\bright\b|_r$)/i.test(n);
+  const sideSuffix = nodeIsLeft ? 'l' : (nodeIsRight ? 'r' : 'r');
 
   // Direct ID check if node was assigned id
   if (BONE_BY_ID.has(rawNodeName)) {

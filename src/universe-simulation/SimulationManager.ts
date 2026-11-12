@@ -108,19 +108,10 @@ export class SimulationManager {
         this.resizeListener = () => this.onWindowResize();
         window.addEventListener('resize', this.resizeListener);
 
+        this.renderer.toneMapping = THREE.ReinhardToneMapping;
         this.setEpoch(Epoch.BIG_BANG);
-        this.initRenderer();
     } catch (e) {
         console.error(e);
-    }
-  }
-
-  private async initRenderer() {
-    try {
-      this.renderer.toneMapping = THREE.ReinhardToneMapping;
-      this.setEpoch(Epoch.BIG_BANG);
-    } catch (e) {
-      console.error("Renderer init failed:", e);
     }
   }
 
@@ -129,8 +120,11 @@ export class SimulationManager {
   }
 
   public setEpoch(epoch: Epoch) {
+    const prevEpoch = this.epoch;
+    this.epoch = epoch;
+
     if (this.currentStage) {
-      if (this.epoch === Epoch.SOLAR_SYSTEM && epoch === Epoch.EARTH) {
+      if (prevEpoch === Epoch.SOLAR_SYSTEM && epoch === Epoch.EARTH) {
           this.performSeamlessZoom(epoch);
           return;
       }
@@ -144,6 +138,7 @@ export class SimulationManager {
       let startTime = performance.now();
       
       const transition = () => {
+        if (this.isDisposed) return;
         let elapsed = (performance.now() - startTime) * 0.001;
         if (elapsed < 0.5) {
           if (this.warpPass?.uniforms?.intensity) this.warpPass.uniforms.intensity.value = elapsed * 2.0;
@@ -152,6 +147,7 @@ export class SimulationManager {
           this.performStageSwitch(epoch);
           let fadeOutStart = performance.now();
           const fadeOut = () => {
+            if (this.isDisposed) return;
             let fadeElapsed = (performance.now() - fadeOutStart) * 0.001;
             if (fadeElapsed < 0.5) {
               if (this.warpPass?.uniforms?.intensity) this.warpPass.uniforms.intensity.value = 1.0 - (fadeElapsed * 2.0);
@@ -173,8 +169,10 @@ export class SimulationManager {
     const startTime = performance.now();
     const duration = 2000;
     const startPos = this.camera.position.clone();
+    let stageSwitched = false;
     
     const animateZoom = () => {
+        if (this.isDisposed) return;
         const now = performance.now();
         const progress = Math.min(1.0, (now - startTime) / duration);
         const eased = progress * (2 - progress); 
@@ -184,7 +182,8 @@ export class SimulationManager {
         if (progress < 0.5) {
             const targetPos = this.currentStage!.getFocusTarget() || new THREE.Vector3(35, 0, 0);
             this.camera.position.lerpVectors(startPos, targetPos.clone().add(new THREE.Vector3(0, 0, 5)), eased);
-        } else if (progress >= 0.5 && this.epoch !== Epoch.EARTH) {
+        } else if (progress >= 0.5 && !stageSwitched) {
+            stageSwitched = true;
             this.performStageSwitch(epoch);
             this.camera.position.set(0, 0, 20);
             this.camera.fov = 100;

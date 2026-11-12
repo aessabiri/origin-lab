@@ -42,17 +42,16 @@
 | `src/anatomy-lab/data/humanSkeletalDatabase.js` | **NEW** | Exhaustive, scientifically vetted catalog of all 206 individual human bones. |
 | `src/anatomy-lab/utils/MedicalMaterials.js` | **NEW** | Ported from `3danatomy` `main` branch with PBR bone, cartilage, muscle, and ghost shaders. |
 | `src/anatomy-lab/utils/KineticChainSolver.js` | **NEW** | Ported closed-chain biomechanical kinetic solver from `3danatomy` `main`. |
-| `src/anatomy-lab/utils/GeometryOptimizer.js` | **NEW** | Ported GPU performance & vertex decimation engine from `3danatomy` `main`. |
-| `src/anatomy-lab/utils/BiomechanicalVisualOverlays.js` | **NEW** | Ported 3D force vectors, laser levels, and tension cables from `3danatomy` `main`. |
-| `src/anatomy-lab/engine/RealisticAnatomyLoader.js` | **NEW** | Ported `RealisticAnatomyEngine` from `3danatomy` `main`. |
-| `src/anatomy-lab/engine/BiomechanicsRig.js` | **NEW** | Ported kinematic joint rigging from `3danatomy` `main`. |
-| `src/anatomy-lab/store.js` | **NEW** | Zustand store tracking 206 assembled bones, 5 layers, posture parameters, and vitals. |
+| `src/anatomy-lab/utils/BiomechanicalVisualOverlays.js` | **NEW** | Ported 3D force vectors, laser levels, and tension cables from `3danatomy` `main` and mounted into `AnatomyCanvas.jsx`. |
+| `src/anatomy-lab/data/postureConditions.js` | **NEW** | Ported clinical posture cascade presets (`Neutral`, `Anterior Pelvic Tilt`, `Dropped Hip`, `Pronation Distortion`, `Upper Crossed`, `Scoliosis`, `Compound Cascade`). |
+| `src/anatomy-lab/store.js` | **NEW** | Zustand store tracking 206 assembled bones, 5 layers, posture parameters, presets, 3D gizmos, and vitals. |
 | `src/anatomy-lab/AnatomyLab.jsx` | **NEW** | Master view combining 3D canvas, biomechanics HUD, and assembly workbench. |
-| `src/anatomy-lab/utils/boneMatcher.js` | **NEW** | High-precision mapping from LUMC 3D clinical CT nodes to `ALL_206_BONES`. |
+| `src/anatomy-lab/utils/boneMatcher.js` | **NEW** | High-precision mapping from LUMC 3D clinical CT nodes to `ALL_206_BONES` (206/206 matched). |
 | `src/anatomy-lab/utils/anatomicalLayers.js` | **NEW** | Procedural generator for Cartilage/Ligaments, Pulsatile Vascular Loop, Neural Connectome, and 7 micro-bones (Hyoid & Auditory Ossicles). |
-| `src/anatomy-lab/components/AnatomyCanvas.jsx` | **MODIFIED** | Integrated 100% 206-bone 3D mesh linking, 4 anatomical layers, closed-chain posture deformation, camera focal tweening, and animated systolic pulse wave. |
+| `src/anatomy-lab/components/AnatomyCanvas.jsx` | **MODIFIED** | Fixed 100× scale alignment between LUMC skeleton (`1.70m`) and Z-Anatomy muscles (`0.01x`), mounted `TransformControls` 3D gizmos and `BiomechanicalVisualOverlays`, fixed ghost material initialization, and fixed `Scapula.r.` mirroring (206/206 bones). |
+| `src/anatomy-lab/components/BiomechanicsHUD.jsx` | **MODIFIED** | Fixed muscle strain object rendering crash, added clinical posture preset selector, 3D vector toggle, and on-canvas 3D joint gizmo selector. |
 | `src/test/universe_simulation_v2.test.js` | **NEW** | Automated tests verifying all 6 cosmic epochs and time scaling. |
-| `src/anatomy-lab/tests/skeletal_database.test.js` | **MODIFIED** | Automated tests expanded to 8/8 verifying 206 bones, layer generation, and clinical node matching. |
+| `src/anatomy-lab/tests/skeletal_database.test.js` | **MODIFIED** | Automated tests expanded to 9/9 verifying 206 bones, articulation IDs, `Scapula.r.` matching, posture presets, and layer generation. |
 
 ---
 

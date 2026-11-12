@@ -53,7 +53,7 @@ export const ALL_206_BONES = [
     side: 'axial',
     ossification: 'intramembranous',
     landmarks: 'Supraorbital margin, Glabella, Frontal sinus',
-    articulations: ['parietal_l', 'parietal_r', 'sphenoid_bone', 'ethmoid_bone', 'nasal_bone_l', 'nasal_bone_r'],
+    articulations: ['parietal_bone_l', 'parietal_bone_r', 'sphenoid_bone', 'ethmoid_bone', 'nasal_l', 'nasal_r', 'maxilla_l', 'maxilla_r', 'zygomatic_l', 'zygomatic_r', 'lacrimal_l', 'lacrimal_r'],
     clinicalSignificance: 'Protects the frontal lobes of the cerebrum, center of executive function.',
     meshNode: 'cranium_frontal',
   },
@@ -144,7 +144,7 @@ export const ALL_206_BONES = [
     side: 'axial',
     ossification: 'endochondral',
     landmarks: 'Cribriform plate, Crista galli, Perpendicular plate',
-    articulations: ['frontal_bone', 'sphenoid_bone', 'vomer', 'nasal_bone_l', 'nasal_bone_r'],
+    articulations: ['frontal_bone', 'sphenoid_bone', 'vomer', 'nasal_l', 'nasal_r', 'lacrimal_l', 'lacrimal_r', 'nasal_concha_l', 'nasal_concha_r'],
     clinicalSignificance: 'Cribriform plate transmits olfactory nerves (Cranial Nerve I) for scent perception.',
     meshNode: 'cranium_ethmoid',
   },
@@ -290,7 +290,11 @@ export const ALL_206_BONES = [
     side: 'axial',
     ossification: 'endochondral',
     landmarks: 'Jugular notch, Sternal angle (of Louis), Manubrium, Body, Xiphoid process',
-    articulations: ['clavicle_l', 'clavicle_r', 'rib_1_l', 'rib_1_r', 'rib_2_l', 'rib_2_r'],
+    articulations: [
+      'clavicle_l', 'clavicle_r',
+      'rib_1_l', 'rib_1_r', 'rib_2_l', 'rib_2_r', 'rib_3_l', 'rib_3_r',
+      'rib_4_l', 'rib_4_r', 'rib_5_l', 'rib_5_r', 'rib_6_l', 'rib_6_r', 'rib_7_l', 'rib_7_r'
+    ],
     clinicalSignificance: 'Anterior central anchor of thoracic cage; protects heart, aortic arch, and lungs.',
     meshNode: 'sternum',
   },
@@ -332,8 +336,8 @@ export const ALL_206_BONES = [
   // ==========================================
   // APPENDICULAR: PECTORAL GIRDLE & UPPER LIMBS (64)
   // ==========================================
-  { id: 'clavicle_l', name: 'Left Clavicle (Collarbone)', latinName: 'Clavicula sinistra', region: 'appendicular', subgroup: 'pectoral', side: 'left', ossification: 'intramembranous', landmarks: 'Sternal end, Acromial end, Conoid tubercle', articulations: ['sternum_manubrium', 'scapula_l'], clinicalSignificance: 'Only horizontal long bone; most commonly fractured bone in human skeleton.', meshNode: 'clavicle_l' },
-  { id: 'clavicle_r', name: 'Right Clavicle (Collarbone)', latinName: 'Clavicula dextra', region: 'appendicular', subgroup: 'pectoral', side: 'right', ossification: 'intramembranous', landmarks: 'Sternal end, Acromial end, Conoid tubercle', articulations: ['sternum_manubrium', 'scapula_r'], clinicalSignificance: 'Transfers upper limb forces to axial sternum.', meshNode: 'clavicle_r' },
+  { id: 'clavicle_l', name: 'Left Clavicle (Collarbone)', latinName: 'Clavicula sinistra', region: 'appendicular', subgroup: 'pectoral', side: 'left', ossification: 'intramembranous', landmarks: 'Sternal end, Acromial end, Conoid tubercle', articulations: ['sternum', 'scapula_l'], clinicalSignificance: 'Only horizontal long bone; most commonly fractured bone in human skeleton.', meshNode: 'clavicle_l' },
+  { id: 'clavicle_r', name: 'Right Clavicle (Collarbone)', latinName: 'Clavicula dextra', region: 'appendicular', subgroup: 'pectoral', side: 'right', ossification: 'intramembranous', landmarks: 'Sternal end, Acromial end, Conoid tubercle', articulations: ['sternum', 'scapula_r'], clinicalSignificance: 'Transfers upper limb forces to axial sternum.', meshNode: 'clavicle_r' },
   { id: 'scapula_l', name: 'Left Scapula (Shoulder Blade)', latinName: 'Scapula sinistra', region: 'appendicular', subgroup: 'pectoral', side: 'left', ossification: 'endochondral', landmarks: 'Spine, Acromion, Coracoid process, Glenoid cavity', articulations: ['clavicle_l', 'humerus_l'], clinicalSignificance: 'Glenoid cavity anchors shoulder ball-and-socket joint.', meshNode: 'scapula_l' },
   { id: 'scapula_r', name: 'Right Scapula (Shoulder Blade)', latinName: 'Scapula dextra', region: 'appendicular', subgroup: 'pectoral', side: 'right', ossification: 'endochondral', landmarks: 'Spine, Acromion, Coracoid process, Glenoid cavity', articulations: ['clavicle_r', 'humerus_r'], clinicalSignificance: 'Provides anchor for 17 muscular attachments.', meshNode: 'scapula_r' },
 

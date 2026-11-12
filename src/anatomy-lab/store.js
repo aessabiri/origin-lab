@@ -1,9 +1,26 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ALL_206_BONES, TOTAL_BONE_COUNT } from './data/humanSkeletalDatabase.js';
+import { POSTURE_CONDITIONS } from './data/postureConditions.js';
 import { KineticChainSolver } from './utils/KineticChainSolver.js';
 import { useProgressionStore } from '../store/progressionStore.js';
 import { useStore } from '../store.js';
+
+const DEFAULT_POSTURE_PARAMS = {
+  rightFootPronation: 0,
+  leftFootPronation: 0,
+  rightKneeValgus: 0,
+  leftKneeValgus: 0,
+  pelvisDrop: 0,
+  pelvisTilt: 0,
+  pelvisRotation: 0,
+  lumbarLordosis: 0,
+  spinalLateralBend: 0,
+  thoracicKyphosis: 0,
+  cervicalForwardHead: 0,
+  leftShoulderProtraction: 0,
+  rightShoulderProtraction: 0,
+};
 
 export const useAnatomyStore = create(
   persist(
@@ -28,21 +45,12 @@ export const useAnatomyStore = create(
 
       // Biomechanical & Posture Telemetry
       kineticMode: 'foot_ascending',
-      postureParams: {
-        rightFootPronation: 0,
-        leftFootPronation: 0,
-        rightKneeValgus: 0,
-        leftKneeValgus: 0,
-        pelvisDrop: 0,
-        pelvisTilt: 0,
-        pelvisRotation: 0,
-        lumbarLordosis: 0,
-        spinalLateralBend: 0,
-        thoracicKyphosis: 0,
-        cervicalForwardHead: 0,
-      },
+      activePresetId: 'neutral',
+      showVectors: true,
+      activeGizmoJoint: null, // 'pelvis' | 'lumbar' | 'thoracic' | 'cervical' | 'right_femur' | 'right_tibia' | 'right_foot' | null
+      postureParams: { ...DEFAULT_POSTURE_PARAMS },
 
-      // Dynamic Muscle Strain Heatmap Lists
+      // Dynamic Muscle Strain Heatmap Lists (Array of { id, name, role, severity, strainPercent })
       overactiveMuscles: [],
       underactiveMuscles: [],
 
@@ -71,6 +79,7 @@ export const useAnatomyStore = create(
         set({
           assembledBones: nextAssembled,
           selectedBoneId: boneId,
+          consciousnessScore: integrityPercent,
         });
 
         // Acoustic Snap Resonance (Web Audio API procedural feedback)
@@ -89,7 +98,21 @@ export const useAnatomyStore = create(
           osc.stop(ctx.currentTime + 0.16);
         } catch (_) {}
 
-        // Check Milestone Progress
+        // Check Axial (80) or Appendicular (126) regional completion
+        const axialIds = ALL_206_BONES.filter(b => b.region === 'axial').map(b => b.id);
+        const appendicularIds = ALL_206_BONES.filter(b => b.region === 'appendicular').map(b => b.id);
+        const justFinishedAxial =
+          axialIds.includes(boneId) && axialIds.every(id => nextAssembled.includes(id));
+        const justFinishedAppendicular =
+          appendicularIds.includes(boneId) && appendicularIds.every(id => nextAssembled.includes(id));
+
+        if (justFinishedAxial && nextAssembled.length < TOTAL_BONE_COUNT) {
+          useStore.getState().showMessage('🦴 Axial Skeleton Complete (80/80 Bones): Cranium, Spine & Thoracic Cage Locked!');
+        } else if (justFinishedAppendicular && nextAssembled.length < TOTAL_BONE_COUNT) {
+          useStore.getState().showMessage('🦴 Appendicular Skeleton Complete (126/126 Bones): All Limbs & Girdles Articulated!');
+        }
+
+        // Check Milestone Progress (All 206 Bones)
         if (nextAssembled.length === TOTAL_BONE_COUNT) {
           useProgressionStore.getState().completeMilestone('complete_human_osteogenesis');
           useStore.getState().showMessage('🏆 All 206 Human Skeletal Bones Assembled! Structural Integrity: 100%');
@@ -150,6 +173,10 @@ export const useAnatomyStore = create(
           assembledBones: [],
           consciousnessScore: 0,
           isAwakened: false,
+          activePresetId: 'neutral',
+          postureParams: { ...DEFAULT_POSTURE_PARAMS },
+          overactiveMuscles: [],
+          underactiveMuscles: [],
           layerVisibility: {
             skeleton: true,
             ligaments: false,
@@ -174,6 +201,9 @@ export const useAnatomyStore = create(
       setActiveRegion: (activeRegion) => set({ activeRegion }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       setActiveLayer: (activeLayer) => set({ activeLayer }),
+      setShowVectors: (showVectors) => set({ showVectors }),
+      toggleVectors: () => set(state => ({ showVectors: !state.showVectors })),
+      setActiveGizmoJoint: (activeGizmoJoint) => set({ activeGizmoJoint }),
 
       toggleLayer: (layerKey) => set(state => ({
         layerVisibility: {
@@ -190,6 +220,7 @@ export const useAnatomyStore = create(
         const strains = KineticChainSolver.calculateMuscleStrains(solved);
 
         set({
+          activePresetId: 'custom',
           postureParams: solved,
           overactiveMuscles: strains.overactive,
           underactiveMuscles: strains.underactive,
@@ -206,6 +237,34 @@ export const useAnatomyStore = create(
           postureParams: solved,
           overactiveMuscles: strains.overactive,
           underactiveMuscles: strains.underactive,
+        });
+      },
+
+      applyPosturePreset: (presetId) => {
+        const cond = POSTURE_CONDITIONS[presetId] || POSTURE_CONDITIONS.neutral;
+        const params = { ...DEFAULT_POSTURE_PARAMS, ...(cond.parameters || {}) };
+        const strains = KineticChainSolver.calculateMuscleStrains(params);
+
+        set((state) => ({
+          activePresetId: cond.id,
+          postureParams: params,
+          overactiveMuscles: cond.overactiveMuscles?.length ? cond.overactiveMuscles : strains.overactive,
+          underactiveMuscles: cond.underactiveMuscles?.length ? cond.underactiveMuscles : strains.underactive,
+          // Auto-enable muscle layer when inspecting a non-neutral biomechanical syndrome
+          layerVisibility:
+            cond.id !== 'neutral'
+              ? { ...state.layerVisibility, skeleton: true, muscles: true }
+              : state.layerVisibility,
+        }));
+      },
+
+      resetPosture: () => {
+        set({
+          activePresetId: 'neutral',
+          activeGizmoJoint: null,
+          postureParams: { ...DEFAULT_POSTURE_PARAMS },
+          overactiveMuscles: [],
+          underactiveMuscles: [],
         });
       },
     }),

@@ -32,12 +32,16 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     expect(appendicularBones).toHaveLength(126);
   });
 
-  it('should verify every bone possesses authentic Latin nomenclature and valid ossification data', () => {
+  it('should verify every bone possesses authentic Latin nomenclature, valid ossification data, and valid articulation IDs', () => {
+    const validIds = new Set(ALL_206_BONES.map(b => b.id));
     ALL_206_BONES.forEach(bone => {
       expect(bone.id).toBeTruthy();
       expect(bone.name).toBeTruthy();
       expect(bone.latinName).toBeTruthy();
       expect(['endochondral', 'intramembranous', 'endochondral/intramembranous']).toContain(bone.ossification);
+      (bone.articulations || []).forEach(targetId => {
+        expect(validIds.has(targetId)).toBe(true);
+      });
     });
   });
 
@@ -79,8 +83,10 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     expect(strains.underactive).toBeInstanceOf(Array);
   });
 
-  it('should accurately match clinical CT scan mesh nodes to individual bones', () => {
+  it('should accurately match clinical CT scan mesh nodes to individual bones including trailing dot Scapula.r.', () => {
     expect(matchMeshToBone('Femur.r')?.id).toBe('femur_r');
+    expect(matchMeshToBone('Scapula.r.')?.id).toBe('scapula_r');
+    expect(matchMeshToBone('Scapula.l.')?.id).toBe('scapula_l');
     expect(matchMeshToBone('Atlas (C1)')?.id).toBe('vertebra_c1');
     expect(matchMeshToBone('Axis (C2)')?.id).toBe('vertebra_c2');
     expect(matchMeshToBone('Lumbar vertebrae (L5)')?.id).toBe('vertebra_l5');
@@ -89,6 +95,19 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     expect(matchMeshToBone('Body of sternum')?.id).toBe('sternum');
     expect(matchMeshToBone('1st metacarpal bone.r')?.id).toBe('metacarpal_1_r');
     expect(matchMeshToBone('Calcaneus.r')?.id).toBe('calcaneus_r');
+  });
+
+  it('should apply posture presets and compute neutral vs cascading myofascial strains cleanly', () => {
+    const neutralStrains = KineticChainSolver.calculateMuscleStrains({});
+    expect(neutralStrains.overactive).toHaveLength(0);
+    expect(neutralStrains.underactive).toHaveLength(0);
+
+    useAnatomyStore.getState().applyPosturePreset('compound_cascade');
+    const state = useAnatomyStore.getState();
+    expect(state.activePresetId).toBe('compound_cascade');
+    expect(state.overactiveMuscles.length).toBeGreaterThan(0);
+    expect(state.underactiveMuscles.length).toBeGreaterThan(0);
+    expect(state.layerVisibility.muscles).toBe(true);
   });
 
   it('should generate all 4 anatomical layers and procedural micro-bones', () => {

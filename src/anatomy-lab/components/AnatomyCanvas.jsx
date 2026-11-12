@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { createMedicalMaterials } from '../utils/MedicalMaterials.js';
 import { matchMeshToBone } from '../utils/boneMatcher.js';
+import { BiomechanicalVisualOverlays } from '../utils/BiomechanicalVisualOverlays.js';
 import {
   createProceduralMicroBones,
   createCartilageAndLigamentsLayer,
@@ -14,12 +16,78 @@ import {
 import { useAnatomyStore } from '../store.js';
 import { ALL_206_BONES } from '../data/humanSkeletalDatabase.js';
 
+const GIZMO_JOINT_CONFIG = {
+  pelvis: { pos: [0, 0.92, 0], param: 'pelvisTilt', axis: 'x', scale: 1.0 },
+  right_foot: { pos: [-0.09, 0.06, 0.04], param: 'rightFootPronation', axis: 'z', scale: 1.0 },
+  right_femur: { pos: [-0.10, 0.48, 0.01], param: 'rightKneeValgus', axis: 'z', scale: -1.0 },
+  lumbar: { pos: [0, 1.08, -0.02], param: 'lumbarLordosis', axis: 'x', scale: 1.0 },
+  thoracic: { pos: [0, 1.32, -0.03], param: 'thoracicKyphosis', axis: 'x', scale: -1.0 },
+  cervical: { pos: [0, 1.52, 0.01], param: 'cervicalForwardHead', axis: 'x', scale: 0.5 },
+};
+
+const MUSCLE_KEYWORD_ALIASES = [
+  { trigger: ['iliopsoas', 'psoas'], meshTerms: ['psoas', 'iliacus'] },
+  { trigger: ['tfl', 'tensor_fasciae_latae', 'it_band'], meshTerms: ['tensor fasciae latae', 'iliotibial'] },
+  { trigger: ['gluteus_medius', 'glute_med'], meshTerms: ['gluteus medius', 'gluteus minimus'] },
+  { trigger: ['gluteus_maximus'], meshTerms: ['gluteus maximus'] },
+  { trigger: ['adductor'], meshTerms: ['adductor', 'gracilis', 'pectineus'] },
+  { trigger: ['quadratus_lumborum', 'ql_'], meshTerms: ['quadratus lumborum'] },
+  { trigger: ['erector_spinae', 'multifidus'], meshTerms: ['iliocostalis', 'longissimus', 'spinalis', 'multifidus'] },
+  { trigger: ['rectus_abdominis', 'oblique'], meshTerms: ['rectus abdominis', 'obliquus', 'transversus abdominis'] },
+  { trigger: ['pectoralis'], meshTerms: ['pectoralis'] },
+  { trigger: ['trapezius', 'rhomboid'], meshTerms: ['trapezius', 'rhomboid', 'levator scapulae'] },
+  { trigger: ['scm', 'sternocleidomastoid', 'scalene', 'platysma', 'neck'], meshTerms: ['sternocleidomastoid', 'scalenus', 'platysma', 'longus colli', 'splenius'] },
+  { trigger: ['gastrocnemius', 'soleus'], meshTerms: ['gastrocnemius', 'soleus', 'plantaris'] },
+  { trigger: ['peroneus', 'peroneals', 'fibularis'], meshTerms: ['fibularis', 'peroneus'] },
+  { trigger: ['tibialis_posterior'], meshTerms: ['tibialis posterior'] },
+  { trigger: ['tibialis_anterior'], meshTerms: ['tibialis anterior'] },
+  { trigger: ['hallucis', 'foot_intrinsics'], meshTerms: ['hallucis', 'digitorum', 'lumbrical', 'interosse'] },
+  { trigger: ['rectus_femoris', 'vmo'], meshTerms: ['rectus femoris', 'vastus'] },
+  { trigger: ['hamstrings'], meshTerms: ['biceps femoris', 'semitendinosus', 'semimembranosus'] },
+  { trigger: ['latissimus'], meshTerms: ['latissimus dorsi'] },
+  { trigger: ['serratus'], meshTerms: ['serratus anterior'] },
+];
+
+function doesMeshMatchMuscleList(meshName, muscleList) {
+  if (!meshName || !Array.isArray(muscleList) || muscleList.length === 0) return false;
+  const lowerMesh = meshName.toLowerCase();
+  const meshIsRight = /(\.r\.?$|\bright\b)/i.test(lowerMesh);
+  const meshIsLeft = /(\.l\.?$|\bleft\b)/i.test(lowerMesh);
+
+  for (const item of muscleList) {
+    const rawText = typeof item === 'string'
+      ? item.toLowerCase()
+      : `${item.id || ''} ${item.name || ''}`.toLowerCase();
+
+    const itemMentionsRight = rawText.includes('right');
+    const itemMentionsLeft = rawText.includes('left');
+    if (itemMentionsRight && !itemMentionsLeft && meshIsLeft) continue;
+    if (itemMentionsLeft && !itemMentionsRight && meshIsRight) continue;
+
+    if (lowerMesh.includes(rawText.trim()) && rawText.trim().length > 3) {
+      return true;
+    }
+
+    for (const rule of MUSCLE_KEYWORD_ALIASES) {
+      if (rule.trigger.some(t => rawText.includes(t))) {
+        if (rule.meshTerms.some(term => lowerMesh.includes(term))) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 const AnatomyCanvas = () => {
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
   const rendererRef = useRef(null);
   const controlsRef = useRef(null);
+  const transformControlsRef = useRef(null);
+  const gizmoProxyRef = useRef(null);
+  const overlaysRef = useRef(null);
   const animationFrameRef = useRef(null);
 
   // Mesh and Layer References
@@ -33,11 +101,22 @@ const AnatomyCanvas = () => {
   const layerVascularRef = useRef(null);
   const materialsRef = useRef(null);
 
-  // Animated Components
+  // Animated Components & Interaction Refs
   const heartMeshRef = useRef(null);
   const synPointsRef = useRef(null);
   const shockwaveMeshRef = useRef(null);
+  const shockwaveTimeRef = useRef(0);
   const cameraTargetRef = useRef(new THREE.Vector3(0, 0.9, 0));
+  const pointerDownPosRef = useRef({ x: 0, y: 0 });
+  const isGizmoDraggingRef = useRef(false);
+
+  // Live state refs for 60fps animation loop without recreating WebGL
+  const heartRateRef = useRef(0);
+  const postureParamsRef = useRef({});
+  const assembledBonesRef = useRef([]);
+  const selectedBoneIdRef = useRef('femur_r');
+  const overactiveMusclesRef = useRef([]);
+  const underactiveMusclesRef = useRef([]);
 
   // Kinematic Joint Group References
   const kinematicJointsRef = useRef({
@@ -47,10 +126,10 @@ const AnatomyCanvas = () => {
     cervical: [],
     head: null,
     mandible: null,
-    leftShoulder: null,
-    rightShoulder: null,
-    leftFemur: null,
     rightFemur: null,
+    leftFemur: null,
+    rightTibia: null,
+    leftTibia: null,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -62,12 +141,65 @@ const AnatomyCanvas = () => {
   const setSelectedBoneId = useAnatomyStore(state => state.setSelectedBoneId);
   const layerVisibility = useAnatomyStore(state => state.layerVisibility);
   const postureParams = useAnatomyStore(state => state.postureParams);
+  const setPostureParam = useAnatomyStore(state => state.setPostureParam);
+  const showVectors = useAnatomyStore(state => state.showVectors);
+  const activeGizmoJoint = useAnatomyStore(state => state.activeGizmoJoint);
   const overactiveMuscles = useAnatomyStore(state => state.overactiveMuscles);
   const underactiveMuscles = useAnatomyStore(state => state.underactiveMuscles);
   const vitalSigns = useAnatomyStore(state => state.vitalSigns);
 
-  // 1. Initialize Scene, Camera, Renderer, Layers & Models
+  // Keep refs synced for animation loop & async callbacks
+  heartRateRef.current = vitalSigns.heartRate;
+  postureParamsRef.current = postureParams;
+  assembledBonesRef.current = assembledBones;
+  selectedBoneIdRef.current = selectedBoneId;
+  overactiveMusclesRef.current = overactiveMuscles;
+  underactiveMusclesRef.current = underactiveMuscles;
+
+  const applyBoneMaterials = useCallback(() => {
+    const materials = materialsRef.current;
+    if (!materials) return;
+    const currentAssembled = assembledBonesRef.current;
+    const currentSelected = selectedBoneIdRef.current;
+
+    skeletalMeshesRef.current.forEach((mesh) => {
+      const boneId = mesh.userData.boneId;
+      const matchedBone = boneId ? ALL_206_BONES.find(b => b.id === boneId) : matchMeshToBone(mesh.name);
+
+      const isAssembled = matchedBone ? currentAssembled.includes(matchedBone.id) : (currentAssembled.length > 50);
+      const isSelected = matchedBone && matchedBone.id === currentSelected;
+
+      if (isSelected) {
+        mesh.material = materials.boneSelected;
+      } else if (isAssembled) {
+        mesh.material = materials.corticalBone;
+      } else {
+        mesh.material = materials.ghostBone;
+      }
+    });
+  }, []);
+
+  const applyMuscleMaterials = useCallback(() => {
+    const materials = materialsRef.current;
+    if (!materials) return;
+    const over = overactiveMusclesRef.current;
+    const under = underactiveMusclesRef.current;
+
+    muscleMeshesRef.current.forEach((mesh) => {
+      const name = mesh.name || '';
+      if (doesMeshMatchMuscleList(name, over)) {
+        mesh.material = materials.muscleTight;
+      } else if (doesMeshMatchMuscleList(name, under)) {
+        mesh.material = materials.muscleWeak;
+      } else {
+        mesh.material = materials.striatedMuscle;
+      }
+    });
+  }, []);
+
+  // 1. Initialize Scene, Camera, Renderer, Layers & Models (Runs Once on Mount)
   useEffect(() => {
+    let isMounted = true;
     const container = containerRef.current;
     if (!container) return;
 
@@ -80,32 +212,66 @@ const AnatomyCanvas = () => {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 50);
-    camera.position.set(0, 0.95, 3.4);
+    camera.position.set(0, 0.95, 3.2);
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      powerPreference: 'high-performance',
-      alpha: false,
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    rendererRef.current = renderer;
-    container.appendChild(renderer.domElement);
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        powerPreference: 'high-performance',
+        alpha: false,
+      });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.25;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      rendererRef.current = renderer;
+      container.appendChild(renderer.domElement);
+    } catch (e) {
+      setIsLoading(false);
+      return;
+    }
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.target.set(0, 0.9, 0);
     controls.maxDistance = 6.0;
-    controls.minDistance = 0.35;
+    controls.minDistance = 0.25;
     controlsRef.current = controls;
 
-    // Lighting
+    // On-Canvas 3D Bone Rotation Gizmo (TransformControls)
+    const gizmoProxy = new THREE.Object3D();
+    gizmoProxy.name = 'KinematicGizmoProxy';
+    scene.add(gizmoProxy);
+    gizmoProxyRef.current = gizmoProxy;
+
+    const transformControls = new TransformControls(camera, renderer.domElement);
+    transformControls.setMode('rotate');
+    transformControls.setSize(0.55);
+    transformControls.visible = false;
+    transformControls.enabled = false;
+    scene.add(transformControls);
+    transformControlsRef.current = transformControls;
+
+    transformControls.addEventListener('dragging-changed', (event) => {
+      isGizmoDraggingRef.current = event.value;
+      controls.enabled = !event.value;
+    });
+
+    transformControls.addEventListener('objectChange', () => {
+      const jointKey = useAnatomyStore.getState().activeGizmoJoint;
+      const cfg = jointKey ? GIZMO_JOINT_CONFIG[jointKey] : null;
+      if (!cfg || !gizmoProxyRef.current) return;
+      const rawAngle = gizmoProxyRef.current.rotation[cfg.axis] * cfg.scale;
+      const clamped = Math.max(-0.5, Math.min(0.6, rawAngle));
+      useAnatomyStore.getState().setPostureParam(cfg.param, Number(clamped.toFixed(3)));
+    });
+
+    // Studio Medical Lighting
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
     keyLight.position.set(2, 4, 3);
     keyLight.castShadow = true;
@@ -121,13 +287,13 @@ const AnatomyCanvas = () => {
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.45));
 
-    // Floor Grid & Shadow Catcher
+    // Floor Grid
     const gridHelper = new THREE.GridHelper(6, 20, 0x0891b2, 0x1e293b);
     gridHelper.position.y = 0;
     scene.add(gridHelper);
 
     // Shockwave Ring for Bone Assembly Feedback
-    const shockwaveGeo = new THREE.RingGeometry(0.01, 0.04, 32);
+    const shockwaveGeo = new THREE.RingGeometry(0.015, 0.045, 32);
     const shockwaveMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
       transparent: true,
@@ -163,11 +329,25 @@ const AnatomyCanvas = () => {
     humanGroup.add(layerNerves);
     humanGroup.add(layerVascular);
 
+    // Sync initial layer visibilities
+    const initVis = useAnatomyStore.getState().layerVisibility;
+    layerSkeletal.visible = !!initVis.skeleton;
+    layerLigaments.visible = !!initVis.ligaments;
+    layerMuscles.visible = !!initVis.muscles;
+    layerNerves.visible = !!initVis.nerves;
+    layerVascular.visible = !!initVis.circulation;
+
     layerSkeletalRef.current = layerSkeletal;
     layerLigamentsRef.current = layerLigaments;
     layerMusclesRef.current = layerMuscles;
     layerNervesRef.current = layerNerves;
     layerVascularRef.current = layerVascular;
+
+    // Biomechanical Visual Force Vectors, Lasers & Kinetic Wavefront
+    const overlays = new BiomechanicalVisualOverlays(humanGroup);
+    overlays.root.position.set(0, 0.90, 0);
+    overlays.setVisible(useAnatomyStore.getState().showVectors);
+    overlaysRef.current = overlays;
 
     const materials = createMedicalMaterials();
     materialsRef.current = materials;
@@ -178,60 +358,92 @@ const AnatomyCanvas = () => {
     const gltfLoader = new GLTFLoader();
     gltfLoader.setDRACOLoader(dracoLoader);
 
+    const cacheRestTransform = (node) => {
+      node.userData.restPos = node.position.clone();
+      node.userData.restRot = node.rotation.clone();
+    };
+
     const loadModels = async () => {
       try {
         setLoadStatus('Loading LUMC Clinical Skeleton Scan (3.2 MB)...');
         const skeletonGltf = await new Promise((resolve, reject) => {
           gltfLoader.load('/models/lumc_skeleton.glb', resolve, undefined, reject);
         });
+        if (!isMounted) return;
 
         setLoadStatus('Loading Muscular Anatomy Atlas (1.5 MB)...');
         const fullbodyGltf = await new Promise((resolve, reject) => {
           gltfLoader.load('/models/fullbody.glb', resolve, undefined, reject);
         });
+        if (!isMounted) return;
 
         setLoadStatus('Assembling 206-Bone Interactive Rig...');
         const skelScene = skeletonGltf.scene;
         const meshes = [];
+        const rawSkelMeshes = [];
 
-        // 1. Process Unilateral Right & Axial Bones
         skelScene.traverse((child) => {
-          if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-            const bone = matchMeshToBone(child.name);
-            if (bone) {
-              child.userData.boneId = bone.id;
-            }
-            if (child.name.toLowerCase().includes('cart')) {
-              child.material = materials.hyalineCartilage;
-              layerLigaments.add(child.clone());
-            } else {
-              meshes.push(child);
-            }
-          }
+          if (child.isMesh) rawSkelMeshes.push(child);
         });
 
-        // 2. Mirror Left Limbs
+        // Mirrored Left Groups (scale.x = -1 across sagittal plane x = 0)
         const mirroredLimbs = new THREE.Group();
         mirroredLimbs.name = 'MirroredLeftSkeleton';
         mirroredLimbs.scale.x = -1;
 
-        skelScene.traverse((child) => {
-          if (child.isMesh && (child.name.endsWith('.r') || child.name.toLowerCase().includes('right'))) {
-            const clone = new THREE.Mesh(child.geometry, child.material);
-            clone.position.copy(child.position);
-            clone.rotation.copy(child.rotation);
-            clone.scale.copy(child.scale);
-            clone.name = child.name.replace(/\.r/g, '.l').replace(/right/gi, 'left');
-            const bone = matchMeshToBone(clone.name);
-            if (bone) {
-              clone.userData.boneId = bone.id;
+        const mirroredCartilages = new THREE.Group();
+        mirroredCartilages.name = 'MirroredLeftCartilages';
+        mirroredCartilages.scale.x = -1;
+        layerLigaments.add(mirroredCartilages);
+
+        rawSkelMeshes.forEach((child) => {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          cacheRestTransform(child);
+
+          const rawName = child.name || '';
+          const lowerName = rawName.toLowerCase();
+          const isRightSide = /(\.r\.?$|\bright\b)/i.test(rawName);
+          const isCartilage = lowerName.includes('cart') || lowerName.includes('disc') || lowerName.includes('meniscus');
+
+          if (isCartilage) {
+            child.material = materials.hyalineCartilage;
+            // Clone into ligaments layer and hide original in skeletal layer to prevent double rendering
+            const rightCart = child.clone();
+            rightCart.material = materials.hyalineCartilage;
+            layerLigaments.add(rightCart);
+            child.visible = false;
+
+            if (isRightSide) {
+              const leftCart = child.clone();
+              leftCart.visible = true;
+              leftCart.geometry = child.geometry.clone();
+              leftCart.material = materials.hyalineCartilage;
+              leftCart.name = rawName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
+              mirroredCartilages.add(leftCart);
             }
-            if (child.name.toLowerCase().includes('cart')) {
-              clone.material = materials.hyalineCartilage;
-              layerLigaments.add(clone);
-            } else {
+          } else {
+            const bone = matchMeshToBone(rawName);
+            if (bone) {
+              child.userData.boneId = bone.id;
+            }
+            meshes.push(child);
+
+            // Mirror right-side bones (including Scapula.r. with trailing dot) to left side
+            if (isRightSide) {
+              const clone = new THREE.Mesh(child.geometry.clone(), child.material);
+              clone.castShadow = true;
+              clone.receiveShadow = true;
+              clone.position.copy(child.position);
+              clone.rotation.copy(child.rotation);
+              clone.scale.copy(child.scale);
+              clone.name = rawName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
+              cacheRestTransform(clone);
+
+              const mirroredBone = matchMeshToBone(clone.name);
+              if (mirroredBone) {
+                clone.userData.boneId = mirroredBone.id;
+              }
               mirroredLimbs.add(clone);
               meshes.push(clone);
             }
@@ -245,6 +457,7 @@ const AnatomyCanvas = () => {
         const microBones = createProceduralMicroBones(materials);
         layerSkeletal.add(microBones.group);
         microBones.meshes.forEach((m) => {
+          cacheRestTransform(m);
           const bone = matchMeshToBone(m.name);
           if (bone) m.userData.boneId = bone.id;
           meshes.push(m);
@@ -255,15 +468,19 @@ const AnatomyCanvas = () => {
         const cartilageLayer = createCartilageAndLigamentsLayer(materials);
         layerLigaments.add(cartilageLayer);
 
-        // 5. Ingest Muscular Layer
+        // 5. Ingest Muscular Layer (Convert Z-Anatomy centimeter units [~170cm] -> meters [~1.70m] via 0.01 scale)
+        const muscleScene = fullbodyGltf.scene;
+        muscleScene.scale.set(0.01, 0.01, 0.01);
         const muscleMeshes = [];
-        fullbodyGltf.scene.traverse((child) => {
+        muscleScene.traverse((child) => {
           if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
             child.material = materials.striatedMuscle;
             muscleMeshes.push(child);
           }
         });
-        layerMuscles.add(fullbodyGltf.scene);
+        layerMuscles.add(muscleScene);
         muscleMeshesRef.current = muscleMeshes;
 
         // 6. Ingest Pulsatile Vascular Loop Layer
@@ -276,30 +493,51 @@ const AnatomyCanvas = () => {
         layerNerves.add(neural.group);
         synPointsRef.current = neural.synPoints;
 
-        // 8. Cache Joint Pointers for Kinematics
-        const kJoints = kinematicJointsRef.current;
-        skelScene.traverse((node) => {
+        // 8. Cache Joint Pointers for Closed-Chain Kinematics
+        const kJoints = {
+          pelvis: null,
+          lumbar: [],
+          thoracic: [],
+          cervical: [],
+          head: null,
+          mandible: null,
+          rightFemur: null,
+          leftFemur: null,
+          rightTibia: null,
+          leftTibia: null,
+        };
+        layerSkeletal.traverse((node) => {
           const n = (node.name || '').toLowerCase();
-          if (n.includes('hip') || n.includes('pelvis')) kJoints.pelvis = node;
+          if (n.includes('hip') || n.includes('pelvis') || n.includes('sacrum')) {
+            if (!kJoints.pelvis) kJoints.pelvis = node;
+          }
           if (n.includes('lumbar')) kJoints.lumbar.push(node);
           if (n.includes('thoracic')) kJoints.thoracic.push(node);
-          if (n.includes('cervical')) kJoints.cervical.push(node);
-          if (n.includes('frontal') || n.includes('occipital')) kJoints.head = node;
+          if (n.includes('cervical') || n.includes('atlas') || n.includes('axis')) kJoints.cervical.push(node);
+          if (n.includes('frontal')) kJoints.head = node;
           if (n.includes('mandible')) kJoints.mandible = node;
-          if (n.includes('femur.r')) kJoints.rightFemur = node;
+          if (n.includes('femur') && /(\.r\.?$|\bright\b)/i.test(n)) kJoints.rightFemur = node;
+          if (n.includes('femur') && /(\.l\.?$|\bleft\b)/i.test(n)) kJoints.leftFemur = node;
+          if (n.includes('tibia') && /(\.r\.?$|\bright\b)/i.test(n)) kJoints.rightTibia = node;
+          if (n.includes('tibia') && /(\.l\.?$|\bleft\b)/i.test(n)) kJoints.leftTibia = node;
         });
+        kinematicJointsRef.current = kJoints;
 
-        // 9. Normalize Scale to Standard Anatomical Standing Height (1.75m)
-        const bbox = new THREE.Box3().setFromObject(humanGroup);
-        const size = bbox.getSize(new THREE.Vector3());
-        const scaleFactor = 1.75 / (size.y > 0 ? size.y : 1.75);
+        // 9. Normalize Scale Using Skeletal Bounding Box to Standard Standing Height (1.75m)
+        const skelBbox = new THREE.Box3().setFromObject(layerSkeletal);
+        const skelSize = skelBbox.getSize(new THREE.Vector3());
+        const scaleFactor = 1.75 / (skelSize.y > 0.1 ? skelSize.y : 1.705);
         humanGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
-        humanGroup.position.set(0, -bbox.min.y * scaleFactor, 0);
+        humanGroup.position.set(0, -skelBbox.min.y * scaleFactor, 0);
+
+        // 10. Immediately apply Ghost vs Cortical Bone & Muscle Heatmap Materials
+        applyBoneMaterials();
+        applyMuscleMaterials();
 
         setIsLoading(false);
       } catch (err) {
         console.error('Anatomy Viewport Load Error:', err);
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
@@ -318,39 +556,42 @@ const AnatomyCanvas = () => {
 
     // Animation Loop
     let lastTime = 0;
-    let shockwaveTime = 0;
 
     const animate = (time) => {
-      const delta = (time - lastTime) * 0.001;
+      const delta = Math.min(0.1, (time - lastTime) * 0.001);
       lastTime = time;
 
-      // 1. Orbit Controls damping
-      controls.update();
-
-      // 2. Camera target smooth interpolation
+      // 1. Orbit Controls damping & smooth camera target interpolation
       controls.target.lerp(cameraTargetRef.current, 0.08);
+      if (controls.enabled) controls.update();
 
-      // 3. Pulsatile Heartbeat Animation (Synced to BPM)
+      // 2. Pulsatile Heartbeat Animation (Synced to live heartRateRef without recreating WebGL)
       if (heartMeshRef.current) {
-        const bpm = vitalSigns.heartRate > 0 ? vitalSigns.heartRate : 60;
+        const bpm = heartRateRef.current > 0 ? heartRateRef.current : 60;
         const freq = (bpm / 60) * Math.PI * 2;
         const pulse = Math.sin(time * 0.001 * freq);
         const s = 1.0 + Math.max(0, pulse) * 0.12;
         heartMeshRef.current.scale.set(s, s, s);
       }
 
-      // 4. Synaptic Action Potentials Glow Animation
+      // 3. Synaptic Action Potentials Glow Animation
       if (synPointsRef.current) {
         synPointsRef.current.rotation.y += delta * 0.15;
       }
 
-      // 5. Shockwave Expansion Feedback
+      // 4. Biomechanical Force Vectors & Kinetic Wavefront Update
+      if (overlaysRef.current && overlaysRef.current.visible) {
+        overlaysRef.current.update(postureParamsRef.current, delta);
+      }
+
+      // 5. Shockwave Expansion Feedback (Resets on every bone selection via shockwaveTimeRef)
       if (shockwaveMeshRef.current && shockwaveMeshRef.current.visible) {
-        shockwaveTime += delta;
-        const currentScale = 1.0 + shockwaveTime * 3.5;
+        shockwaveTimeRef.current += delta;
+        const t = shockwaveTimeRef.current;
+        const currentScale = 1.0 + t * 3.5;
         shockwaveMeshRef.current.scale.set(currentScale, currentScale, currentScale);
-        shockwaveMeshRef.current.material.opacity = Math.max(0, 0.8 - shockwaveTime * 2.2);
-        if (shockwaveTime > 0.4) {
+        shockwaveMeshRef.current.material.opacity = Math.max(0, 0.85 - t * 2.1);
+        if (t > 0.42) {
           shockwaveMeshRef.current.visible = false;
         }
       }
@@ -361,17 +602,20 @@ const AnatomyCanvas = () => {
     animationFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
+      isMounted = false;
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       window.removeEventListener('resize', handleResize);
+      if (transformControls) transformControls.dispose();
+      if (overlaysRef.current) overlaysRef.current.dispose();
       dracoLoader.dispose();
       renderer.dispose();
       if (renderer.domElement && renderer.domElement.parentElement) {
         renderer.domElement.parentElement.removeChild(renderer.domElement);
       }
     };
-  }, [vitalSigns.heartRate]);
+  }, [applyBoneMaterials, applyMuscleMaterials]);
 
-  // 2. Sync Layer Visibility
+  // 2. Sync Layer Visibility & Vector Overlays
   useEffect(() => {
     if (layerSkeletalRef.current) layerSkeletalRef.current.visible = !!layerVisibility.skeleton;
     if (layerLigamentsRef.current) layerLigamentsRef.current.visible = !!layerVisibility.ligaments;
@@ -380,97 +624,134 @@ const AnatomyCanvas = () => {
     if (layerVascularRef.current) layerVascularRef.current.visible = !!layerVisibility.circulation;
   }, [layerVisibility]);
 
-  // 3. Update Bone Materials (Assembled vs. Ghost vs. Selected)
   useEffect(() => {
-    const materials = materialsRef.current;
-    if (!materials) return;
+    if (overlaysRef.current) {
+      overlaysRef.current.setVisible(!!showVectors);
+    }
+  }, [showVectors]);
 
-    skeletalMeshesRef.current.forEach((mesh) => {
-      const boneId = mesh.userData.boneId;
-      const matchedBone = boneId ? ALL_206_BONES.find(b => b.id === boneId) : matchMeshToBone(mesh.name);
-
-      const isAssembled = matchedBone ? assembledBones.includes(matchedBone.id) : (assembledBones.length > 50);
-      const isSelected = matchedBone && matchedBone.id === selectedBoneId;
-
-      if (isSelected) {
-        mesh.material = materials.boneSelected;
-      } else if (isAssembled) {
-        mesh.material = materials.corticalBone;
-      } else {
-        mesh.material = materials.ghostBone;
-      }
-    });
-  }, [assembledBones, selectedBoneId]);
-
-  // 4. Update Dynamic Muscle Strain Heatmap
+  // 3. Sync On-Canvas 3D TransformControls Gizmo
   useEffect(() => {
-    const materials = materialsRef.current;
-    if (!materials) return;
+    const tc = transformControlsRef.current;
+    const proxy = gizmoProxyRef.current;
+    if (!tc || !proxy) return;
 
-    muscleMeshesRef.current.forEach((mesh) => {
-      const name = (mesh.name || '').toLowerCase();
-      if (overactiveMuscles.some(m => name.includes(m.toLowerCase()))) {
-        mesh.material = materials.muscleTight;
-      } else if (underactiveMuscles.some(m => name.includes(m.toLowerCase()))) {
-        mesh.material = materials.muscleWeak;
-      } else {
-        mesh.material = materials.striatedMuscle;
-      }
-    });
-  }, [overactiveMuscles, underactiveMuscles]);
+    if (!activeGizmoJoint || !GIZMO_JOINT_CONFIG[activeGizmoJoint]) {
+      tc.detach();
+      tc.visible = false;
+      tc.enabled = false;
+      return;
+    }
 
-  // 5. Closed-Chain Kinematic Posture Deformation
+    const cfg = GIZMO_JOINT_CONFIG[activeGizmoJoint];
+    proxy.position.set(...cfg.pos);
+    proxy.rotation.set(0, 0, 0);
+    proxy.rotation[cfg.axis] = (postureParams[cfg.param] || 0) * cfg.scale;
+
+    tc.attach(proxy);
+    tc.visible = true;
+    tc.enabled = true;
+    cameraTargetRef.current.set(...cfg.pos);
+  }, [activeGizmoJoint]);
+
+  // 4. Update Bone Materials (Assembled vs. Ghost vs. Selected)
+  useEffect(() => {
+    applyBoneMaterials();
+  }, [assembledBones, selectedBoneId, applyBoneMaterials]);
+
+  // 5. Update Dynamic Muscle Strain Heatmap
+  useEffect(() => {
+    applyMuscleMaterials();
+  }, [overactiveMuscles, underactiveMuscles, applyMuscleMaterials]);
+
+  // 6. Closed-Chain Kinematic Posture Deformation (Relative to Cached Rest Pose)
   useEffect(() => {
     const k = kinematicJointsRef.current;
-    if (!k.pelvis) return;
 
     const {
       pelvisTilt = 0,
       pelvisDrop = 0,
       pelvisRotation = 0,
       lumbarLordosis = 0,
+      spinalLateralBend = 0,
       thoracicKyphosis = 0,
       cervicalForwardHead = 0,
       rightKneeValgus = 0,
+      leftKneeValgus = 0,
+      rightFootPronation = 0,
+      leftFootPronation = 0,
     } = postureParams;
 
+    const applyRotOffset = (node, dx = 0, dy = 0, dz = 0) => {
+      if (!node) return;
+      const base = node.userData.restRot || new THREE.Euler();
+      node.rotation.set(base.x + dx, base.y + dy, base.z + dz);
+    };
+
+    const applyPosOffset = (node, dx = 0, dy = 0, dz = 0) => {
+      if (!node) return;
+      const base = node.userData.restPos || new THREE.Vector3();
+      node.position.set(base.x + dx, base.y + dy, base.z + dz);
+    };
+
     // Pelvis
-    k.pelvis.rotation.x = pelvisTilt;
-    k.pelvis.rotation.z = pelvisDrop;
-    k.pelvis.rotation.y = pelvisRotation;
+    if (k.pelvis) {
+      applyRotOffset(k.pelvis, pelvisTilt, pelvisRotation, pelvisDrop);
+    }
 
     // Lumbar Spine
     k.lumbar.forEach((vert, idx) => {
       const fraction = (idx + 1) / (k.lumbar.length || 1);
-      vert.rotation.x = lumbarLordosis * fraction * 0.35;
-      vert.rotation.z = pelvisDrop * fraction * 0.25;
+      applyRotOffset(
+        vert,
+        lumbarLordosis * fraction * 0.35,
+        0,
+        (pelvisDrop * 0.25 + spinalLateralBend * 0.35) * fraction
+      );
     });
 
     // Thoracic Spine
     k.thoracic.forEach((vert, idx) => {
       const fraction = (idx + 1) / (k.thoracic.length || 1);
-      vert.rotation.x = -thoracicKyphosis * fraction * 0.3;
+      applyRotOffset(
+        vert,
+        -thoracicKyphosis * fraction * 0.3,
+        0,
+        -spinalLateralBend * fraction * 0.25
+      );
     });
 
     // Cervical Spine & Forward Head
     k.cervical.forEach((vert, idx) => {
       const fraction = (idx + 1) / (k.cervical.length || 1);
-      vert.rotation.x = cervicalForwardHead * fraction * 0.3;
-      vert.position.z = cervicalForwardHead * fraction * 0.02;
+      applyRotOffset(vert, cervicalForwardHead * fraction * 0.3, 0, 0);
+      applyPosOffset(vert, 0, 0, cervicalForwardHead * fraction * 0.025);
     });
 
-    // Head
+    // Head & Mandible Downward Traction
     if (k.head) {
-      k.head.rotation.x = -cervicalForwardHead * 0.2;
+      applyRotOffset(k.head, -cervicalForwardHead * 0.2, 0, 0);
+    }
+    if (k.mandible) {
+      applyRotOffset(k.mandible, cervicalForwardHead * 0.25, 0, 0);
     }
 
-    // Femur Valgus
+    // Femur Valgus & Tibial Torsion
     if (k.rightFemur) {
-      k.rightFemur.rotation.z = -rightKneeValgus;
+      applyRotOffset(k.rightFemur, 0, rightFootPronation * 0.35, -rightKneeValgus);
+    }
+    if (k.leftFemur) {
+      applyRotOffset(k.leftFemur, 0, -leftFootPronation * 0.35, -leftKneeValgus);
+    }
+    if (k.rightTibia) {
+      applyRotOffset(k.rightTibia, 0, rightFootPronation * 0.5, 0);
+    }
+    if (k.leftTibia) {
+      applyRotOffset(k.leftTibia, 0, -leftFootPronation * 0.5, 0);
     }
   }, [postureParams]);
 
-  // 6. Camera Focal Lerp to Selected Bone
+  // 7. Camera Focal Lerp & Multi-Use Shockwave on Selected Bone Change
   useEffect(() => {
     if (!selectedBoneId) return;
     const mesh = skeletalMeshesRef.current.find(m => m.userData.boneId === selectedBoneId);
@@ -480,17 +761,31 @@ const AnatomyCanvas = () => {
     const center = box.getCenter(new THREE.Vector3());
     cameraTargetRef.current.copy(center);
 
-    // Trigger Shockwave Feedback Ring
+    // Trigger Shockwave Feedback Ring (Resets timer so every bone click animates)
     if (shockwaveMeshRef.current) {
+      shockwaveTimeRef.current = 0;
       shockwaveMeshRef.current.position.copy(center);
+      if (cameraRef.current) {
+        shockwaveMeshRef.current.lookAt(cameraRef.current.position);
+      }
       shockwaveMeshRef.current.visible = true;
       shockwaveMeshRef.current.scale.set(1, 1, 1);
-      shockwaveMeshRef.current.material.opacity = 0.8;
+      shockwaveMeshRef.current.material.opacity = 0.85;
     }
   }, [selectedBoneId]);
 
-  // 7. Click-to-Pick Raycaster
+  // 8. Orbit-Safe Click-to-Pick Raycaster (Only fires on clean click, not camera drag)
   const handlePointerDown = useCallback((e) => {
+    pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
+  }, []);
+
+  const handlePointerUp = useCallback((e) => {
+    if (isGizmoDraggingRef.current) return;
+    const dx = e.clientX - pointerDownPosRef.current.x;
+    const dy = e.clientY - pointerDownPosRef.current.y;
+    // Ignore pointer releases after camera orbit/pan drag (> 5px movement)
+    if (Math.hypot(dx, dy) > 5) return;
+
     if (!containerRef.current || !cameraRef.current || !sceneRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const mouse = new THREE.Vector2(
@@ -517,7 +812,11 @@ const AnatomyCanvas = () => {
   }, [assembledBones, assembleBone, setSelectedBoneId]);
 
   return (
-    <div className="w-full h-full relative overflow-hidden bg-[#06080e]" onPointerDown={handlePointerDown}>
+    <div
+      className="w-full h-full relative overflow-hidden bg-[#06080e]"
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+    >
       <div ref={containerRef} className="w-full h-full cursor-pointer" />
 
       {/* Loading Overlay */}
