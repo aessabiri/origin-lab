@@ -179,6 +179,17 @@ const UniverseSimulationView = () => {
     showMessage('🌱 Biological Seed Deployed — Chlorophyll & Biosphere Spreading Across 3D Earth!');
   }, [currentEpoch, showMessage]);
 
+  const handleTerraformWorld = useCallback(() => {
+    if (!selectedPlanetData || !selectedPlanetData.scanData) return;
+    selectedPlanetData.scanData.o2 = Math.min(25, Number((selectedPlanetData.scanData.o2 + 4.5).toFixed(1)));
+    selectedPlanetData.scanData.h2o = Math.min(90, Number((selectedPlanetData.scanData.h2o + 12).toFixed(1)));
+    selectedPlanetData.scanData.carbon = Math.max(0.05, Number((selectedPlanetData.scanData.carbon * 0.75).toFixed(2)));
+    setSelectedPlanetData({ ...selectedPlanetData });
+    showMessage(
+      `🚀 Extremophile Colony Seeded on ${selectedPlanetData.name} — O₂ risen to ${selectedPlanetData.scanData.o2}%!`
+    );
+  }, [selectedPlanetData, showMessage]);
+
   const habitabilityScore = selectedPlanetData?.scanData
     ? Math.round((selectedPlanetData.scanData.o2 * 2 + selectedPlanetData.scanData.h2o) / 2.5)
     : null;
@@ -448,12 +459,19 @@ const UniverseSimulationView = () => {
             </div>
           </div>
 
-          {selectedPlanetData.name === 'Earth' && habitabilityScore > 50 && (
+          {selectedPlanetData.name === 'Earth' && habitabilityScore > 50 ? (
             <button
               onClick={handleDeploySeed}
               className="mt-3 w-full py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-mono font-black text-[10px] uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer"
             >
               🌱 Deploy Biological Seed (Zoom to Earth)
+            </button>
+          ) : (
+            <button
+              onClick={handleTerraformWorld}
+              className="mt-3 w-full py-2 rounded-xl bg-gradient-to-r from-cyan-500/25 to-emerald-500/25 border border-cyan-400/50 text-cyan-200 font-mono font-black text-[10px] uppercase tracking-wider shadow-lg hover:bg-cyan-500/35 active:scale-95 transition-all cursor-pointer"
+            >
+              🦠 Seed Extremophile Colony (+O₂ / +H₂O)
             </button>
           )}
         </div>

@@ -47,7 +47,7 @@ export class MemoryUtils {
     // Iterate through all properties of the material to find textures
     for (const key in material) {
       const value = (material as any)[key];
-      if (value && value instanceof THREE.Texture) {
+      if (value && value instanceof THREE.Texture && !value.userData?.persistent) {
         value.dispose();
       }
     }
@@ -56,12 +56,12 @@ export class MemoryUtils {
     if (material instanceof THREE.ShaderMaterial && material.uniforms) {
       for (const key in material.uniforms) {
         const uniform = material.uniforms[key];
-        if (uniform && uniform.value && uniform.value instanceof THREE.Texture) {
+        if (uniform && uniform.value && uniform.value instanceof THREE.Texture && !uniform.value.userData?.persistent) {
           uniform.value.dispose();
         }
         if (Array.isArray(uniform.value)) {
           uniform.value.forEach((v: any) => {
-            if (v instanceof THREE.Texture) v.dispose();
+            if (v instanceof THREE.Texture && !v.userData?.persistent) v.dispose();
           });
         }
       }

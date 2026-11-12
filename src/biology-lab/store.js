@@ -54,9 +54,20 @@ export const useBioStore = create(
       unlockedAminoAcids: [],
       synthesizedProteins: [],
       currentCellDesign: {
-        membrane: null,
+        membrane: 'phospholipid',
         organelles: [],
         cytoplasm: 'water',
+        trophicMode: 'chemotroph' // 'phototroph' | 'chemotroph' | 'heterotroph' | 'omnivore'
+      },
+
+      // --- Stage 05: Cambrian Multicellular Morphogenesis Config ---
+      morphogenesisConfig: {
+        symmetry: 'bilateral',        // 'asymmetric' | 'radial' | 'bilateral'
+        germLayers: 'triploblast',    // 'diploblast' | 'triploblast'
+        skeleton: 'notochord',        // 'hydrostatic' | 'exoskeleton' | 'notochord' | 'endoskeleton'
+        sensory: 'compound_optics',   // 'eyespots' | 'compound_optics' | 'tripartite_brain'
+        locomotion: 'paired_fins',    // 'cilia' | 'myomeres' | 'paired_fins' | 'pentadactyl_limbs'
+        segments: 7
       },
 
       // --- Actions ---
@@ -86,10 +97,15 @@ export const useBioStore = create(
         let sense = 100;
         
         // Simple stat derivation
+        let diet = design.trophicMode === 'phototroph' ? 2 : design.trophicMode === 'omnivore' ? 1 : 0;
         design.organelles.forEach(o => {
            if (o.type === 'mitochondrion') { metabolism += 0.5; speed += 0.5; }
            if (o.type === 'ribosome') { metabolism += 0.2; }
            if (o.type === 'membrane') { sense += 50; }
+           if (o.type === 'chloroplast') { metabolism += 0.45; diet = 2; }
+           if (o.type === 'flagellum') { speed += 0.9; sense += 30; }
+           if (o.type === 'vacuole') { metabolism += 0.15; }
+           if (o.type === 'crispr-array') { sense += 40; }
         });
 
         const luca = {
@@ -99,13 +115,13 @@ export const useBioStore = create(
           vx: 0, 
           vy: 0,
           radius: 15 + (design.organelles.length * 2),
-          energy: 200, // Starting energy
-          color: '#ffffff', // White for the protagonist
+          energy: 220, // Starting energy
+          color: diet === 2 ? '#10b981' : diet === 1 ? '#f43f5e' : '#ffffff',
           genome: {
             speed,
             metabolism,
             sense,
-            diet: 0, // Default Herbivore for now
+            diet,
           },
           design: design // Store the blueprint
         };
@@ -140,7 +156,7 @@ export const useBioStore = create(
       })),
 
       addOrganelleToDesign: (organelle) => set(state => {
-        if (state.currentCellDesign.organelles.length >= 6) return state;
+        if (state.currentCellDesign.organelles.length >= 8) return state;
         return {
           currentCellDesign: {
             ...state.currentCellDesign,
@@ -157,7 +173,7 @@ export const useBioStore = create(
       })),
 
       addProteinToDesign: (protein) => set(state => {
-        if (state.currentCellDesign.organelles.length >= 6) return state;
+        if (state.currentCellDesign.organelles.length >= 8) return state;
         return {
           currentCellDesign: {
             ...state.currentCellDesign,
@@ -168,6 +184,74 @@ export const useBioStore = create(
 
       updateCellDesign: (update) => set(state => ({
         currentCellDesign: { ...state.currentCellDesign, ...update }
+      })),
+
+      autoAssembleOptimalLuca: () => set(state => ({
+        currentCellDesign: {
+          ...state.currentCellDesign,
+          membrane: 'ether_lipid',
+          trophicMode: 'phototroph',
+          organelles: [
+            { id: 'org-mem', type: 'membrane', stats: { metabolism: 5, stability: 30 } },
+            { id: 'org-nuc', type: 'nucleus', stats: { metabolism: 10, stability: 50 } },
+            { id: 'org-mit', type: 'mitochondrion', stats: { metabolism: 40, stability: 5 } },
+            { id: 'org-chl', type: 'chloroplast', stats: { metabolism: 45, stability: 20 } },
+            { id: 'org-flg', type: 'flagellum', stats: { metabolism: 20, stability: 15 } },
+            { id: 'org-crs', type: 'crispr-array', stats: { metabolism: 15, stability: 45 } }
+          ]
+        }
+      })),
+
+      spawnSpeciatedGuild: () => set(state => {
+        const cx = state.worldSize.width / 2;
+        const cy = state.worldSize.height / 2;
+        const guild = [
+          // 4 Cyanobacterial Phototrophs (Green, diet 2)
+          ...Array.from({ length: 4 }).map((_, i) => ({
+            id: `PHOTO-${Date.now()}-${i}`,
+            x: cx + Math.cos(i * 1.5) * 140,
+            y: cy + Math.sin(i * 1.5) * 140,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: (Math.random() - 0.5) * 1.5,
+            radius: 17,
+            energy: 210,
+            color: '#10b981',
+            genome: { speed: 1.4, metabolism: 0.7, sense: 130, diet: 2 }
+          })),
+          // 3 Grazing Herbivores (Cyan, diet 0)
+          ...Array.from({ length: 3 }).map((_, i) => ({
+            id: `HERB-${Date.now()}-${i}`,
+            x: cx + Math.cos(i * 2.1 + 0.5) * 90,
+            y: cy + Math.sin(i * 2.1 + 0.5) * 90,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            radius: 19,
+            energy: 220,
+            color: '#22d3ee',
+            genome: { speed: 2.1, metabolism: 0.9, sense: 160, diet: 0 }
+          })),
+          // 2 Heterotrophic Predators (Rose, diet 1)
+          ...Array.from({ length: 2 }).map((_, i) => ({
+            id: `APEX-${Date.now()}-${i}`,
+            x: cx + (i === 0 ? -60 : 60),
+            y: cy,
+            vx: (Math.random() - 0.5) * 2.5,
+            vy: (Math.random() - 0.5) * 2.5,
+            radius: 22,
+            energy: 250,
+            color: '#f43f5e',
+            genome: { speed: 2.6, metabolism: 1.2, sense: 210, diet: 1 }
+          }))
+        ];
+        return {
+          agents: guild,
+          isRunning: true,
+          soup: { glucose: 160, aminoAcids: 90, lipids: 50 }
+        };
+      }),
+
+      setMorphogenesisConfig: (updates) => set(state => ({
+        morphogenesisConfig: { ...state.morphogenesisConfig, ...updates }
       })),
 
       // Import from Particle Lab Inventory (Bridge)

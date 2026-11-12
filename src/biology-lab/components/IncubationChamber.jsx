@@ -11,7 +11,8 @@ const IncubationChamber = ({ onInject, hasDesign, isRunning, agents = [] }) => {
     stressTrial = {},
     startStressTrial,
     cancelStressTrial,
-    seedCertifiedOrganismToEarth
+    seedCertifiedOrganismToEarth,
+    spawnSpeciatedGuild
   } = useBioStore();
   
   const temp = environment.temperature ?? 37.0;
@@ -281,28 +282,36 @@ const IncubationChamber = ({ onInject, hasDesign, isRunning, agents = [] }) => {
                 )}
              </div>
 
-             {/* Right Panel: Inject LUCA / Seed Ocean Button */}
-             <div className="w-56 border-l border-teal-500/15 flex flex-col items-center justify-center p-4 gap-2">
+             {/* Right Panel: Inject LUCA / Spawn Guild / Seed Ocean */}
+             <div className="w-56 border-l border-teal-500/15 flex flex-col items-center justify-center p-3 gap-1.5">
                 <button 
                   onClick={onInject}
                   disabled={!hasDesign}
                   className={`
-                    w-full flex-1 rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-lg
+                    w-full py-2 rounded-xl border transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-lg
                     ${hasDesign 
                       ? 'bg-gradient-to-br from-teal-500 via-emerald-600 to-sky-600 border-teal-300/40 text-white hover:shadow-[0_0_24px_rgba(20,184,166,0.5)] active:scale-95' 
                       : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed opacity-50'}
                   `}
                 >
-                   <span className="text-xl">{hasDesign ? '⚡' : '🔒'}</span>
+                   <span className="text-sm">{hasDesign ? '⚡' : '🔒'}</span>
                    <span className="text-[9px] font-mono font-black uppercase tracking-widest">
                       {hasDesign ? 'INJECT LUCA' : 'DESIGN EMPTY'}
                    </span>
                 </button>
 
+                <button
+                  onClick={spawnSpeciatedGuild}
+                  title="Spawn Phototrophs, Herbivores & Apex Predators to test multi-trophic food web"
+                  className="w-full py-1.5 rounded-xl bg-teal-950/60 hover:bg-teal-900/70 border border-teal-400/30 text-teal-200 text-[9px] font-mono font-bold uppercase tracking-wider cursor-pointer transition-all active:scale-95"
+                >
+                  🌊 Spawn Trophic Guild (9)
+                </button>
+
                 {stressTrial?.certified && (
                   <button 
                     onClick={seedCertifiedOrganismToEarth}
-                    className="w-full py-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 border border-sky-400/50 text-white text-[9px] font-mono font-black uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.3)] active:scale-95 transition-all"
+                    className="w-full py-1.5 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 border border-sky-400/50 text-white text-[9px] font-mono font-black uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.3)] active:scale-95 transition-all"
                   >
                     🌍 SEED PLANETARY OCEAN
                   </button>

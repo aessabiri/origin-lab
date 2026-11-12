@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, Suspense, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, PerspectiveCamera, Environment, MeshTransmissionMaterial, PresentationControls, ContactShadows, Stars, Html } from '@react-three/drei';
-import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { useBioStore } from '../store';
 import { useInventory } from '../../store/inventory';
@@ -690,15 +689,9 @@ const ProteinFolder = () => {
 
                   <ContactShadows position={[0, -6, 0]} opacity={0.5} scale={18} blur={2.5} far={12} color="#000000" />
                   <Environment preset="night" />
-                  
-                  <EffectComposer disableNormalPass>
-                    <Bloom luminanceThreshold={1} mipmapBlur intensity={1.8} radius={0.35} />
-                    <Noise opacity={0.03} />
-                    <Vignette eskil={false} offset={0.1} darkness={1.1} />
-                  </EffectComposer>
                 </Suspense>
 
-                <ambientLight intensity={0.5} />
+                <ambientLight intensity={0.65} />
                 <pointLight position={[12, 12, 12]} intensity={2.5} color="#ffffff" castShadow />
                 <pointLight position={[-12, -12, -12]} intensity={1.5} color="#38bdf8" />
                 <Stars radius={120} depth={60} count={600} factor={4} saturation={0} fade speed={1.2} />

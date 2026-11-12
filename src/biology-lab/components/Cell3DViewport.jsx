@@ -126,6 +126,66 @@ const Cell3DViewport = ({ organelles = [], compiledGenome = null, stats = {} }) 
         );
         smallSub.position.set(0.18, 0.16, 0);
         itemGroup.add(largeSub, smallSub);
+      } else if (org.type === PARTICLE_TYPES.CHLOROPLAST) {
+        // 3D Chloroplast Plastid + Stacked Emerald Thylakoid Grana Discs
+        const outerPlastid = new THREE.Mesh(
+          new THREE.SphereGeometry(0.28, 24, 16),
+          new THREE.MeshPhysicalMaterial({
+            color: 0x10b981,
+            emissive: 0x064e3b,
+            transparent: true,
+            opacity: 0.65,
+            roughness: 0.2
+          })
+        );
+        outerPlastid.scale.set(1.3, 0.75, 1.0);
+        itemGroup.add(outerPlastid);
+
+        for (let g = -1; g <= 1; g++) {
+          const disc = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.11, 0.11, 0.04, 16),
+            new THREE.MeshStandardMaterial({ color: 0x34d399, emissive: 0x059669 })
+          );
+          disc.position.set(g * 0.1, g * 0.04, 0);
+          itemGroup.add(disc);
+        }
+      } else if (org.type === PARTICLE_TYPES.VACUOLE) {
+        // 3D Translucent Osmotic Contractile Vacuole Bubble
+        const vacMesh = new THREE.Mesh(
+          new THREE.SphereGeometry(0.34, 24, 24),
+          new THREE.MeshPhysicalMaterial({
+            color: 0x38bdf8,
+            emissive: 0x0c4a6e,
+            transmission: 0.8,
+            transparent: true,
+            opacity: 0.45,
+            roughness: 0.1
+          })
+        );
+        itemGroup.add(vacMesh);
+      } else if (org.type === PARTICLE_TYPES.CRISPR_ARRAY) {
+        // 3D CRISPR-Cas9 Genomic Shield Ring
+        const crisprMesh = new THREE.Mesh(
+          new THREE.TorusKnotGeometry(0.24, 0.045, 48, 8, 2, 5),
+          new THREE.MeshStandardMaterial({
+            color: 0xf43f5e,
+            emissive: 0x881337,
+            metalness: 0.4,
+            roughness: 0.2
+          })
+        );
+        itemGroup.add(crisprMesh);
+      } else if (org.type === PARTICLE_TYPES.FLAGELLUM) {
+        // Basal Rotary Motor Rotor
+        const basalMotor = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.18, 0.18, 0.14, 16),
+          new THREE.MeshStandardMaterial({
+            color: 0x22d3ee,
+            emissive: 0x0e7490,
+            metalness: 0.6
+          })
+        );
+        itemGroup.add(basalMotor);
       } else if (org.isProtein) {
         // Folded 3D Catalytic Polypeptide Coil
         const protGeo = new THREE.TorusKnotGeometry(0.22, 0.055, 48, 8, 3, 5);
@@ -150,13 +210,14 @@ const Cell3DViewport = ({ organelles = [], compiledGenome = null, stats = {} }) 
       floatingOrganelles.push({ group: itemGroup, basePos, phase: idx * 1.4 });
     });
 
-    // 3. Demiurge Genomic Flagellum & Notochord (if compiled from 3D Anatomy Lab)
+    // 3. Demiurge Genomic Flagellum or Installed Flagellum Organelle
     const flagellumSegments = [];
-    if (compiledGenome) {
+    const hasFlagellumOrganelle = organelles.some((o) => o.type === PARTICLE_TYPES.FLAGELLUM);
+    if (compiledGenome || hasFlagellumOrganelle) {
       const segGeo = new THREE.SphereGeometry(0.08, 12, 12);
       const segMat = new THREE.MeshStandardMaterial({
-        color: 0x34d399,
-        emissive: 0x059669
+        color: compiledGenome ? 0x34d399 : 0x22d3ee,
+        emissive: compiledGenome ? 0x059669 : 0x0891b2
       });
       for (let i = 0; i < 18; i++) {
         const seg = new THREE.Mesh(segGeo, segMat);

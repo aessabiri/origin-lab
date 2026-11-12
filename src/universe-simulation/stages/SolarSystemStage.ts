@@ -30,6 +30,8 @@ interface PlanetData {
 }
 
 export class SolarSystemStage extends Stage {
+  private static planetTextureCache = new Map<string, THREE.CanvasTexture>();
+  private static ringTextureCache: THREE.CanvasTexture | null = null;
   private sun: THREE.Mesh | null = null;
   private planetMeshes: THREE.Group[] = [];
   private planetPivots: THREE.Group[] = [];
@@ -119,11 +121,23 @@ export class SolarSystemStage extends Stage {
     }
   ];
 
+  public static getTextureCacheSize(): number {
+    return SolarSystemStage.planetTextureCache.size + (SolarSystemStage.ringTextureCache ? 1 : 0);
+  }
+
   private createPlanetTexture(color: number, type: 'rocky' | 'gas', name: string): THREE.CanvasTexture {
+    const cacheKey = `${name}_${type}_${color}`;
+    const cached = SolarSystemStage.planetTextureCache.get(cacheKey);
+    if (cached) return cached;
+
     const canvas = document.createElement('canvas');
     canvas.width = 1024; canvas.height = 512;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return new THREE.CanvasTexture(canvas);
+    if (!ctx) {
+      const fallback = new THREE.CanvasTexture(canvas);
+      SolarSystemStage.planetTextureCache.set(cacheKey, fallback);
+      return fallback;
+    }
     const baseColor = new THREE.Color(color);
     ctx.fillStyle = '#' + baseColor.getHexString();
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -157,14 +171,22 @@ export class SolarSystemStage extends Stage {
     }
     const tex = new THREE.CanvasTexture(canvas);
     tex.anisotropy = 16;
+    tex.userData = { persistent: true };
+    SolarSystemStage.planetTextureCache.set(cacheKey, tex);
     return tex;
   }
 
   private createRingTexture(): THREE.CanvasTexture {
+    if (SolarSystemStage.ringTextureCache) return SolarSystemStage.ringTextureCache;
     const canvas = document.createElement('canvas');
     canvas.width = 512; canvas.height = 64;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return new THREE.CanvasTexture(canvas);
+    if (!ctx) {
+      const fallback = new THREE.CanvasTexture(canvas);
+      fallback.userData = { persistent: true };
+      SolarSystemStage.ringTextureCache = fallback;
+      return fallback;
+    }
     const grd = ctx.createLinearGradient(0, 0, 512, 0);
     grd.addColorStop(0, 'rgba(136, 119, 102, 0)');
     grd.addColorStop(0.2, 'rgba(136, 119, 102, 0.8)');
@@ -173,7 +195,10 @@ export class SolarSystemStage extends Stage {
     grd.addColorStop(0.7, 'rgba(80, 70, 60, 0.4)');
     grd.addColorStop(1, 'rgba(136, 119, 102, 0)');
     ctx.fillStyle = grd; ctx.fillRect(0, 0, 512, 64);
-    return new THREE.CanvasTexture(canvas);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.userData = { persistent: true };
+    SolarSystemStage.ringTextureCache = tex;
+    return tex;
   }
 
   init() {

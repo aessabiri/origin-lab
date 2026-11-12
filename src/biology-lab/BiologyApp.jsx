@@ -6,6 +6,7 @@ import ProteinFolder from './components/ProteinFolder';
 import CellBuilder from './components/CellBuilder';
 import BioModeSelector from './components/BioModeSelector';
 import BioLabInventory from './components/BioLabInventory';
+import CambrianMorphogenesisLab from './components/CambrianMorphogenesisLab';
 import { useStore } from '../store';
 
 const MODE_THEMES = {
@@ -73,7 +74,14 @@ const BiologyApp = () => {
         {/* Cell Assembly Mode: Blueprint & LUCA Builder */}
         {viewMode === 'assembly' && (
           <div className="w-full h-full flex flex-col overflow-hidden">
-            <CellBuilder onFinalize={injectLuca} />
+            <CellBuilder onFinalize={() => { injectLuca(); setViewMode('simulation'); }} />
+          </div>
+        )}
+
+        {/* Stage 05: Cambrian Multicellular Morphogenesis Studio */}
+        {viewMode === 'morphogenesis' && (
+          <div className="w-full h-full flex flex-col overflow-hidden">
+            <CambrianMorphogenesisLab onOpenAnatomy={() => useStore.getState().setCurrentView('anatomy')} />
           </div>
         )}
 

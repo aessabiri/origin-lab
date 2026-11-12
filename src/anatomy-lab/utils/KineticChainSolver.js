@@ -118,7 +118,7 @@ export class KineticChainSolver {
    * @param {Object} postureParams
    * @returns {Object} { muscles: Map, overactive: Array, underactive: Array }
    */
-  static calculateMuscleStrains(postureParams = {}) {
+  static calculateMuscleStrains(postureParams = {}, gravityMultiplier = 1.0) {
     const {
       pelvisTilt = 0,
       pelvisDrop = 0,
@@ -131,6 +131,8 @@ export class KineticChainSolver {
       rightFootPronation = 0,
       leftFootPronation = 0,
     } = postureParams;
+
+    const gScale = Math.max(0.05, Number(gravityMultiplier) || 1.0);
 
     // Convert angles to normalized mechanical factors
     const aptMagnitude = Math.max(0, -pelvisTilt);
@@ -145,7 +147,8 @@ export class KineticChainSolver {
     const muscleRegistry = [];
 
     const addMuscle = (id, name, baseLength, deltaLength, region, optimalRole) => {
-      const strainRatio = deltaLength / baseLength;
+      const scaledDelta = deltaLength * gScale;
+      const strainRatio = scaledDelta / baseLength;
       const strainPercent = Math.round(strainRatio * 100);
 
       let state = 'normal';
@@ -246,6 +249,8 @@ export class KineticChainSolver {
       registry: muscleRegistry,
       overactive,
       underactive,
+      gravityMultiplier: gScale,
+      axialCompressionLoadN: Math.round(70 * 9.81 * gScale),
     };
   }
 }

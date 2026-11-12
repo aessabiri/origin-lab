@@ -48,6 +48,7 @@ export const useAnatomyStore = create(
       activePresetId: 'neutral',
       showVectors: true,
       activeGizmoJoint: null, // 'pelvis' | 'lumbar' | 'thoracic' | 'cervical' | 'right_femur' | 'right_tibia' | 'right_foot' | null
+      gravityMultiplier: 1.0, // 0.16 (Moon) | 0.38 (Mars) | 1.0 (Earth) | 1.6 (Super-Earth) | 2.53 (Jupiter)
       postureParams: { ...DEFAULT_POSTURE_PARAMS },
 
       // Dynamic Muscle Strain Heatmap Lists (Array of { id, name, role, severity, strainPercent })
@@ -213,11 +214,22 @@ export const useAnatomyStore = create(
       })),
 
       // Posture & Kinetic Chain Update
+      setGravityMultiplier: (gravityMultiplier) => {
+        const state = get();
+        const g = Math.max(0.05, Number(gravityMultiplier) || 1.0);
+        const strains = KineticChainSolver.calculateMuscleStrains(state.postureParams, g);
+        set({
+          gravityMultiplier: g,
+          overactiveMuscles: strains.overactive,
+          underactiveMuscles: strains.underactive,
+        });
+      },
+
       setPostureParam: (param, value) => {
         const state = get();
         const nextParams = { ...state.postureParams, [param]: value };
         const solved = KineticChainSolver.solveKineticChain(nextParams, state.kineticMode);
-        const strains = KineticChainSolver.calculateMuscleStrains(solved);
+        const strains = KineticChainSolver.calculateMuscleStrains(solved, state.gravityMultiplier);
 
         set({
           activePresetId: 'custom',
@@ -230,7 +242,7 @@ export const useAnatomyStore = create(
       setKineticMode: (kineticMode) => {
         const state = get();
         const solved = KineticChainSolver.solveKineticChain(state.postureParams, kineticMode);
-        const strains = KineticChainSolver.calculateMuscleStrains(solved);
+        const strains = KineticChainSolver.calculateMuscleStrains(solved, state.gravityMultiplier);
 
         set({
           kineticMode,
@@ -241,9 +253,10 @@ export const useAnatomyStore = create(
       },
 
       applyPosturePreset: (presetId) => {
+        const state = get();
         const cond = POSTURE_CONDITIONS[presetId] || POSTURE_CONDITIONS.neutral;
         const params = { ...DEFAULT_POSTURE_PARAMS, ...(cond.parameters || {}) };
-        const strains = KineticChainSolver.calculateMuscleStrains(params);
+        const strains = KineticChainSolver.calculateMuscleStrains(params, state.gravityMultiplier);
 
         set((state) => ({
           activePresetId: cond.id,

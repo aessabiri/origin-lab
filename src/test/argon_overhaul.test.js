@@ -9,6 +9,11 @@ import { compileAnatomyToGenome } from '../anatomy-lab/utils/blueprintCompiler';
 import { ALL_206_BONES } from '../anatomy-lab/data/humanSkeletalDatabase';
 import { ATOMIC_ORBITAL_DATA } from '../particle-lab/components/QuantumAtom3D';
 import { VSEPR_MOLECULES } from '../chemistry-lab/components/MoleculeViewer3D';
+import { createTimeCapsuleSnapshot, restoreTimeCapsuleSnapshot } from '../utils/timeCapsule';
+import { useBioStore } from '../biology-lab/store';
+import { computeMorphogenesisMetrics } from '../biology-lab/components/CambrianMorphogenesisLab';
+import { KineticChainSolver } from '../anatomy-lab/utils/KineticChainSolver';
+import { PARTICLE_TYPES } from '../constants/particles';
 
 describe('Argon Branch Overhaul — Cosmic Clock, 3D Quantum/VSEPR Data & Demiurge Compiler', () => {
   beforeEach(() => {
@@ -114,5 +119,80 @@ describe('Argon Branch Overhaul — Cosmic Clock, 3D Quantum/VSEPR Data & Demiur
         expect(order).toBeGreaterThanOrEqual(1);
       });
     });
+  });
+
+  it('serializes and restores the entire multi-lab state via Time Capsule (.origin.json)', () => {
+    useCosmicClockStore.getState().setCosmicAgeYears(4500000000);
+    useInventory.getState().addResource('elements', 'carbon', 42);
+    useBioStore.getState().autoAssembleOptimalLuca();
+
+    const snapshot = createTimeCapsuleSnapshot('Test Snapshot');
+    expect(snapshot.version).toBe('2.0.0-argon');
+    expect(snapshot.cosmic.cosmicAgeYears).toBe(4500000000);
+    expect(snapshot.inventory.elements.carbon).toBe(42);
+    expect(snapshot.biology.currentCellDesign.organelles.length).toBe(6);
+
+    // Reset and restore from JSON string
+    useInventory.getState().resetUniverse();
+    useCosmicClockStore.getState().setCosmicAgeYears(100);
+    restoreTimeCapsuleSnapshot(JSON.stringify(snapshot));
+
+    expect(useCosmicClockStore.getState().cosmicAgeYears).toBe(4500000000);
+    expect(useInventory.getState().elements.carbon).toBe(42);
+    expect(useBioStore.getState().currentCellDesign.organelles.length).toBe(6);
+  });
+
+  it('supports all 8 Biology organelle classes, Auto-LUCA assembly, and multi-trophic guild spawning', () => {
+    expect(PARTICLE_TYPES.CHLOROPLAST).toBe('chloroplast');
+    expect(PARTICLE_TYPES.FLAGELLUM).toBe('flagellum');
+    expect(PARTICLE_TYPES.VACUOLE).toBe('vacuole');
+    expect(PARTICLE_TYPES.CRISPR_ARRAY).toBe('crispr-array');
+
+    const bio = useBioStore.getState();
+    bio.autoAssembleOptimalLuca();
+    expect(useBioStore.getState().currentCellDesign.organelles.length).toBe(6);
+
+    bio.spawnSpeciatedGuild();
+    const agents = useBioStore.getState().agents;
+    expect(agents.length).toBe(9);
+    // Verify Phototrophs (2), Herbivores (0), and Apex Predators (1) all exist
+    expect(agents.some((a) => a.genome.diet === 2)).toBe(true);
+    expect(agents.some((a) => a.genome.diet === 0)).toBe(true);
+    expect(agents.some((a) => a.genome.diet === 1)).toBe(true);
+  });
+
+  it('computes Stage 05 Cambrian Multicellular Morphogenesis metrics and vertebrate clade unlocks', () => {
+    const ediacaran = computeMorphogenesisMetrics({
+      symmetry: 'radial',
+      germLayers: 'diploblast',
+      skeleton: 'hydrostatic',
+      sensory: 'eyespots',
+      locomotion: 'cilia',
+      segments: 4
+    });
+    expect(ediacaran.cladeId).toBe('ediacaran');
+
+    const tetrapod = computeMorphogenesisMetrics({
+      symmetry: 'bilateral',
+      germLayers: 'triploblast',
+      skeleton: 'endoskeleton',
+      sensory: 'tripartite_brain',
+      locomotion: 'pentadactyl_limbs',
+      segments: 9
+    });
+    expect(tetrapod.cladeId).toBe('tetrapoda');
+    expect(tetrapod.biomechanicalReadiness).toBeGreaterThan(ediacaran.biomechanicalReadiness);
+    expect(tetrapod.encephalizationQuotient).toBeGreaterThan(ediacaran.encephalizationQuotient);
+  });
+
+  it('scales axial spinal load and myofascial strain across Planetary Gravity fields (0.38g Mars vs 2.53g Jupiter)', () => {
+    const posture = { rightFootPronation: 0.35, pelvisTilt: -0.25, cervicalForwardHead: 0.03 };
+    const marsStrain = KineticChainSolver.calculateMuscleStrains(posture, 0.38);
+    const earthStrain = KineticChainSolver.calculateMuscleStrains(posture, 1.0);
+    const jupiterStrain = KineticChainSolver.calculateMuscleStrains(posture, 2.53);
+
+    expect(marsStrain.axialCompressionLoadN).toBeLessThan(earthStrain.axialCompressionLoadN);
+    expect(jupiterStrain.axialCompressionLoadN).toBeGreaterThan(earthStrain.axialCompressionLoadN);
+    expect(jupiterStrain.overactive.length).toBeGreaterThanOrEqual(marsStrain.overactive.length);
   });
 });

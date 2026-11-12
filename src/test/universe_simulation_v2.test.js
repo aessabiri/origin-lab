@@ -88,6 +88,10 @@ describe('Universe Simulation V2 & Desktop 3D Solar System / Earth Integration T
 
     stage.setFocusIndex(null);
     expect(stage.getMetrics().phase).toBe('Solar System');
+
+    // Verify static planet texture cache (8 planets + 1 Saturn ring = 9 cached textures)
+    stage.init();
+    expect(SolarSystemStage.getTextureCacheSize()).toBe(9);
     stage.destroy();
   });
 

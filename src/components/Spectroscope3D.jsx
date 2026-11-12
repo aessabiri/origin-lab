@@ -11,13 +11,6 @@ import {
   MeshTransmissionMaterial,
   Center
 } from '@react-three/drei';
-import { 
-  EffectComposer, 
-  Bloom, 
-  Noise, 
-  Vignette, 
-  ChromaticAberration
-} from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { MATTER_DEFINITIONS } from '../constants/matterRegistry';
 import { MOLECULE_RECIPES } from '../constants/moleculeRecipes';
@@ -248,13 +241,8 @@ const Spectroscope3D = ({ itemId }) => {
                     </Center>
                 </Float>
             </PresentationControls>
-
-            <EffectComposer disableNormalPass multisampling={0}>
-                <Bloom luminanceThreshold={0.1} mipmapBlur intensity={2.2} radius={0.5} />
-                <ChromaticAberration offset={[0.002, 0.002]} />
-                <Noise opacity={0.15} />
-                <Vignette eskil={false} offset={0.1} darkness={1.3} />
-            </EffectComposer>
+            <ambientLight intensity={0.8} />
+            <pointLight position={[10, 10, 10]} intensity={2.2} color="#22d3ee" />
         </Suspense>
       </Canvas>
     </div>

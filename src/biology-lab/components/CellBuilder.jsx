@@ -17,7 +17,9 @@ const CellBuilder = ({ onFinalize }) => {
     addOrganelleToDesign,
     removeOrganelleFromDesign,
     synthesizedProteins,
-    addProteinToDesign
+    addProteinToDesign,
+    updateCellDesign,
+    autoAssembleOptimalLuca
   } = useBioStore();
 
   const compiledGenome = useCosmicClockStore((state) => state.compiledGenome);
@@ -26,7 +28,11 @@ const CellBuilder = ({ onFinalize }) => {
     { type: PARTICLE_TYPES.MEMBRANE, stats: { metabolism: 5, stability: 30 } },
     { type: PARTICLE_TYPES.RIBOSOME, stats: { metabolism: 15, stability: 10 } },
     { type: PARTICLE_TYPES.MITOCHONDRION, stats: { metabolism: 40, stability: 5 } },
-    { type: PARTICLE_TYPES.NUCLEUS, stats: { metabolism: 10, stability: 50 } }
+    { type: PARTICLE_TYPES.NUCLEUS, stats: { metabolism: 10, stability: 50 } },
+    { type: PARTICLE_TYPES.CHLOROPLAST, stats: { metabolism: 45, stability: 20 } },
+    { type: PARTICLE_TYPES.FLAGELLUM, stats: { metabolism: 20, stability: 15 } },
+    { type: PARTICLE_TYPES.VACUOLE, stats: { metabolism: 12, stability: 35 } },
+    { type: PARTICLE_TYPES.CRISPR_ARRAY, stats: { metabolism: 15, stability: 45 } }
   ];
 
   // Derived stats from organelles + Demiurge 206-Bone Genomic Blueprint bonus
@@ -84,13 +90,47 @@ const CellBuilder = ({ onFinalize }) => {
       {/* LEFT: Component Library */}
       <div className="w-80 flex flex-col gap-4 shrink-0">
         <div className="flex-1 flex flex-col p-5 argon-panel rounded-3xl">
-          <div className="mb-4 pb-3 border-b border-teal-500/20">
-            <h3 className="font-display text-xs font-bold text-teal-300 uppercase tracking-widest flex items-center gap-2">
-              <span>🧬</span> Biogenesis Assembly Matrix
-            </h3>
-            <p className="text-[9px] text-slate-400 font-mono mt-0.5">
-              3D Organelles, Peptides & Demiurge DNA
-            </p>
+          <div className="mb-4 pb-3 border-b border-teal-500/20 flex items-center justify-between gap-2">
+            <div>
+              <h3 className="font-display text-xs font-bold text-teal-300 uppercase tracking-widest flex items-center gap-2">
+                <span>🧬</span> Biogenesis Assembly Matrix
+              </h3>
+              <p className="text-[9px] text-slate-400 font-mono mt-0.5">
+                8 Organelle Classes & Demiurge DNA
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                autoAssembleOptimalLuca();
+                useStore.getState().showMessage('⚡ Optimal 6-Organelle LUCA Chassis Assembled!');
+              }}
+              title="Auto-equip Membrane, Nucleus, Mitochondrion, Chloroplast, Flagellum & CRISPR Shield"
+              className="px-2.5 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/35 border border-teal-400/40 text-teal-200 font-mono text-[9px] font-bold uppercase tracking-wider cursor-pointer transition-all shrink-0"
+            >
+              ⚡ Auto-LUCA
+            </button>
+          </div>
+
+          {/* Trophic Metabolic Mode Selector */}
+          <div className="mb-3 grid grid-cols-4 gap-1 bg-[#060a14] p-1 rounded-xl border border-teal-500/20">
+            {[
+              { id: 'phototroph', label: '☀️ Photo' },
+              { id: 'chemotroph', label: '🌋 Chemo' },
+              { id: 'heterotroph', label: '🌿 Herb' },
+              { id: 'omnivore', label: '🦈 Apex' }
+            ].map((mode) => (
+              <button
+                key={mode.id}
+                onClick={() => updateCellDesign({ trophicMode: mode.id })}
+                className={`py-1 rounded-lg font-mono text-[8px] font-bold uppercase transition-all cursor-pointer ${
+                  (currentCellDesign.trophicMode || 'chemotroph') === mode.id
+                    ? 'bg-teal-500/30 text-teal-200 border border-teal-400/40'
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {mode.label}
+              </button>
+            ))}
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-5 pr-1 custom-scrollbar">

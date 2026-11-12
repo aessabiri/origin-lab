@@ -33,6 +33,8 @@ const BiomechanicsHUD = () => {
   const setActiveGizmoJoint = useAnatomyStore(state => state.setActiveGizmoJoint);
   const overactiveMuscles = useAnatomyStore(state => state.overactiveMuscles);
   const underactiveMuscles = useAnatomyStore(state => state.underactiveMuscles);
+  const gravityMultiplier = useAnatomyStore(state => state.gravityMultiplier) || 1.0;
+  const setGravityMultiplier = useAnatomyStore(state => state.setGravityMultiplier);
 
   const compiledGenome = useCosmicClockStore(state => state.compiledGenome);
   const setCompiledGenome = useCosmicClockStore(state => state.setCompiledGenome);
@@ -125,6 +127,36 @@ const BiomechanicsHUD = () => {
             >
               ↺ Neutral
             </button>
+          </div>
+
+          {/* 0. Planetary Gravity Field Selector */}
+          <div>
+            <div className="flex items-center justify-between text-[9px] font-bold uppercase text-slate-400 mb-1.5">
+              <span>Planetary Gravity Field:</span>
+              <span className="text-cyan-300">{gravityMultiplier.toFixed(2)} g ({Math.round(70 * 9.81 * gravityMultiplier)} N Axial Load)</span>
+            </div>
+            <div className="grid grid-cols-5 gap-1">
+              {[
+                { label: '🌙 0.16g', val: 0.16, title: 'Luna (Moon)' },
+                { label: '🔴 0.38g', val: 0.38, title: 'Mars' },
+                { label: '🌍 1.00g', val: 1.0, title: 'Earth Standard' },
+                { label: '🪐 1.60g', val: 1.6, title: 'Super-Earth Exoplanet' },
+                { label: '⚡ 2.53g', val: 2.53, title: 'Jupiter Cloud Deck' }
+              ].map((g) => (
+                <button
+                  key={g.val}
+                  onClick={() => setGravityMultiplier && setGravityMultiplier(g.val)}
+                  title={g.title}
+                  className={`py-1 px-1 rounded-lg text-[8px] font-bold border transition-all cursor-pointer ${
+                    Math.abs(gravityMultiplier - g.val) < 0.02
+                      ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200'
+                      : 'bg-[#050914] border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 1. Clinical Syndrome Presets */}

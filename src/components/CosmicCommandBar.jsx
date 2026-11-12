@@ -1,14 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Play,
   Pause,
-  FastForward,
   Sparkles,
   BookOpen,
   Compass,
   Dna,
   Activity,
-  Clock
+  Clock,
+  Download,
+  Upload,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import {
   useCosmicClockStore,
@@ -18,6 +21,8 @@ import {
 import { useInventory } from '../store/inventory';
 import { useProgressionStore } from '../store/progressionStore';
 import { useStore } from '../store';
+import { downloadTimeCapsuleFile, restoreTimeCapsuleSnapshot } from '../utils/timeCapsule';
+import { cosmicAudio } from '../utils/cosmicAudioBus';
 
 const CosmicCommandBar = ({
   isGuideOpen,
@@ -63,7 +68,40 @@ const CosmicCommandBar = ({
 
   const handleQuickSeed = () => {
     quickSeedAllLabs();
+    cosmicAudio.playSynthesisChord();
     useStore.getState().showMessage('⚡ Universal Ledger Seeded — All Atomic & Prebiotic Stocks Charged!');
+  };
+
+  const [isMuted, setIsMuted] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleToggleAudio = () => {
+    const nextMuted = cosmicAudio.toggleMute();
+    setIsMuted(nextMuted);
+    if (!nextMuted) cosmicAudio.playChime(660, 0.18, 'sine');
+  };
+
+  const handleExportTimeCapsule = () => {
+    downloadTimeCapsuleFile();
+    cosmicAudio.playChime(784, 0.2, 'triangle');
+    useStore.getState().showMessage('💾 Time Capsule (.origin.json) exported!');
+  };
+
+  const handleImportTimeCapsule = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        restoreTimeCapsuleSnapshot(String(ev.target?.result || ''));
+        cosmicAudio.playSynthesisChord();
+        useStore.getState().showMessage('📂 Time Capsule restored across all 6 laboratories!');
+      } catch (err) {
+        useStore.getState().showMessage(`⚠️ Invalid Time Capsule file: ${err.message}`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   return (
@@ -179,6 +217,40 @@ const CosmicCommandBar = ({
           <Sparkles className="w-3 h-3 text-amber-400" />
           <span className="hidden sm:inline">Seed Ledger</span>
         </button>
+
+        {/* Time Capsule Export / Import & Acoustic Bus */}
+        <div className="hidden sm:flex items-center gap-1 bg-[#090f1d] border border-white/[0.08] rounded-lg p-0.5">
+          <button
+            onClick={handleExportTimeCapsule}
+            title="Export Universal Time Capsule (.origin.json)"
+            className="p-1 rounded hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
+          >
+            <Download className="w-3 h-3" />
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            title="Import Universal Time Capsule (.origin.json)"
+            className="p-1 rounded hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-300 transition-colors cursor-pointer"
+          >
+            <Upload className="w-3 h-3" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,.origin.json"
+            onChange={handleImportTimeCapsule}
+            className="hidden"
+          />
+          <button
+            onClick={handleToggleAudio}
+            title={isMuted ? 'Unmute Acoustic Telemetry' : 'Mute Acoustic Telemetry'}
+            className={`p-1 rounded transition-colors cursor-pointer ${
+              isMuted ? 'text-rose-400 hover:bg-rose-500/20' : 'text-cyan-400 hover:bg-cyan-500/20'
+            }`}
+          >
+            {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+          </button>
+        </div>
 
         <button
           onClick={onToggleGuide}
