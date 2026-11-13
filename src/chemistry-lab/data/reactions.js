@@ -295,6 +295,63 @@ const MANUAL_REACTIONS = [
     outputs: { 'nucleotide-a': 1, 'water': 2 },
     visual: 'solidify',
     heat: 5
+  },
+  // --- BIO-ASSEMBLY LINE ESSENTIAL REACTIONS (Chemistry -> Biology Stage 1) ---
+  // 1. Phospholipid Bilayer Precursor: Glycerol + 2 Fatty Acid + Phosphoric Acid -> Phospholipid + 2 Water
+  {
+    inputs: { 'glycerol': 1, 'fatty-acid': 2, 'phosphoric-acid': 1 },
+    conditions: { tempMin: 70 },
+    outputs: { 'phospholipid': 1, 'water': 2 },
+    visual: 'condense',
+    heat: 15
+  },
+  // 2. B-DNA / RNA Polymerization: Nucleotide-A + Phosphoric Acid -> DNA + RNA
+  {
+    inputs: { 'nucleotide-a': 1, 'phosphoric-acid': 1 },
+    conditions: { tempMin: 60 },
+    outputs: { 'dna': 1, 'rna': 1 },
+    visual: 'solidify',
+    heat: 10
+  },
+  // 3. High-Energy ATP / NADH Carrier: Nucleotide-A + 2 Phosphoric Acid -> NADH + Water
+  {
+    inputs: { 'nucleotide-a': 1, 'phosphoric-acid': 2 },
+    conditions: { tempMin: 50 },
+    outputs: { 'nadh': 1, 'water': 1 },
+    visual: 'bubble',
+    heat: 25
+  },
+  // 4. Miller-Urey / Strecker Glycine Synthesis: 2 Methane + 1 Ammonia + 2 Water -> Glycine + 5 Hydrogen
+  {
+    inputs: { 'methane': 2, 'ammonia': 1, 'water': 2 },
+    conditions: { tempMin: 100 },
+    outputs: { 'glycine': 1, 'hydrogen': 5 },
+    visual: 'bubble',
+    heat: 35
+  },
+  // 5. Glutamic Acid Transamination: Citric Acid + Ammonia -> Glutamic Acid + Water
+  {
+    inputs: { 'citric-acid': 1, 'ammonia': 1 },
+    conditions: { tempMin: 80 },
+    outputs: { 'glutamic-acid': 1, 'water': 1 },
+    visual: 'dissolve',
+    heat: 15
+  },
+  // 6. Porphyrin Heme Chelation: 4 Glycine + 1 Iron -> Heme
+  {
+    inputs: { 'glycine': 4, 'iron': 1 },
+    conditions: { tempMin: 95 },
+    outputs: { 'heme': 1 },
+    visual: 'solidify',
+    heat: 30
+  },
+  // 7. S4 Voltage-Sensor Arginine Synthesis: Glutamic Acid + 2 Ammonia -> Arginine + 2 Water
+  {
+    inputs: { 'glutamic-acid': 1, 'ammonia': 2 },
+    conditions: { tempMin: 85 },
+    outputs: { 'arginine': 1, 'water': 2 },
+    visual: 'dissolve',
+    heat: 20
   }
 ];
 

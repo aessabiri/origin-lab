@@ -63,6 +63,101 @@ export const BIO_TISSUE_RECIPES = {
   },
 };
 
+export const CLINICAL_PATHOLOGIES = {
+  myocardial_ischemia: {
+    id: 'myocardial_ischemia',
+    label: 'Myocardial Ischemia',
+    icon: '🫀',
+    targetTissue: 'endothelial',
+    repairTherapy: 'Cardiomyocyte + VEGF Coronary Graft',
+    description: 'Coronary perfusion deficit reducing left-ventricular ejection fraction.',
+    hrDelta: 36,
+    spo2Delta: -9
+  },
+  alveolar_hypoxia: {
+    id: 'alveolar_hypoxia',
+    label: 'Alveolar Hypoxia',
+    icon: '🫁',
+    targetTissue: 'visceral',
+    repairTherapy: 'Type-II Pneumocyte Surfactant Infusion',
+    description: 'Alveolar-capillary diffusion barrier impairment lowering arterial SpO₂.',
+    hrDelta: 22,
+    spo2Delta: -16
+  },
+  demyelination: {
+    id: 'demyelination',
+    label: 'Axonal Demyelination',
+    icon: '🧠',
+    targetTissue: 'neural',
+    repairTherapy: 'Schwann & Oligodendrocyte Remyelination',
+    description: 'Saltatory conduction velocity drop across corticospinal tracts.',
+    hrDelta: 8,
+    spo2Delta: -2
+  },
+  trabecular_fracture: {
+    id: 'trabecular_fracture',
+    label: 'Trabecular Micro-Fracture',
+    icon: '🦴',
+    targetTissue: 'osteoid',
+    repairTherapy: 'Osteoblast Hydroxyapatite Callus Graft',
+    description: 'Load-bearing femoral neck trabecular lattice micro-fissure.',
+    hrDelta: 12,
+    spo2Delta: 0
+  }
+};
+
+/**
+ * Upgrade #4: Coupled Multi-Organ Systemic Homeostasis Engine
+ * Computes real-time O2 Delivery (DO2), ATP Flux, and Homeostatic Stability across all 5 organ systems.
+ */
+export function computeSystemicHomeostasis(state = {}) {
+  const tissues = state.bioprintedTissues || {};
+  const bonesCount = (state.assembledBones || []).length;
+  const boneRatio = Math.min(1, bonesCount / TOTAL_BONE_COUNT);
+
+  const hasHeart = Boolean(tissues.endothelial);
+  const hasLungsLiver = Boolean(tissues.visceral);
+  const hasBrain = Boolean(tissues.neural);
+  const hasMuscles = Boolean(tissues.myofibril);
+  const hasSkeleton = Boolean(tissues.osteoid) || boneRatio >= 1;
+
+  const activeOrganCount = [hasHeart, hasLungsLiver, hasBrain, hasMuscles, hasSkeleton].filter(
+    Boolean
+  ).length;
+
+  const pathologyPenalty = state.activePathology ? 28 : 0;
+  const baseScore = Math.round(activeOrganCount * 16 + boneRatio * 20);
+  const homeostasisScore = Math.max(0, Math.min(100, baseScore - pathologyPenalty));
+
+  // Coupled cardiopulmonary O2 delivery (normal adult resting DO2 ~ 1000 mL O2/min)
+  const cardioPulmonaryFactor =
+    (hasHeart ? 0.5 : 0.1) + (hasLungsLiver ? 0.5 : 0.1);
+  const systemicO2DeliveryMlMin = Math.round(
+    1000 * cardioPulmonaryFactor * (state.activePathology ? 0.68 : 1.0)
+  );
+
+  // Coupled metabolic ATP synthesis rate
+  const systemicAtpFluxMmolMin = Number(
+    (65.0 * (homeostasisScore / 100)).toFixed(1)
+  );
+
+  const statusLabel = state.activePathology
+    ? `PATHOLOGY: ${CLINICAL_PATHOLOGIES[state.activePathology]?.label || state.activePathology}`
+    : homeostasisScore >= 90
+    ? 'NORMOXIC HOMEOSTASIS'
+    : homeostasisScore >= 45
+    ? 'PARTIAL ORGAN COUPLING'
+    : 'EXTRACORPOREAL SUPPORT';
+
+  return {
+    homeostasisScore,
+    systemicO2DeliveryMlMin,
+    systemicAtpFluxMmolMin,
+    activeOrganCount,
+    statusLabel
+  };
+}
+
 export const useAnatomyStore = create(
   persist(
     (set, get) => ({
@@ -111,6 +206,7 @@ export const useAnatomyStore = create(
       },
       consciousnessScore: 0,
       isAwakened: false,
+      activePathology: null,
 
       // --- Actions ---
 
@@ -367,6 +463,55 @@ export const useAnatomyStore = create(
           useStore.getState().showMessage(msg);
         }
         return nextTissues;
+      },
+
+      // Upgrade #5: Clinical Pathophysiology & Stem-Cell Regenerative Repair Deck
+      triggerPathology: (pathologyId) => {
+        const patho = CLINICAL_PATHOLOGIES[pathologyId];
+        if (!patho) return;
+        set((state) => ({
+          activePathology: pathologyId,
+          vitalSigns: {
+            ...state.vitalSigns,
+            heartRate: Math.max(45, (state.vitalSigns.heartRate || 72) + patho.hrDelta),
+            oxygenSaturation: Math.max(
+              70,
+              (state.vitalSigns.oxygenSaturation || 99) + patho.spo2Delta
+            )
+          }
+        }));
+        useStore
+          .getState()
+          .showMessage(`⚠️ Clinical Pathology Simulated: ${patho.label} — ${patho.description}`);
+      },
+
+      applyRegenerativeRepair: () => {
+        const state = get();
+        const patho = CLINICAL_PATHOLOGIES[state.activePathology];
+        if (!patho) return false;
+
+        const targetTissue = patho.targetTissue;
+        set({
+          activePathology: null,
+          bioprintedTissues: {
+            ...state.bioprintedTissues,
+            [targetTissue]: true
+          },
+          vitalSigns: {
+            heartRate: 72,
+            bloodPressureSys: 120,
+            bloodPressureDia: 80,
+            oxygenSaturation: 99,
+            eegBand: 'Gamma (Self-Awareness)',
+            eegFrequency: 42.5
+          }
+        });
+        useStore
+          .getState()
+          .showMessage(
+            `🧬 Regenerative Repair Complete: ${patho.repairTherapy} restored normoxic homeostasis!`
+          );
+        return true;
       },
     }),
     {

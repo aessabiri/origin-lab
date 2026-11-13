@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useBioStore } from '../store';
 import { useAnatomyStore } from '../../anatomy-lab/store';
+import { useChemistryStore } from '../../chemistry-lab/store';
+import { usePlanetaryStore } from '../../store/planetaryStore';
 import { useStore } from '../../store';
 import { cosmicAudio } from '../../utils/cosmicAudioBus';
 import {
@@ -11,7 +13,8 @@ import {
   LEVEL_4_TISSUES,
   TIER_1_ORGAN_SYSTEMS,
   TIER_4_FOLDED_PROTEINS,
-  evaluateOrganSystemChain
+  evaluateOrganSystemChain,
+  evaluateOrganPhysiologyBenchTest
 } from '../data/topDownBioHierarchy';
 import {
   createBDNADoubleHelix,
@@ -21,9 +24,13 @@ import {
   createHDPlasmaMembrane,
   create3DOrganForSystem
 } from '../utils/organelle3DFactory';
+import {
+  loadZAnatomyOrganModel,
+  applyOrganSubPartMaterials
+} from '../utils/zAnatomyOrganLoader';
 
 const PIPELINE_STAGES = [
-  { id: 'organ', level: 5, title: '5. Human Organ', sub: '3D Macro Structure' },
+  { id: 'organ', level: 5, title: '5. Human Organ', sub: '3D Z-Anatomy GLB' },
   { id: 'tissue', level: 4, title: '4. Tissue & ECM', sub: 'Cells + Matrix' },
   { id: 'cell', level: 3, title: '3. Specialized Cell', sub: 'Organelles + Proteins' },
   { id: 'organelle', level: 2, title: '2. 3D Organelle', sub: 'Sub-Cellular Parts' },
@@ -40,12 +47,14 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
   const foldedProteins = useBioStore((s) => s.foldedProteins) || [];
   const assembledOrganelleParts = useBioStore((s) => s.assembledOrganelleParts) || [];
   const assembledOrganelles = useBioStore((s) => s.assembledOrganelles) || [];
+  const assembledOrganParts = useBioStore((s) => s.assembledOrganParts) || [];
   const differentiatedCells = useBioStore((s) => s.differentiatedCells) || [];
   const engineeredTissues = useBioStore((s) => s.engineeredTissues) || [];
   const currentCellDesign = useBioStore((s) => s.currentCellDesign);
 
   const snapOrganellePart = useBioStore((s) => s.snapOrganellePart);
   const assembleCompleteOrganelle = useBioStore((s) => s.assembleCompleteOrganelle);
+  const snapOrganSubPart = useBioStore((s) => s.snapOrganSubPart);
   const transcribeAndTranslateGene = useBioStore((s) => s.transcribeAndTranslateGene);
   const foldTopDownProtein = useBioStore((s) => s.foldTopDownProtein);
   const differentiateCellLineage = useBioStore((s) => s.differentiateCellLineage);
@@ -55,11 +64,21 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
   const bioprintedTissues = useAnatomyStore((s) => s.bioprintedTissues) || {};
   const synthesizeBioTissue = useAnatomyStore((s) => s.synthesizeBioTissue);
 
+  const planetaryO2 = usePlanetaryStore((s) => s.atmosphere?.oxygen ?? 21);
+  const updateAtmosphere = usePlanetaryStore((s) => s.updateAtmosphere);
+
   // Active stage in the 5-stage assembly line ('organ' | 'tissue' | 'cell' | 'organelle' | 'molecule')
   const [activeStage, setActiveStage] = useState('organ');
   const [selectedOrganelleId, setSelectedOrganelleId] = useState('mitochondrion');
   const [selectedCellId, setSelectedCellId] = useState('cardiomyocyte');
   const [selectedMoleculeId, setSelectedMoleculeId] = useState('actin_myosin');
+
+  // Upgrade #1: 3D Surgical Cross-Section Slicer (Clipping Plane)
+  const [slicerEnabled, setSlicerEnabled] = useState(false);
+  const [slicerOffset, setSlicerOffset] = useState(0.25);
+
+  // Upgrade #3: Interactive Cell Membrane Action-Potential Depolarization (-70 mV -> +30 mV)
+  const [membranePotentialMv, setMembranePotentialMv] = useState(-70);
 
   const chainEval = useMemo(
     () =>
@@ -88,6 +107,39 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
   const activeSystem = chainEval.system;
   const activeTissue = LEVEL_4_TISSUES[activeSystem.requiredTissue];
 
+  // Upgrade #2: Live Physiological Organ Bench-Test Telemetry
+  const snappedSubPartsCount = useMemo(
+    () =>
+      (activeSystem.subParts || []).filter((sp) => assembledOrganParts.includes(sp.id)).length,
+    [activeSystem.subParts, assembledOrganParts]
+  );
+  const effectiveOrganReadiness = Math.min(
+    100,
+    Math.round(chainEval.readinessPercent * 0.6 + (snappedSubPartsCount / 4) * 40)
+  );
+  const benchTest = useMemo(
+    () => evaluateOrganPhysiologyBenchTest(activeSystem.id, effectiveOrganReadiness),
+    [activeSystem.id, effectiveOrganReadiness]
+  );
+
+  // Upgrade #8: End-to-End Master Human Genesis Progress (Chemistry -> Bio -> 3D Anatomy)
+  const masterGenesisPercent = useMemo(() => {
+    const deployedOrgans = Object.values(bioprintedTissues).filter(Boolean).length;
+    const score =
+      (foldedProteins.length / 8) * 20 +
+      (assembledOrganelles.length / 4) * 20 +
+      (differentiatedCells.length / 9) * 20 +
+      (engineeredTissues.length / 5) * 20 +
+      (deployedOrgans / 5) * 20;
+    return Math.min(100, Math.round(score));
+  }, [
+    foldedProteins.length,
+    assembledOrganelles.length,
+    differentiatedCells.length,
+    engineeredTissues.length,
+    bioprintedTissues
+  ]);
+
   // Keep selected cell & molecule aligned when switching target Organ System
   useEffect(() => {
     setSelectedCellId(activeSystem.requiredCells[0]);
@@ -99,6 +151,16 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
   const activeMolecule =
     LEVEL_1_MACROMOLECULES[selectedMoleculeId] || LEVEL_1_MACROMOLECULES.collagen_i;
 
+  // Trigger Action Potential Depolarization Wave (-70 mV -> +30 mV -> -70 mV)
+  const triggerActionPotentialPulse = () => {
+    setMembranePotentialMv(30);
+    cosmicAudio.playPulse(680);
+    setTimeout(() => {
+      setMembranePotentialMv(-80); // Hyperpolarization refractory dip
+      setTimeout(() => setMembranePotentialMv(-70), 350);
+    }, 450);
+  };
+
   // Dedicated 3D Assembly Viewport for all 5 levels
   useEffect(() => {
     const container = mountRef.current;
@@ -107,6 +169,7 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
     let renderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.localClippingEnabled = true;
     } catch {
       return;
     }
@@ -135,38 +198,57 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
     scene.add(rootGroup);
 
     const animatedItems = [];
+    let isDisposed = false;
+
+    const clipPlane = slicerEnabled
+      ? new THREE.Plane(new THREE.Vector3(0, -1, 0), slicerOffset)
+      : null;
+
+    const isOrganComplete =
+      activeStage === 'organ' ? chainEval.deployedIn3D : chainEval.tissueReady;
+
+    const effectiveSnappedParts = isOrganComplete
+      ? (activeSystem.subParts || []).map((sp) => sp.id)
+      : assembledOrganParts;
 
     if (activeStage === 'organ' || activeStage === 'tissue') {
-      // LEVEL 5 & 4: Render Sculpted High-Definition 3D Organ Model (Heart, Lungs/Liver, Brain, Muscle, Bone)
-      const organModel = create3DOrganForSystem(activeSystem.id);
-      const isComplete =
-        activeStage === 'organ' ? chainEval.deployedIn3D || chainEval.tissueReady : chainEval.tissueReady;
+      // LEVEL 5 & 4: Start with Sculpted High-Definition 3D Organ Fallback, then swap in Real Z-Anatomy .GLB!
+      const fallbackOrgan = create3DOrganForSystem(activeSystem.id);
+      applyOrganSubPartMaterials(
+        fallbackOrgan,
+        activeSystem.id,
+        effectiveSnappedParts,
+        isOrganComplete,
+        clipPlane
+      );
+      rootGroup.add(fallbackOrgan);
+      animatedItems.push({ group: fallbackOrgan, mode: 'organ', systemId: activeSystem.id });
 
-      // If prerequisite sub-elements aren't assembled yet, show non-assembled parts as blueprint wireframe
-      if (!isComplete) {
-        organModel.traverse((child) => {
-          if (child.isMesh && child.material) {
-            child.material = child.material.clone();
-            child.material.transparent = true;
-            child.material.opacity = Math.max(0.32, chainEval.readinessPercent / 100);
-            if (chainEval.readinessPercent < 40) {
-              child.material.wireframe = true;
-            }
-          }
-        });
-      }
-
-      rootGroup.add(organModel);
-      animatedItems.push({ group: organModel, mode: 'organ', systemId: activeSystem.id });
+      // Step 1: Load Real Draco-Compressed Z-Anatomy .GLB Model for this Organ System
+      loadZAnatomyOrganModel(activeSystem.id).then((glbOrgan) => {
+        if (isDisposed || !glbOrgan) return;
+        applyOrganSubPartMaterials(
+          glbOrgan,
+          activeSystem.id,
+          effectiveSnappedParts,
+          isOrganComplete,
+          clipPlane
+        );
+        rootGroup.remove(fallbackOrgan);
+        animatedItems.length = 0;
+        rootGroup.add(glbOrgan);
+        animatedItems.push({ group: glbOrgan, mode: 'organ', systemId: activeSystem.id });
+      });
     } else if (activeStage === 'cell') {
       // LEVEL 3: Render Specialized Cell with its Assembled 3D Organelles inside
       const isCellReady = differentiatedCells.includes(activeCell.id);
+      const isDepolarized = membranePotentialMv > 0;
       const outerMembrane = new THREE.Mesh(
         new THREE.SphereGeometry(1.45, 48, 48),
         new THREE.MeshPhysicalMaterial({
-          color: activeCell.color,
-          emissive: activeCell.color,
-          emissiveIntensity: isCellReady ? 0.18 : 0.05,
+          color: isDepolarized ? '#38bdf8' : activeCell.color,
+          emissive: isDepolarized ? '#38bdf8' : activeCell.color,
+          emissiveIntensity: isDepolarized ? 0.65 : isCellReady ? 0.18 : 0.05,
           transmission: 0.78,
           transparent: true,
           opacity: isCellReady ? 0.42 : 0.2,
@@ -302,13 +384,12 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
 
       animatedItems.forEach((item) => {
         if (item.mode === 'organ') {
-          // Physiological motion: Heartbeat (72 BPM) or Lung Respiration
           const pulse =
             item.systemId === 'cardiovascular_system'
-              ? 1 + Math.pow(Math.max(0, Math.sin(t * 4.5)), 4) * 0.06
+              ? 1 + Math.pow(Math.max(0, Math.sin(t * 4.5)), 4) * 0.05
               : item.systemId === 'visceral_system'
-              ? 1 + Math.sin(t * 1.8) * 0.045
-              : 1 + Math.sin(t * 2.2) * 0.015;
+              ? 1 + Math.sin(t * 1.8) * 0.035
+              : 1 + Math.sin(t * 2.2) * 0.012;
           item.group.scale.setScalar(pulse);
         } else {
           item.group.position.y = Math.sin(t * 2 + (item.phase || 0)) * 0.05;
@@ -320,6 +401,7 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
     animate();
 
     return () => {
+      isDisposed = true;
       cancelAnimationFrame(animId);
       dom.removeEventListener('pointerdown', onDown);
       dom.removeEventListener('wheel', onWheel);
@@ -335,17 +417,24 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
     selectedMoleculeId,
     assembledOrganelleParts,
     assembledOrganelles,
+    assembledOrganParts,
     foldedProteins,
     differentiatedCells,
     chainEval.tissueReady,
     chainEval.deployedIn3D,
-    chainEval.readinessPercent
+    slicerEnabled,
+    slicerOffset,
+    membranePotentialMv
   ]);
 
   const handleDeployOrganTo3D = () => {
     const anatomyTissueId = synthesizeFullOrganChain(activeSystem.id);
-    // Also mark all organelle parts as assembled
     Object.keys(LEVEL_2_ORGANELLES).forEach((oid) => assembleCompleteOrganelle(oid));
+    (activeSystem.subParts || []).forEach((sp) => {
+      if (!assembledOrganParts.includes(sp.id)) {
+        snapOrganSubPart(activeSystem.id, sp.id);
+      }
+    });
     if (synthesizeBioTissue) {
       synthesizeBioTissue(anatomyTissueId);
     }
@@ -357,11 +446,28 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
       );
   };
 
+  // Step 2: Send Macromolecule Synthesis Contract to Chemistry Lab
+  const handleOrderFromChemistryLab = (mol) => {
+    const order = mol.chemistryOrder || {
+      compoundId: 'glycine',
+      title: `Synthesize ${mol.name}`,
+      equation: 'CO₂ + NH₃ + H₂O → Bio-Monomer',
+      vesselType: 'beaker_std',
+      tempC: 85,
+      pressureAtm: 1.0
+    };
+    useChemistryStore.getState().setActiveBioOrder(order);
+    useStore.getState().setCurrentView('chemistry');
+    useStore
+      .getState()
+      .showMessage(`⚗️ Bio-Synthesis Order queued in Chemistry Lab: ${order.title}`);
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-[#060a12] p-4 pb-16 gap-3 overflow-hidden select-none">
       {/* 1. TOP BAR: SELECT TARGET HUMAN ORGAN + 5-STAGE ASSEMBLY CONVEYOR */}
       <header className="bg-[#0b1220] rounded-2xl p-3 border border-white/10 shrink-0 space-y-2.5">
-        {/* Row A: Target Macro Human Organ Selector */}
+        {/* Row A: Target Macro Human Organ Selector + Master Human Genesis Progress (Upgrade #8) */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 overflow-x-auto">
             <span className="text-[9px] font-mono font-bold text-slate-400 uppercase pr-1 shrink-0">
@@ -391,6 +497,16 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* Upgrade #8: Master Human Genesis Progress Pill */}
+            <div className="px-2.5 py-1 rounded-xl bg-[#080d18] border border-emerald-500/30 flex items-center gap-2">
+              <span className="text-[8.5px] font-mono text-slate-400 uppercase">
+                Human Genesis:
+              </span>
+              <span className="text-[10px] font-mono font-black text-emerald-400">
+                {masterGenesisPercent}%
+              </span>
+            </div>
+
             {onOpenAnatomy && (
               <button
                 onClick={onOpenAnatomy}
@@ -438,7 +554,7 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
           <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between pointer-events-none">
             <div className="bg-[#090d16]/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10">
               <span className="text-[9px] font-mono font-bold text-cyan-400 uppercase block">
-                {activeStage === 'organ' && `STAGE 5 // 3D MACRO ORGAN (${activeSystem.latinName})`}
+                {activeStage === 'organ' && `STAGE 5 // Z-ANATOMY 3D ORGAN (${activeSystem.latinName})`}
                 {activeStage === 'tissue' && `STAGE 4 // 3D TISSUE SCAFFOLD (${activeTissue.name})`}
                 {activeStage === 'cell' && `STAGE 3 // 3D SPECIALIZED CELL (${activeCell.name})`}
                 {activeStage === 'organelle' &&
@@ -455,13 +571,43 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
               </h3>
             </div>
 
-            <div className="bg-[#090d16]/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-right">
-              <span className="text-[8px] font-mono text-slate-400 uppercase block">
-                Organ Readiness
-              </span>
-              <span className="text-sm font-mono font-black text-emerald-400">
-                {chainEval.readinessPercent}%
-              </span>
+            <div className="flex items-center gap-2 pointer-events-auto">
+              {/* Upgrade #1: 3D Surgical Cross-Section Slicer Toggle */}
+              {(activeStage === 'organ' || activeStage === 'tissue') && (
+                <div className="bg-[#090d16]/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2">
+                  <button
+                    onClick={() => setSlicerEnabled((v) => !v)}
+                    className={`px-2 py-0.5 rounded-lg text-[9px] font-mono font-bold uppercase border cursor-pointer ${
+                      slicerEnabled
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                        : 'bg-[#080d18] border-white/10 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    🔪 Cross-Section
+                  </button>
+                  {slicerEnabled && (
+                    <input
+                      type="range"
+                      min="-1.1"
+                      max="1.1"
+                      step="0.05"
+                      value={slicerOffset}
+                      onChange={(e) => setSlicerOffset(parseFloat(e.target.value))}
+                      aria-label="Surgical Cross-Section Slicer"
+                      className="w-20 accent-amber-400 cursor-pointer"
+                    />
+                  )}
+                </div>
+              )}
+
+              <div className="bg-[#090d16]/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-right">
+                <span className="text-[8px] font-mono text-slate-400 uppercase block">
+                  Organ Readiness
+                </span>
+                <span className="text-sm font-mono font-black text-emerald-400">
+                  {effectiveOrganReadiness}%
+                </span>
+              </div>
             </div>
           </div>
 
@@ -472,7 +618,7 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
 
           <div className="px-4 py-2 bg-[#090d16] border-t border-white/10 flex items-center justify-between text-[9.5px] font-mono text-slate-400">
             <span>
-              💡 Wireframe parts = Missing building blocks • Solid glowing parts = Assembled
+              💡 Wireframe parts = Un-snapped blueprint • Solid PBR parts = Snapped in 3D
             </span>
             <span>Drag to Rotate • Scroll to Zoom</span>
           </div>
@@ -480,103 +626,157 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
 
         {/* RIGHT 5 COLUMNS: PART-BY-PART ASSEMBLY BENCH */}
         <div className="col-span-5 flex flex-col bg-[#0b1220] rounded-2xl border border-white/10 overflow-hidden">
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 custom-scrollbar">
             {/* ==================== STAGE 5: MACRO HUMAN ORGAN ==================== */}
             {activeStage === 'organ' && (
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <div>
                   <span className="text-[9px] font-mono font-bold text-cyan-400 uppercase">
-                    STAGE 5 (TOP) // HUMAN ORGAN ASSEMBLY
+                    STAGE 5 (TOP) // Z-ANATOMY 3D ORGAN SUB-PART ASSEMBLY
                   </span>
                   <h3 className="text-base font-black text-white mt-0.5">
                     {activeSystem.icon} {activeSystem.name}
                   </h3>
-                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
                     {activeSystem.description}
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="text-[10px] font-mono font-bold text-slate-400 uppercase">
-                    Required Building Blocks (Click any missing part to build it):
+                {/* Step 1: 4 Real Z-Anatomy Anatomical Sub-Parts to Snap Together */}
+                <div className="space-y-1.5">
+                  <div className="text-[10px] font-mono font-bold text-cyan-300 uppercase">
+                    1. Snap 3D Anatomical Sub-Structures ({snappedSubPartsCount}/4 Snapped):
                   </div>
+                  {(activeSystem.subParts || []).map((sp) => {
+                    const isSnapped =
+                      assembledOrganParts.includes(sp.id) || chainEval.deployedIn3D;
+                    return (
+                      <div
+                        key={sp.id}
+                        className="p-2.5 rounded-xl bg-[#080d18] border border-white/10 flex items-center justify-between gap-2"
+                      >
+                        <div>
+                          <div className="text-xs font-bold text-white">{sp.label}</div>
+                          <div className="text-[9px] font-mono text-slate-400">{sp.role}</div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            snapOrganSubPart(activeSystem.id, sp.id);
+                            cosmicAudio.playPulse(540);
+                          }}
+                          className={`px-3 py-1 rounded-lg font-mono text-[9px] font-bold uppercase border cursor-pointer shrink-0 ${
+                            isSnapped
+                              ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                              : 'bg-cyan-500/20 hover:bg-cyan-500/35 border-cyan-400 text-cyan-200'
+                          }`}
+                        >
+                          {isSnapped ? '✓ Snapped' : '+ Snap 3D Part'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                  {/* Requirement 1: Stage 4 Tissue */}
-                  <div className="p-3 rounded-xl bg-[#080d18] border border-white/10 flex items-center justify-between gap-2">
-                    <div>
-                      <div className="text-xs font-bold text-white">
-                        {activeTissue.icon} {activeTissue.name}
-                      </div>
-                      <div className="text-[9.5px] font-mono text-slate-400">
-                        Stage 4 Tissue • Formula: {activeTissue.formula}
-                      </div>
-                    </div>
+                {/* Lower-Tier Biological Prerequisites */}
+                <div className="space-y-1.5">
+                  <div className="text-[10px] font-mono font-bold text-slate-400 uppercase">
+                    2. Lower-Level Cellular & Tissue Building Blocks:
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
                     <button
                       onClick={() => setActiveStage('tissue')}
-                      className={`px-3 py-1.5 rounded-lg font-mono text-[9.5px] font-bold uppercase border cursor-pointer ${
+                      className={`p-2 rounded-xl border text-left cursor-pointer ${
                         chainEval.tissueReady
-                          ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
-                          : 'bg-cyan-500/20 border-cyan-400 text-cyan-200 hover:bg-cyan-500/35'
+                          ? 'bg-emerald-500/15 border-emerald-400/50 text-emerald-200'
+                          : 'bg-[#080d18] border-white/10 text-cyan-200 hover:border-cyan-400'
                       }`}
                     >
-                      {chainEval.tissueReady ? '✓ Tissue Ready' : 'Go Build Tissue →'}
+                      <div className="text-[8.5px] font-mono uppercase opacity-75">Stage 4</div>
+                      <div className="text-[10px] font-bold truncate">
+                        {chainEval.tissueReady ? '✓ Tissue' : 'Build Tissue →'}
+                      </div>
                     </button>
-                  </div>
 
-                  {/* Requirement 2: Stage 3 Specialized Cells */}
-                  <div className="p-3 rounded-xl bg-[#080d18] border border-white/10 flex items-center justify-between gap-2">
-                    <div>
-                      <div className="text-xs font-bold text-white">
-                        Specialized Cells ({activeSystem.requiredCells.length})
-                      </div>
-                      <div className="text-[9.5px] font-mono text-slate-400">
-                        {activeSystem.requiredCells
-                          .map((cid) => LEVEL_3_CELLS[cid]?.name.split(' ')[0])
-                          .join(' + ')}
-                      </div>
-                    </div>
                     <button
                       onClick={() => setActiveStage('cell')}
-                      className={`px-3 py-1.5 rounded-lg font-mono text-[9.5px] font-bold uppercase border cursor-pointer ${
+                      className={`p-2 rounded-xl border text-left cursor-pointer ${
                         chainEval.missingCells.length === 0
-                          ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
-                          : 'bg-cyan-500/20 border-cyan-400 text-cyan-200 hover:bg-cyan-500/35'
+                          ? 'bg-emerald-500/15 border-emerald-400/50 text-emerald-200'
+                          : 'bg-[#080d18] border-white/10 text-cyan-200 hover:border-cyan-400'
                       }`}
                     >
-                      {chainEval.missingCells.length === 0
-                        ? '✓ Cells Ready'
-                        : 'Go Build Cells →'}
+                      <div className="text-[8.5px] font-mono uppercase opacity-75">Stage 3</div>
+                      <div className="text-[10px] font-bold truncate">
+                        {chainEval.missingCells.length === 0 ? '✓ Cells' : 'Build Cells →'}
+                      </div>
                     </button>
-                  </div>
 
-                  {/* Requirement 3: Stage 2 Organelles */}
-                  <div className="p-3 rounded-xl bg-[#080d18] border border-white/10 flex items-center justify-between gap-2">
-                    <div>
-                      <div className="text-xs font-bold text-white">
-                        Intracellular Organelles (4 Core Classes)
-                      </div>
-                      <div className="text-[9.5px] font-mono text-slate-400">
-                        Nucleus + Mitochondrion + 80S Ribosome + Membrane
-                      </div>
-                    </div>
                     <button
                       onClick={() => setActiveStage('organelle')}
-                      className={`px-3 py-1.5 rounded-lg font-mono text-[9.5px] font-bold uppercase border cursor-pointer ${
+                      className={`p-2 rounded-xl border text-left cursor-pointer ${
                         chainEval.coreOrganellesReady
-                          ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
-                          : 'bg-cyan-500/20 border-cyan-400 text-cyan-200 hover:bg-cyan-500/35'
+                          ? 'bg-emerald-500/15 border-emerald-400/50 text-emerald-200'
+                          : 'bg-[#080d18] border-white/10 text-cyan-200 hover:border-cyan-400'
                       }`}
                     >
-                      {chainEval.coreOrganellesReady
-                        ? '✓ Organelles Ready'
-                        : 'Go Build Organelles →'}
+                      <div className="text-[8.5px] font-mono uppercase opacity-75">Stage 2</div>
+                      <div className="text-[10px] font-bold truncate">
+                        {chainEval.coreOrganellesReady ? '✓ Organelles' : 'Organelles →'}
+                      </div>
                     </button>
                   </div>
                 </div>
 
+                {/* Upgrade #2: Live Physiological Organ Bench-Test Telemetry Card */}
+                <div className="p-3 rounded-xl bg-[#080d18] border border-cyan-500/25 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-mono font-bold text-cyan-400 uppercase">
+                      ⚡ Physiological Bench-Test Telemetry
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-emerald-400">
+                      {benchTest.passed ? 'PHYSIOLOGICAL OPTIMUM' : 'SUB-THRESHOLD'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="p-2 rounded-lg bg-[#0b1220] border border-white/5">
+                      <span className="text-[8.5px] font-mono text-slate-400 block">
+                        {benchTest.primaryLabel}
+                      </span>
+                      <span className="text-xs font-mono font-black text-white">
+                        {benchTest.primaryMetric}
+                      </span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-[#0b1220] border border-white/5">
+                      <span className="text-[8.5px] font-mono text-slate-400 block">
+                        {benchTest.secondaryLabel}
+                      </span>
+                      <span className="text-xs font-mono font-black text-cyan-300">
+                        {benchTest.secondaryMetric}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Upgrade #9: Planetary Biosphere O2 Sync for Mammalian Respiration */}
+                <div className="p-2.5 rounded-xl bg-[#080d18] border border-white/10 flex items-center justify-between text-[9.5px] font-mono">
+                  <span className="text-slate-300">
+                    🌍 Planetary O₂:{' '}
+                    <strong className="text-emerald-400">{planetaryO2.toFixed(1)}%</strong> (21%
+                    normoxic)
+                  </span>
+                  {planetaryO2 < 19.5 && (
+                    <button
+                      onClick={() => updateAtmosphere('oxygen', 21 - planetaryO2)}
+                      className="px-2 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold cursor-pointer"
+                    >
+                      Oxygenate → 21%
+                    </button>
+                  )}
+                </div>
+
                 <button
                   onClick={handleDeployOrganTo3D}
-                  className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-black text-xs uppercase tracking-wider transition-all active:scale-98 cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-black text-xs uppercase tracking-wider transition-all active:scale-98 cursor-pointer"
                 >
                   {chainEval.deployedIn3D
                     ? `✓ ${activeSystem.name} Installed in 3D Human Body`
@@ -659,7 +859,7 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
 
             {/* ==================== STAGE 3: SPECIALIZED HUMAN CELL ==================== */}
             {activeStage === 'cell' && (
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <div>
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase">
                     STAGE 3 // SPECIALIZED CELL ASSEMBLY (FROM ORGANELLES + PROTEINS)
@@ -731,6 +931,25 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
                       </div>
                     );
                   })}
+                </div>
+
+                {/* Upgrade #3: Membrane Action-Potential Depolarization Simulator */}
+                <div className="p-2.5 rounded-xl bg-[#080d18] border border-cyan-500/25 flex items-center justify-between">
+                  <div>
+                    <span className="text-[8.5px] font-mono text-cyan-400 uppercase block">
+                      Membrane Voltage (Na⁺/K⁺ Pump)
+                    </span>
+                    <span className="text-xs font-mono font-black text-white">
+                      {membranePotentialMv > 0 ? `+${membranePotentialMv}` : membranePotentialMv} mV{' '}
+                      {membranePotentialMv > 0 ? '(Depolarized Spike!)' : '(Resting Potential)'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={triggerActionPotentialPulse}
+                    className="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400 text-cyan-200 font-mono text-[9px] font-bold uppercase cursor-pointer"
+                  >
+                    ⚡ Fire Action Potential
+                  </button>
                 </div>
 
                 <button
@@ -873,10 +1092,18 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
                   ))}
                 </div>
 
-                {/* Chemical Precursors from Chemistry & Physics Lab */}
+                {/* Chemical Precursors from Chemistry & Physics Lab + Direct Chemistry Contract Button (Step 2) */}
                 <div className="p-3 rounded-xl bg-[#080d18] border border-white/10 space-y-2">
-                  <div className="text-[9.5px] font-mono font-bold text-slate-400 uppercase">
-                    Atomic & Molecular Precursors (Physics → Chemistry → Bio):
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9.5px] font-mono font-bold text-slate-400 uppercase">
+                      Atomic & Molecular Precursors (Chemistry Lab):
+                    </span>
+                    <button
+                      onClick={() => handleOrderFromChemistryLab(activeMolecule)}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400 text-emerald-300 font-mono text-[9px] font-bold uppercase cursor-pointer"
+                    >
+                      ⚗️ Synthesize in Chemistry Lab →
+                    </button>
                   </div>
                   {activeMolecule.fromChemistry.map((chem, i) => (
                     <div
@@ -884,9 +1111,16 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
                       className="p-2 rounded-lg bg-[#0b1220] border border-white/5 flex items-center justify-between text-xs font-mono text-slate-200"
                     >
                       <span>• {chem}</span>
-                      <span className="text-[9px] text-emerald-400 font-bold">✓ Synthesized</span>
+                      <span className="text-[9px] text-emerald-400 font-bold">✓ Formula Ready</span>
                     </div>
                   ))}
+                  {activeMolecule.chemistryOrder && (
+                    <div className="p-2 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-[10px] font-mono text-emerald-200">
+                      Reaction: <strong>{activeMolecule.chemistryOrder.equation}</strong> (
+                      {activeMolecule.chemistryOrder.vesselType}, {activeMolecule.chemistryOrder.tempC}
+                      °C)
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2">

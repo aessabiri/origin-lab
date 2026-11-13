@@ -6,6 +6,7 @@ import { useInventory } from '../store/inventory.js';
 import { MATTER_DEFINITIONS } from '../constants/matterRegistry.js';
 import { useProgressionStore } from '../store/progressionStore.js';
 import { syncSynthesisUtil } from '../hooks/useResourceSync.js';
+import { useStore } from '../store.js';
 
 // Starting State
 const STARTING_EQUIPMENT = ['beaker_std'];
@@ -38,6 +39,7 @@ export const useChemistryStore = create(
       isFumeHoodOn: false,
       inspectedChemical: null,
       isHintVisible: false,
+      activeBioOrder: null,
 
       // --- Actions ---
       setTimeSpeed: (speed) => set({ timeSpeed: speed }),
@@ -45,6 +47,96 @@ export const useChemistryStore = create(
       setInspectedChemical: (chemicalId) => set({ inspectedChemical: chemicalId }),
       toggleFumeHood: () => set((state) => ({ isFumeHoodOn: !state.isFumeHoodOn })),
       toggleHint: () => set((state) => ({ isHintVisible: !state.isHintVisible })),
+      setActiveBioOrder: (order) => set({ activeBioOrder: order }),
+
+      seedPrimordialFeedstock: () => set((state) => {
+        const feedstock = {
+          water: 25,
+          methane: 20,
+          ammonia: 20,
+          hydrogen: 30,
+          oxygen: 20,
+          carbon: 20,
+          nitrogen: 20,
+          phosphorus: 15,
+          calcium: 15,
+          iron: 15,
+          'phosphoric-acid': 15,
+          glycerol: 10,
+          glucose: 10,
+          'fatty-acid': 15,
+          ribose: 10,
+          adenine: 10,
+          'nucleotide-a': 10,
+          'citric-acid': 10,
+          glycine: 12,
+          'glutamic-acid': 10
+        };
+        const mergedLocal = { ...state.localInventory };
+        const mergedInv = new Set(state.inventory || []);
+        Object.entries(feedstock).forEach(([k, v]) => {
+          mergedLocal[k] = Math.max(mergedLocal[k] || 0, v);
+          mergedInv.add(k);
+        });
+        return {
+          localInventory: mergedLocal,
+          inventory: Array.from(mergedInv),
+          message: '⚡ Primordial Prebiotic Feedstock & Bio-Precursors Loaded!'
+        };
+      }),
+
+      autoSynthesizeBioOrder: () => {
+        const state = get();
+        const order = state.activeBioOrder;
+        if (!order) return false;
+
+        // 1. Ensure feedstock is available
+        state.seedPrimordialFeedstock();
+
+        // 2. Ensure a vessel exists and load the reaction inputs + output
+        const vesselIds = Object.keys(get().vessels || {});
+        let targetVesselId = vesselIds[0];
+        if (!targetVesselId) {
+          get().createVessel(EQUIPMENT[0]);
+          targetVesselId = Object.keys(get().vessels)[0];
+        }
+
+        const outId = order.compoundId;
+        try {
+          useInventory.getState().addResource('compounds', outId, 2);
+          syncSynthesisUtil(outId, 2);
+        } catch (e) {}
+
+        set((s) => {
+          const vessel = s.vessels[targetVesselId];
+          const nextInv = s.inventory.includes(outId)
+            ? s.inventory
+            : [...s.inventory, outId];
+          return {
+            inventory: nextInv,
+            localInventory: {
+              ...s.localInventory,
+              [outId]: (s.localInventory[outId] || 0) + 2
+            },
+            vessels: targetVesselId
+              ? {
+                  ...s.vessels,
+                  [targetVesselId]: {
+                    ...vessel,
+                    temp: order.tempC || 85,
+                    targetTemp: order.tempC || 85,
+                    pressure: order.pressureAtm || 2,
+                    contents: { [outId]: 2 },
+                    activeVisual: 'bubble'
+                  }
+                }
+              : s.vessels,
+            activeBioOrder: { ...order, fulfilled: true },
+            message: `🧬 Synthesized ${order.title} (${outId}) — Ready for Biology Lab!`
+          };
+        });
+        return true;
+      },
       
       addToLocalInventory: (chemicalId, amount) => set(state => {
         const current = state.localInventory[chemicalId] || 0;

@@ -9,7 +9,8 @@ export const CPK_ELEMENT_STYLES = {
   C: { color: 0x334155, emissive: 0x0f172a, radius: 0.38, vdw: 0.78, name: 'Carbon' },
   N: { color: 0x3b82f6, emissive: 0x1d4ed8, radius: 0.36, vdw: 0.74, name: 'Nitrogen' },
   O: { color: 0xf43f5e, emissive: 0x881337, radius: 0.35, vdw: 0.72, name: 'Oxygen' },
-  P: { color: 0xf97316, emissive: 0x7c2d12, radius: 0.44, vdw: 0.88, name: 'Phosphorus' }
+  P: { color: 0xf97316, emissive: 0x7c2d12, radius: 0.44, vdw: 0.88, name: 'Phosphorus' },
+  Fe: { color: 0xef4444, emissive: 0x7f1d1d, radius: 0.48, vdw: 0.94, name: 'Iron (Fe²⁺)' }
 };
 
 export const VSEPR_MOLECULES = {
@@ -161,6 +162,72 @@ export const VSEPR_MOLECULES = {
       [6, 4, 1],
       [5, 7, 1],
       [7, 8, 2]
+    ]
+  },
+  heme: {
+    id: 'heme',
+    formula: 'Fe²⁺-Porphyrin',
+    name: 'Heme B (O₂ Prosthetic Ring)',
+    geometry: 'Square Planar Fe²⁺ Macrocycle',
+    bondAngle: '90.0° (d²sp³)',
+    dipole: 'Reversible O₂ Coordination',
+    atoms: [
+      { el: 'Fe', pos: [0, 0, 0] },
+      { el: 'N', pos: [1.1, 0, 0] },
+      { el: 'N', pos: [-1.1, 0, 0] },
+      { el: 'N', pos: [0, 1.1, 0] },
+      { el: 'N', pos: [0, -1.1, 0] },
+      { el: 'C', pos: [1.5, 1.5, 0.1] },
+      { el: 'C', pos: [-1.5, 1.5, -0.1] },
+      { el: 'C', pos: [-1.5, -1.5, 0.1] },
+      { el: 'C', pos: [1.5, -1.5, -0.1] },
+      { el: 'O', pos: [0, 0, 1.15] }
+    ],
+    bonds: [
+      [0, 1, 1],
+      [0, 2, 1],
+      [0, 3, 1],
+      [0, 4, 1],
+      [1, 5, 2],
+      [5, 3, 1],
+      [3, 6, 2],
+      [6, 2, 1],
+      [2, 7, 2],
+      [7, 4, 1],
+      [4, 8, 2],
+      [8, 1, 1],
+      [0, 9, 1]
+    ]
+  },
+  phospholipid: {
+    id: 'phospholipid',
+    formula: 'Phosphatidylcholine',
+    name: 'Phospholipid (Amphiphilic Bilayer)',
+    geometry: 'Polar PO₄⁻ Head + Acyl Tails',
+    bondAngle: '109.5° Acyl Chain',
+    dipole: 'Amphiphilic (Hydrophilic/Hydrophobic)',
+    atoms: [
+      { el: 'P', pos: [0, 1.35, 0] },
+      { el: 'O', pos: [-0.85, 1.85, 0.2] },
+      { el: 'O', pos: [0.85, 1.85, -0.2] },
+      { el: 'N', pos: [0, 2.35, 0] },
+      { el: 'C', pos: [-0.55, 0.45, 0] },
+      { el: 'C', pos: [0.55, 0.45, 0] },
+      { el: 'C', pos: [-0.75, -0.55, 0.15] },
+      { el: 'C', pos: [0.75, -0.55, -0.15] },
+      { el: 'C', pos: [-0.95, -1.55, 0] },
+      { el: 'C', pos: [0.95, -1.55, 0] }
+    ],
+    bonds: [
+      [0, 1, 2],
+      [0, 2, 1],
+      [0, 3, 1],
+      [0, 4, 1],
+      [0, 5, 1],
+      [4, 6, 1],
+      [5, 7, 1],
+      [6, 8, 1],
+      [7, 9, 1]
     ]
   }
 };

@@ -85,6 +85,7 @@ export const useBioStore = create(
       assembledOrganelles: [],     // ['nucleus', 'mitochondrion', 'ribosome', 'plasma_membrane']
       differentiatedCells: [],  // ['osteoblast', 'cardiomyocyte', 'hepatocyte', 'endothelial_cell', 'motor_neuron']
       engineeredTissues: [],    // ['osteoid', 'myofibril', 'visceral', 'endothelial', 'neural']
+      assembledOrganParts: [],  // ['cardio_ventricles', 'cardio_atria', 'cardio_valves', 'cardio_vessels', ...]
 
       // --- Actions ---
 
@@ -295,6 +296,28 @@ export const useBioStore = create(
 
       // --- Top-Down Precision Actions (Tier 5 DNA -> Tier 4 Protein -> Tier 3 Cell -> Tier 2 Tissue -> Tier 1 Organ) ---
       setSelectedOrganSystemId: (id) => set({ selectedOrganSystemId: id }),
+
+      snapOrganSubPart: (systemId, subPartId) => set((state) => {
+        const sys = TIER_1_ORGAN_SYSTEMS.find((s) => s.id === systemId);
+        if (!sys) return state;
+
+        const current = state.assembledOrganParts || [];
+        const nextParts = current.includes(subPartId) ? current : [...current, subPartId];
+        const allSubPartsReady = (sys.subParts || []).every((sp) =>
+          nextParts.includes(sp.id)
+        );
+
+        const currentTissues = state.engineeredTissues || [];
+        const nextTissues =
+          allSubPartsReady && !currentTissues.includes(sys.requiredTissue)
+            ? [...currentTissues, sys.requiredTissue]
+            : currentTissues;
+
+        return {
+          assembledOrganParts: nextParts,
+          engineeredTissues: nextTissues
+        };
+      }),
 
       snapOrganellePart: (organelleId, partId) => set((state) => {
         const orgMeta = LEVEL_2_ORGANELLES[organelleId];
@@ -697,6 +720,7 @@ export const useBioStore = create(
         assembledOrganelles: [],
         differentiatedCells: [],
         engineeredTissues: [],
+        assembledOrganParts: [],
         stressTrial: {
           active: false,
           stage: 'idle',

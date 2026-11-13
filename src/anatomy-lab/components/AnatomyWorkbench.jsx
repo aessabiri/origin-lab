@@ -1,5 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { useAnatomyStore, BIO_TISSUE_RECIPES } from '../store.js';
+import {
+  useAnatomyStore,
+  BIO_TISSUE_RECIPES,
+  CLINICAL_PATHOLOGIES,
+  computeSystemicHomeostasis
+} from '../store.js';
 import { ALL_206_BONES, BONE_SUBGROUPS, TOTAL_BONE_COUNT } from '../data/humanSkeletalDatabase.js';
 
 const LAYERS = [
@@ -32,6 +37,19 @@ const AnatomyWorkbench = () => {
   const toggleXRayStructure = useAnatomyStore(state => state.toggleXRayStructure);
   const peelStructure = useAnatomyStore(state => state.peelStructure);
   const restoreAllPeeled = useAnatomyStore(state => state.restoreAllPeeled);
+  const activePathology = useAnatomyStore(state => state.activePathology);
+  const triggerPathology = useAnatomyStore(state => state.triggerPathology);
+  const applyRegenerativeRepair = useAnatomyStore(state => state.applyRegenerativeRepair);
+
+  const systemicHomeostasis = useMemo(
+    () =>
+      computeSystemicHomeostasis({
+        bioprintedTissues,
+        assembledBones,
+        activePathology
+      }),
+    [bioprintedTissues, assembledBones, activePathology]
+  );
 
   const [activeSubgroup, setActiveSubgroup] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -327,22 +345,73 @@ const AnatomyWorkbench = () => {
         })}
       </div>
 
-      {/* 6. VITAL SIGNS & CONSCIOUSNESS TELEMETRY */}
-      <div className="p-3 border-t border-cyan-500/20 bg-[#050914] text-[10px] font-mono">
-        <div className="flex items-center justify-between mb-1 text-slate-400">
-          <span>Sentience & Vitals:</span>
-          <span className={`font-bold ${consciousnessScore >= 100 ? 'text-emerald-400' : 'text-slate-500'}`}>
-            {consciousnessScore >= 100 ? 'Awakened' : 'Dormant'}
+      {/* 6. VITAL SIGNS, MULTI-ORGAN HOMEOSTASIS & CLINICAL REGENERATIVE REPAIR (UPGRADES #4 & #5) */}
+      <div className="p-3 border-t border-cyan-500/20 bg-[#050914] text-[10px] font-mono space-y-2">
+        <div className="flex items-center justify-between text-slate-400">
+          <span>Systemic Homeostasis:</span>
+          <span
+            className={`font-bold ${
+              activePathology
+                ? 'text-rose-400'
+                : systemicHomeostasis.homeostasisScore >= 80
+                ? 'text-emerald-400'
+                : 'text-cyan-300'
+            }`}
+          >
+            {systemicHomeostasis.homeostasisScore}% • {systemicHomeostasis.statusLabel}
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-2 text-[9px]">
+
+        <div className="grid grid-cols-3 gap-1.5 text-[8.5px]">
           <div className="bg-[#090f1e] p-1.5 rounded-lg border border-slate-800">
             <span className="text-slate-500 block">Heart Rate</span>
             <span className="font-bold text-rose-300">{vitalSigns.heartRate} BPM</span>
           </div>
           <div className="bg-[#090f1e] p-1.5 rounded-lg border border-slate-800">
-            <span className="text-slate-500 block">EEG Wave</span>
-            <span className="font-bold text-amber-300">{vitalSigns.eegBand.split(' ')[0]} ({vitalSigns.eegFrequency} Hz)</span>
+            <span className="text-slate-500 block">Systemic DO₂</span>
+            <span className="font-bold text-cyan-300">
+              {systemicHomeostasis.systemicO2DeliveryMlMin} mL/m
+            </span>
+          </div>
+          <div className="bg-[#090f1e] p-1.5 rounded-lg border border-slate-800">
+            <span className="text-slate-500 block">EEG / ATP</span>
+            <span className="font-bold text-amber-300">
+              {vitalSigns.eegFrequency}Hz • {systemicHomeostasis.systemicAtpFluxMmolMin}
+            </span>
+          </div>
+        </div>
+
+        {/* Upgrade #5: Clinical Pathophysiology & Stem-Cell Regenerative Repair Deck */}
+        <div className="pt-1 border-t border-slate-800/80 space-y-1.5">
+          <div className="flex items-center justify-between text-[8.5px] text-slate-400">
+            <span>🏥 Clinical Pathophysiology Sim:</span>
+            {activePathology && (
+              <button
+                onClick={applyRegenerativeRepair}
+                className="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black uppercase cursor-pointer"
+              >
+                🧬 Stem-Cell Repair →
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-4 gap-1">
+            {Object.values(CLINICAL_PATHOLOGIES).map((p) => {
+              const isSelected = activePathology === p.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => triggerPathology(p.id)}
+                  title={`${p.label}: ${p.description}`}
+                  className={`py-1 px-1 rounded text-[8px] font-bold truncate border cursor-pointer ${
+                    isSelected
+                      ? 'bg-rose-500/25 border-rose-400 text-rose-200'
+                      : 'bg-[#090f1e] border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {p.icon} {p.label.split(' ')[0]}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

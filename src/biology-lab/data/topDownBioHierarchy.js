@@ -17,6 +17,15 @@ export const LEVEL_1_MACROMOLECULES = {
     icon: '🫧',
     color: '#38bdf8',
     fromChemistry: ['2× Fatty Acid Chains (C, H)', 'Glycerol Backbone (C₃H₈O₃)', 'Phosphate Head (PO₄³⁻)'],
+    chemistryOrder: {
+      compoundId: 'phospholipid',
+      title: 'Phospholipid Bilayer Synthesis',
+      equation: '1 Glycerol + 2 Fatty Acid + 1 Phosphoric Acid → 1 Phospholipid + 2 H₂O',
+      inputs: { glycerol: 1, 'fatty-acid': 2, 'phosphoric-acid': 1 },
+      tempC: 85,
+      pressureAtm: 2,
+      vesselType: 'beaker_std'
+    },
     role: 'Forms semi-permeable outer/inner membranes for organelles and cells.'
   },
   bdna_chromatin: {
@@ -25,6 +34,15 @@ export const LEVEL_1_MACROMOLECULES = {
     icon: '🧬',
     color: '#a855f7',
     fromChemistry: ['Deoxyribose Sugar (C₅H₁₀O₄)', 'Phosphate Backbone (P, O)', 'A–T & G–C Base Pairs (N)'],
+    chemistryOrder: {
+      compoundId: 'dna',
+      title: 'Deoxyribonucleic Acid (B-DNA) Polymerization',
+      equation: '1 Adenine + 1 Ribose + 1 Phosphoric Acid → 1 DNA/RNA Nucleotide + 2 H₂O',
+      inputs: { adenine: 1, ribose: 1, 'phosphoric-acid': 1 },
+      tempC: 65,
+      pressureAtm: 2,
+      vesselType: 'reactor_reinforced'
+    },
     role: 'Stores the genetic blueprint and transcribes mRNA for protein synthesis.'
   },
   atp_synthase: {
@@ -33,6 +51,15 @@ export const LEVEL_1_MACROMOLECULES = {
     icon: '⚡',
     color: '#f59e0b',
     fromChemistry: ['Amino Acid Polypeptide', 'Adenosine Diphosphate (ADP)', 'Inorganic Phosphate (Pᵢ) + H⁺'],
+    chemistryOrder: {
+      compoundId: 'nadh',
+      title: 'High-Energy Phosphate & NADH Coenzyme Synthesis',
+      equation: '1 Nucleotide-A + 2 Phosphoric Acid → 1 ATP / NADH Bio-Carrier',
+      inputs: { 'nucleotide-a': 1, 'phosphoric-acid': 2 },
+      tempC: 55,
+      pressureAtm: 2,
+      vesselType: 'electrochemical_cell'
+    },
     role: 'Molecular turbine that synthesizes cellular ATP energy currency.'
   },
   collagen_i: {
@@ -41,6 +68,15 @@ export const LEVEL_1_MACROMOLECULES = {
     icon: '🪢',
     color: '#22d3ee',
     fromChemistry: ['Glycine (Gly)', 'Proline (Pro)', 'Hydroxyproline (Hyp) + Vitamin C'],
+    chemistryOrder: {
+      compoundId: 'glycine',
+      title: 'Glycine & Proline Precursor Synthesis (Strecker / Spark)',
+      equation: '2 Methane + 1 Ammonia + 2 Water → 1 Glycine + 5 H₂',
+      inputs: { methane: 2, ammonia: 1, water: 2 },
+      tempC: 120,
+      pressureAtm: 5,
+      vesselType: 'spark_chamber'
+    },
     role: 'High-tensile structural protein rope for bone osteoid, tendons, and organ walls.'
   },
   actin_myosin: {
@@ -49,6 +85,15 @@ export const LEVEL_1_MACROMOLECULES = {
     icon: '💪',
     color: '#f43f5e',
     fromChemistry: ['Globular Actin (G-Actin)', 'Myosin-II Heavy Chains', 'Ca²⁺ + ATP Trigger'],
+    chemistryOrder: {
+      compoundId: 'glutamic-acid',
+      title: 'Contractile Amino Acid Synthesis (Glutamate & Lysine)',
+      equation: '1 Citric Acid + 1 Ammonia → 1 Glutamic Acid + CO₂ + H₂O',
+      inputs: { 'citric-acid': 1, ammonia: 1 },
+      tempC: 90,
+      pressureAtm: 2,
+      vesselType: 'beaker_std'
+    },
     role: 'Molecular rachet motors that contract heart and skeletal muscle cells.'
   },
   hemoglobin: {
@@ -57,6 +102,15 @@ export const LEVEL_1_MACROMOLECULES = {
     icon: '🩸',
     color: '#ef4444',
     fromChemistry: ['4× Globin Polypeptides', '4× Porphyrin Heme Rings', 'Ferrous Iron (Fe²⁺) Core'],
+    chemistryOrder: {
+      compoundId: 'heme',
+      title: 'Ferroprotoporphyrin IX (Heme) Chelation',
+      equation: '4 Glycine + 1 Iron (Fe²⁺) → 1 Porphyrin Heme Ring',
+      inputs: { glycine: 4, iron: 1 },
+      tempC: 110,
+      pressureAtm: 3,
+      vesselType: 'reactor_reinforced'
+    },
     role: 'Binds and transports O₂ from lung alveoli to all perfused tissues.'
   },
   ion_channel: {
@@ -65,6 +119,15 @@ export const LEVEL_1_MACROMOLECULES = {
     icon: '🔌',
     color: '#eab308',
     fromChemistry: ['4× Transmembrane α-Helix Domains', 'S4 Arginine Voltage Sensor', 'Na⁺ & K⁺ Ions'],
+    chemistryOrder: {
+      compoundId: 'arginine',
+      title: 'S4 Voltage-Sensor Arginine & Electrolyte Synthesis',
+      equation: '1 Glutamic Acid + 2 Ammonia → 1 Arginine + 2 H₂O',
+      inputs: { 'glutamic-acid': 1, ammonia: 2 },
+      tempC: 95,
+      pressureAtm: 3,
+      vesselType: 'electrochemical_cell'
+    },
     role: 'Fires rapid electrical action potentials along nerve axons and heart cells.'
   }
 };
@@ -327,6 +390,12 @@ export const TIER_1_ORGAN_SYSTEMS = [
     requiredTissue: 'osteoid',
     requiredCells: ['osteoblast'],
     requiredProteins: ['collagen_i', 'atp_synthase'],
+    subParts: [
+      { id: 'skel_cranium', label: 'Cranial & Facial Skull (29 Bones)' },
+      { id: 'skel_spine_ribs', label: 'Vertebral Column & Ribcage (51 Bones)' },
+      { id: 'skel_upper_limbs', label: 'Pectoral Girdle & Upper Limbs (64 Bones)' },
+      { id: 'skel_lower_limbs', label: 'Pelvic Girdle & Lower Limbs (62 Bones)' }
+    ],
     description:
       'Complete 206-bone human endoskeleton and 23 intervertebral discs mineralized from Haversian osteoid tissue.',
     clinicalNote: 'Deploys all 206 clinical CT bones into the 3D Human Anatomy Atlas.'
@@ -343,6 +412,12 @@ export const TIER_1_ORGAN_SYSTEMS = [
     requiredTissue: 'myofibril',
     requiredCells: ['cardiomyocyte', 'osteoblast'],
     requiredProteins: ['actin_myosin', 'collagen_i', 'atp_synthase'],
+    subParts: [
+      { id: 'musc_axial', label: 'Axial Postural & Core Myofascial Slings' },
+      { id: 'musc_upper', label: 'Brachial & Forearm Flexor/Extensor Bellies' },
+      { id: 'musc_lower', label: 'Quadriceps, Hamstring & Gastrocnemius Bellies' },
+      { id: 'musc_ligaments', label: '349 Articular Joint Capsules & Ligaments' }
+    ],
     description:
       'Bilateral skeletal muscle groups, tendons, and 349 Z-Anatomy joint capsules & ligaments.',
     clinicalNote: 'Deploys all muscles and 349 articular ligaments into the 3D Human Anatomy Atlas.'
@@ -359,6 +434,12 @@ export const TIER_1_ORGAN_SYSTEMS = [
     requiredTissue: 'visceral',
     requiredCells: ['hepatocyte', 'endothelial_cell'],
     requiredProteins: ['hemoglobin', 'collagen_i', 'atp_synthase'],
+    subParts: [
+      { id: 'visc_airway', label: 'Cartilaginous Trachea & Bronchial Tree' },
+      { id: 'visc_lungs', label: 'Right (3-Lobed) & Left (2-Lobed) Lungs' },
+      { id: 'visc_liver', label: 'Hepatic Lobes, Gallbladder & Bile Ducts' },
+      { id: 'visc_gi_renal', label: 'Stomach, Spleen, Pancreas & Kidneys' }
+    ],
     description:
       'High-definition respiratory, digestive, urinary, and lymphatic visceral organs.',
     clinicalNote: 'Deploys 118 HD visceral organs + 158 lymphatic vessels into the 3D Human Anatomy Atlas.'
@@ -375,6 +456,12 @@ export const TIER_1_ORGAN_SYSTEMS = [
     requiredTissue: 'endothelial',
     requiredCells: ['cardiomyocyte', 'endothelial_cell'],
     requiredProteins: ['actin_myosin', 'hemoglobin', 'atp_synthase'],
+    subParts: [
+      { id: 'cardio_ventricles', label: 'Left & Right Muscular Ventricles' },
+      { id: 'cardio_atria', label: 'Left & Right Venous Atria (Auricles)' },
+      { id: 'cardio_valves', label: 'Tricuspid, Mitral, Aortic & Pulmonary Valves' },
+      { id: 'cardio_vessels', label: 'Aortic Arch, Vena Cava & Coronary Tree' }
+    ],
     description:
       'Beating 4-chamber heart (atria, ventricles, valves, coronary arteries) and systemic arterial-venous tree.',
     clinicalNote: 'Deploys 676 HD cardiovascular structures & 72 BPM heartbeat into the 3D Anatomy Atlas.'
@@ -391,6 +478,12 @@ export const TIER_1_ORGAN_SYSTEMS = [
     requiredTissue: 'neural',
     requiredCells: ['motor_neuron', 'endothelial_cell'],
     requiredProteins: ['ion_channel', 'atp_synthase'],
+    subParts: [
+      { id: 'nerv_cortex', label: 'Left & Right Cerebral Cortex Hemispheres' },
+      { id: 'nerv_cerebellum', label: 'Cerebellum, Pons & Medulla Brainstem' },
+      { id: 'nerv_limbic', label: 'Thalamus, Hippocampus & Corpus Callosum' },
+      { id: 'nerv_spinal', label: 'Spinal Cord & 43 Pairs of Cranial/Spinal Nerves' }
+    ],
     description:
       'Cerebral hemispheres, cerebellum, brainstem, spinal cord, cranial nerves, and peripheral plexuses.',
     clinicalNote: 'Deploys 580 HD neural structures & 40 Hz Gamma EEG into the 3D Anatomy Atlas.'
@@ -633,3 +726,64 @@ export function evaluateECMScaffoldBiophysics(
     optimalPerfusion: 95
   };
 }
+
+/**
+ * Evaluates live physiological bench-test telemetry for an assembled Stage-5 Macro Organ System.
+ */
+export function evaluateOrganPhysiologyBenchTest(systemId, readinessPercent = 100) {
+  const ratio = Math.max(0.1, Math.min(1, readinessPercent / 100));
+  switch (systemId) {
+    case 'cardiovascular_system':
+      return {
+        primaryMetric: `${(5.2 * ratio).toFixed(1)} L/min`,
+        primaryLabel: 'Cardiac Output (CO)',
+        secondaryMetric: `${Math.round(66 * ratio)}%`,
+        secondaryLabel: 'Ejection Fraction (LVEF)',
+        tertiaryMetric: `${Math.round(72 * ratio)} BPM`,
+        tertiaryLabel: 'Sinus Rhythm',
+        passed: readinessPercent >= 75
+      };
+    case 'visceral_system':
+      return {
+        primaryMetric: `${Math.round(260 * ratio)} mL/min`,
+        primaryLabel: 'Alveolar VO₂ Uptake',
+        secondaryMetric: `${Math.round(125 * ratio)} mL/min`,
+        secondaryLabel: 'Glomerular Filtration (GFR)',
+        tertiaryMetric: `${(98.5 * ratio).toFixed(1)}%`,
+        tertiaryLabel: 'Arterial SpO₂',
+        passed: readinessPercent >= 75
+      };
+    case 'nervous_system':
+      return {
+        primaryMetric: `${(40.0 * ratio).toFixed(1)} Hz`,
+        primaryLabel: 'Cortical Gamma EEG',
+        secondaryMetric: `${Math.round(120 * ratio)} m/s`,
+        secondaryLabel: 'Saltatory Axon Velocity',
+        tertiaryMetric: `-70 mV`,
+        tertiaryLabel: 'Resting Potential',
+        passed: readinessPercent >= 75
+      };
+    case 'muscular_system':
+      return {
+        primaryMetric: `${Math.round(1850 * ratio)} N`,
+        primaryLabel: 'Peak Tetanic Force',
+        secondaryMetric: `${(2.2 * ratio).toFixed(2)} µm`,
+        secondaryLabel: 'Sarcomere Length',
+        tertiaryMetric: `${Math.round(95 * ratio)}%`,
+        tertiaryLabel: 'Tendon Tensile Integrity',
+        passed: readinessPercent >= 75
+      };
+    case 'skeletal_system':
+    default:
+      return {
+        primaryMetric: `${Math.round(195 * ratio)} MPa`,
+        primaryLabel: 'Cortical Compressive Yield',
+        secondaryMetric: `${(1.25 * ratio).toFixed(2)} g/cm³`,
+        secondaryLabel: 'Bone Mineral Density (BMD)',
+        tertiaryMetric: `206 / 206`,
+        tertiaryLabel: 'Articular Alignment',
+        passed: readinessPercent >= 75
+      };
+  }
+}
+

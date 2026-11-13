@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useChemistryStore } from '../store';
 import { EQUIPMENT } from '../data/equipment';
+import { REACTIONS } from '../data/reactions';
 import ResourceExchange from '../../components/ResourceExchange.jsx';
 import ChemicalIcon from './ChemicalIcon.jsx';
 import { MATTER_DEFINITIONS } from '../../constants/matterRegistry.js';
@@ -13,8 +14,23 @@ const CATEGORIES = [
   { id: 'bio', label: 'Biomolecules' },
 ];
 
+const FEATURED_BIO_PRODUCTS = [
+  'phospholipid',
+  'dna',
+  'nadh',
+  'glycine',
+  'glutamic-acid',
+  'heme',
+  'arginine',
+  'ribose',
+  'nucleotide-a',
+  'lipid',
+  'water',
+  'ammonia'
+];
+
 const ChemistrySidebar = () => {
-  const [activeTab, setActiveTab] = useState('storage'); // 'storage' | 'equipment'
+  const [activeTab, setActiveTab] = useState('storage'); // 'storage' | 'equipment' | 'recipes'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showGlobalImport, setShowGlobalImport] = useState(false);
@@ -22,6 +38,9 @@ const ChemistrySidebar = () => {
   const localInventory = useChemistryStore(state => state.localInventory);
   const addToLocalInventory = useChemistryStore(state => state.addToLocalInventory);
   const setInspectedChemical = useChemistryStore(state => state.setInspectedChemical);
+  const seedPrimordialFeedstock = useChemistryStore(state => state.seedPrimordialFeedstock);
+  const setActiveBioOrder = useChemistryStore(state => state.setActiveBioOrder);
+  const autoSynthesizeBioOrder = useChemistryStore(state => state.autoSynthesizeBioOrder);
 
   const handleImport = (itemId, amount) => {
     addToLocalInventory(itemId, amount);
@@ -53,25 +72,39 @@ const ChemistrySidebar = () => {
     });
   }, [localInventory, searchQuery, selectedCategory]);
 
+  // Upgrade #6: Featured Biochemical & Prebiotic Recipe Codex
+  const codexReactions = useMemo(() => {
+    return FEATURED_BIO_PRODUCTS.map((prodId) =>
+      REACTIONS.find((r) => r.outputs && r.outputs[prodId])
+    ).filter(Boolean);
+  }, []);
+
   return (
     <div className="w-full h-full bg-[#070c18] flex flex-col border-r border-slate-800/80 text-white select-none">
       
-      {/* Top Sidebar Header */}
-      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between bg-[#050914]/80">
-        <div className="flex items-center gap-2.5">
+      {/* Top Sidebar Header + Primordial Feedstock Seeder (Step 4) */}
+      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between bg-[#050914]/80 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <span className="text-lg">⚗️</span>
-          <div>
-            <h3 className="text-xs font-mono font-black uppercase tracking-wider text-slate-200">Lab Repository</h3>
-            <span className="text-[9px] font-mono text-emerald-400">Pantry & Apparatus Dock</span>
+          <div className="min-w-0">
+            <h3 className="text-xs font-mono font-black uppercase tracking-wider text-slate-200 truncate">Lab Repository</h3>
+            <span className="text-[9px] font-mono text-emerald-400 block truncate">Pantry, Vessels & Codex</span>
           </div>
         </div>
+        <button
+          onClick={seedPrimordialFeedstock}
+          className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/50 text-emerald-300 font-mono text-[9.5px] font-bold uppercase shrink-0 cursor-pointer"
+          title="Load Primordial Bio-Feedstock (H₂O, NH₃, CH₄, CO₂, Glucose, H₃PO₄, Fe, etc.)"
+        >
+          ⚡ Load Bio-Feedstock
+        </button>
       </div>
 
-      {/* Main Tab Navigation */}
-      <div className="flex border-b border-slate-800 bg-[#050914] p-1.5 gap-1.5">
+      {/* Main Tab Navigation (Reagents | Apparatus | Recipes) */}
+      <div className="flex border-b border-slate-800 bg-[#050914] p-1.5 gap-1">
         <button 
           onClick={() => setActiveTab('storage')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2 px-2 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer ${
             activeTab === 'storage' 
               ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm' 
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
@@ -83,14 +116,26 @@ const ChemistrySidebar = () => {
 
         <button 
           onClick={() => setActiveTab('equipment')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2 px-2 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer ${
             activeTab === 'equipment' 
               ? 'bg-gradient-to-r from-cyan-500/20 to-sky-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm' 
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
           <span>⚙️</span>
-          <span>Apparatus</span>
+          <span>Vessels</span>
+        </button>
+
+        <button 
+          onClick={() => setActiveTab('recipes')}
+          className={`flex-1 py-2 px-2 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            activeTab === 'recipes' 
+              ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/40 shadow-sm' 
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+          }`}
+        >
+          <span>📖</span>
+          <span>Recipes</span>
         </button>
       </div>
 
@@ -105,7 +150,7 @@ const ChemistrySidebar = () => {
             <div className="border-b border-slate-800 bg-[#060b17]">
               <button
                 onClick={() => setShowGlobalImport(!showGlobalImport)}
-                className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-mono font-bold text-slate-300 hover:text-emerald-300 transition-colors"
+                className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-mono font-bold text-slate-300 hover:text-emerald-300 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <span>🌐</span>
@@ -131,8 +176,6 @@ const ChemistrySidebar = () => {
 
             {/* Local Reagents Controls: Search & Categories */}
             <div className="p-3 border-b border-slate-800/80 bg-[#060a16] space-y-2">
-              
-              {/* Search Bar */}
               <div className="relative">
                 <input 
                   type="text"
@@ -152,13 +195,12 @@ const ChemistrySidebar = () => {
                 )}
               </div>
 
-              {/* Category Filter Chips */}
               <div className="flex gap-1 overflow-x-auto custom-scrollbar pb-1">
                 {CATEGORIES.map(cat => (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold whitespace-nowrap transition-all ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold whitespace-nowrap transition-all cursor-pointer ${
                       selectedCategory === cat.id
                         ? 'bg-emerald-500/20 border border-emerald-400 text-emerald-300'
                         : 'bg-slate-800/50 border border-transparent text-slate-400 hover:text-slate-200'
@@ -168,7 +210,6 @@ const ChemistrySidebar = () => {
                   </button>
                 ))}
               </div>
-
             </div>
 
             {/* Local Reagents Card Grid */}
@@ -191,12 +232,18 @@ const ChemistrySidebar = () => {
               </div>
 
               {filteredReagents.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 px-4 text-center text-slate-500 gap-2">
+                <div className="flex flex-col items-center justify-center py-10 px-4 text-center text-slate-500 gap-2.5">
                   <span className="text-2xl opacity-40">🧪</span>
                   <span className="text-xs font-mono font-bold text-slate-400">No Reagents in Bench</span>
                   <p className="text-[11px] text-slate-500 max-w-[200px]">
-                    Open the <strong className="text-emerald-400">Global Import Ledger</strong> above to transfer unlocked matter.
+                    Click below to load primordial chemical & biological feedstock into your bench:
                   </p>
+                  <button
+                    onClick={seedPrimordialFeedstock}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-[10px] font-black uppercase cursor-pointer"
+                  >
+                    ⚡ Load Bio-Feedstock Now
+                  </button>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
@@ -209,7 +256,6 @@ const ChemistrySidebar = () => {
                         onDragStart={(e) => handleDragStart(e, id)}
                         className="p-2.5 bg-[#091022] border border-slate-800 hover:border-emerald-500/50 rounded-2xl cursor-grab active:cursor-grabbing group relative flex flex-col items-center gap-1.5 transition-all hover:bg-[#0c162f] shadow-md hover:shadow-emerald-950/30"
                       >
-                        {/* Inspect Info Button on Top Right */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -244,7 +290,6 @@ const ChemistrySidebar = () => {
                 </div>
               )}
             </div>
-
           </div>
         )}
 
@@ -252,6 +297,66 @@ const ChemistrySidebar = () => {
         {activeTab === 'equipment' && (
           <div className="flex-1 overflow-y-auto p-3 custom-scrollbar bg-[#050914]">
             <InventoryEquipmentList />
+          </div>
+        )}
+
+        {/* TAB 3 (UPGRADE #6): BIOCHEMICAL REACTION RECIPE CODEX */}
+        {activeTab === 'recipes' && (
+          <div className="flex-1 overflow-y-auto p-3 space-y-2.5 custom-scrollbar bg-[#050914]">
+            <div className="px-1">
+              <span className="text-[10px] font-mono font-black text-amber-300 uppercase tracking-widest block">
+                BIOCHEMICAL & PREBIOTIC CODEX ({codexReactions.length})
+              </span>
+              <span className="text-[9px] font-mono text-slate-400">
+                1-Click Synthesize into Active Reaction Vessel
+              </span>
+            </div>
+
+            {codexReactions.map((rxn, idx) => {
+              const reactantStr = Object.entries(rxn.inputs || {})
+                .map(([k, v]) => `${v > 1 ? v : ''} ${MATTER_DEFINITIONS[k]?.formula || k}`)
+                .join(' + ');
+              const productStr = Object.entries(rxn.outputs || {})
+                .map(([k, v]) => `${v > 1 ? v : ''} ${MATTER_DEFINITIONS[k]?.formula || k}`)
+                .join(' + ');
+              const primaryProduct = Object.keys(rxn.outputs || {})[0];
+              const productName = MATTER_DEFINITIONS[primaryProduct]?.name || primaryProduct;
+
+              return (
+                <div
+                  key={`${primaryProduct}-${idx}`}
+                  className="p-3 rounded-2xl bg-[#091022] border border-slate-800 hover:border-amber-500/40 space-y-1.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-mono font-bold text-amber-300 uppercase truncate">
+                      {productName}
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 shrink-0">
+                      {rxn.conditions?.tempMin ? `${rxn.conditions.tempMin}°C` : '25°C'}
+                    </span>
+                  </div>
+                  <div className="text-xs font-mono font-bold text-white">
+                    {reactantStr} → <span className="text-emerald-300">{productStr}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setActiveBioOrder({
+                        compoundId: primaryProduct,
+                        title: `Synthesize ${productName}`,
+                        equation: `${reactantStr} → ${productStr}`,
+                        tempC: rxn.conditions?.tempMin || 65,
+                        pressureAtm: rxn.conditions?.pressureMin || 2,
+                        vesselType: 'beaker_std'
+                      });
+                      autoSynthesizeBioOrder();
+                    }}
+                    className="w-full py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/50 text-amber-200 font-mono text-[9.5px] font-bold uppercase cursor-pointer"
+                  >
+                    ⚡ Synthesize in Vessel
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -298,12 +403,10 @@ const InventoryEquipmentList = () => {
           onDragStart={(e) => handleDragStart(e, item)}
           className="flex items-center gap-3 p-3 bg-[#091022] rounded-2xl border border-slate-800 hover:border-cyan-500/50 hover:bg-[#0c162f] cursor-grab active:cursor-grabbing transition-all group shadow-md"
         >
-          {/* Hardware Icon */}
           <div className="w-10 h-10 bg-[#050914] rounded-xl flex items-center justify-center text-xl border border-slate-800 shadow-inner group-hover:border-cyan-500/30">
             {getEquipmentEmoji(item.icon)}
           </div>
 
-          {/* Specs */}
           <div className="flex-1 min-w-0">
             <h4 className="text-slate-200 text-xs font-mono font-bold truncate">{item.name}</h4>
             <div className="text-[9px] font-mono text-slate-400 flex items-center gap-2 mt-0.5">
@@ -313,10 +416,9 @@ const InventoryEquipmentList = () => {
             </div>
           </div>
 
-          {/* Deploy Button */}
           <button 
             onClick={() => createVessel(item)}
-            className="px-2.5 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 rounded-xl text-xs font-mono font-black transition-all border border-cyan-500/30 active:scale-95 shadow-sm"
+            className="px-2.5 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 rounded-xl text-xs font-mono font-black transition-all border border-cyan-500/30 active:scale-95 shadow-sm cursor-pointer"
             title="Deploy apparatus to workbench"
           >
             + ADD
