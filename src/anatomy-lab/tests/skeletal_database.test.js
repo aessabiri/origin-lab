@@ -153,4 +153,17 @@ describe('206-Bone Human Skeletal Matrix & HD Z-Anatomy Atlas Tests', () => {
     expect(next.layerVisibility.nerves).toBe(true);
     expect(next.vitalSigns.heartRate).toBe(72);
   });
+
+  it('should support X-Ray 20% translucency, peeling structures, and restoring all peeled structures', () => {
+    const store = useAnatomyStore.getState();
+    store.toggleXRayStructure('pectoralis_major_r');
+    expect(useAnatomyStore.getState().xrayMeshKeys).toContain('pectoralis_major_r');
+
+    store.peelStructure('ribs_anterior');
+    expect(useAnatomyStore.getState().peeledMeshKeys).toContain('ribs_anterior');
+
+    store.restoreAllPeeled();
+    expect(useAnatomyStore.getState().xrayMeshKeys).toHaveLength(0);
+    expect(useAnatomyStore.getState().peeledMeshKeys).toHaveLength(0);
+  });
 });

@@ -2,7 +2,66 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ALL_206_BONES, TOTAL_BONE_COUNT } from './data/humanSkeletalDatabase.js';
 import { useProgressionStore } from '../store/progressionStore.js';
+import { useInventory } from '../store/inventory.js';
 import { useStore } from '../store.js';
+
+export const BIO_TISSUE_RECIPES = {
+  osteoid: {
+    id: 'osteoid',
+    label: 'Osteoid',
+    icon: '🦴',
+    formula: 'Ca₁₀(PO₄)₆(OH)₂ + Type-I Collagen',
+    precursors: [
+      { category: 'compounds', id: 'h2o', amount: 2, label: '2 H₂O' },
+      { category: 'elements', id: 'C', amount: 2, label: '2 Carbon' },
+    ],
+    layer: 'skeleton',
+  },
+  myofibril: {
+    id: 'myofibril',
+    label: 'Myofibril',
+    icon: '💪',
+    formula: 'Actin-Myosin Sarcomeres + Tropomyosin',
+    precursors: [
+      { category: 'compounds', id: 'amino_acid', amount: 1, label: '1 Amino Acid' },
+      { category: 'compounds', id: 'atp', amount: 1, label: '1 ATP' },
+    ],
+    layer: 'muscles',
+  },
+  visceral: {
+    id: 'visceral',
+    label: 'Organs',
+    icon: '🫁',
+    formula: 'Endodermal Parenchyma + Surfactant Lipids',
+    precursors: [
+      { category: 'compounds', id: 'glucose', amount: 1, label: '1 Glucose' },
+      { category: 'compounds', id: 'o2', amount: 2, label: '2 O₂' },
+    ],
+    layer: 'organs',
+  },
+  endothelial: {
+    id: 'endothelial',
+    label: 'Vascular',
+    icon: '🫀',
+    formula: 'Cardiomyocytes + Fe²⁺ Hemoglobin Loop',
+    precursors: [
+      { category: 'elements', id: 'Fe', amount: 1, label: '1 Iron (Heme)' },
+      { category: 'compounds', id: 'o2', amount: 2, label: '2 O₂' },
+    ],
+    layer: 'circulation',
+  },
+  neural: {
+    id: 'neural',
+    label: 'Neural',
+    icon: '🧠',
+    formula: 'Sphingomyelin Sheath + Synaptic Vesicles',
+    precursors: [
+      { category: 'compounds', id: 'atp', amount: 2, label: '2 ATP' },
+      { category: 'compounds', id: 'rna', amount: 1, label: '1 RNA' },
+    ],
+    layer: 'nerves',
+  },
+};
 
 export const useAnatomyStore = create(
   persist(
@@ -12,6 +71,9 @@ export const useAnatomyStore = create(
 
       // Active Inspection & Selection
       selectedBoneId: 'femur_r',
+      selectedStructure: null, // { name, system, meshKey, boneId }
+      xrayMeshKeys: [],        // Array of meshKeys rendered as 20% translucent X-Ray glass
+      peeledMeshKeys: [],      // Array of meshKeys hidden/peeled away to inspect deeper structures
       activeRegion: 'all',
       searchQuery: '',
 
@@ -188,11 +250,37 @@ export const useAnatomyStore = create(
         useStore.getState().showMessage('Skeletal Assembly Matrix Reset.');
       },
 
-      // Select Bone for Inspection & Camera Focus
+      // Select Bone or Any 3D Anatomical Structure for Inspection, Camera Focus & X-Ray Peel
       setSelectedBoneId: (selectedBoneId) => set({ selectedBoneId }),
+      setSelectedStructure: (selectedStructure) => set({ selectedStructure }),
       setActiveRegion: (activeRegion) => set({ activeRegion }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       setActiveLayer: (activeLayer) => set({ activeLayer }),
+
+      toggleXRayStructure: (meshKey) => {
+        if (!meshKey) return;
+        set((state) => {
+          const exists = state.xrayMeshKeys.includes(meshKey);
+          return {
+            xrayMeshKeys: exists
+              ? state.xrayMeshKeys.filter((k) => k !== meshKey)
+              : [...state.xrayMeshKeys, meshKey],
+          };
+        });
+      },
+
+      peelStructure: (meshKey) => {
+        if (!meshKey) return;
+        set((state) => ({
+          peeledMeshKeys: state.peeledMeshKeys.includes(meshKey)
+            ? state.peeledMeshKeys
+            : [...state.peeledMeshKeys, meshKey],
+        }));
+      },
+
+      restoreAllPeeled: () => {
+        set({ xrayMeshKeys: [], peeledMeshKeys: [] });
+      },
 
       toggleLayer: (layerKey) => set(state => ({
         layerVisibility: {
@@ -206,9 +294,22 @@ export const useAnatomyStore = create(
         set({ meshLodRatio: clamped });
       },
 
-      // Bio Lab -> 3D Anatomy Lab Tissue Bioprinting Bridge
+      // Bio Lab -> 3D Anatomy Lab Tissue Bioprinting Bridge (Consumes biochemical precursors when available)
       synthesizeBioTissue: (tissueType) => {
         const state = get();
+        const recipe = BIO_TISSUE_RECIPES[tissueType];
+        const inv = useInventory.getState();
+
+        // Consume precursors if present in inventory (non-blocking in Sandbox or early exploration)
+        if (recipe && Array.isArray(recipe.precursors)) {
+          recipe.precursors.forEach((req) => {
+            const available = inv[req.category]?.[req.id] || 0;
+            if (available >= req.amount && typeof inv.consumeResource === 'function') {
+              inv.consumeResource(req.category, req.id, req.amount);
+            }
+          });
+        }
+
         const nextTissues = {
           ...state.bioprintedTissues,
           [tissueType]: true,

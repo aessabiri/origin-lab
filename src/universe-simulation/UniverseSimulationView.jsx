@@ -422,6 +422,31 @@ const UniverseSimulationView = () => {
                     {seedDeployed ? 'Re-Pulse LUCA Biosphere Wave' : 'Deploy Biological Seed (LUCA)'}
                   </span>
                 </button>
+
+                {/* SEAMLESS SURFACE DESCENT PORTAL (Upgrade #4) */}
+                <div className="pt-2 border-t border-white/10 grid grid-cols-3 gap-1.5">
+                  <button
+                    onClick={() => setCurrentView('planetary')}
+                    className="py-2 px-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-200 font-mono font-bold text-[9px] uppercase tracking-wider transition-all cursor-pointer"
+                    title="Descend into Earth's Planetary Biosphere & Geochemistry Lab"
+                  >
+                    🌍 Biosphere
+                  </button>
+                  <button
+                    onClick={() => setCurrentView('biology')}
+                    className="py-2 px-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-200 font-mono font-bold text-[9px] uppercase tracking-wider transition-all cursor-pointer"
+                    title="Zoom into the Hydrothermal Vent Cellular Biology Lab"
+                  >
+                    🦠 Bio-Lab
+                  </button>
+                  <button
+                    onClick={() => setCurrentView('anatomy')}
+                    className="py-2 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 font-mono font-bold text-[9px] uppercase tracking-wider transition-all cursor-pointer"
+                    title="Open the 3D Human Anatomy & Osteogenesis Atlas"
+                  >
+                    🦴 Anatomy
+                  </button>
+                </div>
               </div>
             )}
           </>

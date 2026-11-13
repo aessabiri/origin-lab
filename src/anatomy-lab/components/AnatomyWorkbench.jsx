@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useAnatomyStore } from '../store.js';
+import { useAnatomyStore, BIO_TISSUE_RECIPES } from '../store.js';
 import { ALL_206_BONES, BONE_SUBGROUPS, TOTAL_BONE_COUNT } from '../data/humanSkeletalDatabase.js';
 
 const LAYERS = [
@@ -26,6 +26,12 @@ const AnatomyWorkbench = () => {
   const consciousnessScore = useAnatomyStore(state => state.consciousnessScore);
   const bioprintedTissues = useAnatomyStore(state => state.bioprintedTissues) || {};
   const synthesizeBioTissue = useAnatomyStore(state => state.synthesizeBioTissue);
+  const selectedStructure = useAnatomyStore(state => state.selectedStructure);
+  const xrayMeshKeys = useAnatomyStore(state => state.xrayMeshKeys) || [];
+  const peeledMeshKeys = useAnatomyStore(state => state.peeledMeshKeys) || [];
+  const toggleXRayStructure = useAnatomyStore(state => state.toggleXRayStructure);
+  const peelStructure = useAnatomyStore(state => state.peelStructure);
+  const restoreAllPeeled = useAnatomyStore(state => state.restoreAllPeeled);
 
   const [activeSubgroup, setActiveSubgroup] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,18 +135,19 @@ const AnatomyWorkbench = () => {
         </div>
         <div className="grid grid-cols-5 gap-1">
           {[
-            { id: 'osteoid', label: 'Osteoid', icon: '🦴', title: 'Bio-Print 206 Bones & 23 Discs' },
-            { id: 'myofibril', label: 'Myofibril', icon: '💪', title: 'Bio-Print Muscles & 349 Joint Ligaments' },
-            { id: 'visceral', label: 'Organs', icon: '🫁', title: 'Bio-Print 276 HD Lungs, Liver, Stomach, Spleen & Lymph' },
-            { id: 'endothelial', label: 'Vascular', icon: '🫀', title: 'Bio-Print 676 HD 4-Chamber Heart, Valves & Vessels' },
-            { id: 'neural', label: 'Neural', icon: '🧠', title: 'Bio-Print 580 HD Brain, Spinal Cord & Nerves' },
+            { id: 'osteoid', label: 'Osteoid', icon: '🦴' },
+            { id: 'myofibril', label: 'Myofibril', icon: '💪' },
+            { id: 'visceral', label: 'Organs', icon: '🫁' },
+            { id: 'endothelial', label: 'Vascular', icon: '🫀' },
+            { id: 'neural', label: 'Neural', icon: '🧠' },
           ].map((t) => {
             const active = !!bioprintedTissues[t.id];
+            const recipe = BIO_TISSUE_RECIPES[t.id];
             return (
               <button
                 key={t.id}
                 onClick={() => synthesizeBioTissue && synthesizeBioTissue(t.id)}
-                title={t.title}
+                title={`${recipe?.name || t.label} — Formula: ${recipe?.formula || ''}`}
                 className={`py-1 px-1 rounded-lg text-[8px] font-mono font-bold border transition-all flex items-center justify-center gap-1 cursor-pointer ${
                   active
                     ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200'
@@ -155,34 +162,88 @@ const AnatomyWorkbench = () => {
         </div>
       </div>
 
-      {/* 3. SELECTED BONE SCIENTIFIC INSPECTION CARD */}
-      {selectedBone && (
+      {/* 3. UNIVERSAL 2,200-STRUCTURE & BONE SCIENTIFIC INSPECTOR + X-RAY / PEEL */}
+      {(selectedStructure || selectedBone) && (
         <div className="p-3.5 border-b border-cyan-500/20 bg-[#080e1e]/90">
-          <div className="flex items-start justify-between mb-1.5">
-            <div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-cyan-400">
-                {selectedBone.region} • {selectedBone.subgroup}
+          <div className="flex items-start justify-between mb-1.5 gap-2">
+            <div className="min-w-0">
+              <span className="text-[8px] font-bold uppercase tracking-widest text-cyan-400 block truncate">
+                {selectedStructure && !selectedStructure.boneId
+                  ? `${selectedStructure.system} • ${selectedStructure.layer}`
+                  : `${selectedBone.region} • ${selectedBone.subgroup}`}
               </span>
-              <h3 className="text-xs font-black text-white">{selectedBone.name}</h3>
-              <span className="text-[10px] italic text-cyan-200/80 font-serif">{selectedBone.latinName}</span>
+              <h3 className="text-xs font-black text-white truncate">
+                {selectedStructure && !selectedStructure.boneId ? selectedStructure.name : selectedBone.name}
+              </h3>
+              <span className="text-[10px] italic text-cyan-200/80 font-serif block truncate">
+                {selectedStructure && !selectedStructure.boneId ? selectedStructure.latinName : selectedBone.latinName}
+              </span>
             </div>
 
-            <button
-              onClick={() => assembleBone(selectedBone.id)}
-              className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all ${
-                assembledBones.includes(selectedBone.id)
-                  ? 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300'
-                  : 'border-cyan-400 bg-cyan-500/30 text-white hover:bg-cyan-400 hover:text-black shadow-[0_0_10px_rgba(6,182,212,0.3)] animate-pulse'
-              }`}
-            >
-              {assembledBones.includes(selectedBone.id) ? '✓ Assembled' : '+ Snap In'}
-            </button>
+            {(!selectedStructure || selectedStructure.boneId) && (
+              <button
+                onClick={() => assembleBone(selectedBone.id)}
+                className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider border shrink-0 transition-all ${
+                  assembledBones.includes(selectedBone.id)
+                    ? 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300'
+                    : 'border-cyan-400 bg-cyan-500/30 text-white hover:bg-cyan-400 hover:text-black shadow-[0_0_10px_rgba(6,182,212,0.3)] animate-pulse'
+                }`}
+              >
+                {assembledBones.includes(selectedBone.id) ? '✓ Assembled' : '+ Snap In'}
+              </button>
+            )}
           </div>
 
-          <div className="text-[9px] space-y-1 text-slate-300 font-mono mt-2">
-            <div><strong className="text-slate-400">Landmarks:</strong> {selectedBone.landmarks}</div>
-            <div><strong className="text-slate-400">Ossification:</strong> <span className="capitalize text-amber-300">{selectedBone.ossification}</span></div>
-            <div className="text-[8.5px] text-slate-400 italic pt-1 border-t border-slate-800/80">{selectedBone.clinicalSignificance}</div>
+          {(!selectedStructure || selectedStructure.boneId) ? (
+            <div className="text-[9px] space-y-1 text-slate-300 font-mono mt-1.5">
+              <div><strong className="text-slate-400">Landmarks:</strong> {selectedBone.landmarks}</div>
+              <div><strong className="text-slate-400">Ossification:</strong> <span className="capitalize text-amber-300">{selectedBone.ossification}</span></div>
+              <div className="text-[8.5px] text-slate-400 italic pt-1 border-t border-slate-800/80">{selectedBone.clinicalSignificance}</div>
+            </div>
+          ) : (
+            <div className="text-[9px] text-slate-300 font-mono mt-1 pt-1 border-t border-slate-800/80">
+              High-definition Z-Anatomy 3D structure. Use X-Ray or Peel below to inspect deeper structures underneath.
+            </div>
+          )}
+
+          {/* X-RAY 20% & PEEL DISSECTION CONTROLS */}
+          <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-slate-800/80">
+            {(() => {
+              const activeKey = selectedStructure?.meshKey || selectedBone?.id;
+              const isXRay = xrayMeshKeys.includes(activeKey);
+              const totalModified = xrayMeshKeys.length + peeledMeshKeys.length;
+              return (
+                <>
+                  <button
+                    onClick={() => activeKey && toggleXRayStructure(activeKey)}
+                    className={`flex-1 py-1 px-2 rounded-lg text-[9px] font-mono font-bold border transition-all cursor-pointer ${
+                      isXRay
+                        ? 'border-cyan-400 bg-cyan-500/25 text-cyan-200'
+                        : 'border-slate-700 bg-slate-900/70 text-slate-300 hover:border-cyan-500/40 hover:text-cyan-200'
+                    }`}
+                    title="Make structure 20% translucent X-Ray glass to see inside/behind it"
+                  >
+                    🔍 {isXRay ? 'X-Ray Active' : 'X-Ray (20%)'}
+                  </button>
+                  <button
+                    onClick={() => activeKey && peelStructure(activeKey)}
+                    className="flex-1 py-1 px-2 rounded-lg text-[9px] font-mono font-bold border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer"
+                    title="Peel / hide this structure to expose deeper anatomy"
+                  >
+                    🔪 Peel / Hide
+                  </button>
+                  {totalModified > 0 && (
+                    <button
+                      onClick={restoreAllPeeled}
+                      className="py-1 px-2 rounded-lg text-[9px] font-mono font-bold border border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all cursor-pointer"
+                      title="Restore all peeled and X-rayed structures"
+                    >
+                      ↺ Restore ({totalModified})
+                    </button>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

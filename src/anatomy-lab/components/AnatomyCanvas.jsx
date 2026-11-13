@@ -28,6 +28,7 @@ const AnatomyCanvas = () => {
   // Mesh and Layer References
   const humanGroupRef = useRef(null);
   const skeletalMeshesRef = useRef([]);
+  const allInteractiveMeshesRef = useRef([]);
   const optimizableMeshesRef = useRef([]);
   const layerSkeletalRef = useRef(null);
   const layerMusclesRef = useRef(null);
@@ -49,37 +50,64 @@ const AnatomyCanvas = () => {
   const heartRateRef = useRef(0);
   const assembledBonesRef = useRef([]);
   const selectedBoneIdRef = useRef('femur_r');
+  const selectedStructureRef = useRef(null);
+  const xrayMeshKeysRef = useRef([]);
+  const peeledMeshKeysRef = useRef([]);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [loadStatus, setLoadStatus] = useState('Mounting Clinical Viewport...');
+  const [loadStatus, setLoadStatus] = useState('Mounting Clinical Skeleton...');
+  const [streamingSystem, setStreamingSystem] = useState('');
 
   const assembledBones = useAnatomyStore(state => state.assembledBones);
   const assembleBone = useAnatomyStore(state => state.assembleBone);
   const selectedBoneId = useAnatomyStore(state => state.selectedBoneId);
   const setSelectedBoneId = useAnatomyStore(state => state.setSelectedBoneId);
+  const selectedStructure = useAnatomyStore(state => state.selectedStructure);
+  const setSelectedStructure = useAnatomyStore(state => state.setSelectedStructure);
+  const xrayMeshKeys = useAnatomyStore(state => state.xrayMeshKeys) || [];
+  const peeledMeshKeys = useAnatomyStore(state => state.peeledMeshKeys) || [];
   const layerVisibility = useAnatomyStore(state => state.layerVisibility);
   const vitalSigns = useAnatomyStore(state => state.vitalSigns);
   const meshLodRatio = useAnatomyStore(state => state.meshLodRatio) || 1.0;
 
-  // Keep refs synced for animation loop & async callbacks
+  // Keep refs synced
   heartRateRef.current = vitalSigns.heartRate;
   assembledBonesRef.current = assembledBones;
   selectedBoneIdRef.current = selectedBoneId;
+  selectedStructureRef.current = selectedStructure;
+  xrayMeshKeysRef.current = xrayMeshKeys;
+  peeledMeshKeysRef.current = peeledMeshKeys;
 
-  const applyBoneMaterials = useCallback(() => {
+  const applyMeshVisualStates = useCallback(() => {
     const materials = materialsRef.current;
     if (!materials) return;
     const currentAssembled = assembledBonesRef.current;
-    const currentSelected = selectedBoneIdRef.current;
+    const currentSelectedBone = selectedBoneIdRef.current;
+    const currentSelectedStruct = selectedStructureRef.current;
+    const xraySet = new Set(xrayMeshKeysRef.current);
+    const peeledSet = new Set(peeledMeshKeysRef.current);
 
+    // 1. Update Skeletal Bone Materials + X-Ray / Peel State
     skeletalMeshesRef.current.forEach((mesh) => {
+      const key = mesh.userData.meshKey || mesh.name;
+      if (peeledSet.has(key)) {
+        mesh.visible = false;
+        return;
+      }
+      if (!mesh.userData.hiddenCartilage) {
+        mesh.visible = true;
+      }
+
       const boneId = mesh.userData.boneId;
       const matchedBone = boneId ? ALL_206_BONES.find(b => b.id === boneId) : matchMeshToBone(mesh.name);
-
       const isAssembled = matchedBone ? currentAssembled.includes(matchedBone.id) : (currentAssembled.length > 50);
-      const isSelected = matchedBone && matchedBone.id === currentSelected;
+      const isSelected =
+        (matchedBone && matchedBone.id === currentSelectedBone) ||
+        (currentSelectedStruct && currentSelectedStruct.meshKey === key);
 
-      if (isSelected) {
+      if (xraySet.has(key)) {
+        mesh.material = materials.ghostBone;
+      } else if (isSelected) {
         mesh.material = materials.boneSelected;
       } else if (isAssembled) {
         mesh.material = materials.corticalBone;
@@ -87,9 +115,43 @@ const AnatomyCanvas = () => {
         mesh.material = materials.ghostBone;
       }
     });
+
+    // 2. Update Non-Skeletal HD Structures (Organs, Heart/Vessels, Brain/Nerves, Muscles, Ligaments)
+    allInteractiveMeshesRef.current.forEach((mesh) => {
+      if (mesh.userData.isBoneMesh) return;
+      const key = mesh.userData.meshKey || mesh.name;
+
+      if (peeledSet.has(key)) {
+        mesh.visible = false;
+        return;
+      }
+      mesh.visible = true;
+
+      const baseMat = mesh.userData.baseMaterial;
+      if (!baseMat) return;
+
+      const isSelected = currentSelectedStruct && currentSelectedStruct.meshKey === key;
+      const isXRay = xraySet.has(key);
+
+      if (isSelected) {
+        mesh.material = materials.boneSelected;
+      } else if (isXRay) {
+        if (!mesh.userData.xrayMaterial) {
+          const xm = baseMat.clone();
+          xm.transparent = true;
+          xm.opacity = 0.2;
+          xm.depthWrite = false;
+          xm.side = THREE.DoubleSide;
+          mesh.userData.xrayMaterial = xm;
+        }
+        mesh.material = mesh.userData.xrayMaterial;
+      } else {
+        mesh.material = baseMat;
+      }
+    });
   }, []);
 
-  // 1. Initialize Scene, Camera, Renderer, Layers & Models (Runs Once on Mount)
+  // 1. Initialize Scene, Camera, Renderer, Layers & Progressive Model Streamer
   useEffect(() => {
     let isMounted = true;
     const container = containerRef.current;
@@ -134,7 +196,7 @@ const AnatomyCanvas = () => {
     controls.enableZoom = true;
     controls.target.set(0, 0.9, 0);
     controls.maxDistance = 6.0;
-    controls.minDistance = 0.12;
+    controls.minDistance = 0.08;
     controlsRef.current = controls;
 
     // Studio Medical Lighting
@@ -158,7 +220,7 @@ const AnatomyCanvas = () => {
     gridHelper.position.y = 0;
     scene.add(gridHelper);
 
-    // Shockwave Ring for Bone Assembly Feedback
+    // Shockwave Ring for Bone/Organ Selection Feedback
     const shockwaveGeo = new THREE.RingGeometry(0.015, 0.045, 32);
     const shockwaveMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
@@ -198,7 +260,6 @@ const AnatomyCanvas = () => {
     humanGroup.add(layerNerves);
     humanGroup.add(layerVascular);
 
-    // Sync initial layer visibilities
     const initVis = useAnatomyStore.getState().layerVisibility;
     layerSkeletal.visible = !!initVis.skeleton;
     layerLigaments.visible = !!initVis.ligaments;
@@ -217,54 +278,36 @@ const AnatomyCanvas = () => {
     const materials = createMedicalMaterials();
     materialsRef.current = materials;
 
-    // Load Medical GLB Models (Using local /draco/ WASM decoder for offline high-speed decompression)
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('/draco/');
     dracoLoader.preload();
     const gltfLoader = new GLTFLoader();
     gltfLoader.setDRACOLoader(dracoLoader);
 
-    const loadModels = async () => {
+    const safeLoad = (url) =>
+      new Promise((resolve) => {
+        gltfLoader.load(url, resolve, undefined, () => resolve(null));
+      });
+
+    const loadModelsProgressively = async () => {
       try {
-        setLoadStatus('Loading 206-Bone Clinical Skeleton & Muscular Atlas...');
-        const [skeletonGltf, fullbodyGltf] = await Promise.all([
-          new Promise((resolve, reject) => gltfLoader.load('/models/lumc_skeleton.glb', resolve, undefined, reject)),
-          new Promise((resolve, reject) => gltfLoader.load('/models/fullbody.glb', resolve, undefined, reject)),
-        ]);
+        // STAGE A: Instant (<0.5s) Primary 206-Bone Skeleton Load
+        setLoadStatus('Loading 206-Bone Clinical Skeleton...');
+        const skeletonGltf = await new Promise((resolve, reject) =>
+          gltfLoader.load('/models/lumc_skeleton.glb', resolve, undefined, reject)
+        );
         if (!isMounted) return;
 
-        setLoadStatus('Loading HD Cardiovascular, Nervous, Visceral, Lymphatic & Joint Systems...');
-        const safeLoad = (url) =>
-          new Promise((resolve) => {
-            gltfLoader.load(url, resolve, undefined, () => resolve(null));
-          });
-
-        const [
-          cardiovascularGltf,
-          nervousGltf,
-          visceralGltf,
-          lymphaticGltf,
-          jointsGltf,
-        ] = await Promise.all([
-          safeLoad('/models/cardiovascular.glb'),
-          safeLoad('/models/nervous.glb'),
-          safeLoad('/models/visceral.glb'),
-          safeLoad('/models/lymphatic.glb'),
-          safeLoad('/models/joints.glb'),
-        ]);
-        if (!isMounted) return;
-
-        setLoadStatus('Assembling High-Definition Human Systems...');
         const skelScene = skeletonGltf.scene;
         const meshes = [];
-        const rawSkelMeshes = [];
+        const interactiveMeshes = [];
         const optimizableMeshes = [];
+        const rawSkelMeshes = [];
 
         skelScene.traverse((child) => {
           if (child.isMesh) rawSkelMeshes.push(child);
         });
 
-        // Mirrored Left Groups (scale.x = -1 across sagittal plane x = 0)
         const mirroredLimbs = new THREE.Group();
         mirroredLimbs.name = 'MirroredLeftSkeleton';
         mirroredLimbs.scale.x = -1;
@@ -274,7 +317,7 @@ const AnatomyCanvas = () => {
         mirroredCartilages.scale.x = -1;
         layerLigaments.add(mirroredCartilages);
 
-        rawSkelMeshes.forEach((child) => {
+        rawSkelMeshes.forEach((child, idx) => {
           child.castShadow = true;
           child.receiveShadow = true;
           child.frustumCulled = true;
@@ -295,34 +338,49 @@ const AnatomyCanvas = () => {
 
           if (isCartilage) {
             child.material = materials.hyalineCartilage;
+            child.userData.hiddenCartilage = true;
             const rightCart = new THREE.Mesh(child.geometry, materials.hyalineCartilage);
             rightCart.position.copy(child.position);
             rightCart.rotation.copy(child.rotation);
             rightCart.scale.copy(child.scale);
             rightCart.name = normalizedName;
+            rightCart.userData.meshKey = `ligament_${normalizedName}_${idx}`;
+            rightCart.userData.system = 'Ligaments & Cartilage';
+            rightCart.userData.baseMaterial = materials.hyalineCartilage;
             GeometryOptimizer.registerMesh(rightCart);
             layerLigaments.add(rightCart);
             optimizableMeshes.push(rightCart);
+            interactiveMeshes.push(rightCart);
             child.visible = false;
 
             if (isRightSide) {
+              const leftName = normalizedName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
               const leftCart = new THREE.Mesh(child.geometry, materials.hyalineCartilage);
               leftCart.position.copy(child.position);
               leftCart.rotation.copy(child.rotation);
               leftCart.scale.copy(child.scale);
-              leftCart.name = normalizedName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
+              leftCart.name = leftName;
+              leftCart.userData.meshKey = `ligament_${leftName}_${idx}`;
+              leftCart.userData.system = 'Ligaments & Cartilage';
+              leftCart.userData.baseMaterial = materials.hyalineCartilage;
               GeometryOptimizer.registerMesh(leftCart);
               mirroredCartilages.add(leftCart);
               optimizableMeshes.push(leftCart);
+              interactiveMeshes.push(leftCart);
             }
           } else {
             const bone = matchMeshToBone(normalizedName, parentName);
             if (bone) {
               child.userData.boneId = bone.id;
             }
+            child.userData.isBoneMesh = true;
+            child.userData.meshKey = bone ? bone.id : `bone_${normalizedName}_${idx}`;
+            child.userData.system = 'Skeletal System (206 Bones)';
             meshes.push(child);
+            interactiveMeshes.push(child);
 
             if (isRightSide) {
+              const leftName = normalizedName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
               const clone = new THREE.Mesh(child.geometry, child.material);
               clone.castShadow = true;
               clone.receiveShadow = true;
@@ -330,16 +388,20 @@ const AnatomyCanvas = () => {
               clone.position.copy(child.position);
               clone.rotation.copy(child.rotation);
               clone.scale.copy(child.scale);
-              clone.name = normalizedName.replace(/\.r(\.?)$/i, '.l$1').replace(/right/gi, 'left');
+              clone.name = leftName;
 
               const mirroredBone = matchMeshToBone(clone.name, 'Bones_left');
               if (mirroredBone) {
                 clone.userData.boneId = mirroredBone.id;
               }
+              clone.userData.isBoneMesh = true;
+              clone.userData.meshKey = mirroredBone ? mirroredBone.id : `bone_${leftName}_${idx}`;
+              clone.userData.system = 'Skeletal System (206 Bones)';
               GeometryOptimizer.registerMesh(clone);
               optimizableMeshes.push(clone);
               mirroredLimbs.add(clone);
               meshes.push(clone);
+              interactiveMeshes.push(clone);
             }
           }
         });
@@ -347,71 +409,122 @@ const AnatomyCanvas = () => {
         layerSkeletal.add(skelScene);
         layerSkeletal.add(mirroredLimbs);
 
-        // 3. Ingest Procedural Micro-Bones (Auditory ossicles & hyoid bone)
         const microBones = createProceduralMicroBones(materials);
         layerSkeletal.add(microBones.group);
         microBones.meshes.forEach((m) => {
           const bone = matchMeshToBone(m.name);
           if (bone) m.userData.boneId = bone.id;
+          m.userData.isBoneMesh = true;
+          m.userData.meshKey = m.userData.boneId || m.name;
+          m.userData.system = 'Skeletal System (Micro-Ossicles)';
           meshes.push(m);
+          interactiveMeshes.push(m);
         });
-        skeletalMeshesRef.current = meshes;
 
-        // 4. Ingest High-Definition Full-Body Joints & Ligaments (joints.glb: 349 structures)
-        const ingestHDSystem = (gltfObj, targetLayer) => {
-          if (!gltfObj || !gltfObj.scene) return;
+        skeletalMeshesRef.current = meshes;
+        allInteractiveMeshesRef.current = interactiveMeshes;
+        optimizableMeshesRef.current = optimizableMeshes;
+
+        // Normalize Scale Using Skeletal Bounding Box to Standard Standing Height (1.75m)
+        const skelBbox = new THREE.Box3().setFromObject(layerSkeletal);
+        const skelSize = skelBbox.getSize(new THREE.Vector3());
+        const scaleFactor = 1.75 / (skelSize.y > 0.1 ? skelSize.y : 1.705);
+        humanGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        humanGroup.position.set(0, -skelBbox.min.y * scaleFactor, 0);
+
+        applyMeshVisualStates();
+        // Dismiss blocking loader immediately once 206-bone skeleton is ready!
+        setIsLoading(false);
+
+        // STAGE B: Progressive Non-Blocking Background Streaming of 5 HD Organ/Vascular/Neural/Muscle/Joint Systems
+        const ingestHDSystem = (gltfObj, targetLayer, systemLabel) => {
+          if (!gltfObj || !gltfObj.scene || !isMounted) return;
+          let count = 0;
           gltfObj.scene.traverse((child) => {
             if (child.userData?.za_name) child.name = child.userData.za_name;
             if (child.isMesh) {
+              count++;
               if (child.material) {
                 child.material.side = THREE.DoubleSide;
                 child.material.roughness = Math.min(child.material.roughness ?? 0.35, 0.38);
+                child.userData.baseMaterial = child.material;
               }
               child.castShadow = true;
               child.receiveShadow = true;
               child.frustumCulled = true;
+              child.userData.system = systemLabel;
+              child.userData.meshKey = `${systemLabel}_${child.name || count}_${child.uuid.slice(0, 6)}`;
               GeometryOptimizer.registerMesh(child);
-              optimizableMeshes.push(child);
+              optimizableMeshesRef.current.push(child);
+              allInteractiveMeshesRef.current.push(child);
             }
           });
           targetLayer.add(gltfObj.scene);
         };
-        ingestHDSystem(jointsGltf, layerLigaments);
 
-        // 5. Ingest Muscular Layer (Convert Z-Anatomy centimeter units [~170cm] -> meters [~1.70m] via 0.01 scale)
-        const muscleScene = fullbodyGltf.scene;
-        muscleScene.scale.set(0.01, 0.01, 0.01);
-        muscleScene.traverse((child) => {
-          if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-            child.frustumCulled = true;
-            child.name = normalizeGLTFNodeName(child.name || '', child.parent?.name || '');
-            child.material = materials.striatedMuscle;
-            GeometryOptimizer.registerMesh(child);
-            optimizableMeshes.push(child);
-          }
-        });
-        layerMuscles.add(muscleScene);
+        setStreamingSystem('Streaming HD Joints & Muscular Systems...');
+        const [jointsGltf, fullbodyGltf] = await Promise.all([
+          safeLoad('/models/joints.glb'),
+          safeLoad('/models/fullbody.glb'),
+        ]);
+        if (!isMounted) return;
 
-        // 5b. Ingest High-Definition Visceral & Lymphatic Organs Layer (visceral.glb + lymphatic.glb: 276 structures)
-        ingestHDSystem(visceralGltf, layerOrgans);
-        ingestHDSystem(lymphaticGltf, layerOrgans);
+        ingestHDSystem(jointsGltf, layerLigaments, 'Articular Joints & Ligaments');
 
-        // 6. Ingest High-Definition Cardiovascular System (cardiovascular.glb: 676 structures)
+        if (fullbodyGltf && fullbodyGltf.scene) {
+          const muscleScene = fullbodyGltf.scene;
+          muscleScene.scale.set(0.01, 0.01, 0.01);
+          let mIdx = 0;
+          muscleScene.traverse((child) => {
+            if (child.isMesh) {
+              mIdx++;
+              child.castShadow = true;
+              child.receiveShadow = true;
+              child.frustumCulled = true;
+              child.name = normalizeGLTFNodeName(child.name || '', child.parent?.name || '');
+              child.material = materials.striatedMuscle;
+              child.userData.baseMaterial = materials.striatedMuscle;
+              child.userData.system = 'Muscular System';
+              child.userData.meshKey = `muscle_${child.name}_${mIdx}`;
+              GeometryOptimizer.registerMesh(child);
+              optimizableMeshesRef.current.push(child);
+              allInteractiveMeshesRef.current.push(child);
+            }
+          });
+          layerMuscles.add(muscleScene);
+        }
+
+        setStreamingSystem('Streaming HD Visceral Organs, 4-Chamber Heart & Brain...');
+        const [visceralGltf, lymphaticGltf, cardiovascularGltf, nervousGltf] = await Promise.all([
+          safeLoad('/models/visceral.glb'),
+          safeLoad('/models/lymphatic.glb'),
+          safeLoad('/models/cardiovascular.glb'),
+          safeLoad('/models/nervous.glb'),
+        ]);
+        if (!isMounted) return;
+
+        ingestHDSystem(visceralGltf, layerOrgans, 'Visceral Organs (Splanchnology)');
+        ingestHDSystem(lymphaticGltf, layerOrgans, 'Lymphatic & Immune Organs');
+
         if (cardiovascularGltf && cardiovascularGltf.scene) {
           const hdHeartNodes = [];
+          let cIdx = 0;
           cardiovascularGltf.scene.traverse((child) => {
             const zaName = child.userData?.za_name || child.name || '';
             if (zaName) child.name = zaName;
             if (child.isMesh) {
+              cIdx++;
               if (child.material) {
                 child.material.side = THREE.DoubleSide;
                 child.material.roughness = 0.25;
+                child.userData.baseMaterial = child.material;
               }
               child.frustumCulled = true;
+              child.userData.system = 'Cardiovascular System';
+              child.userData.meshKey = `cardio_${zaName || cIdx}_${child.uuid.slice(0, 6)}`;
               GeometryOptimizer.registerMesh(child);
-              optimizableMeshes.push(child);
+              optimizableMeshesRef.current.push(child);
+              allInteractiveMeshesRef.current.push(child);
             }
             if (/^(left ventricle|right ventricle|left atrium|right atrium)$/i.test(zaName.trim())) {
               child.userData.restPos = child.position.clone();
@@ -422,36 +535,28 @@ const AnatomyCanvas = () => {
           layerVascular.add(cardiovascularGltf.scene);
         }
 
-        // 7. Ingest High-Definition Nervous System (nervous.glb: 580 structures + Synaptic Glow Cloud)
-        ingestHDSystem(nervousGltf, layerNerves);
+        ingestHDSystem(nervousGltf, layerNerves, 'Nervous System (Brain & Connectome)');
         const synPoints = createSynapticParticleCloud();
         synPointsRef.current = synPoints;
         layerNerves.add(synPoints);
 
-        optimizableMeshesRef.current = optimizableMeshes;
-        const initialLod = useAnatomyStore.getState().meshLodRatio || 1.0;
-        if (initialLod < 0.99) {
-          GeometryOptimizer.applySceneLOD(optimizableMeshes, initialLod);
+        const currentLod = useAnatomyStore.getState().meshLodRatio || 1.0;
+        if (currentLod < 0.99) {
+          GeometryOptimizer.applySceneLOD(optimizableMeshesRef.current, currentLod);
         }
 
-        // 8. Normalize Scale Using Skeletal Bounding Box to Standard Standing Height (1.75m)
-        const skelBbox = new THREE.Box3().setFromObject(layerSkeletal);
-        const skelSize = skelBbox.getSize(new THREE.Vector3());
-        const scaleFactor = 1.75 / (skelSize.y > 0.1 ? skelSize.y : 1.705);
-        humanGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
-        humanGroup.position.set(0, -skelBbox.min.y * scaleFactor, 0);
-
-        // 9. Immediately apply Ghost vs Cortical vs Selected Bone Materials
-        applyBoneMaterials();
-
-        setIsLoading(false);
+        applyMeshVisualStates();
+        setStreamingSystem('');
       } catch (err) {
         console.error('Anatomy Viewport Load Error:', err);
-        if (isMounted) setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          setStreamingSystem('');
+        }
       }
     };
 
-    loadModels();
+    loadModelsProgressively();
 
     // Resize Handler
     const handleResize = () => {
@@ -471,11 +576,9 @@ const AnatomyCanvas = () => {
       const delta = Math.min(0.1, (time - lastTime) * 0.001);
       lastTime = time;
 
-      // 1. Orbit Controls damping & smooth camera target interpolation
       controls.target.lerp(cameraTargetRef.current, 0.08);
       controls.update();
 
-      // 2. Pulsatile Ventricular Systole/Diastole Heartbeat Animation on HD 4-Chamber Heart
       if (hdHeartNodesRef.current && hdHeartNodesRef.current.length > 0) {
         const bpm = heartRateRef.current > 0 ? heartRateRef.current : 60;
         const freq = (bpm / 60) * Math.PI * 2;
@@ -496,12 +599,10 @@ const AnatomyCanvas = () => {
         });
       }
 
-      // 3. Synaptic Action Potentials Glow Animation
       if (synPointsRef.current) {
         synPointsRef.current.rotation.y += delta * 0.15;
       }
 
-      // 4. Shockwave Expansion Feedback (Resets on every bone selection via shockwaveTimeRef)
       if (shockwaveMeshRef.current && shockwaveMeshRef.current.visible) {
         shockwaveTimeRef.current += delta;
         const t = shockwaveTimeRef.current;
@@ -528,7 +629,7 @@ const AnatomyCanvas = () => {
         renderer.domElement.parentElement.removeChild(renderer.domElement);
       }
     };
-  }, [applyBoneMaterials]);
+  }, [applyMeshVisualStates]);
 
   // 2. Sync 6-Layer Visibility
   useEffect(() => {
@@ -540,10 +641,10 @@ const AnatomyCanvas = () => {
     if (layerVascularRef.current) layerVascularRef.current.visible = !!layerVisibility.circulation;
   }, [layerVisibility]);
 
-  // 3. Update Bone Materials (Assembled vs. Ghost vs. Selected)
+  // 3. Update Mesh Visual States (Assembled vs Ghost vs Selected vs X-Ray vs Peeled)
   useEffect(() => {
-    applyBoneMaterials();
-  }, [assembledBones, selectedBoneId, applyBoneMaterials]);
+    applyMeshVisualStates();
+  }, [assembledBones, selectedBoneId, selectedStructure, xrayMeshKeys, peeledMeshKeys, applyMeshVisualStates]);
 
   // 4. Hardware GPU Mesh LOD Decimation (HD 100% / Med 65% / Eco 35%)
   useEffect(() => {
@@ -562,7 +663,6 @@ const AnatomyCanvas = () => {
     const center = box.getCenter(new THREE.Vector3());
     cameraTargetRef.current.copy(center);
 
-    // Trigger Shockwave Feedback Ring (Resets timer so every bone click animates)
     if (shockwaveMeshRef.current) {
       shockwaveTimeRef.current = 0;
       shockwaveMeshRef.current.position.copy(center);
@@ -575,7 +675,7 @@ const AnatomyCanvas = () => {
     }
   }, [selectedBoneId]);
 
-  // 6. Orbit-Safe Click-to-Pick Raycaster (Only fires on clean click, not camera drag)
+  // 6. Universal 2,200-Structure Click-to-Inspect & X-Ray Raycaster
   const handlePointerDown = useCallback((e) => {
     pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
   }, []);
@@ -592,23 +692,76 @@ const AnatomyCanvas = () => {
       -((e.clientY - rect.top) / rect.height) * 2 + 1
     );
 
+    // Collect only meshes belonging to currently visible layers and not peeled
+    const visibleLayerRoots = [
+      layerSkeletalRef.current,
+      layerLigamentsRef.current,
+      layerMusclesRef.current,
+      layerOrgansRef.current,
+      layerVascularRef.current,
+      layerNervesRef.current,
+    ].filter((grp) => grp && grp.visible);
+
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, cameraRef.current);
-    const intersects = raycaster.intersectObjects(skeletalMeshesRef.current, true);
+    const intersects = raycaster.intersectObjects(visibleLayerRoots, true);
 
-    if (intersects.length > 0) {
-      const hit = intersects[0].object;
+    const hitEntry = intersects.find(
+      (item) => item.object && item.object.isMesh && item.object.visible && item.object.name !== 'SynapticActionPotentials'
+    );
+
+    if (hitEntry) {
+      const hit = hitEntry.object;
+      const meshKey = hit.userData.meshKey || hit.name;
       const boneId = hit.userData.boneId;
-      const bone = boneId ? ALL_206_BONES.find(b => b.id === boneId) : matchMeshToBone(hit.name);
+      const bone = boneId
+        ? ALL_206_BONES.find(b => b.id === boneId)
+        : hit.userData.isBoneMesh
+        ? matchMeshToBone(hit.name)
+        : null;
+
+      // Focus camera & trigger selection shockwave at the hit structure's 3D center
+      const box = new THREE.Box3().setFromObject(hit);
+      const center = box.getCenter(new THREE.Vector3());
+      cameraTargetRef.current.copy(center);
+      if (shockwaveMeshRef.current) {
+        shockwaveTimeRef.current = 0;
+        shockwaveMeshRef.current.position.copy(center);
+        if (cameraRef.current) {
+          shockwaveMeshRef.current.lookAt(cameraRef.current.position);
+        }
+        shockwaveMeshRef.current.visible = true;
+        shockwaveMeshRef.current.scale.set(1, 1, 1);
+        shockwaveMeshRef.current.material.opacity = 0.85;
+      }
 
       if (bone) {
         setSelectedBoneId(bone.id);
+        setSelectedStructure({
+          name: bone.name,
+          latinName: bone.latinName,
+          system: 'Skeletal System (206 Bones)',
+          meshKey: bone.id,
+          boneId: bone.id,
+          isBone: true,
+        });
         if (!assembledBones.includes(bone.id)) {
           assembleBone(bone.id);
         }
+      } else {
+        const rawLabel = (hit.userData.za_name || hit.name || 'Anatomical Structure')
+          .replace(/\.r$/i, ' (Right)')
+          .replace(/\.l$/i, ' (Left)')
+          .replace(/_/g, ' ');
+        setSelectedStructure({
+          name: rawLabel,
+          system: hit.userData.system || 'Anatomical System',
+          meshKey,
+          isBone: false,
+        });
       }
     }
-  }, [assembledBones, assembleBone, setSelectedBoneId]);
+  }, [assembledBones, assembleBone, setSelectedBoneId, setSelectedStructure]);
 
   return (
     <div
@@ -618,18 +771,26 @@ const AnatomyCanvas = () => {
     >
       <div ref={containerRef} className="w-full h-full cursor-pointer" />
 
-      {/* Loading Overlay */}
+      {/* Instant Skeleton Loader */}
       {isLoading && (
         <div className="absolute inset-0 bg-[#06080e]/95 backdrop-blur-md flex flex-col items-center justify-center font-mono gap-3 z-30 select-none">
           <div className="w-12 h-12 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin" />
           <span className="text-xs uppercase tracking-widest text-cyan-300 font-bold">{loadStatus}</span>
-          <span className="text-[10px] text-slate-500">Decompressing Z-Anatomy High-Definition Clinical Atlas...</span>
+          <span className="text-[10px] text-slate-500">Preparing 206-Bone Interactive Rig...</span>
+        </div>
+      )}
+
+      {/* Non-Blocking Progressive Layer Streaming Badge */}
+      {!isLoading && streamingSystem && (
+        <div className="absolute bottom-10 left-6 z-20 pointer-events-none flex items-center gap-2 bg-[#070c18]/90 border border-cyan-500/30 rounded-xl px-3 py-1.5 text-[10px] font-mono text-cyan-300 shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+          <span>{streamingSystem}</span>
         </div>
       )}
 
       {/* Viewport Floating Watermark */}
       <div className="absolute bottom-4 left-6 pointer-events-none select-none text-[9px] font-mono text-slate-500">
-        Z-Anatomy & LUMC Clinical Atlas • 206 Bones • 676 Cardiovascular • 580 Nervous • 276 Visceral/Lymph • 349 Joints
+        Z-Anatomy & LUMC Clinical Atlas • Click Any Bone, Organ, Heart Chamber, Vessel, Nerve, or Muscle to Inspect / X-Ray / Peel
       </div>
     </div>
   );
