@@ -36,7 +36,7 @@ const MODE_THEMES = {
 const BiologyApp = () => {
   const { injectLuca, currentCellDesign, isRunning, agents } = useBioStore();
   const setIsCodexVisible = useStore(state => state.setIsCodexVisible);
-  const [viewMode, setViewMode] = useState('assembly');
+  const [viewMode, setViewMode] = useState('organogenesis');
   
   useBioSimulation();
 

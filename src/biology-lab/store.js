@@ -4,6 +4,7 @@ import { useInventory } from '../store/inventory.js';
 import { useProgressionStore } from '../store/progressionStore.js';
 import { usePlanetaryStore } from '../store/planetaryStore.js';
 import {
+  LEVEL_2_ORGANELLES,
   TIER_1_ORGAN_SYSTEMS,
   TIER_2_TISSUE_SCAFFOLDS,
   TIER_3_CELL_LINEAGES,
@@ -77,9 +78,11 @@ export const useBioStore = create(
       },
 
       // --- Top-Down Precision Synthesis Hierarchy (Tier 5 -> Tier 1) ---
-      selectedOrganSystemId: 'skeletal_system',
+      selectedOrganSystemId: 'cardiovascular_system',
       transcribedGenes: [],     // ['col1a1', 'myh7', 'hbb', 'scn9a', 'atp5f1a']
       foldedProteins: [],       // ['collagen_i', 'actin_myosin', 'hemoglobin', 'ion_channel', 'atp_synthase']
+      assembledOrganelleParts: [], // ['nuc_envelope', 'nuc_pores', 'mito_outer', ...]
+      assembledOrganelles: [],     // ['nucleus', 'mitochondrion', 'ribosome', 'plasma_membrane']
       differentiatedCells: [],  // ['osteoblast', 'cardiomyocyte', 'hepatocyte', 'endothelial_cell', 'motor_neuron']
       engineeredTissues: [],    // ['osteoid', 'myofibril', 'visceral', 'endothelial', 'neural']
 
@@ -292,6 +295,57 @@ export const useBioStore = create(
 
       // --- Top-Down Precision Actions (Tier 5 DNA -> Tier 4 Protein -> Tier 3 Cell -> Tier 2 Tissue -> Tier 1 Organ) ---
       setSelectedOrganSystemId: (id) => set({ selectedOrganSystemId: id }),
+
+      snapOrganellePart: (organelleId, partId) => set((state) => {
+        const orgMeta = LEVEL_2_ORGANELLES[organelleId];
+        if (!orgMeta) return state;
+
+        const currentParts = state.assembledOrganelleParts || [];
+        const nextParts = currentParts.includes(partId)
+          ? currentParts
+          : [...currentParts, partId];
+
+        const allOrgPartsReady = orgMeta.parts.every((p) => nextParts.includes(p.id));
+        const currentOrgs = state.assembledOrganelles || [];
+        const nextOrgs =
+          allOrgPartsReady && !currentOrgs.includes(organelleId)
+            ? [...currentOrgs, organelleId]
+            : currentOrgs;
+
+        // Also ensure it is equipped in currentCellDesign.organelles when completed
+        let nextCellDesign = state.currentCellDesign;
+        if (allOrgPartsReady) {
+          const mappedType = organelleId === 'plasma_membrane' ? 'membrane' : organelleId;
+          const alreadyInCell = (state.currentCellDesign?.organelles || []).some(
+            (o) => o.type === mappedType
+          );
+          if (!alreadyInCell) {
+            nextCellDesign = {
+              ...state.currentCellDesign,
+              organelles: [
+                ...(state.currentCellDesign?.organelles || []),
+                {
+                  id: `org-${organelleId}`,
+                  type: mappedType,
+                  stats: { metabolism: 25, stability: 25 }
+                }
+              ]
+            };
+          }
+        }
+
+        return {
+          assembledOrganelleParts: nextParts,
+          assembledOrganelles: nextOrgs,
+          currentCellDesign: nextCellDesign
+        };
+      }),
+
+      assembleCompleteOrganelle: (organelleId) => {
+        const orgMeta = LEVEL_2_ORGANELLES[organelleId];
+        if (!orgMeta) return;
+        orgMeta.parts.forEach((p) => get().snapOrganellePart(organelleId, p.id));
+      },
 
       transcribeAndTranslateGene: (geneId) => set((state) => {
         const current = state.transcribedGenes || [];
@@ -639,6 +693,8 @@ export const useBioStore = create(
         isRunning: false,
         transcribedGenes: [],
         foldedProteins: [],
+        assembledOrganelleParts: [],
+        assembledOrganelles: [],
         differentiatedCells: [],
         engineeredTissues: [],
         stressTrial: {

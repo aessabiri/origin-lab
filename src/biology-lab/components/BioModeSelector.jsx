@@ -12,12 +12,38 @@ const BioModeSelector = ({ currentMode, setMode }) => {
   } = useBioStore();
 
   const modes = [
-    { id: 'organogenesis', label: 'Organogenesis (T1→T5)', icon: '🫀', val: `${engineeredTissues.length}/5`, unit: 'ORGANS', desc: 'Top-Down: Organs → ECM → Cells → Proteins → DNA' },
-    { id: 'assembly', label: 'Cell & Organelles (T5)', icon: '🦠', val: currentCellDesign.organelles.length, unit: 'COMP', desc: 'LUCA Chassis & 8 Organelle Classes' },
-    { id: 'folding', label: 'Protein & DNA Lab (T4)', icon: '🧬', val: synthesizedProteins.length, unit: 'SEQ', desc: '3D Polypeptide & Codon Translation' },
-    { id: 'simulation', label: 'Incubation Chamber', icon: '🧫', val: agents.length, unit: 'CELLS', desc: 'Archean Hydrothermal Ecosystem' },
-    { id: 'morphogenesis', label: 'Cambrian Body Plan', icon: '🦎', val: morphogenesisConfig?.segments || 7, unit: 'SOMITES', desc: '3D Multicellular → Vertebrate Bridge' },
-    { id: 'inventory', label: 'Bio-Storage', icon: '📦', val: 'OPEN', unit: 'LEDGER', desc: 'Enzymes & Biological Precursors' }
+    {
+      id: 'organogenesis',
+      label: 'Bio-Assembly Line',
+      icon: '🫀',
+      val: `${engineeredTissues.length}/5`,
+      unit: 'ORGANS',
+      desc: '5-Stage Pipeline: Organs ↔ Tissues ↔ Cells ↔ Organelles ↔ Molecules'
+    },
+    {
+      id: 'folding',
+      label: 'Protein & DNA Studio',
+      icon: '🧬',
+      val: synthesizedProteins.length,
+      unit: 'SEQ',
+      desc: '3D Amino Acid Folding & 64-Codon Sequencer'
+    },
+    {
+      id: 'assembly',
+      label: 'LUCA Cell Sandbox',
+      icon: '🦠',
+      val: currentCellDesign.organelles.length,
+      unit: 'PARTS',
+      desc: 'Freeform Protocell & Organelle Chassis'
+    },
+    {
+      id: 'simulation',
+      label: 'Petri Dish Ecosystem',
+      icon: '🧫',
+      val: agents.length,
+      unit: 'CELLS',
+      desc: 'Live 2D Survival, Feeding & Mitosis'
+    }
   ];
 
   return (

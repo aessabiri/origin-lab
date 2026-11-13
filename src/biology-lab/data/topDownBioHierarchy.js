@@ -1,208 +1,487 @@
 /**
- * TOP-DOWN BIOLOGICAL PRECISION HIERARCHY (Tier 1 Macro-Organs -> Tier 5 DNA Codons)
+ * BIO-ASSEMBLY LINE HIERARCHY (Elementary Chemistry -> Macromolecules -> Organelles -> Cells -> Tissues -> 3D Organs)
  *
- * Designed from Top (General Macro-Structure) to Bottom (Molecular & Genetic Sub-Elements):
- *   Tier 1: Macro-Anatomical Organ Systems & 206 Bones (3D Anatomy Atlas)
- *   Tier 2: Histogenesis Tissue Scaffolds & Extracellular Matrix (ECM)
- *   Tier 3: Specialized Differentiated Cell Lineages (Morphogen Gradients)
- *   Tier 4: Folded 3D Structural & Enzymatic Proteins (Chaperonin Folding)
- *   Tier 5: Organelles, Ribosomal mRNA Translation & DNA Coding Genes
+ * Supports both:
+ *  - TOP-DOWN inspection: Start at a Macro Human Organ (Level 5), inspect what Tissue (Level 4) it needs,
+ *    what Cell (Level 3) that needs, what Organelles (Level 2) that needs, down to Molecular Building Blocks (Level 1).
+ *  - BOTTOM-UP assembly: Snap together building blocks at each level to construct the level above it.
  */
 
+// ============================================================================
+// LEVEL 1: MOLECULAR BUILDING BLOCKS (From Physics Atoms & Chemistry Lab)
+// ============================================================================
+export const LEVEL_1_MACROMOLECULES = {
+  phospholipid_bilayer: {
+    id: 'phospholipid_bilayer',
+    name: 'Phospholipid Bilayer Sheet',
+    icon: '🫧',
+    color: '#38bdf8',
+    fromChemistry: ['2× Fatty Acid Chains (C, H)', 'Glycerol Backbone (C₃H₈O₃)', 'Phosphate Head (PO₄³⁻)'],
+    role: 'Forms semi-permeable outer/inner membranes for organelles and cells.'
+  },
+  bdna_chromatin: {
+    id: 'bdna_chromatin',
+    name: 'B-DNA Double Helix & mRNA',
+    icon: '🧬',
+    color: '#a855f7',
+    fromChemistry: ['Deoxyribose Sugar (C₅H₁₀O₄)', 'Phosphate Backbone (P, O)', 'A–T & G–C Base Pairs (N)'],
+    role: 'Stores the genetic blueprint and transcribes mRNA for protein synthesis.'
+  },
+  atp_synthase: {
+    id: 'atp_synthase',
+    name: 'F₀F₁ ATP Synthase Rotary Motor',
+    icon: '⚡',
+    color: '#f59e0b',
+    fromChemistry: ['Amino Acid Polypeptide', 'Adenosine Diphosphate (ADP)', 'Inorganic Phosphate (Pᵢ) + H⁺'],
+    role: 'Molecular turbine that synthesizes cellular ATP energy currency.'
+  },
+  collagen_i: {
+    id: 'collagen_i',
+    name: 'Type-I Triple-Helix Collagen',
+    icon: '🪢',
+    color: '#22d3ee',
+    fromChemistry: ['Glycine (Gly)', 'Proline (Pro)', 'Hydroxyproline (Hyp) + Vitamin C'],
+    role: 'High-tensile structural protein rope for bone osteoid, tendons, and organ walls.'
+  },
+  actin_myosin: {
+    id: 'actin_myosin',
+    name: 'Actin-Myosin Contractile Filaments',
+    icon: '💪',
+    color: '#f43f5e',
+    fromChemistry: ['Globular Actin (G-Actin)', 'Myosin-II Heavy Chains', 'Ca²⁺ + ATP Trigger'],
+    role: 'Molecular rachet motors that contract heart and skeletal muscle cells.'
+  },
+  hemoglobin: {
+    id: 'hemoglobin',
+    name: 'Hemoglobin α₂β₂ Heme Complex',
+    icon: '🩸',
+    color: '#ef4444',
+    fromChemistry: ['4× Globin Polypeptides', '4× Porphyrin Heme Rings', 'Ferrous Iron (Fe²⁺) Core'],
+    role: 'Binds and transports O₂ from lung alveoli to all perfused tissues.'
+  },
+  ion_channel: {
+    id: 'ion_channel',
+    name: 'Voltage-Gated Na⁺/K⁺ Ion Channel',
+    icon: '🔌',
+    color: '#eab308',
+    fromChemistry: ['4× Transmembrane α-Helix Domains', 'S4 Arginine Voltage Sensor', 'Na⁺ & K⁺ Ions'],
+    role: 'Fires rapid electrical action potentials along nerve axons and heart cells.'
+  }
+};
+
+// ============================================================================
+// LEVEL 2: ORGANELLES (Assembled Part-by-Part from Level 1 Macromolecules)
+// ============================================================================
+export const LEVEL_2_ORGANELLES = {
+  nucleus: {
+    id: 'nucleus',
+    name: 'Cell Nucleus',
+    subtitle: 'Genomic Command Center',
+    icon: '🟣',
+    color: '#38bdf8',
+    parts: [
+      { id: 'nuc_envelope', label: 'Double Nuclear Lipid Envelope', blockId: 'phospholipid_bilayer' },
+      { id: 'nuc_pores', label: '14 Octagonal Nuclear Pore Complexes', blockId: 'collagen_i' },
+      { id: 'nuc_dna', label: 'Helical B-DNA Chromatin Genome', blockId: 'bdna_chromatin' },
+      { id: 'nuc_nucleolus', label: 'Dense rRNA Nucleolus Core', blockId: 'bdna_chromatin' }
+    ],
+    description: 'Houses the B-DNA double helix and exports mRNA transcripts through nuclear pores.'
+  },
+  mitochondrion: {
+    id: 'mitochondrion',
+    name: 'Mitochondrion',
+    subtitle: 'Oxidative ATP Powerhouse',
+    icon: '🟠',
+    color: '#f59e0b',
+    parts: [
+      { id: 'mito_outer', label: 'Outer Porin Phospholipid Capsule', blockId: 'phospholipid_bilayer' },
+      { id: 'mito_cristae', label: 'Folded Inner Cristae Baffles', blockId: 'phospholipid_bilayer' },
+      { id: 'mito_atp', label: 'F₀F₁ ATP Synthase Rotor Array', blockId: 'atp_synthase' },
+      { id: 'mito_dna', label: 'Circular Mitochondrial DNA Ring', blockId: 'bdna_chromatin' }
+    ],
+    description: 'Uses proton gradients across folded cristae to spin ATP Synthase turbines.'
+  },
+  ribosome: {
+    id: 'ribosome',
+    name: '80S Ribosome & Rough ER',
+    subtitle: 'Polypeptide Translation Factory',
+    icon: '🔵',
+    color: '#06b6d4',
+    parts: [
+      { id: 'ribo_40s', label: '40S Small mRNA-Decoding Subunit', blockId: 'bdna_chromatin' },
+      { id: 'ribo_60s', label: '60S Large Peptidyl-Transferase Subunit', blockId: 'bdna_chromatin' },
+      { id: 'ribo_er', label: 'Rough Endoplasmic Reticulum Membrane', blockId: 'phospholipid_bilayer' }
+    ],
+    description: 'Reads mRNA codons 3 bases at a time and links amino acids into folded proteins.'
+  },
+  plasma_membrane: {
+    id: 'plasma_membrane',
+    name: 'Excitable Plasma Membrane & Cortex',
+    subtitle: 'Selective Barrier & Cytoskeleton',
+    icon: '🟢',
+    color: '#10b981',
+    parts: [
+      { id: 'mem_bilayer', label: 'Dual-Leaflet Phospholipid Bilayer', blockId: 'phospholipid_bilayer' },
+      { id: 'mem_cortex', label: 'Actin-Spectrin Cytoskeletal Cortex', blockId: 'actin_myosin' },
+      { id: 'mem_channels', label: 'Transmembrane Na⁺/K⁺ Ion Pores', blockId: 'ion_channel' }
+    ],
+    description: 'Encloses the cytoplasm, anchors the cytoskeleton, and regulates ion gradients.'
+  }
+};
+
+// ============================================================================
+// LEVEL 3: SPECIALIZED HUMAN CELLS (Assembled from Level 2 Organelles + Level 1 Proteins)
+// ============================================================================
+export const LEVEL_3_CELLS = {
+  osteoblast: {
+    id: 'osteoblast',
+    name: 'Osteoblast (Bone-Forming Cell)',
+    germLayer: 'Mesoderm',
+    morphogenSignal: 'BMP4 + Runx2',
+    optimalMorphogens: { bmpShh: 82, wntFgf: 60 },
+    icon: '🦴',
+    color: '#38bdf8',
+    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'plasma_membrane'],
+    requiredProteins: ['collagen_i', 'atp_synthase'],
+    parts: [
+      { id: 'cell_ost_nuc', label: 'Nucleus (Runx2 Bone Transcription)', refLevel: 2, refId: 'nucleus' },
+      { id: 'cell_ost_ribo', label: 'Rough ER & 80S Ribosomes', refLevel: 2, refId: 'ribosome' },
+      { id: 'cell_ost_mito', label: 'Mitochondria Cluster', refLevel: 2, refId: 'mitochondrion' },
+      { id: 'cell_ost_col', label: 'Type-I Collagen Secretory Granules', refLevel: 1, refId: 'collagen_i' }
+    ],
+    role: 'Secretes triple-helix Type-I collagen and nucleates calcium phosphate bone mineral.'
+  },
+  cardiomyocyte: {
+    id: 'cardiomyocyte',
+    name: 'Cardiomyocyte & Striated Myocyte',
+    germLayer: 'Mesoderm',
+    morphogenSignal: 'Wnt3a + Nkx2.5',
+    optimalMorphogens: { bmpShh: 52, wntFgf: 78 },
+    icon: '🫀',
+    color: '#f43f5e',
+    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'plasma_membrane'],
+    requiredProteins: ['actin_myosin', 'atp_synthase'],
+    parts: [
+      { id: 'cell_car_nuc', label: 'Central Nucleus', refLevel: 2, refId: 'nucleus' },
+      { id: 'cell_car_mito', label: 'High-Density Mitochondria (40% Vol)', refLevel: 2, refId: 'mitochondrion' },
+      { id: 'cell_car_mem', label: 'Sarcolemma & Intercalated Discs', refLevel: 2, refId: 'plasma_membrane' },
+      { id: 'cell_car_sarc', label: 'Actin-Myosin Sarcomere Bundles', refLevel: 1, refId: 'actin_myosin' }
+    ],
+    role: 'Contracts rhythmically using ATP and Actin-Myosin crossbridges to pump blood and move bones.'
+  },
+  hepatocyte: {
+    id: 'hepatocyte',
+    name: 'Pneumocyte & Hepatocyte (Visceral Cell)',
+    germLayer: 'Endoderm',
+    morphogenSignal: 'FGF2 + HNF4α',
+    optimalMorphogens: { bmpShh: 42, wntFgf: 85 },
+    icon: '🫁',
+    color: '#10b981',
+    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'plasma_membrane'],
+    requiredProteins: ['hemoglobin', 'atp_synthase'],
+    parts: [
+      { id: 'cell_hep_nuc', label: 'Metabolic Nucleus', refLevel: 2, refId: 'nucleus' },
+      { id: 'cell_hep_mito', label: 'Detox & Respiratory Mitochondria', refLevel: 2, refId: 'mitochondrion' },
+      { id: 'cell_hep_ribo', label: 'Dense ER & 80S Ribosome Array', refLevel: 2, refId: 'ribosome' },
+      { id: 'cell_hep_heme', label: 'Gas-Exchange Hemoglobin Interface', refLevel: 1, refId: 'hemoglobin' }
+    ],
+    role: 'Forms lung alveolar gas-exchange walls and liver metabolic lobules.'
+  },
+  endothelial_cell: {
+    id: 'endothelial_cell',
+    name: 'Vascular Endothelial & Red Blood Cell',
+    germLayer: 'Mesoderm',
+    morphogenSignal: 'VEGF-A + EPO',
+    optimalMorphogens: { bmpShh: 35, wntFgf: 92 },
+    icon: '🩸',
+    color: '#ef4444',
+    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'plasma_membrane'],
+    requiredProteins: ['hemoglobin', 'collagen_i'],
+    parts: [
+      { id: 'cell_endo_mem', label: 'Anti-Thrombotic Plasma Membrane', refLevel: 2, refId: 'plasma_membrane' },
+      { id: 'cell_endo_nuc', label: 'Endothelial Nucleus', refLevel: 2, refId: 'nucleus' },
+      { id: 'cell_endo_hb', label: 'Tetrameric Hemoglobin O₂ Carrier', refLevel: 1, refId: 'hemoglobin' },
+      { id: 'cell_endo_col', label: 'Basal Lamina Collagen Anchor', refLevel: 1, refId: 'collagen_i' }
+    ],
+    role: 'Lines all arteries, veins, and capillaries while carrying oxygenated hemoglobin.'
+  },
+  motor_neuron: {
+    id: 'motor_neuron',
+    name: 'Multipolar Motor & Cortical Neuron',
+    germLayer: 'Ectoderm',
+    morphogenSignal: 'Sonic Hedgehog (Shh)',
+    optimalMorphogens: { bmpShh: 15, wntFgf: 72 },
+    icon: '🧠',
+    color: '#f59e0b',
+    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'plasma_membrane'],
+    requiredProteins: ['ion_channel', 'atp_synthase'],
+    parts: [
+      { id: 'cell_neu_soma', label: 'Soma Nucleus & Nissl Ribosomes', refLevel: 2, refId: 'nucleus' },
+      { id: 'cell_neu_axon', label: 'Myelinated Axonal Membrane', refLevel: 2, refId: 'plasma_membrane' },
+      { id: 'cell_neu_mito', label: 'Synaptic Boutique Mitochondria', refLevel: 2, refId: 'mitochondrion' },
+      { id: 'cell_neu_nav', label: 'Nodes of Ranvier Na⁺/K⁺ Channels', refLevel: 1, refId: 'ion_channel' }
+    ],
+    role: 'Transmits 120 m/s electrical action potentials across the brain, spinal cord, and nerves.'
+  }
+};
+
+// ============================================================================
+// LEVEL 4: ENGINEERED TISSUES (Assembled from Level 3 Cells + Level 1 ECM)
+// ============================================================================
+export const LEVEL_4_TISSUES = {
+  osteoid: {
+    id: 'osteoid',
+    name: 'Calcified Haversian Bone Tissue',
+    icon: '🦴',
+    color: '#38bdf8',
+    formula: 'Ca₁₀(PO₄)₆(OH)₂ + Type-I Collagen',
+    requiredCells: ['osteoblast'],
+    requiredProteins: ['collagen_i'],
+    compounds: { calcium: 2, 'phosphoric-acid': 2 },
+    ecmArchitecture: 'Concentric Haversian osteon rings reinforced with hydroxyapatite mineral crystals.',
+    parts: [
+      { id: 'tis_ost_cells', label: 'Osteoblast & Osteocyte Lacunae Network', refLevel: 3, refId: 'osteoblast' },
+      { id: 'tis_ost_col', label: 'Cross-Linked Type-I Collagen Osteoid', refLevel: 1, refId: 'collagen_i' },
+      { id: 'tis_ost_min', label: 'Hydroxyapatite Mineral Ca₁₀(PO₄)₆(OH)₂', refLevel: 1, refId: 'atp_synthase' }
+    ]
+  },
+  myofibril: {
+    id: 'myofibril',
+    name: 'Striated Muscle & Tendon Tissue',
+    icon: '💪',
+    color: '#f43f5e',
+    formula: 'Actin-Myosin II + Endomysial Collagen I',
+    requiredCells: ['cardiomyocyte'],
+    requiredProteins: ['actin_myosin', 'collagen_i'],
+    compounds: { glucose: 2, glycine: 2 },
+    ecmArchitecture: 'Bundled myofibril fascicles anchored to bone via dense collagenous tendons.',
+    parts: [
+      { id: 'tis_myo_cells', label: 'Aligned Striated Myocyte Fascicles', refLevel: 3, refId: 'cardiomyocyte' },
+      { id: 'tis_myo_sarc', label: 'Contractile Actin-Myosin Filaments', refLevel: 1, refId: 'actin_myosin' },
+      { id: 'tis_myo_tendon', label: 'Collagenous Tendon & Ligament Sheath', refLevel: 1, refId: 'collagen_i' }
+    ]
+  },
+  visceral: {
+    id: 'visceral',
+    name: 'Alveolar & Hepatic Parenchyma Tissue',
+    icon: '🫁',
+    color: '#10b981',
+    formula: 'Endodermal Lobules + Capillary Surfactant ECM',
+    requiredCells: ['hepatocyte'],
+    requiredProteins: ['hemoglobin', 'collagen_i'],
+    compounds: { water: 3, phospholipid: 2 },
+    ecmArchitecture: '0.2 µm alveolar gas-exchange sacs and fenestrated hepatic sinusoids.',
+    parts: [
+      { id: 'tis_vis_cells', label: 'Pneumocyte & Hepatocyte Epithelium', refLevel: 3, refId: 'hepatocyte' },
+      { id: 'tis_vis_ecm', label: 'Basement Membrane Collagen Matrix', refLevel: 1, refId: 'collagen_i' },
+      { id: 'tis_vis_cap', label: 'Oxygenated Hemoglobin Perfusion Bed', refLevel: 1, refId: 'hemoglobin' }
+    ]
+  },
+  endothelial: {
+    id: 'endothelial',
+    name: 'Cardiac Myocardium & Vascular Wall',
+    icon: '🫀',
+    color: '#ef4444',
+    formula: 'Syncytial Myocardium + Elastin Endothelium',
+    requiredCells: ['cardiomyocyte', 'endothelial_cell'],
+    requiredProteins: ['actin_myosin', 'hemoglobin'],
+    compounds: { heme: 1, iron: 1 },
+    ecmArchitecture: 'Autorhythmic cardiac muscle coupled to elastic arterial/venous endothelium.',
+    parts: [
+      { id: 'tis_end_myo', label: 'Syncytial Cardiomyocyte Wall', refLevel: 3, refId: 'cardiomyocyte' },
+      { id: 'tis_end_vasc', label: 'Vascular Endothelial Lumen Lining', refLevel: 3, refId: 'endothelial_cell' },
+      { id: 'tis_end_hb', label: 'Coronary Hemoglobin Blood Supply', refLevel: 1, refId: 'hemoglobin' }
+    ]
+  },
+  neural: {
+    id: 'neural',
+    name: 'Cortical Gray Matter & Myelinated Tracts',
+    icon: '🧠',
+    color: '#f59e0b',
+    formula: 'Sphingomyelin Sheaths + NaV1.6 Nodes',
+    requiredCells: ['motor_neuron'],
+    requiredProteins: ['ion_channel', 'atp_synthase'],
+    compounds: { phospholipid: 2, 'glutamic-acid': 2 },
+    ecmArchitecture: '6-layered neocortical columns and myelinated spinal white-matter tracts.',
+    parts: [
+      { id: 'tis_neu_cells', label: 'Pyramidal & Motor Neuron Network', refLevel: 3, refId: 'motor_neuron' },
+      { id: 'tis_neu_myelin', label: 'Multilamellar Myelin Lipid Insulation', refLevel: 1, refId: 'phospholipid_bilayer' },
+      { id: 'tis_neu_nav', label: 'High-Density Voltage Ion Channel Array', refLevel: 1, refId: 'ion_channel' }
+    ]
+  }
+};
+
+// ============================================================================
+// LEVEL 5 (TOP): MACRO 3D HUMAN ORGAN SYSTEMS (Real Z-Anatomy GLB Models!)
+// ============================================================================
 export const TIER_1_ORGAN_SYSTEMS = [
   {
     id: 'skeletal_system',
     anatomyTissueId: 'osteoid',
-    name: '206-Bone Endoskeleton & Articular Discs',
+    glbModel: '/models/lumc_skeleton.glb',
+    name: '206-Bone Human Skeleton',
     latinName: 'Systema skeletale (206 Ossa)',
     icon: '🦴',
+    color: '#38bdf8',
     meshCount: 229,
     requiredTissue: 'osteoid',
     requiredCells: ['osteoblast'],
     requiredProteins: ['collagen_i', 'atp_synthase'],
     description:
-      'Cortical and trabecular bone matrix mineralized with hydroxyapatite crystals around triple-helix Type-I collagen.',
-    clinicalNote: 'Unlocks all 206 clinical CT bones + 23 intervertebral discs in the 3D Anatomy Lab.'
+      'Complete 206-bone human endoskeleton and 23 intervertebral discs mineralized from Haversian osteoid tissue.',
+    clinicalNote: 'Deploys all 206 clinical CT bones into the 3D Human Anatomy Atlas.'
   },
   {
     id: 'muscular_system',
     anatomyTissueId: 'myofibril',
-    name: 'Myofascial Slings & 349 Joint Ligaments',
+    glbModel: '/models/joints.glb',
+    name: 'Muscular System & 349 Ligaments',
     latinName: 'Systema musculare et syndesmologia',
     icon: '💪',
+    color: '#f43f5e',
     meshCount: 389,
     requiredTissue: 'myofibril',
     requiredCells: ['cardiomyocyte', 'osteoblast'],
     requiredProteins: ['actin_myosin', 'collagen_i', 'atp_synthase'],
     description:
-      'Contractile sarcomere arrays of actin and myosin filaments anchored to bone periosteum via dense collagenous tendons.',
-    clinicalNote: 'Unlocks bilateral myofascial muscle slings and 349 Z-Anatomy joint ligaments.'
+      'Bilateral skeletal muscle groups, tendons, and 349 Z-Anatomy joint capsules & ligaments.',
+    clinicalNote: 'Deploys all muscles and 349 articular ligaments into the 3D Human Anatomy Atlas.'
   },
   {
     id: 'visceral_system',
     anatomyTissueId: 'visceral',
-    name: 'Visceral & Lymphatic Organ Systems',
+    glbModel: '/models/visceral.glb',
+    name: 'Lungs, Liver, Stomach & Kidneys',
     latinName: 'Splanchnologia (Pulmones, Hepar, Gaster, Renes)',
     icon: '🫁',
+    color: '#10b981',
     meshCount: 276,
     requiredTissue: 'visceral',
     requiredCells: ['hepatocyte', 'endothelial_cell'],
     requiredProteins: ['hemoglobin', 'collagen_i', 'atp_synthase'],
     description:
-      'Endodermal parenchymal organs (lungs, liver, stomach, kidneys, spleen) perfused by micro-capillary gas and metabolic exchange.',
-    clinicalNote: 'Unlocks 118 HD visceral organs and 158 lymphatic nodes/vessels in 3D.'
+      'High-definition respiratory, digestive, urinary, and lymphatic visceral organs.',
+    clinicalNote: 'Deploys 118 HD visceral organs + 158 lymphatic vessels into the 3D Human Anatomy Atlas.'
   },
   {
     id: 'cardiovascular_system',
     anatomyTissueId: 'endothelial',
-    name: '4-Chamber Heart & Arterial-Venous Tree',
+    glbModel: '/models/cardiovascular.glb',
+    name: '4-Chamber Heart & Vascular Tree',
     latinName: 'Systema cardiovasculare (Cor et Vasa)',
     icon: '🫀',
+    color: '#ef4444',
     meshCount: 676,
     requiredTissue: 'endothelial',
     requiredCells: ['cardiomyocyte', 'endothelial_cell'],
     requiredProteins: ['actin_myosin', 'hemoglobin', 'atp_synthase'],
     description:
-      'Autorhythmic 4-chamber myocardium with tricuspid, mitral, aortic, and pulmonary valves pumping oxygenated hemoglobin.',
-    clinicalNote: 'Unlocks 676 HD cardiovascular structures and 72 BPM systolic cardiac contraction.'
+      'Beating 4-chamber heart (atria, ventricles, valves, coronary arteries) and systemic arterial-venous tree.',
+    clinicalNote: 'Deploys 676 HD cardiovascular structures & 72 BPM heartbeat into the 3D Anatomy Atlas.'
   },
   {
     id: 'nervous_system',
     anatomyTissueId: 'neural',
-    name: 'Brain, Spinal Cord & Cranial/Spinal Connectome',
+    glbModel: '/models/nervous.glb',
+    name: 'Brain, Spinal Cord & Nerves',
     latinName: 'Systema nervosum (Encephalon et Medulla)',
     icon: '🧠',
+    color: '#f59e0b',
     meshCount: 580,
     requiredTissue: 'neural',
     requiredCells: ['motor_neuron', 'endothelial_cell'],
     requiredProteins: ['ion_channel', 'atp_synthase'],
     description:
-      'Myelinated central and peripheral neural tracts propagating 40 Hz gamma action potentials via voltage-gated Na+/K+ channels.',
-    clinicalNote: 'Unlocks 580 HD brain & nerve tracts and 40 Hz Gamma EEG consciousness.'
+      'Cerebral hemispheres, cerebellum, brainstem, spinal cord, cranial nerves, and peripheral plexuses.',
+    clinicalNote: 'Deploys 580 HD neural structures & 40 Hz Gamma EEG into the 3D Anatomy Atlas.'
   }
 ];
 
-export const TIER_2_TISSUE_SCAFFOLDS = {
-  osteoid: {
-    id: 'osteoid',
-    name: 'Mineralized Osteoid ECM Scaffold',
-    icon: '🦴',
-    formula: 'Ca₁₀(PO₄)₆(OH)₂ + Type-I Collagen',
-    requiredCells: ['osteoblast'],
-    requiredProteins: ['collagen_i'],
-    compounds: { calcium: 2, 'phosphoric-acid': 2 },
-    ecmArchitecture: 'Concentric Haversian osteons with cross-linked hydroxyapatite nanocrystals'
-  },
-  myofibril: {
-    id: 'myofibril',
-    name: 'Striated Sarcomere & Tendon Matrix',
-    icon: '💪',
-    formula: 'Actin-Myosin II + Tropomyosin + Collagen I',
-    requiredCells: ['cardiomyocyte'],
-    requiredProteins: ['actin_myosin', 'collagen_i'],
-    compounds: { glucose: 2, glycine: 2 },
-    ecmArchitecture: 'Anisotropic Z-disc sarcomere bundles sheathed in endomysial collagen'
-  },
-  visceral: {
-    id: 'visceral',
-    name: 'Endodermal Parenchyma & Alveolar Basement ECM',
-    icon: '🫁',
-    formula: 'Type-IV Laminin + Surfactant Phospholipids',
-    requiredCells: ['hepatocyte'],
-    requiredProteins: ['hemoglobin', 'collagen_i'],
-    compounds: { water: 3, phospholipid: 2 },
-    ecmArchitecture: 'Fenestrated sinusoidal lobules and 0.2 µm alveolar-capillary gas membranes'
-  },
-  endothelial: {
-    id: 'endothelial',
-    name: 'Vascular Endothelium & Syncytial Myocardium',
-    icon: '🫀',
-    formula: 'Connexin-43 Gap Junctions + Elastin Lamellae',
-    requiredCells: ['cardiomyocyte', 'endothelial_cell'],
-    requiredProteins: ['actin_myosin', 'hemoglobin'],
-    compounds: { heme: 1, iron: 1 },
-    ecmArchitecture: 'Intercalated disc syncytium lined by anti-thrombotic glycocalyx endothelium'
-  },
-  neural: {
-    id: 'neural',
-    name: 'Myelinated Axonal & Cortical Neuropil',
-    icon: '🧠',
-    formula: 'Sphingomyelin + Nodes of Ranvier NaV1.6',
-    requiredCells: ['motor_neuron'],
-    requiredProteins: ['ion_channel', 'atp_synthase'],
-    compounds: { phospholipid: 2, 'glutamic-acid': 2 },
-    ecmArchitecture: 'Multilamellar myelin lipid sheaths with high-density voltage-gated ion nodes'
-  }
-};
+// Keep named exports for backwards compatibility across all tests
+export const TIER_2_TISSUE_SCAFFOLDS = LEVEL_4_TISSUES;
+export const TIER_3_CELL_LINEAGES = LEVEL_3_CELLS;
 
-export const TIER_3_CELL_LINEAGES = {
-  osteoblast: {
-    id: 'osteoblast',
-    name: 'Osteoblast / Osteocyte',
-    germLayer: 'Mesoderm (Sclerotome)',
-    morphogenSignal: 'BMP4 + Runx2 / Osterix',
-    optimalMorphogens: { bmpShh: 82, wntFgf: 60 },
-    icon: '🦴',
+export const TIER_4_FOLDED_PROTEINS = {
+  collagen_i: {
+    id: 'collagen_i',
+    geneId: 'col1a1',
+    name: 'Type-I Triple-Helix Collagen (COL1A1)',
+    motif: '(Gly-Pro-Hyp)ₙ Left-Handed Polyproline II',
+    secondaryStructure: 'Triple Helix (300 nm rod)',
+    freeEnergyKcal: -48.6,
+    chaperonin: 'HSP47 + Prolyl 4-Hydroxylase',
+    dna: 'ATGGGTCCACCAGGTCCACCAGGTCCACCAGGTTAG',
+    icon: '🪢',
     color: '#38bdf8',
-    requiredProteins: ['collagen_i', 'atp_synthase'],
-    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'membrane'],
-    role: 'Secretes Type-I collagen osteoid and alkaline phosphatase to nucleate bone mineral.'
+    usedInTissues: ['osteoid', 'myofibril', 'visceral']
   },
-  cardiomyocyte: {
-    id: 'cardiomyocyte',
-    name: 'Striated Myocyte / Cardiomyocyte',
-    germLayer: 'Mesoderm (Myotome & Splanchnic)',
-    morphogenSignal: 'Wnt3a + Nkx2.5 + GATA4',
-    optimalMorphogens: { bmpShh: 52, wntFgf: 78 },
-    icon: '🫀',
+  actin_myosin: {
+    id: 'actin_myosin',
+    geneId: 'myh7',
+    name: 'Actin-Myosin II Sarcomere Motor (MYH7)',
+    motif: 'P-Loop NTPase + Coiled-Coil α-Helix',
+    secondaryStructure: '68% α-Helix / 18% β-Sheet',
+    freeEnergyKcal: -62.4,
+    chaperonin: 'UNC-45B + HSP90',
+    dna: 'ATGGCCGAGCTGAAGCTGCTGGAGGAGGAGCGCAAGTAG',
+    icon: '💪',
     color: '#f43f5e',
-    requiredProteins: ['actin_myosin', 'atp_synthase'],
-    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'membrane'],
-    role: 'Generates rhythmic Ca²⁺-triggered power strokes across sarcomeric Z-discs.'
+    usedInTissues: ['myofibril', 'endothelial']
   },
-  hepatocyte: {
-    id: 'hepatocyte',
-    name: 'Endodermal Hepatocyte & Pneumocyte',
-    germLayer: 'Endoderm (Foregut)',
-    morphogenSignal: 'FGF2 + HNF4α + Sox9',
-    optimalMorphogens: { bmpShh: 42, wntFgf: 85 },
-    icon: '🫁',
-    color: '#10b981',
-    requiredProteins: ['hemoglobin', 'atp_synthase'],
-    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'membrane'],
-    role: 'Performs xenobiotic detoxification, plasma protein synthesis, and alveolar gas exchange.'
-  },
-  endothelial_cell: {
-    id: 'endothelial_cell',
-    name: 'Vascular Endothelial & Erythroid Precursor',
-    germLayer: 'Mesoderm (Hemangioblast)',
-    morphogenSignal: 'VEGF-A + Flk1 + EPO',
-    optimalMorphogens: { bmpShh: 35, wntFgf: 92 },
+  hemoglobin: {
+    id: 'hemoglobin',
+    geneId: 'hbb',
+    name: 'Hemoglobin α₂β₂ Heme Pocket (HBB)',
+    motif: 'Globin Fold (8 α-Helices + Fe²⁺ Porphyrin)',
+    secondaryStructure: '78% α-Helix (Globin)',
+    freeEnergyKcal: -54.2,
+    chaperonin: 'AHSP (Alpha-Hemoglobin Stabilizing Protein)',
+    dna: 'ATGGTGCTGTCCCTGTTCGACAAGGTGAAGCACCTGAAGACCTAG',
     icon: '🩸',
-    color: '#ef4444',
-    requiredProteins: ['hemoglobin', 'collagen_i'],
-    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'membrane'],
-    role: 'Forms capillary lumens and packages tetrameric hemoglobin for O₂/CO₂ transport.'
+    color: '#10b981',
+    usedInTissues: ['visceral', 'endothelial']
   },
-  motor_neuron: {
-    id: 'motor_neuron',
-    name: 'Cholinergic Motor & Cortical Neuron',
-    germLayer: 'Ectoderm (Neural Tube)',
-    morphogenSignal: 'Sonic Hedgehog (Shh) + Retinoic Acid',
-    optimalMorphogens: { bmpShh: 15, wntFgf: 72 },
-    icon: '🧠',
+  ion_channel: {
+    id: 'ion_channel',
+    geneId: 'scn9a',
+    name: 'Voltage-Gated Na⁺/K⁺ Channel (NaV1.7)',
+    motif: '4x6 Transmembrane α-Helices + S4 Arg Sensor',
+    secondaryStructure: 'Transmembrane α-Bundle + P-Loop Filter',
+    freeEnergyKcal: -71.0,
+    chaperonin: 'Calnexin / ER Translocon Sec61',
+    dna: 'ATGCGTCGCCTGATCTTCGTGCTGGTCATCGGCCAGTAG',
+    icon: '🔌',
     color: '#f59e0b',
-    requiredProteins: ['ion_channel', 'atp_synthase'],
-    requiredOrganelles: ['nucleus', 'mitochondrion', 'ribosome', 'membrane'],
-    role: 'Propagates saltatory action potentials (120 m/s) and releases synaptic neurotransmitters.'
+    usedInTissues: ['neural']
+  },
+  atp_synthase: {
+    id: 'atp_synthase',
+    geneId: 'atp5f1a',
+    name: 'F₀F₁ ATP Synthase Rotary Motor (ATP5F1A)',
+    motif: 'c-Ring Proton Turbine + α₃β₃ Catalytic Hexamer',
+    secondaryStructure: 'Alternating α/β Rossmann Fold',
+    freeEnergyKcal: -84.5,
+    chaperonin: 'GroEL / GroES (HSP60/HSP10)',
+    dna: 'ATGGCCATCACCGGCCGTGTCATCGGCGCCCTGAAGTAG',
+    icon: '⚡',
+    color: '#a855f7',
+    usedInTissues: ['osteoid', 'myofibril', 'visceral', 'endothelial', 'neural']
   }
 };
 
-/**
- * Evaluates Wolpert French-Flag morphogen gradient resonance (0-100%) for a target cell lineage.
- */
+export const TIER_5_DNA_GENES = Object.values(TIER_4_FOLDED_PROTEINS).map((p) => ({
+  id: p.geneId,
+  proteinId: p.id,
+  name: `${p.name.split(' (')[1]?.replace(')', '') || p.id.toUpperCase()} Coding Gene`,
+  proteinName: p.name,
+  dna: p.dna,
+  mrna: p.dna.replace(/T/g, 'U'),
+  codonCount: Math.floor(p.dna.length / 3),
+  organelleRequirement: 'Nucleus (RNA Pol II) + 80S Ribosome + Mitochondrion (ATP)'
+}));
+
 export function evaluateMorphogenGradientMatch(cellId, bmpShh = 50, wntFgf = 50) {
-  const lineage = TIER_3_CELL_LINEAGES[cellId];
+  const lineage = LEVEL_3_CELLS[cellId];
   if (!lineage || !lineage.optimalMorphogens) {
     return { matchPercent: 0, isLocked: false };
   }
@@ -232,9 +511,6 @@ const CODON_TO_AA = {
 
 const COMPLEMENT_RNA = { A: 'U', U: 'A', G: 'C', C: 'G' };
 
-/**
- * Computes the 80S Ribosome E-Site, P-Site, and A-Site state at a given codon step index.
- */
 export function computeRibosomeStep(dnaString = '', stepIndex = 0) {
   const mrna = dnaString.toUpperCase().replace(/[^ATCGU]/g, '').replace(/T/g, 'U');
   const codons = mrna.match(/.{1,3}/g) || [];
@@ -265,92 +541,10 @@ export function computeRibosomeStep(dnaString = '', stepIndex = 0) {
     currentAminoAcid: CODON_TO_AA[pSiteCodon] || 'Xaa',
     nascentChain,
     isComplete: clampedStep >= codons.length - 1 || CODON_TO_AA[pSiteCodon] === 'STOP',
-    atpGtpConsumed: (clampedStep + 1) * 3 // 1 ATP (aminoacyl-tRNA charging) + 2 GTP (EF1A + EF2 translocation)
+    atpGtpConsumed: (clampedStep + 1) * 3
   };
 }
 
-export const TIER_4_FOLDED_PROTEINS = {
-  collagen_i: {
-    id: 'collagen_i',
-    geneId: 'col1a1',
-    name: 'Type-I Triple-Helix Collagen (COL1A1)',
-    motif: '(Gly-Pro-Hyp)ₙ Left-Handed Polyproline II',
-    secondaryStructure: 'Triple Helix (300 nm rod)',
-    freeEnergyKcal: -48.6,
-    chaperonin: 'HSP47 + Prolyl 4-Hydroxylase',
-    dna: 'ATGGGTCCACCAGGTCCACCAGGTCCACCAGGTTAG',
-    icon: '🧬',
-    color: '#38bdf8',
-    usedInTissues: ['osteoid', 'myofibril', 'visceral']
-  },
-  actin_myosin: {
-    id: 'actin_myosin',
-    geneId: 'myh7',
-    name: 'Actin-Myosin II Sarcomere Motor (MYH7)',
-    motif: 'P-Loop NTPase + Coiled-Coil α-Helix',
-    secondaryStructure: '68% α-Helix / 18% β-Sheet',
-    freeEnergyKcal: -62.4,
-    chaperonin: 'UNC-45B + HSP90',
-    dna: 'ATGGCCGAGCTGVRGCTGCTGGAGGAGGAGCGCAAGTAG'.replace('VRG', 'AAG'),
-    icon: '💪',
-    color: '#f43f5e',
-    usedInTissues: ['myofibril', 'endothelial']
-  },
-  hemoglobin: {
-    id: 'hemoglobin',
-    geneId: 'hbb',
-    name: 'Hemoglobin α₂β₂ Heme Pocket (HBB)',
-    motif: 'Globin Fold (8 α-Helices + Fe²⁺ Porphyrin)',
-    secondaryStructure: '78% α-Helix (Globin)',
-    freeEnergyKcal: -54.2,
-    chaperonin: 'AHSP (Alpha-Hemoglobin Stabilizing Protein)',
-    dna: 'ATGGTGCTGTCCCTGTTCGACAAGGTGAAGCACCTGAAGACCTAG',
-    icon: '🩸',
-    color: '#10b981',
-    usedInTissues: ['visceral', 'endothelial']
-  },
-  ion_channel: {
-    id: 'ion_channel',
-    geneId: 'scn9a',
-    name: 'Voltage-Gated Na⁺/K⁺ Channel (NaV1.7)',
-    motif: '4x6 Transmembrane α-Helices + S4 Arg Sensor',
-    secondaryStructure: 'Transmembrane α-Bundle + P-Loop Filter',
-    freeEnergyKcal: -71.0,
-    chaperonin: 'Calnexin / ER Translocon Sec61',
-    dna: 'ATGCGTCGCCTGATCTTCGTGCTGGTCATCGGCCAGTAG',
-    icon: '⚡',
-    color: '#f59e0b',
-    usedInTissues: ['neural']
-  },
-  atp_synthase: {
-    id: 'atp_synthase',
-    geneId: 'atp5f1a',
-    name: 'F₀F₁ ATP Synthase Rotary Motor (ATP5F1A)',
-    motif: 'c-Ring Proton Turbine + α₃β₃ Catalytic Hexamer',
-    secondaryStructure: 'Alternating α/β Rossmann Fold',
-    freeEnergyKcal: -84.5,
-    chaperonin: 'GroEL / GroES (HSP60/HSP10)',
-    dna: 'ATGGCCATCACCGGCCGTGTCATCGGCGCCCTGAAGTAG',
-    icon: '🔋',
-    color: '#a855f7',
-    usedInTissues: ['osteoid', 'myofibril', 'visceral', 'endothelial', 'neural']
-  }
-};
-
-export const TIER_5_DNA_GENES = Object.values(TIER_4_FOLDED_PROTEINS).map((p) => ({
-  id: p.geneId,
-  proteinId: p.id,
-  name: `${p.name.split(' (')[1]?.replace(')', '') || p.id.toUpperCase()} Coding Gene`,
-  proteinName: p.name,
-  dna: p.dna,
-  mrna: p.dna.replace(/T/g, 'U'),
-  codonCount: Math.floor(p.dna.length / 3),
-  organelleRequirement: 'Nucleus (RNA Pol II) + 80S Ribosome + Mitochondrion (ATP)'
-}));
-
-/**
- * Evaluates the top-down readiness of a target Tier-1 Organ System given the current BioStore state.
- */
 export function evaluateOrganSystemChain(organSystemId, bioState = {}, anatomyState = {}) {
   const sys =
     TIER_1_ORGAN_SYSTEMS.find((s) => s.id === organSystemId) || TIER_1_ORGAN_SYSTEMS[0];
@@ -399,10 +593,6 @@ export function evaluateOrganSystemChain(organSystemId, bioState = {}, anatomySt
   };
 }
 
-/**
- * Tier 4 Anfinsen Thermodynamic Folding Funnel Evaluator:
- * Computes effective ΔG (kcal/mol) and native fold stability at a given temperature (°C) and pH.
- */
 export function evaluateChaperoninFolding(proteinId, tempC = 37.0, pH = 7.4) {
   const prot = TIER_4_FOLDED_PROTEINS[proteinId] || TIER_4_FOLDED_PROTEINS.collagen_i;
   const tempPenalty = Math.abs(tempC - 37.0) * 1.8;
@@ -424,10 +614,6 @@ export function evaluateChaperoninFolding(proteinId, tempC = 37.0, pH = 7.4) {
   };
 }
 
-/**
- * Tier 2 Histogenesis ECM Cross-Linking & Vascular Perfusion Evaluator:
- * Evaluates tensile modulus (MPa) and O2 perfusion viability for a 3D tissue scaffold.
- */
 export function evaluateECMScaffoldBiophysics(
   tissueId,
   crossLinkDensity = 80,
@@ -447,4 +633,3 @@ export function evaluateECMScaffoldBiophysics(
     optimalPerfusion: 95
   };
 }
-

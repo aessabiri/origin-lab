@@ -18,7 +18,8 @@ import {
   createHDNucleus,
   createHDMitochondrion,
   createHD80SRibosome,
-  createHDChloroplast
+  createHDChloroplast,
+  create3DOrganForSystem
 } from '../utils/organelle3DFactory.js';
 
 describe('Top-Down Biological Precision Hierarchy (Tier 1 Macro-Organs -> Tier 5 DNA Codons)', () => {
@@ -148,5 +149,33 @@ describe('Top-Down Biological Precision Hierarchy (Tier 1 Macro-Organs -> Tier 5
     expect(mito.children.length).toBeGreaterThan(10); // Capsule + 7 Cristae + ATP Synthase studs
     expect(ribo.children.length).toBeGreaterThan(6); // 60S + 40S + mRNA + nascent chain
     expect(chloro.children.length).toBeGreaterThan(10); // Plastid + 12 Thylakoids + Stroma bridge
+  });
+
+  it('snaps organelle building blocks part-by-part and constructs all 5 sculpted 3D organ systems', () => {
+    const store = useBioStore.getState();
+
+    // Snap mitochondrion parts one by one
+    store.snapOrganellePart('mitochondrion', 'mito_outer');
+    expect(useBioStore.getState().assembledOrganelleParts).toContain('mito_outer');
+    expect(useBioStore.getState().assembledOrganelles).not.toContain('mitochondrion');
+
+    store.snapOrganellePart('mitochondrion', 'mito_cristae');
+    store.snapOrganellePart('mitochondrion', 'mito_atp');
+    store.snapOrganellePart('mitochondrion', 'mito_dna');
+
+    // Now all 4 building blocks of mitochondrion are snapped in -> organelle complete!
+    expect(useBioStore.getState().assembledOrganelles).toContain('mitochondrion');
+
+    // Verify all 5 sculpted 3D organ systems render multi-part meshes
+    [
+      'cardiovascular_system',
+      'visceral_system',
+      'nervous_system',
+      'muscular_system',
+      'skeletal_system'
+    ].forEach((sysId) => {
+      const organGroup = create3DOrganForSystem(sysId);
+      expect(organGroup.children.length).toBeGreaterThanOrEqual(4);
+    });
   });
 });
