@@ -398,3 +398,53 @@ export function evaluateOrganSystemChain(organSystemId, bioState = {}, anatomySt
     readinessPercent: Math.round((completedSteps / Math.max(1, totalSteps)) * 100)
   };
 }
+
+/**
+ * Tier 4 Anfinsen Thermodynamic Folding Funnel Evaluator:
+ * Computes effective ΔG (kcal/mol) and native fold stability at a given temperature (°C) and pH.
+ */
+export function evaluateChaperoninFolding(proteinId, tempC = 37.0, pH = 7.4) {
+  const prot = TIER_4_FOLDED_PROTEINS[proteinId] || TIER_4_FOLDED_PROTEINS.collagen_i;
+  const tempPenalty = Math.abs(tempC - 37.0) * 1.8;
+  const phPenalty = Math.abs(pH - 7.4) * 18.0;
+  const effectiveDeltaG = Number((prot.freeEnergyKcal + tempPenalty + phPenalty).toFixed(1));
+  const isNativeFold = effectiveDeltaG <= -25.0;
+  const stateLabel =
+    effectiveDeltaG <= -40
+      ? 'Native Minimum (Chaperonin Locked)'
+      : effectiveDeltaG <= -20
+      ? 'Molten Globule Intermediate'
+      : 'Denatured / Misfolded Random Coil';
+
+  return {
+    effectiveDeltaG,
+    targetDeltaG: prot.freeEnergyKcal,
+    isNativeFold,
+    stateLabel
+  };
+}
+
+/**
+ * Tier 2 Histogenesis ECM Cross-Linking & Vascular Perfusion Evaluator:
+ * Evaluates tensile modulus (MPa) and O2 perfusion viability for a 3D tissue scaffold.
+ */
+export function evaluateECMScaffoldBiophysics(
+  tissueId,
+  crossLinkDensity = 80,
+  perfusionMmHg = 95
+) {
+  const optimalCrossLink = tissueId === 'osteoid' ? 92 : tissueId === 'neural' ? 55 : 78;
+  const dCross = Math.abs(crossLinkDensity - optimalCrossLink);
+  const dPerf = Math.abs(perfusionMmHg - 95);
+  const viabilityScore = Math.max(
+    0,
+    Math.min(100, Math.round(100 - dCross * 0.7 - dPerf * 0.6))
+  );
+  return {
+    viabilityScore,
+    isViable: viabilityScore >= 75,
+    optimalCrossLink,
+    optimalPerfusion: 95
+  };
+}
+

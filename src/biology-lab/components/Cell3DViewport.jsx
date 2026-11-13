@@ -1,6 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { PARTICLE_TYPES } from '../../constants/particles';
+import {
+  createHDNucleus,
+  createHDMitochondrion,
+  createHD80SRibosome,
+  createHDChloroplast
+} from '../utils/organelle3DFactory';
 
 const Cell3DViewport = ({ organelles = [], compiledGenome = null, stats = {} }) => {
   const mountRef = useRef(null);
@@ -83,72 +89,19 @@ const Cell3DViewport = ({ organelles = [], compiledGenome = null, stats = {} }) 
       itemGroup.position.copy(basePos);
 
       if (org.type === PARTICLE_TYPES.NUCLEUS) {
-        // 3D Nuclear Envelope + Helical Chromatin TorusKnot
-        const nucGeo = new THREE.SphereGeometry(0.68, 32, 32);
-        const nucMat = new THREE.MeshPhysicalMaterial({
-          color: 0x8b5cf6,
-          emissive: 0x4c1d95,
-          transparent: true,
-          opacity: 0.55,
-          roughness: 0.2
-        });
-        itemGroup.add(new THREE.Mesh(nucGeo, nucMat));
-
-        const dnaGeo = new THREE.TorusKnotGeometry(0.32, 0.06, 64, 12, 2, 3);
-        const dnaMat = new THREE.MeshStandardMaterial({
-          color: 0x38bdf8,
-          emissive: 0x0284c7,
-          roughness: 0.3
-        });
-        itemGroup.add(new THREE.Mesh(dnaGeo, dnaMat));
+        // HD Nuclear Envelope + 14 Nuclear Pore Complexes (NPCs) + Nucleolus + B-DNA Double Helix
+        itemGroup.add(createHDNucleus());
       } else if (org.type === PARTICLE_TYPES.MITOCHONDRION) {
-        // 3D Mitochondrion Capsule + Inner Cristae Glow
-        const mitoGeo = new THREE.CapsuleGeometry(0.24, 0.38, 12, 24);
-        const mitoMat = new THREE.MeshPhysicalMaterial({
-          color: 0xf59e0b,
-          emissive: 0x78350f,
-          roughness: 0.25,
-          transparent: true,
-          opacity: 0.85
-        });
-        const mitoMesh = new THREE.Mesh(mitoGeo, mitoMat);
-        mitoMesh.rotation.z = Math.PI / 3;
-        itemGroup.add(mitoMesh);
+        // HD Mitochondrion Capsule + Folded Inner Cristae Lamellae + ATP Synthase Studs
+        const mito = createHDMitochondrion();
+        mito.rotation.z = Math.PI / 5;
+        itemGroup.add(mito);
       } else if (org.type === PARTICLE_TYPES.RIBOSOME) {
-        // Large + Small Ribosomal Subunit Cluster
-        const largeSub = new THREE.Mesh(
-          new THREE.SphereGeometry(0.22, 16, 16),
-          new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x155e75 })
-        );
-        const smallSub = new THREE.Mesh(
-          new THREE.SphereGeometry(0.15, 16, 16),
-          new THREE.MeshStandardMaterial({ color: 0x67e8f9, emissive: 0x0891b2 })
-        );
-        smallSub.position.set(0.18, 0.16, 0);
-        itemGroup.add(largeSub, smallSub);
+        // HD 80S Ribosome (60S + 40S Subunits) + Threaded mRNA + Nascent Polypeptide Chain
+        itemGroup.add(createHD80SRibosome(6));
       } else if (org.type === PARTICLE_TYPES.CHLOROPLAST) {
-        // 3D Chloroplast Plastid + Stacked Emerald Thylakoid Grana Discs
-        const outerPlastid = new THREE.Mesh(
-          new THREE.SphereGeometry(0.28, 24, 16),
-          new THREE.MeshPhysicalMaterial({
-            color: 0x10b981,
-            emissive: 0x064e3b,
-            transparent: true,
-            opacity: 0.65,
-            roughness: 0.2
-          })
-        );
-        outerPlastid.scale.set(1.3, 0.75, 1.0);
-        itemGroup.add(outerPlastid);
-
-        for (let g = -1; g <= 1; g++) {
-          const disc = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.11, 0.11, 0.04, 16),
-            new THREE.MeshStandardMaterial({ color: 0x34d399, emissive: 0x059669 })
-          );
-          disc.position.set(g * 0.1, g * 0.04, 0);
-          itemGroup.add(disc);
-        }
+        // HD Chloroplast Plastid + 3 Stacked Thylakoid Grana Columns + Stroma Lamellae
+        itemGroup.add(createHDChloroplast());
       } else if (org.type === PARTICLE_TYPES.VACUOLE) {
         // 3D Translucent Osmotic Contractile Vacuole Bubble
         const vacMesh = new THREE.Mesh(

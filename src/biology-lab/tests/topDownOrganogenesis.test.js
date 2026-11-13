@@ -9,8 +9,17 @@ import {
   TIER_5_DNA_GENES,
   evaluateOrganSystemChain,
   evaluateMorphogenGradientMatch,
-  computeRibosomeStep
+  computeRibosomeStep,
+  evaluateChaperoninFolding,
+  evaluateECMScaffoldBiophysics
 } from '../data/topDownBioHierarchy.js';
+import {
+  createBDNADoubleHelix,
+  createHDNucleus,
+  createHDMitochondrion,
+  createHD80SRibosome,
+  createHDChloroplast
+} from '../utils/organelle3DFactory.js';
 
 describe('Top-Down Biological Precision Hierarchy (Tier 1 Macro-Organs -> Tier 5 DNA Codons)', () => {
   beforeEach(() => {
@@ -112,5 +121,32 @@ describe('Top-Down Biological Precision Hierarchy (Tier 1 Macro-Organs -> Tier 5
     expect(step2.pSiteCodon).toBe('CCA');
     expect(step2.nascentChain).toEqual(['Met', 'Gly', 'Pro']);
     expect(step2.atpGtpConsumed).toBe(9);
+  });
+
+  it('evaluates Tier 2 ECM cross-linking/perfusion and Tier 4 Anfinsen folding free-energy funnel', () => {
+    const ecm = evaluateECMScaffoldBiophysics('osteoid', 92, 95);
+    expect(ecm.viabilityScore).toBe(100);
+    expect(ecm.isViable).toBe(true);
+
+    const nativeFold = evaluateChaperoninFolding('collagen_i', 37.0, 7.4);
+    expect(nativeFold.effectiveDeltaG).toBe(-48.6);
+    expect(nativeFold.isNativeFold).toBe(true);
+
+    const denatured = evaluateChaperoninFolding('collagen_i', 65.0, 5.0);
+    expect(denatured.isNativeFold).toBe(false);
+  });
+
+  it('constructs high-definition multi-part 3D organelles and B-DNA double helix geometries', () => {
+    const dna = createBDNADoubleHelix({ basePairs: 12 });
+    const nucleus = createHDNucleus();
+    const mito = createHDMitochondrion();
+    const ribo = createHD80SRibosome(5);
+    const chloro = createHDChloroplast();
+
+    expect(dna.children.length).toBeGreaterThan(20);
+    expect(nucleus.children.length).toBeGreaterThan(15); // Envelope + Nucleolus + B-DNA + 14 NPCs
+    expect(mito.children.length).toBeGreaterThan(10); // Capsule + 7 Cristae + ATP Synthase studs
+    expect(ribo.children.length).toBeGreaterThan(6); // 60S + 40S + mRNA + nascent chain
+    expect(chloro.children.length).toBeGreaterThan(10); // Plastid + 12 Thylakoids + Stroma bridge
   });
 });
