@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useBioStore } from '../store';
 import { useAnatomyStore } from '../../anatomy-lab/store';
@@ -9,7 +9,9 @@ import {
   TIER_2_TISSUE_SCAFFOLDS,
   TIER_3_CELL_LINEAGES,
   TIER_4_FOLDED_PROTEINS,
-  evaluateOrganSystemChain
+  evaluateOrganSystemChain,
+  evaluateMorphogenGradientMatch,
+  computeRibosomeStep
 } from '../data/topDownBioHierarchy';
 
 const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
@@ -61,7 +63,45 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
   const activeSystem = chainEval.system;
   const activeScaffold = TIER_2_TISSUE_SCAFFOLDS[activeSystem.requiredTissue];
 
-  // 3D Multi-Scale Histogenesis & ECM Bioreactor Hologram
+  // --- Tier 3 Interactive Morphogen Gradient Tuner State ---
+  const primaryCellId = activeSystem.requiredCells[0];
+  const [selectedCellId, setSelectedCellId] = useState(primaryCellId);
+  const [bmpShhAxis, setBmpShhAxis] = useState(82);
+  const [wntFgfAxis, setWntFgfAxis] = useState(60);
+
+  // --- Tier 5 Interactive 80S Ribosome Codon Stepper State ---
+  const primaryProteinId = activeSystem.requiredProteins[0];
+  const [activeRibosomeProteinId, setActiveRibosomeProteinId] = useState(primaryProteinId);
+  const [ribosomeStepIdx, setRibosomeStepIdx] = useState(0);
+
+  // Sync active Tier-3 cell and Tier-5 gene when switching Tier-1 Organ System
+  useEffect(() => {
+    const firstCell = activeSystem.requiredCells[0];
+    setSelectedCellId(firstCell);
+    const opt = TIER_3_CELL_LINEAGES[firstCell]?.optimalMorphogens;
+    if (opt) {
+      setBmpShhAxis(opt.bmpShh);
+      setWntFgfAxis(opt.wntFgf);
+    }
+    setActiveRibosomeProteinId(activeSystem.requiredProteins[0]);
+    setRibosomeStepIdx(0);
+  }, [activeSystem.id]);
+
+  const morphogenEval = useMemo(
+    () => evaluateMorphogenGradientMatch(selectedCellId, bmpShhAxis, wntFgfAxis),
+    [selectedCellId, bmpShhAxis, wntFgfAxis]
+  );
+
+  const activeRibosomeProtein =
+    TIER_4_FOLDED_PROTEINS[activeRibosomeProteinId] ||
+    TIER_4_FOLDED_PROTEINS[activeSystem.requiredProteins[0]];
+
+  const ribosomeState = useMemo(
+    () => computeRibosomeStep(activeRibosomeProtein.dna, ribosomeStepIdx),
+    [activeRibosomeProtein.dna, ribosomeStepIdx]
+  );
+
+  // 3D Multi-Scale Histogenesis, Morphogen Field & 80S Ribosome Hologram
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
@@ -124,16 +164,16 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
       const count = 6;
       for (let k = 0; k < count; k++) {
         const angle = (k / count) * Math.PI * 2 + idx * 0.6;
-        const radius = 1.05 + idx * 0.55;
+        const radius = 1.15 + idx * 0.55;
         const cellMesh = new THREE.Mesh(
           new THREE.SphereGeometry(0.26, 20, 20),
           new THREE.MeshPhysicalMaterial({
             color: isReady ? cellMeta.color : 0x334155,
             emissive: isReady ? cellMeta.color : 0x0f172a,
-            emissiveIntensity: isReady ? 0.45 : 0.1,
+            emissiveIntensity: isReady ? 0.5 : 0.12,
             transmission: 0.55,
             transparent: true,
-            opacity: isReady ? 0.9 : 0.35
+            opacity: isReady ? 0.92 : 0.4
           })
         );
         cellMesh.position.set(
@@ -146,18 +186,54 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
       }
     });
 
-    // 3. Tier 4 & 5: Folded Protein Helices & Central DNA Core
-    const dnaCore = new THREE.Mesh(
-      new THREE.TorusKnotGeometry(0.52, 0.11, 64, 12, 2, 3),
+    // 3. Tier 5: Central 80S Ribosome (60S Large + 40S Small Subunits) + Nascent Polypeptide Chain
+    const ribosomeGroup = new THREE.Group();
+    const large60S = new THREE.Mesh(
+      new THREE.SphereGeometry(0.46, 24, 24),
       new THREE.MeshStandardMaterial({
-        color: chainEval.missingProteins.length === 0 ? 0xf59e0b : 0x38bdf8,
-        emissive: chainEval.missingProteins.length === 0 ? 0xd97706 : 0x0369a1,
-        emissiveIntensity: 0.6,
-        roughness: 0.25,
-        metalness: 0.6
+        color: 0xa855f7,
+        emissive: 0x6b21a8,
+        emissiveIntensity: 0.45,
+        roughness: 0.3
       })
     );
-    rootGroup.add(dnaCore);
+    large60S.scale.set(1.2, 0.9, 1.0);
+    large60S.position.set(0, 0.22, 0);
+    ribosomeGroup.add(large60S);
+
+    const small40S = new THREE.Mesh(
+      new THREE.SphereGeometry(0.34, 24, 24),
+      new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0369a1,
+        emissiveIntensity: 0.45,
+        roughness: 0.3
+      })
+    );
+    small40S.scale.set(1.25, 0.65, 0.9);
+    small40S.position.set(0, -0.26, 0);
+    ribosomeGroup.add(small40S);
+
+    // Nascent amino acid beads emerging from the 60S exit tunnel
+    const beadCount = Math.max(1, ribosomeState.nascentChain.length);
+    for (let b = 0; b < beadCount; b++) {
+      const bead = new THREE.Mesh(
+        new THREE.SphereGeometry(0.09, 12, 12),
+        new THREE.MeshStandardMaterial({
+          color: 0xfbbf24,
+          emissive: 0xf59e0b,
+          emissiveIntensity: 0.8
+        })
+      );
+      bead.position.set(
+        Math.sin(b * 0.7) * 0.25,
+        0.55 + b * 0.14,
+        Math.cos(b * 0.7) * 0.25
+      );
+      ribosomeGroup.add(bead);
+    }
+
+    rootGroup.add(ribosomeGroup);
 
     let animId;
     let t = 0;
@@ -165,7 +241,7 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
       animId = requestAnimationFrame(animate);
       t += 0.02;
       rootGroup.rotation.y = t * 0.35;
-      dnaCore.rotation.x = t * 0.8;
+      ribosomeGroup.position.y = Math.sin(t * 3) * 0.06;
       cellNodes.forEach(({ mesh, phase }) => {
         const s = 1 + Math.sin(t * 2.5 + phase) * 0.08;
         mesh.scale.setScalar(s);
@@ -178,7 +254,12 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
       cancelAnimationFrame(animId);
       renderer.dispose();
     };
-  }, [activeSystem, differentiatedCells, chainEval.tissueReady, chainEval.missingProteins.length]);
+  }, [
+    activeSystem,
+    differentiatedCells,
+    chainEval.tissueReady,
+    ribosomeState.nascentChain.length
+  ]);
 
   const handleDeployTo3DAnatomy = () => {
     const anatomyTissueId = synthesizeFullOrganChain(activeSystem.id);
@@ -304,15 +385,15 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
             </p>
           </div>
 
-          {/* TIER 3: STEM-CELL MORPHOGEN DIFFERENTIATION */}
-          <div className="argon-panel rounded-2xl p-4 border border-emerald-500/25">
-            <div className="flex items-center justify-between mb-2">
+          {/* TIER 3: INTERACTIVE WOLPERT MORPHOGEN GRADIENT DIFFERENTIATION CHAMBER */}
+          <div className="argon-panel rounded-2xl p-4 border border-emerald-500/25 space-y-3">
+            <div className="flex items-center justify-between">
               <div>
                 <span className="text-[8.5px] font-mono font-black text-emerald-400 uppercase tracking-widest">
-                  ↓ TIER 3 // SPECIALIZED CELL LINEAGE DIFFERENTIATION (MORPHOGEN GRADIENTS)
+                  ↓ TIER 3 // WOLPERT FRENCH-FLAG MORPHOGEN GRADIENT CHAMBER
                 </span>
                 <h3 className="text-xs font-black text-white uppercase">
-                  Required Specialized Cells for {activeScaffold.name}
+                  Tune Morphogen Concentration Window (nM) to Differentiate Stem Cells
                 </h3>
               </div>
               <span className="text-[9px] font-mono text-emerald-300">
@@ -325,12 +406,16 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
               {activeSystem.requiredCells.map((cid) => {
                 const cell = TIER_3_CELL_LINEAGES[cid];
                 const isReady = differentiatedCells.includes(cid);
+                const isFocused = selectedCellId === cid;
                 return (
                   <div
                     key={cid}
-                    className={`p-3 rounded-xl border flex flex-col justify-between gap-2 ${
+                    onClick={() => setSelectedCellId(cid)}
+                    className={`p-3 rounded-xl border flex flex-col justify-between gap-2 cursor-pointer transition-all ${
                       isReady
-                        ? 'bg-emerald-950/30 border-emerald-400/50'
+                        ? 'bg-emerald-950/30 border-emerald-400/60'
+                        : isFocused
+                        ? 'bg-[#091526] border-teal-400'
                         : 'bg-[#070d19] border-slate-800'
                     }`}
                   >
@@ -344,24 +429,85 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
                         </span>
                       </div>
                       <div className="text-[9px] font-mono text-amber-300 mt-1">
-                        Morphogen: {cell.morphogenSignal}
+                        Signal: {cell.morphogenSignal} (Target: BMP/Shh {cell.optimalMorphogens.bmpShh}{' '}
+                        nM, Wnt/FGF {cell.optimalMorphogens.wntFgf} nM)
                       </div>
-                      <p className="text-[9px] text-slate-400 mt-1">{cell.role}</p>
                     </div>
 
                     <button
-                      onClick={() => differentiateCellLineage(cid)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        differentiateCellLineage(cid);
+                      }}
                       className={`w-full py-1.5 rounded-lg font-mono text-[9px] font-bold uppercase border transition-all cursor-pointer ${
                         isReady
                           ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-200'
                           : 'bg-teal-500/20 hover:bg-teal-500/35 border-teal-400/50 text-teal-200'
                       }`}
                     >
-                      {isReady ? '✓ Lineage Differentiated' : '🧫 Apply Morphogen & Differentiate'}
+                      {isReady ? '✓ Lineage Differentiated' : '🧫 Differentiate Lineage'}
                     </button>
                   </div>
                 );
               })}
+            </div>
+
+            {/* Interactive 2-Axis Morphogen Concentration Gradient Sliders */}
+            <div className="p-3 rounded-xl bg-[#060b16] border border-emerald-500/20 grid grid-cols-12 gap-3 items-center">
+              <div className="col-span-4 space-y-1">
+                <div className="flex justify-between text-[8.5px] font-mono text-slate-300">
+                  <span>Dorsal BMP4 ⟷ Ventral Shh</span>
+                  <span className="text-cyan-300 font-bold">{bmpShhAxis} nM</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={bmpShhAxis}
+                  onChange={(e) => setBmpShhAxis(Number(e.target.value))}
+                  className="w-full h-1.5 accent-cyan-400 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="col-span-4 space-y-1">
+                <div className="flex justify-between text-[8.5px] font-mono text-slate-300">
+                  <span>Wnt3a / FGF2 / VEGF-A</span>
+                  <span className="text-emerald-300 font-bold">{wntFgfAxis} nM</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={wntFgfAxis}
+                  onChange={(e) => setWntFgfAxis(Number(e.target.value))}
+                  className="w-full h-1.5 accent-emerald-400 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="col-span-4 flex items-center justify-end gap-2">
+                <span
+                  className={`text-[9px] font-mono font-black px-2 py-1 rounded-lg border ${
+                    morphogenEval.isLocked
+                      ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                      : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                  }`}
+                >
+                  Match: {morphogenEval.matchPercent}%
+                </span>
+                <button
+                  onClick={() => {
+                    const opt = TIER_3_CELL_LINEAGES[selectedCellId]?.optimalMorphogens;
+                    if (opt) {
+                      setBmpShhAxis(opt.bmpShh);
+                      setWntFgfAxis(opt.wntFgf);
+                    }
+                    differentiateCellLineage(selectedCellId);
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/50 text-emerald-200 font-mono text-[8.5px] font-bold uppercase cursor-pointer"
+                >
+                  🎯 Lock Window
+                </button>
+              </div>
             </div>
           </div>
 
@@ -427,15 +573,15 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
             </div>
           </div>
 
-          {/* TIER 5 (BOTTOM FOUNDATION): DNA CODING GENES, mRNA CODONS & ORGANELLE RIBOSOMES */}
-          <div className="argon-panel rounded-2xl p-4 border border-purple-500/25">
-            <div className="flex items-center justify-between mb-2">
+          {/* TIER 5 (BOTTOM FOUNDATION): INTERACTIVE 80S RIBOSOME CODON STEPPER & tRNA THREADER */}
+          <div className="argon-panel rounded-2xl p-4 border border-purple-500/25 space-y-3">
+            <div className="flex items-center justify-between">
               <div>
                 <span className="text-[8.5px] font-mono font-black text-purple-400 uppercase tracking-widest">
-                  ↓ TIER 5 (BOTTOM FOUNDATION) // DNA CODING GENES → mRNA CODONS → 80S RIBOSOME & ORGANELLES
+                  ↓ TIER 5 (BOTTOM FOUNDATION) // 80S RIBOSOME E/P/A-SITE CODON STEPPER & tRNA THREADER
                 </span>
                 <h3 className="text-xs font-black text-white uppercase">
-                  Intracellular Organelle Machinery & Ribosomal Translation
+                  Step Codon-by-Codon Along mRNA with Aminoacyl-tRNA & Mitochondrial ATP/GTP
                 </h3>
               </div>
 
@@ -449,7 +595,7 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
                   }`}
                 >
                   {chainEval.coreOrganellesReady
-                    ? '✓ Organelles Active (Nucleus/Mito/Ribosome)'
+                    ? '✓ Organelles Active (Nucleus/Mito/80S)'
                     : '⚡ Equip Core Organelles'}
                 </button>
                 {onNavigateMode && (
@@ -463,53 +609,111 @@ const TopDownOrganogenesisLab = ({ onNavigateMode, onOpenAnatomy }) => {
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            {/* Gene Selector Tabs for the Ribosome Stepper */}
+            <div className="flex gap-1.5">
               {activeSystem.requiredProteins.map((pid) => {
                 const prot = TIER_4_FOLDED_PROTEINS[pid];
                 const isTranscribed = transcribedGenes.includes(prot.geneId);
-                const mrnaPreview = prot.dna
-                  .replace(/T/g, 'U')
-                  .match(/.{1,3}/g)
-                  .slice(0, 8)
-                  .join('-');
+                const isActive = activeRibosomeProtein.id === pid;
                 return (
-                  <div
-                    key={prot.geneId}
-                    className="p-2 rounded-xl bg-[#070d19] border border-slate-800 flex items-center justify-between gap-3"
+                  <button
+                    key={pid}
+                    onClick={() => {
+                      setActiveRibosomeProteinId(pid);
+                      setRibosomeStepIdx(0);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-[9px] font-bold uppercase border transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-purple-500/25 border-purple-400 text-purple-200'
+                        : 'bg-[#070d19] border-slate-800 text-slate-400 hover:text-white'
+                    }`}
                   >
-                    <div className="min-w-0">
-                      <div className="text-[9.5px] font-mono font-bold text-purple-200">
-                        Gene {prot.geneId.toUpperCase()} → mRNA:{' '}
-                        <span className="text-cyan-300">{mrnaPreview}-...</span>
-                      </div>
-                      <div className="text-[8px] font-mono text-slate-400 truncate">
-                        5&apos; Coding DNA: {prot.dna} (Translated by 80S Ribosome + Mitochondrial ATP)
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => transcribeAndTranslateGene(prot.geneId)}
-                      className={`px-2.5 py-1 rounded-lg font-mono text-[8.5px] font-bold uppercase border shrink-0 cursor-pointer ${
-                        isTranscribed
-                          ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300'
-                          : 'bg-purple-500/20 hover:bg-purple-500/35 border-purple-400/40 text-purple-200'
-                      }`}
-                    >
-                      {isTranscribed ? '✓ mRNA Translated' : '🧬 Transcribe & Translate'}
-                    </button>
-                  </div>
+                    Gene {prot.geneId.toUpperCase()} {isTranscribed ? '✓' : ''}
+                  </button>
                 );
               })}
+            </div>
+
+            {/* Interactive 80S Ribosome E-Site / P-Site / A-Site Deck */}
+            <div className="p-3 rounded-xl bg-[#060b16] border border-purple-500/25 space-y-2.5">
+              <div className="grid grid-cols-3 gap-2 text-center font-mono">
+                <div className="p-2 rounded-lg bg-[#091020] border border-slate-800">
+                  <span className="text-[8px] text-slate-500 uppercase block">
+                    E-Site (Exit tRNA)
+                  </span>
+                  <span className="text-xs font-black text-slate-400">
+                    {ribosomeState.eSiteCodon || '—'}
+                  </span>
+                </div>
+                <div className="p-2 rounded-lg bg-purple-950/40 border border-purple-400/50">
+                  <span className="text-[8px] text-purple-300 uppercase block">
+                    P-Site (Peptidyl • Codon {ribosomeState.stepIndex + 1}/
+                    {ribosomeState.totalCodons})
+                  </span>
+                  <span className="text-xs font-black text-white">
+                    5&apos;-{ribosomeState.pSiteCodon}-3&apos; ↔ tRNA {ribosomeState.tRnaAnticodon}{' '}
+                    ({ribosomeState.currentAminoAcid})
+                  </span>
+                </div>
+                <div className="p-2 rounded-lg bg-[#091020] border border-cyan-500/30">
+                  <span className="text-[8px] text-cyan-400 uppercase block">
+                    A-Site (Incoming Aminoacyl-tRNA)
+                  </span>
+                  <span className="text-xs font-black text-cyan-200">
+                    {ribosomeState.aSiteCodon || 'RELEASE FACTOR (eRF1)'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 text-[9px] font-mono">
+                <div className="truncate text-slate-300">
+                  <strong className="text-purple-300">Nascent Polypeptide:</strong>{' '}
+                  <span className="text-amber-300">
+                    {ribosomeState.nascentChain.join(' – ') || 'Met'}
+                  </span>
+                </div>
+                <span className="text-emerald-300 shrink-0">
+                  Energy: {ribosomeState.atpGtpConsumed} ATP/GTP
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const nextIdx = Math.min(
+                      ribosomeState.totalCodons - 1,
+                      ribosomeStepIdx + 1
+                    );
+                    setRibosomeStepIdx(nextIdx);
+                    if (nextIdx >= ribosomeState.totalCodons - 1) {
+                      transcribeAndTranslateGene(activeRibosomeProtein.geneId);
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-purple-500/25 hover:bg-purple-500/40 border border-purple-400/50 text-purple-200 font-mono text-[9px] font-bold uppercase cursor-pointer"
+                >
+                  ▶ Step +1 Codon (EF-G Translocation)
+                </button>
+                <button
+                  onClick={() => {
+                    setRibosomeStepIdx(ribosomeState.totalCodons - 1);
+                    transcribeAndTranslateGene(activeRibosomeProtein.geneId);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/50 text-emerald-200 font-mono text-[9px] font-bold uppercase cursor-pointer"
+                >
+                  ⏩ Translate Full mRNA ({ribosomeState.totalCodons} Codons)
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT 4 COLUMNS: 3D HISTOGENESIS BIOREACTOR VIEWPORT & CHAIN SUMMARY */}
+        {/* RIGHT 4 COLUMNS: 3D HISTOGENESIS & 80S RIBOSOME BIOREACTOR VIEWPORT */}
         <div className="col-span-4 flex flex-col gap-3">
           <div className="flex-1 relative rounded-3xl border border-teal-500/25 bg-[#050914] overflow-hidden flex items-center justify-center min-h-[280px]">
             <div ref={mountRef} className="w-full h-full" />
             <div className="absolute top-4 left-4 right-4 pointer-events-none">
               <span className="text-[8.5px] font-mono font-bold text-teal-400 uppercase tracking-widest block">
-                3D Multi-Scale Bioreactor Lattice
+                3D Multi-Scale Bioreactor & 80S Ribosome Lattice
               </span>
               <h4 className="text-sm font-black text-white uppercase">
                 {activeSystem.icon} {activeSystem.name}

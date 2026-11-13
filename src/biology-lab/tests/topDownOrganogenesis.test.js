@@ -7,7 +7,9 @@ import {
   TIER_3_CELL_LINEAGES,
   TIER_4_FOLDED_PROTEINS,
   TIER_5_DNA_GENES,
-  evaluateOrganSystemChain
+  evaluateOrganSystemChain,
+  evaluateMorphogenGradientMatch,
+  computeRibosomeStep
 } from '../data/topDownBioHierarchy.js';
 
 describe('Top-Down Biological Precision Hierarchy (Tier 1 Macro-Organs -> Tier 5 DNA Codons)', () => {
@@ -86,5 +88,29 @@ describe('Top-Down Biological Precision Hierarchy (Tier 1 Macro-Organs -> Tier 5
     expect(evalResult.readinessPercent).toBe(100);
     expect(evalResult.tissueReady).toBe(true);
     expect(evalResult.deployedIn3D).toBe(true);
+  });
+
+  it('evaluates Tier 3 Wolpert French-Flag morphogen concentration windows accurately', () => {
+    const locked = evaluateMorphogenGradientMatch('osteoblast', 82, 60);
+    expect(locked.matchPercent).toBe(100);
+    expect(locked.isLocked).toBe(true);
+
+    const offTarget = evaluateMorphogenGradientMatch('osteoblast', 10, 10);
+    expect(offTarget.isLocked).toBe(false);
+  });
+
+  it('steps the Tier 5 80S Ribosome through E-Site, P-Site, and A-Site codons with tRNA anticodons', () => {
+    const col1a1Dna = TIER_4_FOLDED_PROTEINS.collagen_i.dna;
+    const step0 = computeRibosomeStep(col1a1Dna, 0);
+    expect(step0.pSiteCodon).toBe('AUG');
+    expect(step0.tRnaAnticodon).toBe("3'-UAC-5'");
+    expect(step0.currentAminoAcid).toBe('Met');
+    expect(step0.aSiteCodon).toBe('GGU');
+
+    const step2 = computeRibosomeStep(col1a1Dna, 2);
+    expect(step2.eSiteCodon).toBe('GGU');
+    expect(step2.pSiteCodon).toBe('CCA');
+    expect(step2.nascentChain).toEqual(['Met', 'Gly', 'Pro']);
+    expect(step2.atpGtpConsumed).toBe(9);
   });
 });

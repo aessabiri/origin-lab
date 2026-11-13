@@ -141,6 +141,7 @@ export const TIER_3_CELL_LINEAGES = {
     name: 'Osteoblast / Osteocyte',
     germLayer: 'Mesoderm (Sclerotome)',
     morphogenSignal: 'BMP4 + Runx2 / Osterix',
+    optimalMorphogens: { bmpShh: 82, wntFgf: 60 },
     icon: '🦴',
     color: '#38bdf8',
     requiredProteins: ['collagen_i', 'atp_synthase'],
@@ -152,6 +153,7 @@ export const TIER_3_CELL_LINEAGES = {
     name: 'Striated Myocyte / Cardiomyocyte',
     germLayer: 'Mesoderm (Myotome & Splanchnic)',
     morphogenSignal: 'Wnt3a + Nkx2.5 + GATA4',
+    optimalMorphogens: { bmpShh: 52, wntFgf: 78 },
     icon: '🫀',
     color: '#f43f5e',
     requiredProteins: ['actin_myosin', 'atp_synthase'],
@@ -163,6 +165,7 @@ export const TIER_3_CELL_LINEAGES = {
     name: 'Endodermal Hepatocyte & Pneumocyte',
     germLayer: 'Endoderm (Foregut)',
     morphogenSignal: 'FGF2 + HNF4α + Sox9',
+    optimalMorphogens: { bmpShh: 42, wntFgf: 85 },
     icon: '🫁',
     color: '#10b981',
     requiredProteins: ['hemoglobin', 'atp_synthase'],
@@ -174,6 +177,7 @@ export const TIER_3_CELL_LINEAGES = {
     name: 'Vascular Endothelial & Erythroid Precursor',
     germLayer: 'Mesoderm (Hemangioblast)',
     morphogenSignal: 'VEGF-A + Flk1 + EPO',
+    optimalMorphogens: { bmpShh: 35, wntFgf: 92 },
     icon: '🩸',
     color: '#ef4444',
     requiredProteins: ['hemoglobin', 'collagen_i'],
@@ -185,6 +189,7 @@ export const TIER_3_CELL_LINEAGES = {
     name: 'Cholinergic Motor & Cortical Neuron',
     germLayer: 'Ectoderm (Neural Tube)',
     morphogenSignal: 'Sonic Hedgehog (Shh) + Retinoic Acid',
+    optimalMorphogens: { bmpShh: 15, wntFgf: 72 },
     icon: '🧠',
     color: '#f59e0b',
     requiredProteins: ['ion_channel', 'atp_synthase'],
@@ -192,6 +197,77 @@ export const TIER_3_CELL_LINEAGES = {
     role: 'Propagates saltatory action potentials (120 m/s) and releases synaptic neurotransmitters.'
   }
 };
+
+/**
+ * Evaluates Wolpert French-Flag morphogen gradient resonance (0-100%) for a target cell lineage.
+ */
+export function evaluateMorphogenGradientMatch(cellId, bmpShh = 50, wntFgf = 50) {
+  const lineage = TIER_3_CELL_LINEAGES[cellId];
+  if (!lineage || !lineage.optimalMorphogens) {
+    return { matchPercent: 0, isLocked: false };
+  }
+  const d1 = Math.abs(bmpShh - lineage.optimalMorphogens.bmpShh);
+  const d2 = Math.abs(wntFgf - lineage.optimalMorphogens.wntFgf);
+  const dist = Math.sqrt(d1 * d1 + d2 * d2);
+  const matchPercent = Math.max(0, Math.min(100, Math.round(100 - dist * 1.15)));
+  return {
+    matchPercent,
+    isLocked: matchPercent >= 80,
+    optimal: lineage.optimalMorphogens
+  };
+}
+
+const CODON_TO_AA = {
+  AUG: 'Met', GGU: 'Gly', GGC: 'Gly', GGA: 'Gly', GGG: 'Gly',
+  CCU: 'Pro', CCC: 'Pro', CCA: 'Pro', CCG: 'Pro',
+  GCC: 'Ala', GCU: 'Ala', GCA: 'Ala', GCG: 'Ala',
+  GAG: 'Glu', GAA: 'Glu', CUG: 'Leu', CUC: 'Leu', UUC: 'Phe',
+  AAG: 'Lys', AAA: 'Lys', CGC: 'Arg', CGU: 'Arg',
+  GUG: 'Val', GUC: 'Val', GUU: 'Val',
+  UCC: 'Ser', UCU: 'Ser', GAC: 'Asp', GAU: 'Asp',
+  CAC: 'His', CAU: 'His', ACC: 'Thr', ACU: 'Thr',
+  AUC: 'Ile', AUU: 'Ile', CAG: 'Gln', CAA: 'Gln',
+  UAG: 'STOP', UAA: 'STOP', UGA: 'STOP'
+};
+
+const COMPLEMENT_RNA = { A: 'U', U: 'A', G: 'C', C: 'G' };
+
+/**
+ * Computes the 80S Ribosome E-Site, P-Site, and A-Site state at a given codon step index.
+ */
+export function computeRibosomeStep(dnaString = '', stepIndex = 0) {
+  const mrna = dnaString.toUpperCase().replace(/[^ATCGU]/g, '').replace(/T/g, 'U');
+  const codons = mrna.match(/.{1,3}/g) || [];
+  const clampedStep = Math.max(0, Math.min(codons.length - 1, stepIndex));
+
+  const eSiteCodon = clampedStep > 0 ? codons[clampedStep - 1] : null;
+  const pSiteCodon = codons[clampedStep] || 'AUG';
+  const aSiteCodon = clampedStep + 1 < codons.length ? codons[clampedStep + 1] : null;
+
+  const anticodon = pSiteCodon
+    .split('')
+    .map((base) => COMPLEMENT_RNA[base] || 'N')
+    .join('');
+
+  const nascentChain = codons
+    .slice(0, clampedStep + 1)
+    .map((c) => CODON_TO_AA[c] || 'Xaa')
+    .filter((aa) => aa !== 'STOP');
+
+  return {
+    codons,
+    totalCodons: codons.length,
+    stepIndex: clampedStep,
+    eSiteCodon,
+    pSiteCodon,
+    aSiteCodon,
+    tRnaAnticodon: `3'-${anticodon}-5'`,
+    currentAminoAcid: CODON_TO_AA[pSiteCodon] || 'Xaa',
+    nascentChain,
+    isComplete: clampedStep >= codons.length - 1 || CODON_TO_AA[pSiteCodon] === 'STOP',
+    atpGtpConsumed: (clampedStep + 1) * 3 // 1 ATP (aminoacyl-tRNA charging) + 2 GTP (EF1A + EF2 translocation)
+  };
+}
 
 export const TIER_4_FOLDED_PROTEINS = {
   collagen_i: {
