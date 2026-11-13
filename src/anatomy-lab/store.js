@@ -1,26 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ALL_206_BONES, TOTAL_BONE_COUNT } from './data/humanSkeletalDatabase.js';
-import { POSTURE_CONDITIONS } from './data/postureConditions.js';
-import { KineticChainSolver } from './utils/KineticChainSolver.js';
 import { useProgressionStore } from '../store/progressionStore.js';
 import { useStore } from '../store.js';
-
-const DEFAULT_POSTURE_PARAMS = {
-  rightFootPronation: 0,
-  leftFootPronation: 0,
-  rightKneeValgus: 0,
-  leftKneeValgus: 0,
-  pelvisDrop: 0,
-  pelvisTilt: 0,
-  pelvisRotation: 0,
-  lumbarLordosis: 0,
-  spinalLateralBend: 0,
-  thoracicKyphosis: 0,
-  cervicalForwardHead: 0,
-  leftShoulderProtraction: 0,
-  rightShoulderProtraction: 0,
-};
 
 export const useAnatomyStore = create(
   persist(
@@ -33,7 +15,7 @@ export const useAnatomyStore = create(
       activeRegion: 'all',
       searchQuery: '',
 
-      // 6 Anatomical Layers
+      // 6 High-Definition Anatomical System Layers
       activeLayer: 'skeleton', // 'skeleton' | 'ligaments' | 'muscles' | 'organs' | 'circulation' | 'nerves'
       layerVisibility: {
         skeleton: true,
@@ -44,19 +26,7 @@ export const useAnatomyStore = create(
         nerves: false,
       },
 
-      // Biomechanical & Posture Telemetry
-      kineticMode: 'foot_ascending',
-      activePresetId: 'neutral',
-      showVectors: true,
-      activeGizmoJoint: null, // 'pelvis' | 'lumbar' | 'thoracic' | 'cervical' | 'right_femur' | 'right_tibia' | 'right_foot' | null
-      gravityMultiplier: 1.0, // 0.16 (Moon) | 0.38 (Mars) | 1.0 (Earth) | 1.6 (Super-Earth) | 2.53 (Jupiter)
-      postureParams: { ...DEFAULT_POSTURE_PARAMS },
-
-      // Dynamic Muscle Strain Heatmap Lists (Array of { id, name, role, severity, strainPercent })
-      overactiveMuscles: [],
-      underactiveMuscles: [],
-
-      // Hardware GPU Optimization LOD Ratio (1.0 = Ultra, 0.65 = Balanced, 0.35 = Low-Spec)
+      // Hardware GPU Optimization LOD Ratio (1.0 = Ultra HD, 0.65 = Balanced, 0.35 = Low-Spec)
       meshLodRatio: 1.0,
 
       // Bio Lab -> 3D Anatomy Lab Tissue Bioprinting Bridge
@@ -129,7 +99,8 @@ export const useAnatomyStore = create(
         // Check Milestone Progress (All 206 Bones)
         if (nextAssembled.length === TOTAL_BONE_COUNT) {
           useProgressionStore.getState().completeMilestone('complete_human_osteogenesis');
-          useStore.getState().showMessage('🏆 All 206 Human Skeletal Bones Assembled! Structural Integrity: 100%');
+          useProgressionStore.getState().completeMilestone('cosmic_ouroboros');
+          useStore.getState().showMessage('🏆 All 206 Human Bones Assembled! Full HD Anatomical Systems Awakened (100%).');
           set({
             layerVisibility: {
               skeleton: true,
@@ -155,7 +126,7 @@ export const useAnatomyStore = create(
         return true;
       },
 
-      // Batch assemble all 206 bones (sandbox or complete test)
+      // Batch assemble all 206 bones
       assembleAllBones: () => {
         const allIds = ALL_206_BONES.map(b => b.id);
         set({
@@ -180,7 +151,8 @@ export const useAnatomyStore = create(
           },
         });
         useProgressionStore.getState().completeMilestone('complete_human_osteogenesis');
-        useStore.getState().showMessage('All 206 Bones Assembled! Human Anatomical Matrix Complete.');
+        useProgressionStore.getState().completeMilestone('cosmic_ouroboros');
+        useStore.getState().showMessage('🏆 All 206 Bones & 6 HD Anatomical Systems Assembled!');
       },
 
       // Reset Skeleton
@@ -189,10 +161,6 @@ export const useAnatomyStore = create(
           assembledBones: [],
           consciousnessScore: 0,
           isAwakened: false,
-          activePresetId: 'neutral',
-          postureParams: { ...DEFAULT_POSTURE_PARAMS },
-          overactiveMuscles: [],
-          underactiveMuscles: [],
           bioprintedTissues: {
             osteoid: false,
             myofibril: false,
@@ -225,9 +193,6 @@ export const useAnatomyStore = create(
       setActiveRegion: (activeRegion) => set({ activeRegion }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       setActiveLayer: (activeLayer) => set({ activeLayer }),
-      setShowVectors: (showVectors) => set({ showVectors }),
-      toggleVectors: () => set(state => ({ showVectors: !state.showVectors })),
-      setActiveGizmoJoint: (activeGizmoJoint) => set({ activeGizmoJoint }),
 
       toggleLayer: (layerKey) => set(state => ({
         layerVisibility: {
@@ -257,7 +222,7 @@ export const useAnatomyStore = create(
           nextVis.skeleton = true;
           nextVis.ligaments = true;
           nextBones = ALL_206_BONES.map(b => b.id);
-          msg = '🦴 Bio-Printed Calcified Osteoid & Hyaline Matrix: All 206 Bones + 23 Intervertebral Discs Materialized!';
+          msg = '🦴 Bio-Printed Calcified Osteoid & Hyaline Matrix: All 206 Bones Materialized!';
         } else if (tissueType === 'myofibril') {
           nextVis.muscles = true;
           nextVis.ligaments = true;
@@ -274,7 +239,7 @@ export const useAnatomyStore = create(
             bloodPressureDia: 80,
             oxygenSaturation: 99,
           };
-          msg = '🫀 Bio-Printed Multi-Chamber Heart, Coronary Vessels & Clinical Femoral/Popliteal/Tibial Vascular Tree!';
+          msg = '🫀 Bio-Printed 676 HD 4-Chamber Heart, Valves, Coronary Vessels & Systemic Vascular Tree!';
         } else if (tissueType === 'neural') {
           nextVis.nerves = true;
           nextVitals = {
@@ -282,7 +247,7 @@ export const useAnatomyStore = create(
             eegBand: 'Gamma (Self-Awareness)',
             eegFrequency: 42.5,
           };
-          msg = '🧠 Bio-Printed Gyri-Folded Neocortex, Brachial Plexus & Clinical Sciatic/Tibial/Peroneal Connectome!';
+          msg = '🧠 Bio-Printed 580 HD Brain Lobes, Cerebellum, Ventricles, Spinal Cord & Peripheral Nerves!';
         }
 
         const countActive = Object.values(nextTissues).filter(Boolean).length;
@@ -301,74 +266,6 @@ export const useAnatomyStore = create(
           useStore.getState().showMessage(msg);
         }
         return nextTissues;
-      },
-
-      // Posture & Kinetic Chain Update
-      setGravityMultiplier: (gravityMultiplier) => {
-        const state = get();
-        const g = Math.max(0.05, Number(gravityMultiplier) || 1.0);
-        const strains = KineticChainSolver.calculateMuscleStrains(state.postureParams, g);
-        set({
-          gravityMultiplier: g,
-          overactiveMuscles: strains.overactive,
-          underactiveMuscles: strains.underactive,
-        });
-      },
-
-      setPostureParam: (param, value) => {
-        const state = get();
-        const nextParams = { ...state.postureParams, [param]: value };
-        const solved = KineticChainSolver.solveKineticChain(nextParams, state.kineticMode);
-        const strains = KineticChainSolver.calculateMuscleStrains(solved, state.gravityMultiplier);
-
-        set({
-          activePresetId: 'custom',
-          postureParams: solved,
-          overactiveMuscles: strains.overactive,
-          underactiveMuscles: strains.underactive,
-        });
-      },
-
-      setKineticMode: (kineticMode) => {
-        const state = get();
-        const solved = KineticChainSolver.solveKineticChain(state.postureParams, kineticMode);
-        const strains = KineticChainSolver.calculateMuscleStrains(solved, state.gravityMultiplier);
-
-        set({
-          kineticMode,
-          postureParams: solved,
-          overactiveMuscles: strains.overactive,
-          underactiveMuscles: strains.underactive,
-        });
-      },
-
-      applyPosturePreset: (presetId) => {
-        const state = get();
-        const cond = POSTURE_CONDITIONS[presetId] || POSTURE_CONDITIONS.neutral;
-        const params = { ...DEFAULT_POSTURE_PARAMS, ...(cond.parameters || {}) };
-        const strains = KineticChainSolver.calculateMuscleStrains(params, state.gravityMultiplier);
-
-        set((state) => ({
-          activePresetId: cond.id,
-          postureParams: params,
-          overactiveMuscles: cond.overactiveMuscles?.length ? cond.overactiveMuscles : strains.overactive,
-          underactiveMuscles: cond.underactiveMuscles?.length ? cond.underactiveMuscles : strains.underactive,
-          // Auto-enable muscle layer when inspecting a non-neutral biomechanical syndrome
-          layerVisibility:
-            cond.id !== 'neutral'
-              ? { ...state.layerVisibility, skeleton: true, muscles: true }
-              : state.layerVisibility,
-        }));
-      },
-
-      resetPosture: () => {
-        set({
-          activePresetId: 'neutral',
-          activeGizmoJoint: null,
-          postureParams: { ...DEFAULT_POSTURE_PARAMS },
-          overactiveMuscles: [],
-          underactiveMuscles: [],
-        });
       },
     }),
     {

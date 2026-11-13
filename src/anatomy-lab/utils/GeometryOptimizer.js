@@ -24,12 +24,15 @@ export class GeometryOptimizer {
 
   registerMesh(mesh) {
     if (!mesh || !mesh.geometry) return;
-    const geom = mesh.geometry;
-    const geomId = geom.uuid;
+    if (!mesh.userData.originalGeometry) {
+      mesh.userData.originalGeometry = mesh.geometry;
+    }
+    const origGeom = mesh.userData.originalGeometry;
+    const geomId = origGeom.uuid;
 
     if (!this.geometryCache.has(geomId)) {
       this.geometryCache.set(geomId, {
-        original: geom,
+        original: origGeom,
         cachedLODs: new Map(),
         meshes: new Set([mesh]),
       });

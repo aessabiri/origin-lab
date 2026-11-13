@@ -12,7 +12,7 @@ import { VSEPR_MOLECULES } from '../chemistry-lab/components/MoleculeViewer3D';
 import { createTimeCapsuleSnapshot, restoreTimeCapsuleSnapshot } from '../utils/timeCapsule';
 import { useBioStore } from '../biology-lab/store';
 import { computeMorphogenesisMetrics } from '../biology-lab/components/CambrianMorphogenesisLab';
-import { KineticChainSolver } from '../anatomy-lab/utils/KineticChainSolver';
+import { useAnatomyStore } from '../anatomy-lab/store';
 import { PARTICLE_TYPES } from '../constants/particles';
 
 describe('Argon Branch Overhaul — Cosmic Clock, 3D Quantum/VSEPR Data & Demiurge Compiler', () => {
@@ -185,14 +185,12 @@ describe('Argon Branch Overhaul — Cosmic Clock, 3D Quantum/VSEPR Data & Demiur
     expect(tetrapod.encephalizationQuotient).toBeGreaterThan(ediacaran.encephalizationQuotient);
   });
 
-  it('scales axial spinal load and myofascial strain across Planetary Gravity fields (0.38g Mars vs 2.53g Jupiter)', () => {
-    const posture = { rightFootPronation: 0.35, pelvisTilt: -0.25, cervicalForwardHead: 0.03 };
-    const marsStrain = KineticChainSolver.calculateMuscleStrains(posture, 0.38);
-    const earthStrain = KineticChainSolver.calculateMuscleStrains(posture, 1.0);
-    const jupiterStrain = KineticChainSolver.calculateMuscleStrains(posture, 2.53);
+  it('switches 3D Anatomy Lab mesh LOD resolution cleanly between Eco (0.35), Med (0.65), and HD (1.0)', () => {
+    const store = useAnatomyStore.getState();
+    store.setMeshLodRatio(0.35);
+    expect(useAnatomyStore.getState().meshLodRatio).toBe(0.35);
 
-    expect(marsStrain.axialCompressionLoadN).toBeLessThan(earthStrain.axialCompressionLoadN);
-    expect(jupiterStrain.axialCompressionLoadN).toBeGreaterThan(earthStrain.axialCompressionLoadN);
-    expect(jupiterStrain.overactive.length).toBeGreaterThanOrEqual(marsStrain.overactive.length);
+    store.setMeshLodRatio(1.0);
+    expect(useAnatomyStore.getState().meshLodRatio).toBe(1.0);
   });
 });

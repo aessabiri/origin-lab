@@ -1,20 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ALL_206_BONES, TOTAL_BONE_COUNT, BONE_SUBGROUPS } from '../data/humanSkeletalDatabase.js';
+import * as THREE from 'three';
+import { ALL_206_BONES, TOTAL_BONE_COUNT } from '../data/humanSkeletalDatabase.js';
 import { useAnatomyStore } from '../store.js';
-import { KineticChainSolver } from '../utils/KineticChainSolver.js';
 import { matchMeshToBone, normalizeGLTFNodeName, isRightSideAnatomyNode } from '../utils/boneMatcher.js';
-import { doesMeshMatchMuscleList } from '../components/AnatomyCanvas.jsx';
 import { GeometryOptimizer } from '../utils/GeometryOptimizer.js';
 import { createMedicalMaterials } from '../utils/MedicalMaterials.js';
-import * as THREE from 'three';
 import {
   createProceduralMicroBones,
-  createCartilageAndLigamentsLayer,
-  createVascularLoopLayer,
-  createNeuralConnectomeLayer
+  createSynapticParticleCloud
 } from '../utils/anatomicalLayers.js';
 
-describe('206-Bone Human Skeletal Matrix Tests', () => {
+describe('206-Bone Human Skeletal Matrix & HD Z-Anatomy Atlas Tests', () => {
   beforeEach(() => {
     useAnatomyStore.getState().resetSkeleton();
   });
@@ -52,38 +48,26 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     const store = useAnatomyStore.getState();
     expect(store.assembledBones).toHaveLength(0);
 
-    // Assemble Femur
     const success = store.assembleBone('femur_r');
     expect(success).toBe(true);
     expect(useAnatomyStore.getState().assembledBones).toContain('femur_r');
 
-    // Duplicate check
     const duplicate = store.assembleBone('femur_r');
     expect(duplicate).toBe(false);
   });
 
-  it('should assemble all 206 bones, achieve 100% integrity, and ignite sentience vitals', () => {
+  it('should assemble all 206 bones, achieve 100% integrity, and ignite all 6 HD layers + sentience vitals', () => {
     useAnatomyStore.getState().assembleAllBones();
     const state = useAnatomyStore.getState();
 
     expect(state.assembledBones).toHaveLength(206);
     expect(state.consciousnessScore).toBe(100);
     expect(state.isAwakened).toBe(true);
+    expect(state.layerVisibility.organs).toBe(true);
+    expect(state.layerVisibility.circulation).toBe(true);
+    expect(state.layerVisibility.nerves).toBe(true);
     expect(state.vitalSigns.heartRate).toBe(72);
     expect(state.vitalSigns.eegBand).toContain('Gamma');
-  });
-
-  it('should solve closed-chain kinematics and compute postural compensations', () => {
-    // Simulate excessive right foot pronation (flat foot)
-    const solved = KineticChainSolver.solveKineticChain({ rightFootPronation: 0.35 }, 'foot_ascending');
-
-    expect(solved.rightKneeValgus).toBeGreaterThan(0.2);
-    expect(solved.pelvisDrop).toBeGreaterThan(0);
-    expect(solved.thoracicKyphosis).toBeGreaterThan(0);
-
-    const strains = KineticChainSolver.calculateMuscleStrains(solved);
-    expect(strains.overactive).toBeInstanceOf(Array);
-    expect(strains.underactive).toBeInstanceOf(Array);
   });
 
   it('should accurately match clinical CT scan mesh nodes to individual bones including trailing dot Scapula.r.', () => {
@@ -100,36 +84,18 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     expect(matchMeshToBone('Calcaneus.r')?.id).toBe('calcaneus_r');
   });
 
-  it('should apply posture presets and compute neutral vs cascading myofascial strains cleanly', () => {
-    const neutralStrains = KineticChainSolver.calculateMuscleStrains({});
-    expect(neutralStrains.overactive).toHaveLength(0);
-    expect(neutralStrains.underactive).toHaveLength(0);
-
-    useAnatomyStore.getState().applyPosturePreset('compound_cascade');
-    const state = useAnatomyStore.getState();
-    expect(state.activePresetId).toBe('compound_cascade');
-    expect(state.overactiveMuscles.length).toBeGreaterThan(0);
-    expect(state.underactiveMuscles.length).toBeGreaterThan(0);
-    expect(state.layerVisibility.muscles).toBe(true);
-  });
-
-  it('should generate all 4 anatomical layers and procedural micro-bones', () => {
+  it('should generate procedural micro-bones (hyoid + 6 ear ossicles) and synaptic particle cloud', () => {
     const materials = createMedicalMaterials();
 
     const micro = createProceduralMicroBones(materials);
-    expect(micro.meshes).toHaveLength(7); // hyoid + 6 ear ossicles
+    expect(micro.meshes).toHaveLength(7);
 
-    const cartilage = createCartilageAndLigamentsLayer(materials);
-    expect(cartilage.children.length).toBeGreaterThan(5);
-
-    const vascular = createVascularLoopLayer(materials);
-    expect(vascular.heartMesh).toBeDefined();
-
-    const neural = createNeuralConnectomeLayer(materials);
-    expect(neural.synPoints).toBeDefined();
+    const synPoints = createSynapticParticleCloud();
+    expect(synPoints).toBeDefined();
+    expect(synPoints.geometry.attributes.position.count).toBe(240);
   });
 
-  it('should recover and match sanitized GLTFLoader node names (Femurr -> Femur.r, Medial_cuneiform_boner -> cuneiform_medial_r)', () => {
+  it('should recover and match sanitized GLTFLoader node names (Femurr -> Femur.r, Medial_cuneiform_boner -> medial_cuneiform_r)', () => {
     expect(normalizeGLTFNodeName('Femurr', 'Bones_right')).toBe('Femur.r');
     expect(normalizeGLTFNodeName('Medial_cuneiform_boner', 'Bones_right')).toBe('Medial cuneiform bone.r');
     expect(normalizeGLTFNodeName('Scapular', 'Bones_right')).toBe('Scapula.r');
@@ -141,7 +107,6 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     expect(matchMeshToBone('Medial_cuneiform_boner', 'Bones_right')?.id).toBe('medial_cuneiform_r');
     expect(matchMeshToBone('First_distal_phalanx_of_footr', 'Bones_right')?.id).toBe('phalanx_foot_distal_1_r');
 
-    // Mirrored left counterparts
     expect(matchMeshToBone('Femur.l', 'Bones_left')?.id).toBe('femur_l');
     expect(matchMeshToBone('Tibia.l', 'Bones_left')?.id).toBe('tibia_l');
     expect(matchMeshToBone('Humerus.l', 'Bones_left')?.id).toBe('humerus_l');
@@ -150,13 +115,7 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     expect(isRightSideAnatomyNode({ name: 'Femurr', parent: { name: 'Bones_right', parent: null } })).toBe(true);
   });
 
-  it('should match sanitized GLTFLoader multi-word muscle names in doesMeshMatchMuscleList', () => {
-    const tightList = [{ id: 'gluteus_maximus', name: 'Right Gluteus Maximus' }];
-    expect(doesMeshMatchMuscleList('Gluteus_maximus_muscler', tightList)).toBe(true);
-    expect(doesMeshMatchMuscleList('Gluteus_maximus_musclel', tightList)).toBe(false);
-  });
-
-  it('should decimate high-poly meshes via GeometryOptimizer and share buffers across mirrored limbs', () => {
+  it('should decimate high-poly meshes via GeometryOptimizer and restore 100% HD resolution when toggled back from Low-Spec', () => {
     const sphereGeo = new THREE.SphereGeometry(1, 32, 32);
     const rightMesh = new THREE.Mesh(sphereGeo);
     const leftMirroredMesh = new THREE.Mesh(sphereGeo);
@@ -168,8 +127,12 @@ describe('206-Bone Human Skeletal Matrix Tests', () => {
     GeometryOptimizer.applySceneLOD([rightMesh, leftMirroredMesh], 0.35);
 
     expect(rightMesh.geometry.index.count).toBeLessThan(origCount);
-    // Both right and mirrored left mesh share the exact same decimated BufferGeometry instance
     expect(rightMesh.geometry).toBe(leftMirroredMesh.geometry);
+
+    // Toggle back to Ultra 100% (1.0) -> must restore original 100% geometry!
+    GeometryOptimizer.applySceneLOD([rightMesh, leftMirroredMesh], 1.0);
+    expect(rightMesh.geometry).toBe(sphereGeo);
+    expect(rightMesh.geometry.index.count).toBe(origCount);
   });
 
   it('should bio-print tissues from the Biology Lab bridge into the 3D Anatomy store', () => {
