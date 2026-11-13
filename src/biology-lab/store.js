@@ -3,6 +3,12 @@ import { persist } from 'zustand/middleware';
 import { useInventory } from '../store/inventory.js';
 import { useProgressionStore } from '../store/progressionStore.js';
 import { usePlanetaryStore } from '../store/planetaryStore.js';
+import {
+  TIER_1_ORGAN_SYSTEMS,
+  TIER_2_TISSUE_SCAFFOLDS,
+  TIER_3_CELL_LINEAGES,
+  TIER_4_FOLDED_PROTEINS
+} from './data/topDownBioHierarchy.js';
 
 // Initial Resources available in the "Soup"
 const INITIAL_SOUP = {
@@ -69,6 +75,13 @@ export const useBioStore = create(
         locomotion: 'paired_fins',    // 'cilia' | 'myomeres' | 'paired_fins' | 'pentadactyl_limbs'
         segments: 7
       },
+
+      // --- Top-Down Precision Synthesis Hierarchy (Tier 5 -> Tier 1) ---
+      selectedOrganSystemId: 'skeletal_system',
+      transcribedGenes: [],     // ['col1a1', 'myh7', 'hbb', 'scn9a', 'atp5f1a']
+      foldedProteins: [],       // ['collagen_i', 'actin_myosin', 'hemoglobin', 'ion_channel', 'atp_synthase']
+      differentiatedCells: [],  // ['osteoblast', 'cardiomyocyte', 'hepatocyte', 'endothelial_cell', 'motor_neuron']
+      engineeredTissues: [],    // ['osteoid', 'myofibril', 'visceral', 'endothelial', 'neural']
 
       // --- Actions ---
 
@@ -151,9 +164,32 @@ export const useBioStore = create(
          return { unlockedAminoAcids: [...state.unlockedAminoAcids, id] };
       }),
 
-      addSynthesizedProtein: (protein) => set(state => ({
-        synthesizedProteins: [...state.synthesizedProteins, protein]
-      })),
+      addSynthesizedProtein: (protein) => set(state => {
+        const nextFolded = [...(state.foldedProteins || [])];
+        const nextGenes = [...(state.transcribedGenes || [])];
+        const pName = (protein?.name || '').toLowerCase();
+        if (pName.includes('collagen') && !nextFolded.includes('collagen_i')) {
+          nextFolded.push('collagen_i');
+          if (!nextGenes.includes('col1a1')) nextGenes.push('col1a1');
+        } else if ((pName.includes('actin') || pName.includes('myosin')) && !nextFolded.includes('actin_myosin')) {
+          nextFolded.push('actin_myosin');
+          if (!nextGenes.includes('myh7')) nextGenes.push('myh7');
+        } else if (pName.includes('hemoglobin') && !nextFolded.includes('hemoglobin')) {
+          nextFolded.push('hemoglobin');
+          if (!nextGenes.includes('hbb')) nextGenes.push('hbb');
+        } else if ((pName.includes('channel') || pName.includes('nav')) && !nextFolded.includes('ion_channel')) {
+          nextFolded.push('ion_channel');
+          if (!nextGenes.includes('scn9a')) nextGenes.push('scn9a');
+        } else if (pName.includes('atp') && !nextFolded.includes('atp_synthase')) {
+          nextFolded.push('atp_synthase');
+          if (!nextGenes.includes('atp5f1a')) nextGenes.push('atp5f1a');
+        }
+        return {
+          synthesizedProteins: [...state.synthesizedProteins, protein],
+          foldedProteins: nextFolded,
+          transcribedGenes: nextGenes
+        };
+      }),
 
       addOrganelleToDesign: (organelle) => set(state => {
         if (state.currentCellDesign.organelles.length >= 8) return state;
@@ -253,6 +289,129 @@ export const useBioStore = create(
       setMorphogenesisConfig: (updates) => set(state => ({
         morphogenesisConfig: { ...state.morphogenesisConfig, ...updates }
       })),
+
+      // --- Top-Down Precision Actions (Tier 5 DNA -> Tier 4 Protein -> Tier 3 Cell -> Tier 2 Tissue -> Tier 1 Organ) ---
+      setSelectedOrganSystemId: (id) => set({ selectedOrganSystemId: id }),
+
+      transcribeAndTranslateGene: (geneId) => set((state) => {
+        const current = state.transcribedGenes || [];
+        if (current.includes(geneId)) return state;
+        try {
+          useInventory.getState().addResource('compounds', 'rna', 1);
+          useInventory.getState().markDiscovered(`GENE_${geneId.toUpperCase()}`);
+        } catch (e) {}
+        return { transcribedGenes: [...current, geneId] };
+      }),
+
+      foldTopDownProtein: (proteinId) => set((state) => {
+        const meta = TIER_4_FOLDED_PROTEINS[proteinId];
+        if (!meta) return state;
+        const currentGenes = state.transcribedGenes || [];
+        const nextGenes = currentGenes.includes(meta.geneId)
+          ? currentGenes
+          : [...currentGenes, meta.geneId];
+        const currentProteins = state.foldedProteins || [];
+        const nextProteins = currentProteins.includes(proteinId)
+          ? currentProteins
+          : [...currentProteins, proteinId];
+
+        try {
+          useInventory.getState().markDiscovered(`PROTEIN_${proteinId.toUpperCase()}`);
+        } catch (e) {}
+
+        return {
+          transcribedGenes: nextGenes,
+          foldedProteins: nextProteins
+        };
+      }),
+
+      differentiateCellLineage: (cellId) => set((state) => {
+        const lineage = TIER_3_CELL_LINEAGES[cellId];
+        if (!lineage) return state;
+
+        // Ensure prerequisite proteins are folded
+        const nextProteins = [...(state.foldedProteins || [])];
+        const nextGenes = [...(state.transcribedGenes || [])];
+        lineage.requiredProteins.forEach((pid) => {
+          if (!nextProteins.includes(pid)) nextProteins.push(pid);
+          const gid = TIER_4_FOLDED_PROTEINS[pid]?.geneId;
+          if (gid && !nextGenes.includes(gid)) nextGenes.push(gid);
+        });
+
+        const currentCells = state.differentiatedCells || [];
+        const nextCells = currentCells.includes(cellId)
+          ? currentCells
+          : [...currentCells, cellId];
+
+        try {
+          useInventory.getState().markDiscovered(`CELL_${cellId.toUpperCase()}`);
+        } catch (e) {}
+
+        return {
+          transcribedGenes: nextGenes,
+          foldedProteins: nextProteins,
+          differentiatedCells: nextCells
+        };
+      }),
+
+      bioprintTissueScaffold: (tissueId) => set((state) => {
+        const scaffold = TIER_2_TISSUE_SCAFFOLDS[tissueId];
+        if (!scaffold) return state;
+
+        const nextProteins = [...(state.foldedProteins || [])];
+        const nextGenes = [...(state.transcribedGenes || [])];
+        const nextCells = [...(state.differentiatedCells || [])];
+
+        scaffold.requiredProteins.forEach((pid) => {
+          if (!nextProteins.includes(pid)) nextProteins.push(pid);
+          const gid = TIER_4_FOLDED_PROTEINS[pid]?.geneId;
+          if (gid && !nextGenes.includes(gid)) nextGenes.push(gid);
+        });
+        scaffold.requiredCells.forEach((cid) => {
+          if (!nextCells.includes(cid)) nextCells.push(cid);
+        });
+
+        const currentTissues = state.engineeredTissues || [];
+        const nextTissues = currentTissues.includes(tissueId)
+          ? currentTissues
+          : [...currentTissues, tissueId];
+
+        try {
+          const inv = useInventory.getState();
+          Object.entries(scaffold.compounds || {}).forEach(([comp, amt]) => {
+            if (inv.elements && comp in inv.elements) {
+              inv.addResource('elements', comp, amt);
+            } else {
+              inv.addResource('compounds', comp, amt);
+            }
+          });
+          inv.markDiscovered(`TISSUE_${tissueId.toUpperCase()}`);
+        } catch (e) {}
+
+        return {
+          transcribedGenes: nextGenes,
+          foldedProteins: nextProteins,
+          differentiatedCells: nextCells,
+          engineeredTissues: nextTissues
+        };
+      }),
+
+      synthesizeFullOrganChain: (organSystemId) => {
+        const sys =
+          TIER_1_ORGAN_SYSTEMS.find((s) => s.id === organSystemId) || TIER_1_ORGAN_SYSTEMS[0];
+        const state = get();
+        if ((state.currentCellDesign?.organelles || []).length < 4) {
+          state.autoAssembleOptimalLuca();
+        }
+        sys.requiredProteins.forEach((pid) => {
+          const gid = TIER_4_FOLDED_PROTEINS[pid]?.geneId;
+          if (gid) get().transcribeAndTranslateGene(gid);
+          get().foldTopDownProtein(pid);
+        });
+        sys.requiredCells.forEach((cid) => get().differentiateCellLineage(cid));
+        get().bioprintTissueScaffold(sys.requiredTissue);
+        return sys.anatomyTissueId;
+      },
 
       // Import from Particle Lab Inventory (Bridge)
       // This will be called when the user "drops" items from the sidebar into the dish
@@ -478,6 +637,10 @@ export const useBioStore = create(
         foodItems: [],
         toxins: [],
         isRunning: false,
+        transcribedGenes: [],
+        foldedProteins: [],
+        differentiatedCells: [],
+        engineeredTissues: [],
         stressTrial: {
           active: false,
           stage: 'idle',

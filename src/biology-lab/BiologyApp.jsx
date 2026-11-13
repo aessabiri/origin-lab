@@ -7,6 +7,7 @@ import CellBuilder from './components/CellBuilder';
 import BioModeSelector from './components/BioModeSelector';
 import BioLabInventory from './components/BioLabInventory';
 import CambrianMorphogenesisLab from './components/CambrianMorphogenesisLab';
+import TopDownOrganogenesisLab from './components/TopDownOrganogenesisLab';
 import { useStore } from '../store';
 
 const MODE_THEMES = {
@@ -75,6 +76,16 @@ const BiologyApp = () => {
         {viewMode === 'assembly' && (
           <div className="w-full h-full flex flex-col overflow-hidden">
             <CellBuilder onFinalize={() => { injectLuca(); setViewMode('simulation'); }} />
+          </div>
+        )}
+
+        {/* Top-Down Organogenesis & Histogenesis Workbench (Tier 1 Macro-Organs -> Tier 5 DNA) */}
+        {viewMode === 'organogenesis' && (
+          <div className="w-full h-full flex flex-col overflow-hidden">
+            <TopDownOrganogenesisLab
+              onNavigateMode={setViewMode}
+              onOpenAnatomy={() => useStore.getState().setCurrentView('anatomy')}
+            />
           </div>
         )}
 

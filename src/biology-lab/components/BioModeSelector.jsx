@@ -2,11 +2,19 @@ import React from 'react';
 import { useBioStore } from '../store';
 
 const BioModeSelector = ({ currentMode, setMode }) => {
-  const { agents, isRunning, synthesizedProteins, currentCellDesign, morphogenesisConfig } = useBioStore();
+  const {
+    agents,
+    isRunning,
+    synthesizedProteins,
+    currentCellDesign,
+    morphogenesisConfig,
+    engineeredTissues = []
+  } = useBioStore();
 
   const modes = [
-    { id: 'assembly', label: 'Cell Assembly', icon: '🦠', val: currentCellDesign.organelles.length, unit: 'COMP', desc: 'LUCA Chassis & 8 Organelle Classes' },
-    { id: 'folding', label: 'Protein Lab', icon: '🧬', val: synthesizedProteins.length, unit: 'SEQ', desc: '3D Polypeptide Molecular Folding' },
+    { id: 'organogenesis', label: 'Organogenesis (T1→T5)', icon: '🫀', val: `${engineeredTissues.length}/5`, unit: 'ORGANS', desc: 'Top-Down: Organs → ECM → Cells → Proteins → DNA' },
+    { id: 'assembly', label: 'Cell & Organelles (T5)', icon: '🦠', val: currentCellDesign.organelles.length, unit: 'COMP', desc: 'LUCA Chassis & 8 Organelle Classes' },
+    { id: 'folding', label: 'Protein & DNA Lab (T4)', icon: '🧬', val: synthesizedProteins.length, unit: 'SEQ', desc: '3D Polypeptide & Codon Translation' },
     { id: 'simulation', label: 'Incubation Chamber', icon: '🧫', val: agents.length, unit: 'CELLS', desc: 'Archean Hydrothermal Ecosystem' },
     { id: 'morphogenesis', label: 'Cambrian Body Plan', icon: '🦎', val: morphogenesisConfig?.segments || 7, unit: 'SOMITES', desc: '3D Multicellular → Vertebrate Bridge' },
     { id: 'inventory', label: 'Bio-Storage', icon: '📦', val: 'OPEN', unit: 'LEDGER', desc: 'Enzymes & Biological Precursors' }
