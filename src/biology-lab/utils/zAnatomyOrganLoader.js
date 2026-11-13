@@ -93,6 +93,13 @@ export function classifyMeshToOrganSubPart(systemId, meshName = '') {
  */
 function shouldIncludeMeshInFocusedOrganView(systemId, meshName = '', boxCenterY = 1.0) {
   const n = meshName.toLowerCase();
+  if (
+    /\b(penis|glans penis|corpus cavernosum|corpus spongiosum|testis|testicular|epididymis|scrotum|prepuce)\b/i.test(
+      n
+    )
+  ) {
+    return false;
+  }
   if (systemId === 'cardiovascular_system') {
     // Focus on Heart chambers, valves, coronary vessels, aorta, vena cava, pulmonary trunk (Thoracic Y: 1.10m - 1.48m)
     const isCardiacName =

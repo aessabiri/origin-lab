@@ -436,6 +436,12 @@ const AnatomyCanvas = () => {
         // Dismiss blocking loader immediately once 206-bone skeleton is ready!
         setIsLoading(false);
 
+        // Exclude only external penis & testicle structures from 3D anatomy rendering & picking
+        const isExcludedGenitalMesh = (name = '') =>
+          /\b(penis|glans penis|corpus cavernosum|corpus spongiosum|testis|testicular|epididymis|scrotum|prepuce)\b/i.test(
+            name
+          );
+
         // STAGE B: Progressive Non-Blocking Background Streaming of 5 HD Organ/Vascular/Neural/Muscle/Joint Systems
         const ingestHDSystem = (gltfObj, targetLayer, systemLabel) => {
           if (!gltfObj || !gltfObj.scene || !isMounted) return;
@@ -443,6 +449,10 @@ const AnatomyCanvas = () => {
           gltfObj.scene.traverse((child) => {
             if (child.userData?.za_name) child.name = child.userData.za_name;
             if (child.isMesh) {
+              if (isExcludedGenitalMesh(child.name)) {
+                child.visible = false;
+                return;
+              }
               count++;
               if (child.material) {
                 child.material.side = THREE.DoubleSide;
@@ -513,6 +523,10 @@ const AnatomyCanvas = () => {
             const zaName = child.userData?.za_name || child.name || '';
             if (zaName) child.name = zaName;
             if (child.isMesh) {
+              if (isExcludedGenitalMesh(zaName)) {
+                child.visible = false;
+                return;
+              }
               cIdx++;
               if (child.material) {
                 child.material.side = THREE.DoubleSide;
