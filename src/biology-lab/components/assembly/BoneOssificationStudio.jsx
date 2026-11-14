@@ -12,6 +12,7 @@ import {
   loadFocusedSingleOrgan,
 } from '../../utils/zAnatomyOrganLoader';
 import {
+  createChamberComposer,
   buildSophisticatedChamberChassis,
   buildRealisticElementCluster,
   buildVascularSproutTree,
@@ -53,15 +54,8 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   const [massBoneCount, setMassBoneCount] = useState(0);
   const [massIncubating, setMassIncubating] = useState(false);
   const [elapsedSec, setElapsedSec] = useState(0);
-  const [interactions, setInteractions] = useState([
-    {
-      id: 'init-1',
-      time: '00:00',
-      tag: 'HOX BLUEPRINT',
-      text: 'BMP-2/Wnt morphogens priming Mesenchymal Stem Cell condensation.',
-      color: '#38bdf8',
-    },
-  ]);
+  const [tempC, setTempC] = useState(37.0);
+  const [phLevel, setPhLevel] = useState(7.4);
 
   const synthesizeFullOrganChain = useBioStore((s) => s.synthesizeFullOrganChain);
   const fabricateOrganForAnatomy = useAnatomyStore((s) => s.fabricateOrganForAnatomy);
@@ -70,13 +64,12 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   const stressEval = useMemo(() => evaluateMechanicalStressTest(sim), [sim]);
   const isCertified = stressEval.status === 'CERTIFIED' && sim.marrowCavity >= 60;
 
-  const pushBoneInteraction = (tag, text, color = '#22d3ee', secVal = elapsedSec) => {
-    const timeStr = `${String(Math.floor(secVal / 60)).padStart(2, '0')}:${String(Math.floor(secVal % 60)).padStart(2, '0')}`;
-    setInteractions((prev) => {
-      if (prev[0]?.tag === tag && prev[0]?.text === text) return prev;
-      return [{ id: `${Date.now()}_${Math.random()}`, time: timeStr, tag, text, color }, ...prev].slice(0, 24);
-    });
-  };
+  const isTempOptimal = tempC >= 35.5 && tempC <= 38.5;
+  const isPhOptimal = phLevel >= 7.2 && phLevel <= 7.6;
+  const isO2Optimal = sim.o2Perfusion >= 16 && sim.o2Perfusion <= 26;
+  const isMorphOptimal = sim.morphogenBmpWnt >= 45 && sim.morphogenBmpWnt <= 90;
+  const optimalCount = [isTempOptimal, isPhOptimal, isO2Optimal, isMorphOptimal].filter(Boolean).length;
+  const purityGrade = optimalCount === 4 ? 'S' : optimalCount >= 2 ? 'A' : 'B';
 
   useEffect(() => {
     telemetryRef.current = {
@@ -88,22 +81,15 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   }, [isCertified, sim.o2Perfusion, sim.morphogenBmpWnt, sim.mineralization, sim.vascularization]);
 
   // Biological simulation tick (250ms, dt=0.07 for ~30-40s full observable ossification)
-  const prevPhaseIdxRef = useRef(1);
   useEffect(() => {
     const timer = setInterval(() => {
       setElapsedSec((e) => e + 0.25);
-      setSim((prev) => {
-        const next = stepOssification(prev, 0.07);
-        const nextPhase = getOssificationPhase(next);
-        if (nextPhase.index !== prevPhaseIdxRef.current) {
-          prevPhaseIdxRef.current = nextPhase.index;
-          pushBoneInteraction(`PHASE 0${nextPhase.index}`, nextPhase.detail, '#10b981');
-        }
-        return next;
-      });
+      const thermalPenalty = tempC > 40.5 || tempC < 32 ? 0.15 : isTempOptimal ? 1 : 0.65;
+      const phPenalty = phLevel < 6.9 || phLevel > 7.8 ? 0.2 : isPhOptimal ? 1 : 0.7;
+      setSim((prev) => stepOssification(prev, 0.07 * thermalPenalty * phPenalty));
     }, 250);
     return () => clearInterval(timer);
-  }, []);
+  }, [tempC, phLevel, isTempOptimal, isPhOptimal]);
 
   // Auto-reveal Hyper-Realistic Z-Anatomy model when certified
   useEffect(() => {
@@ -134,11 +120,11 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 100);
-    camera.position.set(0, 0.45, 5.15);
+    const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
+    camera.position.set(0, 0.35, 4.45);
     camera.lookAt(0, -0.05, 0);
 
-    scene.add(new THREE.AmbientLight(0xf1f5f9, 1.1));
+    scene.add(new THREE.AmbientLight(0xf1f5f9, 1.15));
     const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.3);
     keyLight.position.set(4, 6, 5);
     scene.add(keyLight);
@@ -151,6 +137,8 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       '#0ea5e9'
     );
     tissueGroupRef.current = tissueRoot;
+
+    const composer = createChamberComposer(renderer, scene, camera, width, height);
 
     let isDragging = false;
     let prevX = 0;
@@ -196,7 +184,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
         tissueRoot.position.x = 0;
       }
 
-      renderer.render(scene, camera);
+      composer.render();
     };
     animate();
 
@@ -206,6 +194,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       tissueGroupRef.current = null;
+      composer.dispose();
       disposeHierarchy(scene);
       renderer.dispose();
     };
@@ -366,7 +355,6 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
         <div className="lg:col-span-4 h-full min-h-0 overflow-hidden">
           <ChamberTelemetryScreen
             title={massBoneCount >= 206 ? '206-BONE SKELETON' : 'FEMUR OSSIFICATION'}
-            subtitle={phase.code}
             accentColor="#38bdf8"
             isRunning={!isCertified}
             isComplete={isCertified}
@@ -383,14 +371,16 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
                   )
             }
             elapsedSec={elapsedSec}
-            reactionRate={isCertified ? 0 : sim.o2Perfusion >= 14 ? 2.8 : 0.4}
             o2Level={sim.o2Perfusion}
             morphogenLevel={sim.morphogenBmpWnt}
+            tempC={tempC}
+            phLevel={phLevel}
+            purityGrade={purityGrade}
+            activeTags={['SOX9', 'VEGF', 'RUNX2', 'Ca·P', 'Col-I']}
             steps={[
               {
                 id: 'condense',
-                label: '01 // MSC Condensation',
-                sublabel: 'BMP-2/Wnt chemotaxis & Hox axis patterning',
+                label: '01 Condensation',
                 progress: sim.condensation,
                 active: sim.condensation < 100,
                 done: sim.condensation >= 95,
@@ -398,8 +388,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
               },
               {
                 id: 'cartilage',
-                label: '02 // SOX9 Hyaline Cartilage',
-                sublabel: 'Chondroblasts secrete Col-II + GAG scaffold',
+                label: '02 SOX9 Cartilage',
                 progress: sim.cartilageTemplate,
                 active: sim.sox9Active && sim.cartilageTemplate < 95,
                 done: sim.cartilageTemplate >= 95,
@@ -407,8 +396,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
               },
               {
                 id: 'vascular',
-                label: '03 // VEGF-A Angiogenesis',
-                sublabel: 'Periosteal capillaries invade core with O₂',
+                label: '03 VEGF Vessels',
                 progress: sim.vascularization,
                 active: sim.vegfTriggered && sim.vascularization < 95,
                 done: sim.vascularization >= 95,
@@ -416,8 +404,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
               },
               {
                 id: 'osteoid',
-                label: '04 // RUNX2 Osteoid Matrix',
-                sublabel: 'Osteoblasts weave Type-I Collagen triple helices',
+                label: '04 RUNX2 Osteoid',
                 progress: sim.osteoidCollagen,
                 active: sim.runx2Active && sim.osteoidCollagen < 95,
                 done: sim.osteoidCollagen >= 95,
@@ -425,8 +412,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
               },
               {
                 id: 'mineral',
-                label: '05 // Ca₁₀(PO₄)₆(OH)₂ Mineral',
-                sublabel: 'Ca²⁺ + PO₄³⁻ crystallize into hydroxyapatite',
+                label: '05 Ca₁₀(PO₄)₆',
                 progress: sim.mineralization,
                 active: sim.osteoidCollagen >= 35 && sim.mineralization < 95,
                 done: sim.mineralization >= 95,
@@ -434,15 +420,13 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
               },
               {
                 id: 'marrow',
-                label: '06 // Osteoclast Marrow Cavity',
-                sublabel: 'HCl + Cathepsin K carves hollow medullary canal',
+                label: '06 Marrow Cavity',
                 progress: sim.marrowCavity,
                 active: sim.osteoclastsActive && sim.marrowCavity < 95,
                 done: sim.marrowCavity >= 60,
                 color: '#c084fc',
               },
             ]}
-            interactions={interactions}
           />
         </div>
       </div>
@@ -554,6 +538,30 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
               unit="N"
               accent="#f59e0b"
               onChange={(v) => setSim((p) => ({ ...p, mechanicalLoadN: v }))}
+            />
+            <RotaryDial
+              label="Temp"
+              value={tempC}
+              min={30}
+              max={43}
+              step={0.5}
+              optimalMin={35.5}
+              optimalMax={38.5}
+              unit="°C"
+              accent="#fb923c"
+              onChange={setTempC}
+            />
+            <RotaryDial
+              label="pH Buffer"
+              value={phLevel}
+              min={6.5}
+              max={8.0}
+              step={0.1}
+              optimalMin={7.2}
+              optimalMax={7.6}
+              unit=""
+              accent="#10b981"
+              onChange={setPhLevel}
             />
           </div>
 

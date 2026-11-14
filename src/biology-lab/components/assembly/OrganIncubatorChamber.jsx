@@ -9,6 +9,7 @@ import {
   loadFocusedSingleOrgan,
 } from '../../utils/zAnatomyOrganLoader';
 import {
+  createChamberComposer,
   buildSophisticatedChamberChassis,
   buildRealisticElementCluster,
   buildVascularSproutTree,
@@ -194,12 +195,20 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
     : { ...baseRecipe, singleOrganKey: baseRecipe.singleOrganKey || null, zAnatomyId: baseRecipe.id };
 
   const [loadedBySystem, setLoadedBySystem] = useState({});
-  const [growthProgressBySystem, setGrowthProgressBySystem] = useState({});
+  const [growthProgressBySystem, setGrowthProgressBySystem] = useState(() => {
+    try {
+      const saved = localStorage.getItem('originlab_organ_progress_v1');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const [runningBySystem, setRunningBySystem] = useState({});
   const [elapsedBySystem, setElapsedBySystem] = useState({});
-  const [interactionsBySystem, setInteractionsBySystem] = useState({});
   const [o2Dial, setO2Dial] = useState(21);
   const [morphogenDial, setMorphogenDial] = useState(70);
+  const [tempC, setTempC] = useState(37.0);
+  const [phLevel, setPhLevel] = useState(7.4);
 
   const synthesizeFullOrganChain = useBioStore((s) => s.synthesizeFullOrganChain);
   const fabricateOrganForAnatomy = useAnatomyStore((s) => s.fabricateOrganForAnatomy);
@@ -211,20 +220,21 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
   const isRunning = Boolean(runningBySystem[recipe.id]);
   const isGrown = growth >= 100 || Boolean(bioprintedTissues[recipe.anatomyTissueId]);
   const elapsedSec = elapsedBySystem[recipe.id] || 0;
-  const interactions = interactionsBySystem[recipe.id] || [];
 
-  const pushInteraction = (sysId, tag, text, color = '#22d3ee', secOverride = null) => {
-    const tSec = secOverride !== null ? secOverride : (elapsedBySystem[sysId] || 0);
-    const timeStr = `${String(Math.floor(tSec / 60)).padStart(2, '0')}:${String(Math.floor(tSec % 60)).padStart(2, '0')}`;
-    setInteractionsBySystem((prev) => {
-      const list = prev[sysId] || [];
-      if (list[0]?.tag === tag && list[0]?.text === text) return prev;
-      return {
-        ...prev,
-        [sysId]: [{ id: `${Date.now()}_${Math.random()}`, time: timeStr, tag, text, color }, ...list].slice(0, 24),
-      };
-    });
-  };
+  const isTempOptimal = tempC >= 35.5 && tempC <= 38.5;
+  const isPhOptimal = phLevel >= 7.2 && phLevel <= 7.6;
+  const isO2Optimal = o2Dial >= 16 && o2Dial <= 26;
+  const isMorphOptimal = morphogenDial >= 45 && morphogenDial <= 90;
+  const optimalCount = [isTempOptimal, isPhOptimal, isO2Optimal, isMorphOptimal].filter(Boolean).length;
+  const purityGrade = optimalCount === 4 ? 'S' : optimalCount >= 2 ? 'A' : 'B';
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('originlab_organ_progress_v1', JSON.stringify(growthProgressBySystem));
+    } catch {
+      // ignore storage quota
+    }
+  }, [growthProgressBySystem]);
 
   useEffect(() => {
     telemetryRef.current = {
@@ -238,52 +248,36 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
   }, [isRunning, o2Dial, morphogenDial, recipe.liquidColor, isGrown, recipe.singleOrganKey, recipe.id]);
 
   const handleInsertComponent = (compId) => {
-    const comp = recipe.components.find((c) => c.id === compId);
     setLoadedBySystem((prev) => {
       const current = prev[recipe.id] || [];
       if (current.includes(compId)) return prev;
       return { ...prev, [recipe.id]: [...current, compId] };
     });
-    if (comp) {
-      pushInteraction(recipe.id, `INFUSE ${comp.symbol}`, `${comp.name} dispersed into culture medium.`, comp.color);
-    }
     cosmicAudio.playPulse(580);
   };
-
-  const ratePerTick = o2Dial >= 14 ? 0.32 + (morphogenDial / 100) * 0.62 : 0;
-  const reactionVelocity = isRunning && allComponentsLoaded && !isGrown ? ratePerTick * 4 : 0;
 
   useEffect(() => {
     if (!isRunning || !allComponentsLoaded || isGrown) return;
     const timer = setInterval(() => {
-      const nextElapsed = (elapsedBySystem[recipe.id] || 0) + 0.25;
       setElapsedBySystem((prev) => ({ ...prev, [recipe.id]: (prev[recipe.id] || 0) + 0.25 }));
 
       setGrowthProgressBySystem((prev) => {
         const cur = prev[recipe.id] || 0;
-        const step = o2Dial >= 14 ? 0.32 + (morphogenDial / 100) * 0.62 : 0;
+        const thermalPenalty = tempC > 40.5 || tempC < 32 ? 0.15 : isTempOptimal ? 1 : 0.65;
+        const phPenalty = phLevel < 6.9 || phLevel > 7.8 ? 0.2 : isPhOptimal ? 1 : 0.7;
+        const baseStep = o2Dial >= 14 ? 0.32 + (morphogenDial / 100) * 0.62 : 0;
+        const step = baseStep * thermalPenalty * phPenalty;
         const next = Math.min(100, Number((cur + step).toFixed(2)));
-
-        if (cur < 15 && next >= 15) {
-          pushInteraction(recipe.id, 'CONDENSATION', 'Progenitor cells aggregate into a 3D blastema core via cadherin adhesion.', recipe.cellColor, nextElapsed);
-        } else if (cur < 32 && next >= 32) {
-          pushInteraction(recipe.id, 'ANGIOGENESIS', 'VEGF/morphogen gradient recruits endothelial capillary sprouts into the core.', '#ef4444', nextElapsed);
-        } else if (cur < 50 && next >= 50) {
-          pushInteraction(recipe.id, 'MORPHOGENESIS', 'ECM scaffold solidifies into organ-specific anatomical geometry.', '#22d3ee', nextElapsed);
-        } else if (cur < 78 && next >= 78) {
-          pushInteraction(recipe.id, 'MATURATION', 'Parenchymal cells polarize, couple gap junctions, and vascularize.', '#a855f7', nextElapsed);
-        }
 
         if (next >= 100) {
           setRunningBySystem((r) => ({ ...r, [recipe.id]: false }));
-          pushInteraction(recipe.id, 'CERTIFIED', `${recipe.outcomeLabel} matured to 100% physiological function.`, '#10b981', nextElapsed);
           cosmicAudio.playSynthesisChord();
         }
         return { ...prev, [recipe.id]: next };
       });
     }, 250);
     return () => clearInterval(timer);
-  }, [isRunning, allComponentsLoaded, isGrown, recipe.id, o2Dial, morphogenDial, recipe.cellColor, recipe.outcomeLabel]);
+  }, [isRunning, allComponentsLoaded, isGrown, recipe.id, o2Dial, morphogenDial, tempC, phLevel, isTempOptimal, isPhOptimal]);
 
   // 1. PERSISTENT 60 FPS WebGL Bioreactor Chassis (created ONCE on mount)
   useEffect(() => {
@@ -305,15 +299,15 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 100);
-    camera.position.set(0, 0.45, 5.15);
+    const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
+    camera.position.set(0, 0.35, 4.45);
     camera.lookAt(0, -0.05, 0);
 
-    scene.add(new THREE.AmbientLight(0xf1f5f9, 1.1));
+    scene.add(new THREE.AmbientLight(0xf1f5f9, 1.15));
     const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.3);
     keyLight.position.set(4, 6, 5);
     scene.add(keyLight);
-    const rimLight = new THREE.PointLight('#22d3ee', 1.6, 10);
+    const rimLight = new THREE.PointLight('#22d3ee', 1.7, 10);
     rimLight.position.set(-2.5, 1.2, 2.5);
     scene.add(rimLight);
 
@@ -323,6 +317,8 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
     );
     tissueGroupRef.current = tissueRoot;
     effectsUpdaterRef.current = updateEffects;
+
+    const composer = createChamberComposer(renderer, scene, camera, width, height);
 
     let isDragging = false;
     let prevX = 0;
@@ -368,7 +364,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
         tissueRoot.scale.setScalar(1);
       }
 
-      renderer.render(scene, camera);
+      composer.render();
     };
     animate();
 
@@ -379,6 +375,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
       window.removeEventListener('pointerup', onUp);
       tissueGroupRef.current = null;
       effectsUpdaterRef.current = null;
+      composer.dispose();
       disposeHierarchy(scene);
       renderer.dispose();
     };
@@ -452,6 +449,8 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
 
   const annunciators = [
     { label: 'HYPOXIA', state: o2Dial < 14 ? 'alarm' : 'off' },
+    { label: 'THERMAL', state: tempC > 40.5 || tempC < 32 ? 'alarm' : isTempOptimal ? 'ok' : 'warn' },
+    { label: 'pH BUFFER', state: phLevel < 6.9 || phLevel > 7.8 ? 'alarm' : isPhOptimal ? 'ok' : 'warn' },
     { label: 'SUBSTRATES', state: allComponentsLoaded ? 'ok' : 'warn' },
     { label: 'REACTOR ON', state: isRunning ? 'ok' : 'off' },
     { label: 'Z-ANATOMY', state: isGrown ? 'ok' : 'off' },
@@ -499,14 +498,16 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
             isComplete={isGrown}
             progress={isGrown ? 100 : growth}
             elapsedSec={elapsedSec}
-            reactionRate={reactionVelocity}
             o2Level={o2Dial}
             morphogenLevel={morphogenDial}
+            tempC={tempC}
+            phLevel={phLevel}
+            purityGrade={purityGrade}
+            activeTags={recipe.components.map((c) => c.symbol)}
             steps={[
               {
                 id: 'substrates',
-                label: '01 // Substrate Loading',
-                sublabel: `${loadedIds.length}/${recipe.components.length} components infused`,
+                label: '01 Substrates',
                 progress: (loadedIds.length / recipe.components.length) * 100,
                 active: !allComponentsLoaded,
                 done: allComponentsLoaded,
@@ -514,8 +515,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
               },
               {
                 id: 'condense',
-                label: '02 // Blastema & Capillary Sprouting',
-                sublabel: 'Cadherin condensation + VEGF-A angiogenesis',
+                label: '02 Angiogenesis',
                 progress: isGrown ? 100 : Math.min(100, (growth / 45) * 100),
                 active: isRunning && growth < 45,
                 done: isGrown || growth >= 45,
@@ -523,8 +523,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
               },
               {
                 id: 'scaffold',
-                label: '03 // Z-Anatomy Bio-Scaffold',
-                sublabel: 'ECM morphogenesis & 3D organ patterning',
+                label: '03 Bio-Scaffold',
                 progress: isGrown ? 100 : Math.max(0, Math.min(100, ((growth - 45) / 35) * 100)),
                 active: isRunning && growth >= 45 && growth < 80,
                 done: isGrown || growth >= 80,
@@ -532,15 +531,13 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
               },
               {
                 id: 'mature',
-                label: '04 // Physiological Maturation',
-                sublabel: 'Gap junctions, polarization & perfusion',
+                label: '04 Maturation',
                 progress: isGrown ? 100 : Math.max(0, Math.min(100, ((growth - 80) / 20) * 100)),
                 active: isRunning && growth >= 80 && growth < 100,
                 done: isGrown,
                 color: '#10b981',
               },
             ]}
-            interactions={interactions}
           />
         </div>
       </div>
@@ -604,6 +601,30 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
               unit="%"
               accent="#22d3ee"
               onChange={setO2Dial}
+            />
+            <RotaryDial
+              label="Temp"
+              value={tempC}
+              min={30}
+              max={43}
+              step={0.5}
+              optimalMin={35.5}
+              optimalMax={38.5}
+              unit="°C"
+              accent="#f59e0b"
+              onChange={setTempC}
+            />
+            <RotaryDial
+              label="pH Buffer"
+              value={phLevel}
+              min={6.5}
+              max={8.0}
+              step={0.1}
+              optimalMin={7.2}
+              optimalMax={7.6}
+              unit=""
+              accent="#10b981"
+              onChange={setPhLevel}
             />
           </div>
 

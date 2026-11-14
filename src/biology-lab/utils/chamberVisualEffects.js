@@ -1,10 +1,43 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { applyOrganSubPartMaterials } from './zAnatomyOrganLoader';
+
+/**
+ * Creates a post-processing EffectComposer with subtle UnrealBloomPass for bioluminescent
+ * nuclei, laser scan halo, and arterial/venous manifolds. Falls back safely if unsupported.
+ */
+export function createChamberComposer(renderer, scene, camera, width, height) {
+  try {
+    scene.background = new THREE.Color('#060b16');
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(width, height),
+      0.34, // subtle glow strength
+      0.5,  // radius
+      0.68  // threshold so only emissive/bright highlights bloom
+    );
+    composer.addPass(bloomPass);
+    composer.addPass(new OutputPass());
+    return {
+      render: () => composer.render(),
+      dispose: () => composer.dispose(),
+    };
+  } catch {
+    return {
+      render: () => renderer.render(scene, camera),
+      dispose: () => {},
+    };
+  }
+}
 
 /**
  * Builds a sophisticated, modern bioreactor chassis with:
  * - Machined titanium & chrome caps + 8 hex bolts
- * - 4 tension rods + dual arterial/venous perfusion manifold pipes
+ * - 4 tension rods + dual arterial/venous perfusion manifold pipes + optical sensor probes
  * - Graduated borosilicate glass cylinder with volume tick rings
  * - Bottom O2 sparger ring + rising micro-bubbles
  * - Animated laser bioprinting / cryo-scan halo ring
@@ -12,7 +45,7 @@ import { applyOrganSubPartMaterials } from './zAnatomyOrganLoader';
  */
 export function buildSophisticatedChamberChassis(scene, initialLiquidColor = '#0ea5e9') {
   const chamberGroup = new THREE.Group();
-  chamberGroup.scale.setScalar(0.76);
+  chamberGroup.scale.setScalar(0.92);
   scene.add(chamberGroup);
 
   const titaniumMat = new THREE.MeshStandardMaterial({
@@ -476,6 +509,27 @@ export function buildRealisticElementCluster(elementIds, opts = {}) {
       }
     }
   });
+
+  // Visual 3D Interaction Filaments (chemotactic signaling & mineral nucleation arcs)
+  if (elementIds.length >= 2 && progress > 0.06) {
+    const filamentMat = new THREE.MeshBasicMaterial({
+      color: cellColor,
+      transparent: true,
+      opacity: 0.48,
+    });
+    const arcCount = Math.min(8, 3 + Math.floor(progress * 6));
+    for (let i = 0; i < arcCount; i++) {
+      const a1 = (i / arcCount) * Math.PI * 2;
+      const a2 = a1 + 0.9;
+      const y1 = ((i % 3) - 1) * 0.25 - 0.08;
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(Math.cos(a1) * (spread + 0.1), y1, Math.sin(a1) * (spread + 0.1)),
+        new THREE.Vector3(Math.cos((a1 + a2) * 0.5) * (spread * 0.45), y1 + 0.1, Math.sin((a1 + a2) * 0.5) * (spread * 0.45)),
+        new THREE.Vector3(Math.cos(a2) * (spread * 0.35), y1 - 0.05, Math.sin(a2) * (spread * 0.35)),
+      ]);
+      group.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.006, 5, false), filamentMat));
+    }
+  }
 
   return group;
 }
