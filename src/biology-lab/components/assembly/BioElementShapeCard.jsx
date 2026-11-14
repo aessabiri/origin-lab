@@ -260,9 +260,10 @@ const ElementShapeSVG = ({ id, color = '#38bdf8' }) => {
  */
 const BioElementShapeCard = ({ element, level = 0, onInfuse, compact = false }) => {
   const isLoaded = level > 10;
+  const iconId = element.iconId || element.id;
   const icon3DUrl = useMemo(
-    () => renderElement3DIcon(element.id, element.color),
-    [element.id, element.color]
+    () => renderElement3DIcon(iconId, element.color),
+    [iconId, element.color]
   );
 
   return (
@@ -294,7 +295,7 @@ const BioElementShapeCard = ({ element, level = 0, onInfuse, compact = false }) 
           className={`${compact ? 'w-9 h-9' : 'w-12 h-12'} object-contain drop-shadow-[0_2px_8px_rgba(34,211,238,0.28)]`}
         />
       ) : (
-        <ElementShapeSVG id={element.id} color={element.color} />
+        <ElementShapeSVG id={iconId} color={element.color} />
       )}
 
       <div className={`${compact ? 'text-[8.5px]' : 'text-[9.5px]'} font-bold text-white truncate w-full text-center`}>

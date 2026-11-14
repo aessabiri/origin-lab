@@ -82,11 +82,13 @@ export function createChamberComposer(renderer, scene, camera, width, height) {
     composer.addPass(new OutputPass());
     return {
       render: () => composer.render(),
+      setSize: (w, h) => composer.setSize(w, h),
       dispose: () => composer.dispose(),
     };
   } catch {
     return {
       render: () => renderer.render(scene, camera),
+      setSize: () => {},
       dispose: () => {},
     };
   }
@@ -753,6 +755,14 @@ function createSignalingOrMatrixModel(id, colorHex = '#f43f5e') {
   return g;
 }
 
+const CELL_LINEAGE_TO_MESH_ID = {
+  osteoblast: 'mesenchymal_cells',
+  cardiomyocyte: 'cell_cardiomyocyte',
+  hepatocyte: 'cell_hepatocyte',
+  endothelial_cell: 'cell_podocyte',
+  motor_neuron: 'cell_neuron',
+};
+
 /**
  * Public factory: Builds a single centered 3D model for ANY biology element ID.
  * Shared 1:1 between the live 3D Bioreactor Chamber and the 3D Element Card Icon Renderer.
@@ -760,8 +770,74 @@ function createSignalingOrMatrixModel(id, colorHex = '#f43f5e') {
 export function createSingleElement3DModel(id, colorHex = '#38bdf8', opts = {}) {
   const { scale = 1, isDividing = false } = opts;
 
-  if (id.startsWith('cell_') || id === 'mesenchymal_cells' || id === 'osteoclasts') {
-    return createRealisticCellMesh(id, colorHex, scale, isDividing);
+  if (
+    id.startsWith('cell_') ||
+    id === 'mesenchymal_cells' ||
+    id === 'osteoclasts' ||
+    CELL_LINEAGE_TO_MESH_ID[id]
+  ) {
+    return createRealisticCellMesh(CELL_LINEAGE_TO_MESH_ID[id] || id, colorHex, scale, isDividing);
+  }
+  if (id === 'mitochondrion') {
+    const mito = new THREE.Group();
+    const outer = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.055 * scale, 0.11 * scale, 8, 14),
+      new THREE.MeshPhysicalMaterial({
+        color: '#fb923c',
+        emissive: '#ea580c',
+        emissiveIntensity: 0.45,
+        roughness: 0.25,
+        clearcoat: 0.7,
+      })
+    );
+    outer.rotation.z = 0.75;
+    mito.add(outer);
+    return mito;
+  }
+  if (id === 'nucleus') {
+    const nuc = new THREE.Group();
+    const env = new THREE.Mesh(
+      new THREE.SphereGeometry(0.085 * scale, 18, 16),
+      new THREE.MeshPhysicalMaterial({
+        color: '#818cf8',
+        emissive: '#4f46e5',
+        emissiveIntensity: 0.35,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.78,
+      })
+    );
+    const core = new THREE.Mesh(
+      new THREE.SphereGeometry(0.036 * scale, 12, 12),
+      new THREE.MeshStandardMaterial({ color: '#f8fafc', emissive: '#38bdf8', emissiveIntensity: 0.8 })
+    );
+    nuc.add(env, core);
+    return nuc;
+  }
+  if (id === 'ribosome') {
+    const ribo = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: '#38bdf8', emissive: '#0284c7', emissiveIntensity: 0.45, roughness: 0.3 });
+    const large = new THREE.Mesh(new THREE.SphereGeometry(0.068 * scale, 14, 12), mat);
+    large.position.y = -0.025 * scale;
+    const small = new THREE.Mesh(new THREE.SphereGeometry(0.048 * scale, 14, 12), mat);
+    small.position.y = 0.045 * scale;
+    ribo.add(large, small);
+    return ribo;
+  }
+  if (id === 'plasma_membrane' || id === 'phospholipid_bilayer') {
+    const mem = new THREE.Mesh(
+      new THREE.TorusGeometry(0.078 * scale, 0.026 * scale, 12, 24),
+      new THREE.MeshPhysicalMaterial({
+        color: colorHex,
+        emissive: colorHex,
+        emissiveIntensity: 0.3,
+        roughness: 0.22,
+        transparent: true,
+        opacity: 0.85,
+      })
+    );
+    mem.rotation.x = 0.6;
+    return mem;
   }
   if (
     id === 'collagen_i' ||

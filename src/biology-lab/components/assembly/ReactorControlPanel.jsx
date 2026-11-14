@@ -335,7 +335,7 @@ const ReactorControlPanel = ({
         )}
 
         {children && (
-          <div className="flex-1 flex flex-col justify-between gap-1 bg-[#060a13] border border-slate-700/75 rounded-xl px-2.5 py-1.5 min-w-[210px]">
+          <div className="flex-1 flex flex-col justify-between gap-1 bg-[#060a13] border border-slate-700/75 rounded-xl px-2.5 py-1.5 min-w-[165px]">
             <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-widest">
               Reactor Control
             </span>

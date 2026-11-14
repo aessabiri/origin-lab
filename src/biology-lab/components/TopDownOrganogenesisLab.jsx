@@ -40,6 +40,7 @@ import TopTargetsBar from './assembly/TopTargetsBar';
 import LeftIngredientsDrawer from './assembly/LeftIngredientsDrawer';
 import OrganIncubatorChamber from './assembly/OrganIncubatorChamber';
 import BoneOssificationStudio from './assembly/BoneOssificationStudio';
+import StageBioreactorStudio from './assembly/StageBioreactorStudio';
 
 const getInventoryStockForSub = (subId, inventoryState) => {
   if (subId === 'iron') return inventoryState.elements?.Fe ?? 0;
@@ -382,7 +383,7 @@ const TopDownOrganogenesisLab = ({
   // THREE.JS 3D VIEWPORT (Empty-Until-Dragged Across All 5 Stops)
   // ============================================================================
   useEffect(() => {
-    if (activeStage === 'organ') return;
+    if (activeStage === 'organ' || activeStage === 'cell' || activeStage === 'tissue') return;
     const container = mountRef.current;
     if (!container) return;
 
@@ -907,7 +908,7 @@ const TopDownOrganogenesisLab = ({
 
   return (
     <div className="flex flex-col h-full w-full bg-[#060a12] p-3 pb-16 gap-2.5 overflow-hidden select-none">
-      {/* ORGAN TAB: Minimal Top Organ/Tissue Category Switch */}
+      {/* ORGAN / TISSUE / CELL TABS: Minimal Top Category Switch */}
       {activeStage === 'organ' ? (
         <div className="bg-[#0b1220] rounded-2xl px-3 py-2 border border-white/10 shrink-0 flex items-center gap-1.5 overflow-x-auto">
           {ORGAN_CATEGORY_TABS.map((tab) => {
@@ -928,6 +929,49 @@ const TopDownOrganogenesisLab = ({
             );
           })}
         </div>
+      ) : activeStage === 'cell' || activeStage === 'tissue' ? (
+        <div className="bg-[#0b1220] rounded-2xl px-3 py-2 border border-white/10 shrink-0 flex items-center justify-between gap-2 overflow-x-auto">
+          <div className="flex items-center gap-1.5 overflow-x-auto">
+            {Object.values(activeStage === 'cell' ? LEVEL_3_CELLS : LEVEL_4_TISSUES).map((entry) => {
+              const isSelected =
+                activeStage === 'cell' ? activeCell.id === entry.id : activeTissue.id === entry.id;
+              const isDone =
+                activeStage === 'cell'
+                  ? differentiatedCells.includes(entry.id)
+                  : engineeredTissues.includes(entry.id);
+              return (
+                <button
+                  key={entry.id}
+                  onClick={() =>
+                    activeStage === 'cell'
+                      ? setSelectedCellId(entry.id)
+                      : setSelectedTissueId(entry.id)
+                  }
+                  className={`px-2.5 py-1 rounded-xl border font-mono text-[9.5px] font-bold flex items-center gap-1 shrink-0 cursor-pointer transition-all ${
+                    isSelected
+                      ? 'bg-cyan-500/20 border-cyan-400 text-white'
+                      : 'bg-[#080d18] border-white/10 text-slate-400 hover:text-white hover:border-white/25'
+                  }`}
+                >
+                  <span>{entry.icon}</span>
+                  <span>{entry.name.split(' (')[0].replace(' Tissue', '')}</span>
+                  {isDone && <span className="text-emerald-400 font-black">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            onClick={() => setDemiurgeSurvivalMode(!demiurgeSurvivalMode)}
+            className={`px-2.5 py-1 rounded-xl border font-mono text-[9px] font-bold uppercase shrink-0 cursor-pointer ${
+              demiurgeSurvivalMode
+                ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                : 'bg-[#080d18] border-white/10 text-slate-400 hover:text-white'
+            }`}
+          >
+            {demiurgeSurvivalMode ? '🔒 Survival' : '🧪 Sandbox'}
+          </button>
+        </div>
       ) : (
         <TopTargetsBar
           label={stageTopConfig.label}
@@ -941,7 +985,7 @@ const TopDownOrganogenesisLab = ({
         />
       )}
 
-      {/* UNIFIED 12-COL WORKSPACE: Bone Ossification Studio / Liquid Incubator in Organ tab, or 3-Col Drawer + 9-Col Canvas */}
+      {/* UNIFIED 12-COL WORKSPACE: Bioreactor Studios for Organs/Tissues/Cells, or 3-Col Drawer + 9-Col Canvas */}
       <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
         {activeStage === 'organ' ? (
           activeSystem.id === 'skeletal_system' ? (
@@ -952,6 +996,44 @@ const TopDownOrganogenesisLab = ({
               onOpenAnatomy={onOpenAnatomy}
             />
           )
+        ) : activeStage === 'cell' ? (
+          <StageBioreactorStudio
+            mode="cell"
+            item={activeCell}
+            isBuilt={differentiatedCells.includes(activeCell.id)}
+            demiurgeSurvivalMode={demiurgeSurvivalMode}
+            foldedProteins={foldedProteins}
+            assembledOrganelles={assembledOrganelles}
+            differentiatedCells={differentiatedCells}
+            onComplete={(cellId) => {
+              differentiateCellLineage(cellId);
+              cosmicAudio.playSynthesisChord();
+              useStore
+                .getState()
+                .showMessage(`🧫 Differentiated ${activeCell.name}! Now available in Stop 4 (Tissues).`);
+            }}
+            onNextStage={() => setActiveStage('tissue')}
+            nextStageLabel="🧶 Tissues →"
+          />
+        ) : activeStage === 'tissue' ? (
+          <StageBioreactorStudio
+            mode="tissue"
+            item={activeTissue}
+            isBuilt={engineeredTissues.includes(activeTissue.id)}
+            demiurgeSurvivalMode={demiurgeSurvivalMode}
+            foldedProteins={foldedProteins}
+            assembledOrganelles={assembledOrganelles}
+            differentiatedCells={differentiatedCells}
+            onComplete={(tissueId) => {
+              bioprintTissueScaffold(tissueId);
+              cosmicAudio.playSynthesisChord();
+              useStore
+                .getState()
+                .showMessage(`🧶 Bioprinted ${activeTissue.name}! Now available in Stop 5 (Organs).`);
+            }}
+            onNextStage={() => setActiveStage('organ')}
+            nextStageLabel="🫀 Organs →"
+          />
         ) : (
         <>
           <LeftIngredientsDrawer
