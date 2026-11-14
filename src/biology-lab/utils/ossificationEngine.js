@@ -14,7 +14,7 @@ export const OSSIFICATION_ELEMENTS = [
   { id: 'osteoclasts', name: 'Osteoclasts (HCl + Cathepsin K)', symbol: 'OCL', category: 'Resorber', color: '#c084fc', role: 'Carves medullary marrow cavity & remodels bone' },
 ];
 
-export const createInitialOssificationState = (pathway = 'endochondral') => ({
+export const createInitialOssificationState = (pathway = 'endochondral', { prefilled = true } = {}) => ({
   pathway, // 'endochondral' | 'intramembranous'
   // Reactor Dials
   morphogenBmpWnt: 65,     // 0..100 (BMP-2 / Wnt / FGF)
@@ -32,13 +32,13 @@ export const createInitialOssificationState = (pathway = 'endochondral') => ({
   // Unlocked Element Reservoirs (0..100% concentration in bioreactor)
   elements: {
     mesenchymal_cells: 100,
-    collagen_ii: 100,
-    vegf_a: 100,
+    collagen_ii: prefilled ? 100 : 0,
+    vegf_a: prefilled ? 100 : 0,
     oxygen: 100,
-    collagen_i: 100,
-    calcium: 100,
-    phosphate: 100,
-    osteoclasts: 100,
+    collagen_i: prefilled ? 100 : 0,
+    calcium: prefilled ? 100 : 0,
+    phosphate: prefilled ? 100 : 0,
+    osteoclasts: prefilled ? 100 : 0,
   },
 
   // Live Tissue Metrics (0..100)
