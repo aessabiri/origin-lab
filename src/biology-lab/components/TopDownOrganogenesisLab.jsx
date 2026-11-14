@@ -897,37 +897,46 @@ const TopDownOrganogenesisLab = ({
 
   return (
     <div className="flex flex-col h-full w-full bg-[#060a12] p-3 pb-16 gap-2.5 overflow-hidden select-none">
-      {/* UNIFIED TOP TARGETS BAR (Greyed out until built + Sandbox/Survival Toggle) */}
-      <TopTargetsBar
-        label={stageTopConfig.label}
-        items={stageTopConfig.items}
-        builtIds={stageTopConfig.builtIds}
-        activeId={stageTopConfig.activeId}
-        onSelectBuilt={stageTopConfig.onSelectBuilt}
-        demiurgeSurvivalMode={demiurgeSurvivalMode}
-        onToggleSurvivalMode={() => setDemiurgeSurvivalMode(!demiurgeSurvivalMode)}
-        onOpenAnatomy={onOpenAnatomy}
-      />
-
-      {/* UNIFIED 12-COL WORKSPACE: 3-COL LEFT DRAWER + 9-COL EMPTY-UNTIL-DRAGGED 3D CANVAS */}
-      <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
-        <LeftIngredientsDrawer
-          title={drawerConfig.title}
-          subtitle={drawerConfig.subtitle}
-          items={drawerConfig.items}
-          loadedIds={drawerConfig.loadedIds}
-          dragKind={drawerConfig.dragKind}
+      {/* UNIFIED TOP TARGETS BAR (Hidden in Organ tab) */}
+      {activeStage !== 'organ' && (
+        <TopTargetsBar
+          label={stageTopConfig.label}
+          items={stageTopConfig.items}
+          builtIds={stageTopConfig.builtIds}
+          activeId={stageTopConfig.activeId}
+          onSelectBuilt={stageTopConfig.onSelectBuilt}
           demiurgeSurvivalMode={demiurgeSurvivalMode}
-          onAddItem={(id) =>
-            activeStage === 'molecule' ? handleAddSubIngredient(id) : handleAddStagePart(id)
-          }
-          recipes={drawerConfig.recipes}
-          recipeSectionTitle={drawerConfig.recipeSectionTitle}
+          onToggleSurvivalMode={() => setDemiurgeSurvivalMode(!demiurgeSurvivalMode)}
+          onOpenAnatomy={onOpenAnatomy}
         />
+      )}
 
-        {/* 9-COL 3D HOLOGRAPHIC ASSEMBLY CANVAS */}
-        <div className="col-span-9 flex flex-col bg-[#080d18] rounded-2xl border border-white/10 overflow-hidden relative">
-          {/* Top Canvas HUD */}
+      {/* UNIFIED 12-COL WORKSPACE: 3-COL LEFT DRAWER + 9-COL CANVAS (or full 12-col bare canvas in Organ tab) */}
+      <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
+        {activeStage !== 'organ' && (
+          <LeftIngredientsDrawer
+            title={drawerConfig.title}
+            subtitle={drawerConfig.subtitle}
+            items={drawerConfig.items}
+            loadedIds={drawerConfig.loadedIds}
+            dragKind={drawerConfig.dragKind}
+            demiurgeSurvivalMode={demiurgeSurvivalMode}
+            onAddItem={(id) =>
+              activeStage === 'molecule' ? handleAddSubIngredient(id) : handleAddStagePart(id)
+            }
+            recipes={drawerConfig.recipes}
+            recipeSectionTitle={drawerConfig.recipeSectionTitle}
+          />
+        )}
+
+        {/* 3D HOLOGRAPHIC ASSEMBLY CANVAS */}
+        <div
+          className={`${
+            activeStage === 'organ' ? 'col-span-12' : 'col-span-9'
+          } flex flex-col bg-[#080d18] rounded-2xl border border-white/10 overflow-hidden relative`}
+        >
+          {/* Top Canvas HUD (Hidden in Organ tab) */}
+          {activeStage !== 'organ' && (
           <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between pointer-events-none">
             <div className="bg-[#090d16]/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10">
               <span className="text-[9px] font-mono font-bold text-cyan-400 uppercase block">
@@ -1041,14 +1050,15 @@ const TopDownOrganogenesisLab = ({
 
               <div className="bg-[#090d16]/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-right">
                 <span className="text-[8px] font-mono text-slate-400 uppercase block">
-                  {activeStage === 'organ' ? benchTest.metricLabel : 'Organ Readiness'}
+                  Organ Readiness
                 </span>
                 <span className="text-sm font-mono font-black text-emerald-400">
-                  {activeStage === 'organ' ? benchTest.metricValue : `${effectiveOrganReadiness}%`}
+                  {effectiveOrganReadiness}%
                 </span>
               </div>
             </div>
           </div>
+          )}
 
           {/* 3D Drop-Target Mount */}
           <div
@@ -1097,7 +1107,8 @@ const TopDownOrganogenesisLab = ({
             </div>
           )}
 
-          {/* Unified Floating Bottom Dock */}
+          {/* Unified Floating Bottom Dock (Hidden in Organ tab) */}
+          {activeStage !== 'organ' && (
           <div className="px-4 py-2.5 bg-[#090d16]/95 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
             {activeStage === 'molecule' ? (
               <>
@@ -1205,6 +1216,7 @@ const TopDownOrganogenesisLab = ({
               </>
             )}
           </div>
+          )}
         </div>
       </div>
     </div>
