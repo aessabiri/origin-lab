@@ -105,7 +105,6 @@ const Navigation = ({ currentView: propView, onViewChange }) => {
   const {
     currentView: storeView,
     setCurrentView: storeSetView,
-    introComplete,
     setIntroComplete,
     isSandboxMode,
     setIsSandboxMode,
@@ -142,8 +141,6 @@ const Navigation = ({ currentView: propView, onViewChange }) => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleNav]);
-
-  if (!introComplete) return null;
 
   const handleReset = () => {
     if (

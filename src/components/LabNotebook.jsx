@@ -195,6 +195,10 @@ const LabNotebook = ({ isOpen, onClose, initialTab = TABS.CODEX, onDragStart, on
                 onClick={() => {
                   if (confirm('Are you absolutely sure? All labs and discoveries will be reset.')) {
                     resetAllOriginStores();
+                    const gStore = useStore.getState();
+                    gStore.setIntroComplete?.(true);
+                    gStore.setIsNavCollapsed?.(false);
+                    gStore.setCurrentView?.('particle');
                     onClose();
                   }
                 }}
