@@ -40,6 +40,8 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   );
   const [stressFeedback, setStressFeedback] = useState(null);
   const [showHyperRealAnatomy, setShowHyperRealAnatomy] = useState(false);
+  const [massBoneCount, setMassBoneCount] = useState(0);
+  const [massIncubating, setMassIncubating] = useState(false);
 
   const synthesizeFullOrganChain = useBioStore((s) => s.synthesizeFullOrganChain);
   const fabricateOrganForAnatomy = useAnatomyStore((s) => s.fabricateOrganForAnatomy);
@@ -402,6 +404,22 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       .showMessage('🦴 Certified Living Bone deployed to 3D Anatomy Lab!');
   };
 
+  const handleMassIncubate206 = () => {
+    if (massIncubating || massBoneCount >= 206) return;
+    setMassIncubating(true);
+    let count = 1;
+    const timer = setInterval(() => {
+      count = Math.min(206, count + 17);
+      setMassBoneCount(count);
+      cosmicAudio.playPulse(440 + count * 1.5);
+      if (count >= 206) {
+        clearInterval(timer);
+        setMassIncubating(false);
+        handleDeployToAnatomy();
+      }
+    }, 90);
+  };
+
   // Classic Nuclear Control-Room Annunciator Alarm Tiles
   const annunciators = [
     { label: 'HYPOXIA', state: sim.o2Perfusion < 12 ? 'alarm' : 'off' },
@@ -473,13 +491,25 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
         }}
         rightAction={
           <>
-            {isCertified && (
+            {isCertified && massBoneCount < 206 && (
+              <button
+                type="button"
+                disabled={massIncubating}
+                onClick={handleMassIncubate206}
+                className="px-3 py-1 rounded bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono font-black text-[9px] uppercase cursor-pointer"
+              >
+                {massIncubating
+                  ? `🧬 Hox Array: ${massBoneCount}/206`
+                  : '🧬 Mass-Incubate 206 Bones'}
+              </button>
+            )}
+            {(isCertified || massBoneCount >= 206) && (
               <button
                 type="button"
                 onClick={handleDeployToAnatomy}
                 className="px-3 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-black text-[9px] uppercase cursor-pointer"
               >
-                ✓ Deploy to Anatomy
+                {massBoneCount >= 206 ? '✓ 206 Bones in Anatomy' : '✓ Deploy Femur'}
               </button>
             )}
             {onOpenAnatomy && (

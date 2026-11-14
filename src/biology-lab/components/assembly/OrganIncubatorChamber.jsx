@@ -12,6 +12,89 @@ import ReactorControlPanel, {
   AnalogMeter,
 } from './ReactorControlPanel';
 
+export const MAJOR_ORGAN_CHAMBERS = [
+  {
+    id: 'heart',
+    icon: '🫀',
+    label: 'Heart Chamber',
+    zAnatomySystemId: 'cardiovascular_system',
+    anatomyTissueId: 'endothelial',
+    chamberName: 'CARDIAC 4-CHAMBER BIOREACTOR',
+    liquidColor: '#ef4444',
+    cellColor: '#fb7185',
+    components: [
+      { id: 'cell_cardiomyocyte', symbol: 'CM', name: 'Cardiomyocytes', color: '#fb7185' },
+      { id: 'comp_vegf_o2', symbol: 'VEGF', name: 'VEGF-A + O₂', color: '#ef4444' },
+      { id: 'comp_atp_actin', symbol: 'ATP', name: 'Actin-Myosin', color: '#f59e0b' },
+    ],
+    outcomeLabel: '4-Chamber Heart',
+  },
+  {
+    id: 'liver',
+    icon: '🟤',
+    label: 'Liver Chamber',
+    zAnatomySystemId: 'visceral_system',
+    anatomyTissueId: 'visceral',
+    chamberName: 'HEPATIC LOBULE BIOREACTOR',
+    liquidColor: '#d97706',
+    cellColor: '#f59e0b',
+    components: [
+      { id: 'cell_hepatocyte', symbol: 'HEP', name: 'Hepatocytes', color: '#f59e0b' },
+      { id: 'comp_egf_hgf', symbol: 'HGF', name: 'HGF + Bile Salts', color: '#10b981' },
+      { id: 'comp_surfactant', symbol: 'Col4', name: 'Sinusoid ECM', color: '#a855f7' },
+    ],
+    outcomeLabel: 'Hepatic Liver Lobes',
+  },
+  {
+    id: 'lungs',
+    icon: '🫁',
+    label: 'Lungs Chamber',
+    zAnatomySystemId: 'visceral_system',
+    anatomyTissueId: 'visceral',
+    chamberName: 'ALVEOLAR PULMONARY BIOREACTOR',
+    liquidColor: '#10b981',
+    cellColor: '#34d399',
+    components: [
+      { id: 'cell_pneumocyte', symbol: 'PNM', name: 'Pneumocytes I/II', color: '#34d399' },
+      { id: 'comp_fgf10', symbol: 'FGF10', name: 'FGF-10 Branching', color: '#22d3ee' },
+      { id: 'comp_surfactant', symbol: 'DPPC', name: 'Surfactant Lipid', color: '#a855f7' },
+    ],
+    outcomeLabel: 'Lungs & Bronchial Tree',
+  },
+  {
+    id: 'intestines',
+    icon: '🧬',
+    label: 'Intestines Chamber',
+    zAnatomySystemId: 'visceral_system',
+    anatomyTissueId: 'visceral',
+    chamberName: 'ENTERIC VILLI BIOREACTOR',
+    liquidColor: '#ec4899',
+    cellColor: '#f472b6',
+    components: [
+      { id: 'cell_enterocyte', symbol: 'ENT', name: 'Enterocytes + Lgr5', color: '#f472b6' },
+      { id: 'comp_wnt_rspo', symbol: 'Wnt', name: 'Wnt + R-Spondin', color: '#38bdf8' },
+      { id: 'comp_mucin', symbol: 'MUC2', name: 'Mucin + Smooth ECM', color: '#f59e0b' },
+    ],
+    outcomeLabel: 'GI Tract & Intestines',
+  },
+  {
+    id: 'kidneys',
+    icon: '🫘',
+    label: 'Kidneys Chamber',
+    zAnatomySystemId: 'visceral_system',
+    anatomyTissueId: 'visceral',
+    chamberName: 'NEPHRON RENAL BIOREACTOR',
+    liquidColor: '#8b5cf6',
+    cellColor: '#a78bfa',
+    components: [
+      { id: 'cell_podocyte', symbol: 'POD', name: 'Podocytes + Tubules', color: '#a78bfa' },
+      { id: 'comp_gdnf', symbol: 'GDNF', name: 'GDNF + Ret Signal', color: '#22d3ee' },
+      { id: 'comp_gbm', symbol: 'Col4', name: 'Glomerular ECM', color: '#10b981' },
+    ],
+    outcomeLabel: 'Renal Kidneys',
+  },
+];
+
 export const INCUBATOR_RECIPES = {
   cardiovascular_system: {
     id: 'cardiovascular_system',
@@ -83,7 +166,20 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
   const tissueGroupRef = useRef(null);
   const liquidMatRef = useRef(null);
 
-  const recipe = INCUBATOR_RECIPES[systemId] || INCUBATOR_RECIPES.cardiovascular_system;
+  const baseRecipe = INCUBATOR_RECIPES[systemId] || INCUBATOR_RECIPES.cardiovascular_system;
+  const [selectedMajorOrganId, setSelectedMajorOrganId] = useState('heart');
+  const activeMajorChamber =
+    systemId === 'cardiovascular_system'
+      ? MAJOR_ORGAN_CHAMBERS.find((c) => c.id === selectedMajorOrganId) || MAJOR_ORGAN_CHAMBERS[0]
+      : null;
+
+  const recipe = activeMajorChamber
+    ? {
+        ...activeMajorChamber,
+        id: `major_${activeMajorChamber.id}`,
+        zAnatomyId: activeMajorChamber.zAnatomySystemId,
+      }
+    : { ...baseRecipe, zAnatomyId: baseRecipe.id };
 
   const [loadedBySystem, setLoadedBySystem] = useState({});
   const [growthProgressBySystem, setGrowthProgressBySystem] = useState({});
@@ -274,15 +370,16 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
     }
 
     if (isGrown) {
-      const fallback = create3DOrganForSystem(recipe.id);
+      const zId = recipe.zAnatomyId || recipe.id;
+      const fallback = create3DOrganForSystem(zId);
       fallback.scale.setScalar(0.88);
-      applyOrganSubPartMaterials(fallback, recipe.id, [], true, null);
+      applyOrganSubPartMaterials(fallback, zId, [], true, null);
       tissueRoot.add(fallback);
 
-      loadZAnatomyOrganModel(recipe.id).then((glb) => {
+      loadZAnatomyOrganModel(zId).then((glb) => {
         if (isCancelled || !glb || !tissueGroupRef.current) return;
         glb.scale.setScalar(0.88);
-        applyOrganSubPartMaterials(glb, recipe.id, [], true, null);
+        applyOrganSubPartMaterials(glb, zId, [], true, null);
         tissueRoot.remove(fallback);
         disposeHierarchy(fallback);
         tissueRoot.add(glb);
@@ -316,7 +413,8 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
   }, [recipe.id, recipe.liquidColor, recipe.cellColor, loadedIds.length, qGrowth, isGrown]);
 
   const handleDeployToAnatomy = () => {
-    const anatomyId = synthesizeFullOrganChain(recipe.id);
+    const zId = recipe.zAnatomyId || recipe.id;
+    const anatomyId = synthesizeFullOrganChain(zId);
     if (fabricateOrganForAnatomy) fabricateOrganForAnatomy(anatomyId);
     cosmicAudio.playSynthesisChord();
     useStore.getState().showMessage(`🧬 ${recipe.outcomeLabel} deployed to Anatomy Lab!`);
@@ -335,6 +433,35 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
 
   return (
     <div className="col-span-12 flex flex-col bg-[#080d18] rounded-2xl border border-white/10 overflow-hidden relative">
+      {activeMajorChamber && (
+        <div className="px-3 py-1.5 bg-[#090e18] border-b border-slate-800 flex items-center gap-1.5 overflow-x-auto shrink-0">
+          <span className="text-[8.5px] font-mono font-bold text-slate-400 uppercase pr-1 shrink-0">
+            Organ Chambers:
+          </span>
+          {MAJOR_ORGAN_CHAMBERS.map((ch) => {
+            const isActive = ch.id === selectedMajorOrganId;
+            const chDone = (growthProgressBySystem[`major_${ch.id}`] || 0) >= 100;
+            return (
+              <button
+                key={ch.id}
+                type="button"
+                onClick={() => setSelectedMajorOrganId(ch.id)}
+                className={`px-2.5 py-1 rounded-lg border font-mono text-[9.5px] font-bold flex items-center gap-1 shrink-0 cursor-pointer transition-all ${
+                  isActive
+                    ? 'bg-cyan-500/20 border-cyan-400 text-white'
+                    : chDone
+                    ? 'bg-emerald-500/15 border-emerald-400/50 text-emerald-200'
+                    : 'bg-[#070b14] border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>{ch.icon}</span>
+                <span>{ch.label}</span>
+                {chDone && <span className="text-emerald-400">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div ref={mountRef} className="flex-1 w-full min-h-0 cursor-grab active:cursor-grabbing" />
 
       <ReactorControlPanel
