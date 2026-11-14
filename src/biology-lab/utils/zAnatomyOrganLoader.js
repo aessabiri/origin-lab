@@ -142,6 +142,19 @@ function shouldIncludeMeshInFocusedOrganView(systemId, meshName = '', boxCenterY
     return isBrainName || boxCenterY >= 1.38;
   }
 
+  if (systemId === 'visceral_system') {
+    if (
+      n.includes('omentum') ||
+      n.includes('mesocolon') ||
+      n.includes('meso-') ||
+      n.includes('taenia') ||
+      n.includes('peritone')
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   return true;
 }
 

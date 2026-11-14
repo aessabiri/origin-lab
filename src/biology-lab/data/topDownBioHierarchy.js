@@ -403,7 +403,7 @@ export const TIER_1_ORGAN_SYSTEMS = [
   {
     id: 'muscular_system',
     anatomyTissueId: 'myofibril',
-    glbModel: '/models/joints.glb',
+    glbModel: '/models/fullbody.glb',
     name: 'Muscular System & 349 Ligaments',
     latinName: 'Systema musculare et syndesmologia',
     icon: '💪',
