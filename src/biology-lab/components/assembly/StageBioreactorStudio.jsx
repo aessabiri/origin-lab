@@ -12,6 +12,12 @@ import {
   createSingleElement3DModel,
   disposeHierarchy,
 } from '../../utils/chamberVisualEffects';
+import {
+  createHDNucleus,
+  createHDMitochondrion,
+  createHD80SRibosome,
+  createHDPlasmaMembrane,
+} from '../../utils/organelle3DFactory';
 import ChamberTelemetryScreen from './ChamberTelemetryScreen';
 import ReactorControlPanel, {
   RotaryDial,
@@ -43,6 +49,7 @@ const PART_SYMBOL_MAP = {
   ion_channel: 'NaV',
   atp_synthase: 'ATP',
   phospholipid_bilayer: 'MYL',
+  bdna_chromatin: 'DNA',
   osteoblast: 'OST',
   cardiomyocyte: 'CM',
   hepatocyte: 'HEP',
@@ -173,14 +180,18 @@ const StageBioreactorStudio = ({
 
   const components = useMemo(
     () =>
-      (item.parts || []).map((p) => ({
-        id: p.id,
-        refId: p.refId,
-        refLevel: p.refLevel,
-        symbol: PART_SYMBOL_MAP[p.refId] || p.refId.slice(0, 4).toUpperCase(),
-        name: p.label,
-        color: item.color || '#38bdf8',
-      })),
+      (item.parts || []).map((p) => {
+        const refId = p.refId || p.blockId;
+        const refLevel = p.refLevel || (p.blockId ? 1 : 2);
+        return {
+          id: p.id,
+          refId,
+          refLevel,
+          symbol: PART_SYMBOL_MAP[refId] || refId.slice(0, 4).toUpperCase(),
+          name: p.label,
+          color: item.color || '#38bdf8',
+        };
+      }),
     [item]
   );
 
@@ -335,7 +346,24 @@ const StageBioreactorStudio = ({
     }
 
     if (prog > 0.05 || isBuilt) {
-      if (mode === 'cell') {
+      if (mode === 'organelle') {
+        const partsList = isBuilt ? null : loadedIds;
+        let orgMesh;
+        if (item.id === 'nucleus') {
+          orgMesh = createHDNucleus(partsList);
+          orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.15);
+        } else if (item.id === 'mitochondrion') {
+          orgMesh = createHDMitochondrion(partsList);
+          orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.65);
+        } else if (item.id === 'ribosome') {
+          orgMesh = createHD80SRibosome(7, partsList);
+          orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.6);
+        } else {
+          orgMesh = createHDPlasmaMembrane(partsList);
+          orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.35);
+        }
+        group.add(orgMesh);
+      } else if (mode === 'cell') {
         const cellMesh = createSingleElement3DModel(item.id, item.color || '#38bdf8', {
           scale: 2.6,
           isDividing: isRunning && prog > 0.65 && prog < 0.98,
@@ -419,14 +447,20 @@ const StageBioreactorStudio = ({
           <div ref={mountRef} className="w-full h-full min-h-[340px]" />
           <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/65 border border-white/10 pointer-events-none">
             <div className="text-[8.5px] font-mono font-bold text-cyan-400 uppercase tracking-wider">
-              {mode === 'cell'
+              {mode === 'organelle'
+                ? `STOP 2 // ${item.subtitle || 'ORGANELLE ASSEMBLY'}`
+                : mode === 'cell'
                 ? `STOP 3 // ${item.germLayer || 'LINEAGE'} • ${item.morphogenSignal || ''}`
                 : `STOP 4 // ${item.formula || 'BIOPRINTED SCAFFOLD'}`}
             </div>
             <div className="text-xs font-black text-white">{item.icon} {item.name}</div>
           </div>
           <div className="absolute bottom-3 left-3 max-w-md px-2.5 py-1 rounded-lg bg-black/60 border border-white/10 text-[9.5px] text-slate-300 pointer-events-none">
-            {mode === 'cell' ? item.role : item.ecmArchitecture}
+            {mode === 'organelle'
+              ? item.description
+              : mode === 'cell'
+              ? item.role
+              : item.ecmArchitecture}
           </div>
         </div>
 
@@ -457,7 +491,12 @@ const StageBioreactorStudio = ({
               },
               {
                 id: 'induce',
-                label: mode === 'cell' ? '02 Morphogen' : '02 Crosslink',
+                label:
+                  mode === 'organelle'
+                    ? '02 Self-Assembly'
+                    : mode === 'cell'
+                    ? '02 Morphogen'
+                    : '02 Crosslink',
                 progress: effectivelyBuilt ? 100 : Math.min(100, (growth / 45) * 100),
                 active: isRunning && growth < 45,
                 done: effectivelyBuilt || growth >= 45,
@@ -465,7 +504,12 @@ const StageBioreactorStudio = ({
               },
               {
                 id: 'commit',
-                label: mode === 'cell' ? '03 Lineage' : '03 Perfusion',
+                label:
+                  mode === 'organelle'
+                    ? '03 Bio-Complex'
+                    : mode === 'cell'
+                    ? '03 Lineage'
+                    : '03 Perfusion',
                 progress: effectivelyBuilt ? 100 : Math.max(0, Math.min(100, ((growth - 45) / 35) * 100)),
                 active: isRunning && growth >= 45 && growth < 80,
                 done: effectivelyBuilt || growth >= 80,
@@ -473,7 +517,12 @@ const StageBioreactorStudio = ({
               },
               {
                 id: 'mature',
-                label: mode === 'cell' ? '04 Mature Cell' : '04 Bioprinted',
+                label:
+                  mode === 'organelle'
+                    ? '04 Mature Organelle'
+                    : mode === 'cell'
+                    ? '04 Mature Cell'
+                    : '04 Bioprinted',
                 progress: effectivelyBuilt ? 100 : Math.max(0, Math.min(100, ((growth - 80) / 20) * 100)),
                 active: isRunning && growth >= 80 && growth < 100,
                 done: effectivelyBuilt,
@@ -487,7 +536,9 @@ const StageBioreactorStudio = ({
       {/* Bottom 3-Bay Reactor Control Console */}
       <ReactorControlPanel
         deckTitle={
-          mode === 'cell'
+          mode === 'organelle'
+            ? `ORGANELLE ASSEMBLY BIOREACTOR // ${item.name.toUpperCase()}`
+            : mode === 'cell'
             ? `CELL DIFFERENTIATION BIOREACTOR // ${item.name.toUpperCase()}`
             : `TISSUE BIOPRINTING BIOREACTOR // ${item.name.toUpperCase()}`
         }
@@ -582,6 +633,8 @@ const StageBioreactorStudio = ({
                 ? 'Matured 100%'
                 : isRunning
                 ? `Growing ${Math.round(growth)}%`
+                : mode === 'organelle'
+                ? '▶ Assemble'
                 : mode === 'cell'
                 ? '▶ Differentiate'
                 : '▶ Bioprint Tissue'

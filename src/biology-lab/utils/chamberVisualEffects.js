@@ -778,6 +778,27 @@ export function createSingleElement3DModel(id, colorHex = '#38bdf8', opts = {}) 
   ) {
     return createRealisticCellMesh(CELL_LINEAGE_TO_MESH_ID[id] || id, colorHex, scale, isDividing);
   }
+  if (id === 'bdna_chromatin') {
+    const dna = new THREE.Group();
+    const s1Mat = new THREE.MeshStandardMaterial({ color: '#38bdf8', emissive: '#0284c7', emissiveIntensity: 0.45 });
+    const s2Mat = new THREE.MeshStandardMaterial({ color: '#a855f7', emissive: '#7e22ce', emissiveIntensity: 0.45 });
+    const rungMat = new THREE.MeshStandardMaterial({ color: '#f8fafc', emissive: '#22d3ee', emissiveIntensity: 0.3 });
+    for (let i = 0; i < 8; i++) {
+      const t = (i / 7 - 0.5) * 0.22 * scale;
+      const a = i * 0.85;
+      const r = 0.045 * scale;
+      const b1 = new THREE.Mesh(new THREE.SphereGeometry(0.015 * scale, 8, 8), s1Mat);
+      b1.position.set(Math.cos(a) * r, t, Math.sin(a) * r);
+      const b2 = new THREE.Mesh(new THREE.SphereGeometry(0.015 * scale, 8, 8), s2Mat);
+      b2.position.set(-Math.cos(a) * r, t, -Math.sin(a) * r);
+      const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.005 * scale, 0.005 * scale, r * 2, 6), rungMat);
+      rung.position.y = t;
+      rung.rotation.z = Math.PI / 2;
+      rung.rotation.y = -a;
+      dna.add(b1, b2, rung);
+    }
+    return dna;
+  }
   if (id === 'mitochondrion') {
     const mito = new THREE.Group();
     const outer = new THREE.Mesh(

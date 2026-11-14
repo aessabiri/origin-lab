@@ -383,7 +383,13 @@ const TopDownOrganogenesisLab = ({
   // THREE.JS 3D VIEWPORT (Empty-Until-Dragged Across All 5 Stops)
   // ============================================================================
   useEffect(() => {
-    if (activeStage === 'organ' || activeStage === 'cell' || activeStage === 'tissue') return;
+    if (
+      activeStage === 'organ' ||
+      activeStage === 'organelle' ||
+      activeStage === 'cell' ||
+      activeStage === 'tissue'
+    )
+      return;
     const container = mountRef.current;
     if (!container) return;
 
@@ -929,21 +935,35 @@ const TopDownOrganogenesisLab = ({
             );
           })}
         </div>
-      ) : activeStage === 'cell' || activeStage === 'tissue' ? (
+      ) : activeStage === 'organelle' || activeStage === 'cell' || activeStage === 'tissue' ? (
         <div className="bg-[#0b1220] rounded-2xl px-3 py-2 border border-white/10 shrink-0 flex items-center justify-between gap-2 overflow-x-auto">
           <div className="flex items-center gap-1.5 overflow-x-auto">
-            {Object.values(activeStage === 'cell' ? LEVEL_3_CELLS : LEVEL_4_TISSUES).map((entry) => {
+            {Object.values(
+              activeStage === 'organelle'
+                ? LEVEL_2_ORGANELLES
+                : activeStage === 'cell'
+                ? LEVEL_3_CELLS
+                : LEVEL_4_TISSUES
+            ).map((entry) => {
               const isSelected =
-                activeStage === 'cell' ? activeCell.id === entry.id : activeTissue.id === entry.id;
+                activeStage === 'organelle'
+                  ? activeOrganelle.id === entry.id
+                  : activeStage === 'cell'
+                  ? activeCell.id === entry.id
+                  : activeTissue.id === entry.id;
               const isDone =
-                activeStage === 'cell'
+                activeStage === 'organelle'
+                  ? assembledOrganelles.includes(entry.id)
+                  : activeStage === 'cell'
                   ? differentiatedCells.includes(entry.id)
                   : engineeredTissues.includes(entry.id);
               return (
                 <button
                   key={entry.id}
                   onClick={() =>
-                    activeStage === 'cell'
+                    activeStage === 'organelle'
+                      ? setSelectedOrganelleId(entry.id)
+                      : activeStage === 'cell'
                       ? setSelectedCellId(entry.id)
                       : setSelectedTissueId(entry.id)
                   }
@@ -985,7 +1005,7 @@ const TopDownOrganogenesisLab = ({
         />
       )}
 
-      {/* UNIFIED 12-COL WORKSPACE: Bioreactor Studios for Organs/Tissues/Cells, or 3-Col Drawer + 9-Col Canvas */}
+      {/* UNIFIED 12-COL WORKSPACE: Bioreactor Studios for Organs/Tissues/Cells/Organelles, or 3-Col Drawer + 9-Col Canvas */}
       <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
         {activeStage === 'organ' ? (
           activeSystem.id === 'skeletal_system' ? (
@@ -996,6 +1016,25 @@ const TopDownOrganogenesisLab = ({
               onOpenAnatomy={onOpenAnatomy}
             />
           )
+        ) : activeStage === 'organelle' ? (
+          <StageBioreactorStudio
+            mode="organelle"
+            item={activeOrganelle}
+            isBuilt={assembledOrganelles.includes(activeOrganelle.id)}
+            demiurgeSurvivalMode={demiurgeSurvivalMode}
+            foldedProteins={foldedProteins}
+            assembledOrganelles={assembledOrganelles}
+            differentiatedCells={differentiatedCells}
+            onComplete={(orgId) => {
+              assembleCompleteOrganelle(orgId);
+              cosmicAudio.playSynthesisChord();
+              useStore
+                .getState()
+                .showMessage(`⚡ Assembled ${activeOrganelle.name}! Now available in Stop 3 (Living Cell).`);
+            }}
+            onNextStage={() => setActiveStage('cell')}
+            nextStageLabel="🧫 Cells →"
+          />
         ) : activeStage === 'cell' ? (
           <StageBioreactorStudio
             mode="cell"
