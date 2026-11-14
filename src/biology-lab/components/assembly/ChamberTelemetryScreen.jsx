@@ -89,8 +89,10 @@ const ChamberTelemetryScreen = ({
 
     const drawScope = () => {
       rafId = requestAnimationFrame(drawScope);
-      const w = (canvas.width = canvas.clientWidth || 300);
-      const h = (canvas.height = canvas.clientHeight || 42);
+      const w = canvas.clientWidth || 300;
+      const h = canvas.clientHeight || 42;
+      if (canvas.width !== w) canvas.width = w;
+      if (canvas.height !== h) canvas.height = h;
       const s = stateRef.current;
       const t = performance.now() * 0.001;
       const amp = s.isComplete ? 1.0 : s.isRunning ? 0.35 + (s.progress / 100) * 0.65 : 0.12;
@@ -533,8 +535,10 @@ const ChamberTelemetryScreen = ({
 
     const renderMicro = () => {
       rafId = requestAnimationFrame(renderMicro);
-      const w = (canvas.width = canvas.clientWidth || 300);
-      const h = (canvas.height = canvas.clientHeight || 200);
+      const w = canvas.clientWidth || 300;
+      const h = canvas.clientHeight || 200;
+      if (canvas.width !== w) canvas.width = w;
+      if (canvas.height !== h) canvas.height = h;
       const s = stateRef.current;
       const t = performance.now() * 0.001;
       const prog = Math.max(0, Math.min(1, s.progress / 100));

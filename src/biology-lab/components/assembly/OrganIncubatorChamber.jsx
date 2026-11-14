@@ -15,6 +15,7 @@ import {
   buildRealisticElementCluster,
   buildVascularSproutTree,
   applyMorphogeneticStageToOrgan,
+  disposeHierarchy,
 } from '../../utils/chamberVisualEffects';
 import ChamberTelemetryScreen from './ChamberTelemetryScreen';
 import ReactorControlPanel, {
@@ -52,7 +53,7 @@ export const MAJOR_ORGAN_CHAMBERS = [
     components: [
       { id: 'cell_hepatocyte', symbol: 'HEP', name: 'Hepatocytes', color: '#f59e0b' },
       { id: 'comp_egf_hgf', symbol: 'HGF', name: 'HGF + Bile Salts', color: '#10b981' },
-      { id: 'comp_surfactant', symbol: 'Col4', name: 'Sinusoid ECM', color: '#a855f7' },
+      { id: 'comp_gbm', symbol: 'Col4', name: 'Sinusoid ECM', color: '#a855f7' },
     ],
     outcomeLabel: 'Hepatic Liver Lobes',
   },
@@ -128,9 +129,9 @@ export const INCUBATOR_RECIPES = {
     liquidColor: '#10b981',
     cellColor: '#34d399',
     components: [
-      { id: 'cell_hepatocyte', symbol: 'KER', name: 'Keratinocytes & Epithelial', color: '#f59e0b' },
-      { id: 'comp_egf_hgf', symbol: 'EGF', name: 'EGF + Melanin', color: '#22d3ee' },
-      { id: 'comp_surfactant', symbol: 'COL4', name: 'Collagen I/IV + Adipose', color: '#a855f7' },
+      { id: 'cell_keratinocyte', symbol: 'KER', name: 'Keratinocytes & Epithelial', color: '#f59e0b' },
+      { id: 'comp_egf_melanin', symbol: 'EGF', name: 'EGF + Melanin', color: '#22d3ee' },
+      { id: 'comp_collagen_iv', symbol: 'COL4', name: 'Collagen I/IV + Adipose', color: '#a855f7' },
     ],
     outcomeLabel: 'Stratified Skin & Dermal Tissue',
   },
@@ -161,17 +162,6 @@ export const INCUBATOR_RECIPES = {
     ],
     outcomeLabel: 'Brain, Spinal Cord & Nerves',
   },
-};
-
-const disposeHierarchy = (root) => {
-  if (!root) return;
-  root.traverse((obj) => {
-    if (obj.geometry && !obj.userData?.isCachedGeometry) obj.geometry.dispose();
-    if (obj.material) {
-      if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
-      else obj.material.dispose();
-    }
-  });
 };
 
 const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnatomy }) => {
@@ -535,9 +525,9 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
               {
                 id: 'substrates',
                 label: '01 Substrates',
-                progress: (loadedIds.length / recipe.components.length) * 100,
-                active: !allComponentsLoaded,
-                done: allComponentsLoaded,
+                progress: isGrown ? 100 : (loadedIds.length / recipe.components.length) * 100,
+                active: !isGrown && !allComponentsLoaded,
+                done: isGrown || allComponentsLoaded,
                 color: '#38bdf8',
               },
               {

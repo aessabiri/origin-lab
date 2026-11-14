@@ -7,6 +7,20 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { applyOrganSubPartMaterials } from './zAnatomyOrganLoader';
 
 /**
+ * Recursively disposes uncached geometries and materials under a Three.js object.
+ */
+export function disposeHierarchy(root) {
+  if (!root) return;
+  root.traverse((obj) => {
+    if (obj.geometry && !obj.userData?.isCachedGeometry) obj.geometry.dispose();
+    if (obj.material) {
+      if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+      else obj.material.dispose();
+    }
+  });
+}
+
+/**
  * Configures cinematic PBR tone mapping, studio PMREM environment reflections,
  * and balanced warm-key + cyan-rim clinical lighting for bioreactor chambers.
  */
@@ -752,10 +766,18 @@ export function createSingleElement3DModel(id, colorHex = '#38bdf8', opts = {}) 
   if (
     id === 'collagen_i' ||
     id === 'collagen_ii' ||
+    id === 'comp_collagen_iv' ||
     id === 'comp_tendon_ecm' ||
     id === 'comp_gbm'
   ) {
-    const colColor = id === 'collagen_ii' ? '#60a5fa' : id === 'comp_gbm' ? '#10b981' : '#f59e0b';
+    const colColor =
+      id === 'collagen_ii'
+        ? '#60a5fa'
+        : id === 'comp_gbm'
+        ? '#10b981'
+        : id === 'comp_collagen_iv'
+        ? '#a855f7'
+        : '#f59e0b';
     const helix = createCollagenHelixGroup(colColor, 0.26 * scale, 0.055 * scale);
     helix.rotation.z = 0.45;
     return helix;
@@ -800,10 +822,18 @@ export function buildRealisticElementCluster(elementIds, opts = {}) {
     } else if (
       id === 'collagen_i' ||
       id === 'collagen_ii' ||
+      id === 'comp_collagen_iv' ||
       id === 'comp_tendon_ecm' ||
       id === 'comp_gbm'
     ) {
-      const colColor = id === 'collagen_ii' ? '#60a5fa' : id === 'comp_gbm' ? '#10b981' : '#f59e0b';
+      const colColor =
+        id === 'collagen_ii'
+          ? '#60a5fa'
+          : id === 'comp_gbm'
+          ? '#10b981'
+          : id === 'comp_collagen_iv'
+          ? '#a855f7'
+          : '#f59e0b';
       const helix = createCollagenHelixGroup(colColor, 1.15, 0.22 + (1 - condenseRatio) * 0.14);
       helix.position.y = -0.08;
       group.add(helix);

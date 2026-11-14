@@ -31,6 +31,7 @@ const ElementShapeSVG = ({ id, color = '#38bdf8' }) => {
     case 'collagen_ii':
     case 'collagen_i':
     case 'comp_collagen_i':
+    case 'comp_collagen_iv':
     case 'comp_surfactant':
     case 'comp_tendon_ecm':
       return (
@@ -47,6 +48,7 @@ const ElementShapeSVG = ({ id, color = '#38bdf8' }) => {
     case 'vegf_a':
     case 'comp_vegf_o2':
     case 'comp_egf_hgf':
+    case 'comp_egf_melanin':
     case 'comp_ngf_bdnf':
     case 'comp_fgf10':
     case 'comp_wnt_rspo':
@@ -158,6 +160,19 @@ const ElementShapeSVG = ({ id, color = '#38bdf8' }) => {
           <polygon points="32,8 52,20 52,44 32,56 12,44 12,20" fill={`${color}44`} stroke={color} strokeWidth="2" />
           <circle cx="26" cy="30" r="6" fill="#78350f" stroke="#fde68a" strokeWidth="1.2" />
           <circle cx="39" cy="35" r="5" fill="#78350f" stroke="#fde68a" strokeWidth="1.2" />
+        </svg>
+      );
+
+    case 'cell_keratinocyte':
+      return (
+        <svg viewBox="0 0 64 64" className="w-12 h-12">
+          <polygon points="32,10 52,21 48,45 32,54 16,45 12,21" fill={`${color}38`} stroke={color} strokeWidth="2" />
+          <line x1="15" y1="24" x2="49" y2="39" stroke="#fde68a" strokeWidth="1.1" opacity="0.6" />
+          <line x1="16" y1="41" x2="49" y2="24" stroke="#fde68a" strokeWidth="1.1" opacity="0.6" />
+          <ellipse cx="32" cy="32" rx="7" ry="5.5" fill="#78350f" stroke="#fef3c7" strokeWidth="1.2" />
+          <circle cx="22" cy="23" r="2.2" fill="#92400e" />
+          <circle cx="41" cy="40" r="2.2" fill="#92400e" />
+          <circle cx="42" cy="24" r="1.8" fill="#92400e" />
         </svg>
       );
 

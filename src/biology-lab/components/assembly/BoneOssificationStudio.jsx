@@ -18,6 +18,7 @@ import {
   buildRealisticElementCluster,
   buildVascularSproutTree,
   applyMorphogeneticStageToOrgan,
+  disposeHierarchy,
 } from '../../utils/chamberVisualEffects';
 import ChamberTelemetryScreen from './ChamberTelemetryScreen';
 import { useBioStore } from '../../store';
@@ -29,17 +30,6 @@ import ReactorControlPanel, {
   BreakerButton,
   AnalogMeter,
 } from './ReactorControlPanel';
-
-const disposeHierarchy = (root) => {
-  if (!root) return;
-  root.traverse((obj) => {
-    if (obj.geometry && !obj.userData?.isCachedGeometry) obj.geometry.dispose();
-    if (obj.material) {
-      if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
-      else obj.material.dispose();
-    }
-  });
-};
 
 const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   const mountRef = useRef(null);
