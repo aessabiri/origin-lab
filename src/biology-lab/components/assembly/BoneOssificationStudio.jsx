@@ -107,7 +107,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
     let renderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.localClippingEnabled = true;
+      renderer.localClippingEnabled = false;
     } catch {
       return;
     }
@@ -219,9 +219,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       disposeHierarchy(child);
     }
 
-    const clipPlane = sim.crossSectionCut
-      ? new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0.02)
-      : null;
+    const clipPlane = null;
 
     const overallProgress = Math.min(
       1,
