@@ -239,6 +239,17 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
   }, [growthProgressBySystem]);
 
   useEffect(() => {
+    const handleGlobalReset = () => {
+      setGrowthProgressBySystem({});
+      setLoadedBySystem({});
+      setRunningBySystem({});
+      setElapsedBySystem({});
+    };
+    window.addEventListener('originlab-reset', handleGlobalReset);
+    return () => window.removeEventListener('originlab-reset', handleGlobalReset);
+  }, []);
+
+  useEffect(() => {
     telemetryRef.current = {
       isActive: isRunning,
       o2Level: o2Dial,
@@ -574,13 +585,27 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
         rightAction={
           <>
             {isGrown && (
-              <button
-                type="button"
-                onClick={handleDeployToAnatomy}
-                className="px-3 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-black text-[9px] uppercase cursor-pointer"
-              >
-                ✓ Deploy to Anatomy
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGrowthProgressBySystem((prev) => ({ ...prev, [recipe.id]: 0 }));
+                    setLoadedBySystem((prev) => ({ ...prev, [recipe.id]: [] }));
+                    setRunningBySystem((prev) => ({ ...prev, [recipe.id]: false }));
+                    setElapsedBySystem((prev) => ({ ...prev, [recipe.id]: 0 }));
+                  }}
+                  className="px-2.5 py-1 rounded bg-[#0f172a] hover:bg-slate-800 border border-slate-600 text-slate-300 font-mono font-bold text-[9px] uppercase cursor-pointer"
+                >
+                  ↻ Regrow
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeployToAnatomy}
+                  className="px-3 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-black text-[9px] uppercase cursor-pointer"
+                >
+                  ✓ Deploy to Anatomy
+                </button>
+              </>
             )}
             {onOpenAnatomy && (
               <button

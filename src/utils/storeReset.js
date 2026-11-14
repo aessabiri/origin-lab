@@ -16,4 +16,12 @@ export const resetAllOriginStores = () => {
   try { useProgressionStore.getState().resetProgression?.(); } catch (e) {}
   try { usePlanetaryStore.getState().resetPlanet?.(); } catch (e) {}
   try { useAnatomyStore.getState().resetSkeleton?.(); } catch (e) {}
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('originlab_organ_progress_v1');
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('originlab-reset'));
+    }
+  } catch (e) {}
 };
