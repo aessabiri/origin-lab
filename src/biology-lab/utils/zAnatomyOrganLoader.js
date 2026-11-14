@@ -186,6 +186,7 @@ export async function loadZAnatomyOrganModel(systemId) {
     meshClone.scale.set(1, 1, 1);
     meshClone.applyMatrix4(child.matrixWorld);
     meshClone.name = rawName;
+    meshClone.userData.isCachedGeometry = true;
     meshClone.userData.subPartId = classifyMeshToOrganSubPart(systemId, rawName);
     organGroup.add(meshClone);
     combinedBox.expandByObject(meshClone);
@@ -336,6 +337,7 @@ export async function loadFocusedSingleOrgan(organKey) {
     meshClone.scale.set(1, 1, 1);
     meshClone.applyMatrix4(child.matrixWorld);
     meshClone.name = rawName;
+    meshClone.userData.isCachedGeometry = true;
     meshClone.userData.subPartId = classifyMeshToOrganSubPart(cfg.systemId, rawName);
     organGroup.add(meshClone);
     combinedBox.expandByObject(meshClone);

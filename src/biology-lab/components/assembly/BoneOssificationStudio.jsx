@@ -32,7 +32,7 @@ import ReactorControlPanel, {
 const disposeHierarchy = (root) => {
   if (!root) return;
   root.traverse((obj) => {
-    if (obj.geometry) obj.geometry.dispose();
+    if (obj.geometry && !obj.userData?.isCachedGeometry) obj.geometry.dispose();
     if (obj.material) {
       if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
       else obj.material.dispose();
