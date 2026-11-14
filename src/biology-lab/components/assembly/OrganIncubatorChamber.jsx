@@ -618,9 +618,8 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
             )}
           </>
         }
-      >
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5">
+        dials={
+          <>
             <RotaryDial
               label="Morphogens"
               value={morphogenDial}
@@ -667,8 +666,10 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
               accent="#10b981"
               onChange={setPhLevel}
             />
-          </div>
-
+          </>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-2">
           <BreakerButton
             label={isGrown ? 'Matured 100%' : isRunning ? `Growing ${Math.round(growth)}%` : '▶ Start Reactor'}
             sublabel={allComponentsLoaded ? 'Substrates Ready' : 'Click Elements'}

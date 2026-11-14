@@ -101,13 +101,48 @@ const ChamberTelemetryScreen = ({
       ctx.fillStyle = '#030711';
       ctx.fillRect(0, 0, w, h);
 
+      // Subtle oscilloscope reticle gridlines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.lineWidth = 1;
+      for (let gx = w * 0.2; gx < w; gx += w * 0.2) {
+        ctx.beginPath();
+        ctx.moveTo(gx, 0);
+        ctx.lineTo(gx, h);
+        ctx.stroke();
+      }
+      [0.25, 0.5, 0.75].forEach((gy) => {
+        ctx.beginPath();
+        ctx.moveTo(0, h * gy);
+        ctx.lineTo(w, h * gy);
+        ctx.stroke();
+      });
+
       // Baseline
-      ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(0, h * 0.5);
-      ctx.lineTo(w, h * 0.5);
+      ctx.moveTo(0, h * 0.52);
+      ctx.lineTo(w, h * 0.52);
       ctx.stroke();
+
+      const traceColor = s.isComplete ? '#10b981' : s.accentColor;
+
+      // Phosphor gradient fill beneath waveform
+      ctx.beginPath();
+      for (let i = 0; i < samples.length; i++) {
+        const x = (i / (samples.length - 1)) * w;
+        const y = h * 0.52 - samples[i] * (h * 0.4);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
+      fillGrad.addColorStop(0, `${traceColor}33`);
+      fillGrad.addColorStop(1, 'rgba(3, 7, 17, 0)');
+      ctx.fillStyle = fillGrad;
+      ctx.fill();
 
       // Glowing Waveform
       ctx.beginPath();
@@ -117,10 +152,10 @@ const ChamberTelemetryScreen = ({
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
-      ctx.strokeStyle = s.isComplete ? '#10b981' : s.accentColor;
-      ctx.lineWidth = 1.6;
-      ctx.shadowColor = s.isComplete ? '#10b981' : s.accentColor;
-      ctx.shadowBlur = 6;
+      ctx.strokeStyle = traceColor;
+      ctx.lineWidth = 1.8;
+      ctx.shadowColor = traceColor;
+      ctx.shadowBlur = 8;
       ctx.stroke();
       ctx.shadowBlur = 0;
     };
@@ -136,45 +171,125 @@ const ChamberTelemetryScreen = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const cells = Array.from({ length: 8 }, (_, i) => ({
-      x: 0.2 + (i % 4) * 0.2,
-      y: 0.28 + Math.floor(i / 4) * 0.42,
+    const cells = Array.from({ length: 12 }, (_, i) => ({
+      x: 0.14 + (i % 4) * 0.24 + ((i % 2) - 0.5) * 0.05,
+      y: 0.2 + Math.floor(i / 4) * 0.29 + ((i % 3) - 1) * 0.04,
       vx: (Math.random() - 0.5) * 0.0022,
       vy: (Math.random() - 0.5) * 0.0022,
-      r: 14 + (i % 3) * 2,
+      r: 15 + (i % 3) * 3,
       rot: Math.random() * Math.PI * 2,
     }));
 
-    const ligands = Array.from({ length: 14 }, () => ({
+    const ligands = Array.from({ length: 24 }, () => ({
       x: Math.random(),
       y: Math.random(),
-      vx: (Math.random() - 0.5) * 0.0045,
-      vy: (Math.random() - 0.5) * 0.0045,
+      vx: (Math.random() - 0.5) * 0.0055,
+      vy: (Math.random() - 0.5) * 0.0055,
     }));
 
     const flashes = [];
     let rafId;
 
-    const drawOrganelleCell = (cx, cy, r, rot, accent) => {
+    const drawOrganelleCell = (cx, cy, r, rot, accent, organType, t) => {
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(rot);
 
-      // Translucent Plasma Membrane
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fillStyle = `${accent}22`;
-      ctx.fill();
-      ctx.strokeStyle = accent;
-      ctx.lineWidth = 1.3;
-      ctx.stroke();
+      if (organType === 'brain' || organType === 'nervous_system') {
+        // Stellate Pyramidal Neuron with radiating dendrites + synaptic soma
+        ctx.strokeStyle = `${accent}88`;
+        ctx.lineWidth = 1.2;
+        for (let d = 0; d < 6; d++) {
+          const a = (d / 6) * Math.PI * 2;
+          const len = d === 0 ? r * 1.65 : r * 1.25;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(
+            Math.cos(a + 0.2) * len * 0.5,
+            Math.sin(a + 0.2) * len * 0.5,
+            Math.cos(a) * len,
+            Math.sin(a) * len
+          );
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2);
+        ctx.fillStyle = `${accent}2b`;
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+      } else if (organType === 'heart' || organType === 'muscular_system') {
+        // Elongated Striated Myocyte with Z-disc sarcomere bands
+        const beat = organType === 'heart' ? 1 + Math.sin(t * 4.5) * 0.06 : 1;
+        ctx.scale(beat, 1 / beat);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r * 1.28, r * 0.58, 0, 0, Math.PI * 2);
+        ctx.fillStyle = `${accent}26`;
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(253, 164, 175, 0.55)';
+        ctx.lineWidth = 1;
+        for (let sx = -r * 0.8; sx <= r * 0.8; sx += r * 0.35) {
+          ctx.beginPath();
+          ctx.moveTo(sx, -r * 0.42);
+          ctx.lineTo(sx, r * 0.42);
+          ctx.stroke();
+        }
+      } else if (organType === 'bone') {
+        // Stellate Osteocyte with canalicular filopodia + hydroxyapatite crystals
+        ctx.strokeStyle = 'rgba(226, 232, 240, 0.5)';
+        ctx.lineWidth = 1;
+        for (let f = 0; f < 8; f++) {
+          const a = (f / 8) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * r * 0.5, Math.sin(a) * r * 0.5);
+          ctx.lineTo(Math.cos(a) * r * 1.25, Math.sin(a) * r * 1.25);
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r * 0.85, r * 0.65, 0, 0, Math.PI * 2);
+        ctx.fillStyle = `${accent}26`;
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+      } else if (organType === 'skin' || organType === 'visceral_system') {
+        // Polygonal Keratinocyte with desmosome junctions
+        ctx.beginPath();
+        for (let k = 0; k < 6; k++) {
+          const a = (k / 6) * Math.PI * 2;
+          const px = Math.cos(a) * r * 0.95;
+          const py = Math.sin(a) * r * 0.95;
+          if (k === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = `${accent}24`;
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+      } else {
+        // Translucent Plasma Membrane (Pneumocyte / Hepatocyte / Epithelial)
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fillStyle = `${accent}24`;
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+      }
 
       // Rough ER arcs
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 1;
       for (let e = 0; e < 2; e++) {
         ctx.beginPath();
-        ctx.arc(0, 0, r * (0.48 + e * 0.14), e * 1.4, e * 1.4 + Math.PI * 0.9);
+        ctx.arc(0, 0, r * (0.44 + e * 0.14), e * 1.4, e * 1.4 + Math.PI * 0.9);
         ctx.stroke();
       }
 
@@ -183,21 +298,21 @@ const ChamberTelemetryScreen = ({
       for (let m = 0; m < 3; m++) {
         const ma = (m / 3) * Math.PI * 2 + 0.5;
         ctx.beginPath();
-        ctx.ellipse(Math.cos(ma) * r * 0.58, Math.sin(ma) * r * 0.58, 2.6, 1.3, ma, 0, Math.PI * 2);
+        ctx.ellipse(Math.cos(ma) * r * 0.54, Math.sin(ma) * r * 0.54, 2.6, 1.3, ma, 0, Math.PI * 2);
         ctx.fill();
       }
 
       // Nucleus + Nucleolus
       ctx.beginPath();
-      ctx.arc(0, 0, r * 0.34, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(129, 140, 248, 0.45)';
+      ctx.arc(0, 0, r * 0.32, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(129, 140, 248, 0.48)';
       ctx.fill();
       ctx.strokeStyle = '#a5b4fc';
       ctx.lineWidth = 1;
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(r * 0.08, -r * 0.06, r * 0.13, 0, Math.PI * 2);
+      ctx.arc(r * 0.08, -r * 0.06, r * 0.12, 0, Math.PI * 2);
       ctx.fillStyle = '#f8fafc';
       ctx.fill();
 
@@ -427,12 +542,27 @@ const ChamberTelemetryScreen = ({
       ctx.fillStyle = '#03060f';
       ctx.fillRect(0, 0, w, h);
 
-      // Subtle confocal radial vignette
+      // Subtle confocal radial vignette + optical reticle grid
       const grad = ctx.createRadialGradient(w * 0.5, h * 0.5, 10, w * 0.5, h * 0.5, Math.max(w, h) * 0.58);
-      grad.addColorStop(0, 'rgba(14, 165, 233, 0.08)');
+      grad.addColorStop(0, 'rgba(14, 165, 233, 0.11)');
       grad.addColorStop(1, 'rgba(2, 6, 15, 0.92)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.06)';
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx < w; gx += 32) {
+        ctx.beginPath();
+        ctx.moveTo(gx, 0);
+        ctx.lineTo(gx, h);
+        ctx.stroke();
+      }
+      for (let gy = 0; gy < h; gy += 32) {
+        ctx.beginPath();
+        ctx.moveTo(0, gy);
+        ctx.lineTo(w, gy);
+        ctx.stroke();
+      }
 
       // Stage-aware Histology Overlay (fades in smoothly from 55% -> 100%)
       if (s.progress >= 55) {
@@ -449,9 +579,9 @@ const ChamberTelemetryScreen = ({
         c.x += c.vx * speedMult + (0.5 - c.x) * prog * 0.001;
         c.y += c.vy * speedMult + (0.5 - c.y) * prog * 0.001;
         c.rot += 0.004;
-        if (c.x < 0.12 || c.x > 0.88) c.vx *= -1;
-        if (c.y < 0.14 || c.y > 0.86) c.vy *= -1;
-        drawOrganelleCell(c.x * w, c.y * h, c.r, c.rot, s.accentColor);
+        if (c.x < 0.1 || c.x > 0.9) c.vx *= -1;
+        if (c.y < 0.12 || c.y > 0.88) c.vy *= -1;
+        drawOrganelleCell(c.x * w, c.y * h, c.r, c.rot, s.accentColor, s.organType, t);
       });
 
       ligands.forEach((l, idx) => {
@@ -594,7 +724,7 @@ const ChamberTelemetryScreen = ({
       </div>
 
       {/* Live Physiological Oscilloscope */}
-      <div className="h-11 relative border-b border-slate-800/80 shrink-0">
+      <div className="h-14 relative border-b border-slate-800/80 shrink-0">
         <canvas ref={scopeCanvasRef} className="w-full h-full block" />
         <div className="absolute top-1 right-2 text-[7.5px] font-bold text-emerald-300/90 uppercase pointer-events-none">
           {scopeLabel}
@@ -602,7 +732,7 @@ const ChamberTelemetryScreen = ({
       </div>
 
       {/* Confocal Microscopy & Live Tissue Histology */}
-      <div className="flex-1 min-h-[130px] relative border-b border-slate-800/80">
+      <div className="flex-1 min-h-[160px] relative border-b border-slate-800/80">
         <canvas ref={microCanvasRef} className="w-full h-full block" />
         <div className="absolute top-1.5 left-2 px-1.5 py-0.5 rounded bg-black/60 border border-white/10 text-[7.5px] text-cyan-300 uppercase tracking-wider pointer-events-none">
           {isComplete ? 'HISTOLOGY // MATURE TISSUE' : 'CONFOCAL // LIVE CELL'}

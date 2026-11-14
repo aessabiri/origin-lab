@@ -518,10 +518,8 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
             )}
           </>
         }
-      >
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Draggable Rotary Potentiometers with Green Optimal Zones */}
-          <div className="flex items-center gap-1.5">
+        dials={
+          <>
             <RotaryDial
               label="BMP-2 / Wnt"
               value={sim.morphogenBmpWnt}
@@ -580,8 +578,10 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
               accent="#10b981"
               onChange={setPhLevel}
             />
-          </div>
-
+          </>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-2">
           {/* Illuminated Reactor Breaker Switches */}
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-1.5 min-w-[280px]">
             <BreakerButton

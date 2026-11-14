@@ -247,6 +247,7 @@ export const BreakerButton = ({
 const ReactorControlPanel = ({
   deckTitle = 'REACTOR CONSOLE',
   annunciators = [],
+  dials = null,
   elements = [],
   elementLevels = {},
   onInfuseElement,
@@ -263,15 +264,6 @@ const ReactorControlPanel = ({
           <span className="text-[8.5px] font-mono font-black text-slate-300 uppercase tracking-widest">
             {deckTitle}
           </span>
-          {onPrimeAll && (
-            <button
-              type="button"
-              onClick={onPrimeAll}
-              className="px-2 py-0.5 rounded bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-400/60 text-cyan-200 font-mono text-[8px] font-black uppercase cursor-pointer"
-            >
-              ⚡ Infuse All
-            </button>
-          )}
         </div>
 
         {/* Classic Nuclear Annunciator Lamp Tiles */}
@@ -301,21 +293,53 @@ const ReactorControlPanel = ({
         {rightAction && <div className="flex items-center gap-2">{rightAction}</div>}
       </div>
 
-      {/* Unified Console: Dials/Breakers + Clickable Element Icon Cards */}
-      <div className="flex flex-wrap items-center gap-2.5">
-        {children}
+      {/* Regrouped 3-Bay Console: [Dials] | [Elements] | [Reactor Controls] */}
+      <div className="flex flex-wrap items-stretch gap-2">
+        {dials && (
+          <div className="flex flex-col gap-1 bg-[#060a13] border border-slate-700/75 rounded-xl px-2 py-1.5">
+            <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-widest px-0.5">
+              Environment Dials
+            </span>
+            <div className="flex items-center gap-1.5">{dials}</div>
+          </div>
+        )}
 
         {elements.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {elements.map((el) => (
-              <BioElementShapeCard
-                key={el.id}
-                element={el}
-                level={elementLevels[el.id] ?? 0}
-                onInfuse={onInfuseElement}
-                compact
-              />
-            ))}
+          <div className="flex flex-col gap-1 bg-[#060a13] border border-slate-700/75 rounded-xl px-2 py-1.5">
+            <div className="flex items-center justify-between gap-2 px-0.5">
+              <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-widest">
+                Substrates ({elements.length})
+              </span>
+              {onPrimeAll && (
+                <button
+                  type="button"
+                  onClick={onPrimeAll}
+                  className="px-1.5 py-0.5 rounded bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-400/60 text-cyan-200 font-mono text-[7.5px] font-black uppercase cursor-pointer"
+                >
+                  ⚡ Infuse All
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {elements.map((el) => (
+                <BioElementShapeCard
+                  key={el.id}
+                  element={el}
+                  level={elementLevels[el.id] ?? 0}
+                  onInfuse={onInfuseElement}
+                  compact
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {children && (
+          <div className="flex-1 flex flex-col justify-between gap-1 bg-[#060a13] border border-slate-700/75 rounded-xl px-2.5 py-1.5 min-w-[210px]">
+            <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-widest">
+              Reactor Control
+            </span>
+            <div className="flex flex-wrap items-center gap-2 my-auto">{children}</div>
           </div>
         )}
       </div>
