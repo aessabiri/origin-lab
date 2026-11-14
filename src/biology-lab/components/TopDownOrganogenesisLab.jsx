@@ -502,17 +502,16 @@ const TopDownOrganogenesisLab = ({
         }
       }
     } else {
-      // Stage 4 (Tissue) & Stage 5 (Organ) — Empty until at least 1 part dragged or built
+      // Stage 4 (Tissue) — Empty until dragged or built; Stage 5 (Organ) — Always renders selected Organ/Tissue tab
       const isTissueBuilt = engineeredTissues.includes(activeTissue.id);
       const isOrganBuilt = Boolean(bioprintedTissues[activeSystem.anatomyTissueId]);
       const hasAnyTissuePart = canvasTissueParts.length > 0 || isTissueBuilt;
-      const hasAnyOrganPart = snappedSubPartsCount > 0 || isOrganBuilt;
 
       if (
         (activeStage === 'tissue' && hasAnyTissuePart) ||
-        (activeStage === 'organ' && hasAnyOrganPart)
+        activeStage === 'organ'
       ) {
-        const isComplete = activeStage === 'organ' ? isOrganBuilt : isTissueBuilt;
+        const isComplete = activeStage === 'organ' ? true : isTissueBuilt;
         const effectiveSnappedParts = isComplete
           ? (activeSystem.subParts || []).map((sp) => sp.id)
           : assembledOrganParts;
@@ -895,10 +894,38 @@ const TopDownOrganogenesisLab = ({
     (activeStage === 'tissue' && engineeredTissues.includes(activeTissue.id)) ||
     (activeStage === 'organ' && Boolean(bioprintedTissues[activeSystem.anatomyTissueId]));
 
+  const ORGAN_CATEGORY_TABS = [
+    { id: 'skeletal_system', icon: '🦴', label: 'Bones' },
+    { id: 'cardiovascular_system', icon: '🫀', label: 'Major Organs' },
+    { id: 'visceral_system', icon: '🫁', label: 'Visceral & Skin' },
+    { id: 'muscular_system', icon: '💪', label: 'Muscle Tissue' },
+    { id: 'nervous_system', icon: '🧠', label: 'Neural System' },
+  ];
+
   return (
     <div className="flex flex-col h-full w-full bg-[#060a12] p-3 pb-16 gap-2.5 overflow-hidden select-none">
-      {/* UNIFIED TOP TARGETS BAR (Hidden in Organ tab) */}
-      {activeStage !== 'organ' && (
+      {/* ORGAN TAB: Minimal Top Organ/Tissue Category Switch */}
+      {activeStage === 'organ' ? (
+        <div className="bg-[#0b1220] rounded-2xl px-3 py-2 border border-white/10 shrink-0 flex items-center gap-1.5 overflow-x-auto">
+          {ORGAN_CATEGORY_TABS.map((tab) => {
+            const isSelected = activeSystem.id === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedOrganSystemId(tab.id)}
+                className={`px-3 py-1.5 rounded-xl border font-mono text-[10px] font-bold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all ${
+                  isSelected
+                    ? 'bg-cyan-500/20 border-cyan-400 text-white'
+                    : 'bg-[#080d18] border-white/10 text-slate-400 hover:text-white hover:border-white/25'
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
         <TopTargetsBar
           label={stageTopConfig.label}
           items={stageTopConfig.items}
