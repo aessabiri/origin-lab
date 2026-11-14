@@ -38,6 +38,7 @@ import {
 } from './ProteinIngredientsStore';
 import TopTargetsBar from './assembly/TopTargetsBar';
 import LeftIngredientsDrawer from './assembly/LeftIngredientsDrawer';
+import OrganIncubatorChamber from './assembly/OrganIncubatorChamber';
 
 const getInventoryStockForSub = (subId, inventoryState) => {
   if (subId === 'iron') return inventoryState.elements?.Fe ?? 0;
@@ -380,6 +381,7 @@ const TopDownOrganogenesisLab = ({
   // THREE.JS 3D VIEWPORT (Empty-Until-Dragged Across All 5 Stops)
   // ============================================================================
   useEffect(() => {
+    if (activeStage === 'organ') return;
     const container = mountRef.current;
     if (!container) return;
 
@@ -938,9 +940,15 @@ const TopDownOrganogenesisLab = ({
         />
       )}
 
-      {/* UNIFIED 12-COL WORKSPACE: 3-COL LEFT DRAWER + 9-COL CANVAS (or full 12-col bare canvas in Organ tab) */}
+      {/* UNIFIED 12-COL WORKSPACE: Liquid Incubator in Organ tab, or 3-Col Drawer + 9-Col Canvas */}
       <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
-        {activeStage !== 'organ' && (
+        {activeStage === 'organ' ? (
+          <OrganIncubatorChamber
+            systemId={activeSystem.id}
+            onOpenAnatomy={onOpenAnatomy}
+          />
+        ) : (
+        <>
           <LeftIngredientsDrawer
             title={drawerConfig.title}
             subtitle={drawerConfig.subtitle}
@@ -954,14 +962,9 @@ const TopDownOrganogenesisLab = ({
             recipes={drawerConfig.recipes}
             recipeSectionTitle={drawerConfig.recipeSectionTitle}
           />
-        )}
 
         {/* 3D HOLOGRAPHIC ASSEMBLY CANVAS */}
-        <div
-          className={`${
-            activeStage === 'organ' ? 'col-span-12' : 'col-span-9'
-          } flex flex-col bg-[#080d18] rounded-2xl border border-white/10 overflow-hidden relative`}
-        >
+        <div className="col-span-9 flex flex-col bg-[#080d18] rounded-2xl border border-white/10 overflow-hidden relative">
           {/* Top Canvas HUD (Hidden in Organ tab) */}
           {activeStage !== 'organ' && (
           <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between pointer-events-none">
@@ -1245,6 +1248,8 @@ const TopDownOrganogenesisLab = ({
           </div>
           )}
         </div>
+        </>
+        )}
       </div>
     </div>
   );
