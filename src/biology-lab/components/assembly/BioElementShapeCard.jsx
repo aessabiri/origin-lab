@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { renderElement3DIcon } from '../../utils/elementIconRenderer';
 
 /**
  * Renders a shaded, scientifically realistic SVG specimen illustration for each
@@ -244,6 +245,11 @@ const ElementShapeSVG = ({ id, color = '#38bdf8' }) => {
  */
 const BioElementShapeCard = ({ element, level = 0, onInfuse }) => {
   const isLoaded = level > 10;
+  const icon3DUrl = useMemo(
+    () => renderElement3DIcon(element.id, element.color),
+    [element.id, element.color]
+  );
+
   return (
     <button
       type="button"
@@ -264,7 +270,15 @@ const BioElementShapeCard = ({ element, level = 0, onInfuse }) => {
         </span>
       </div>
 
-      <ElementShapeSVG id={element.id} color={element.color} />
+      {icon3DUrl ? (
+        <img
+          src={icon3DUrl}
+          alt={element.name}
+          className="w-12 h-12 object-contain drop-shadow-[0_2px_8px_rgba(34,211,238,0.28)]"
+        />
+      ) : (
+        <ElementShapeSVG id={element.id} color={element.color} />
+      )}
 
       <div className="text-[9.5px] font-bold text-white truncate w-full text-center">
         {element.name.split('(')[0].split('+')[0].trim()}

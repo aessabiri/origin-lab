@@ -191,6 +191,24 @@ export async function loadZAnatomyOrganModel(systemId) {
     combinedBox.expandByObject(meshClone);
   });
 
+  // lumc_skeleton.glb stores only right-side appendicular bones (.r); mirror them across X=0
+  if (systemId === 'skeletal_system') {
+    const hasLeft = organGroup.children.some((m) => (m.name || '').toLowerCase().includes('.l'));
+    if (!hasLeft) {
+      const rightBones = organGroup.children.filter((m) =>
+        (m.name || '').toLowerCase().includes('.r')
+      );
+      rightBones.forEach((rb) => {
+        const lb = rb.clone();
+        lb.position.x *= -1;
+        lb.scale.x *= -1;
+        lb.name = rb.name.replace(/\.r\b/i, '.l');
+        organGroup.add(lb);
+        combinedBox.expandByObject(lb);
+      });
+    }
+  }
+
   if (organGroup.children.length > 0 && !combinedBox.isEmpty()) {
     const center = new THREE.Vector3();
     const size = new THREE.Vector3();

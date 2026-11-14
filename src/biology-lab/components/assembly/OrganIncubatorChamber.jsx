@@ -300,7 +300,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
-    camera.position.set(0, 0.35, 4.45);
+    camera.position.set(0, 0.25, 4.75);
     camera.lookAt(0, -0.05, 0);
 
     scene.add(new THREE.AmbientLight(0xf1f5f9, 1.15));

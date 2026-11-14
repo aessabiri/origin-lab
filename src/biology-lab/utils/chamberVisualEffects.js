@@ -316,58 +316,278 @@ function createCollagenHelixGroup(colorHex = '#f59e0b', height = 1.25, radius = 
 }
 
 /**
- * Helper: Creates a realistic eukaryotic progenitor cell with translucent membrane + glowing nucleus
+ * Helper: Creates a crystal-clear eukaryotic cell with visible internal organelles:
+ * - Translucent lipid bilayer plasma membrane (depthWrite: false)
+ * - Nuclear envelope + bright nucleolus + coiled chromatin
+ * - Rough Endoplasmic Reticulum folds wrapping the nucleus
+ * - Mitochondria capsules with cristae bands
+ * - Golgi cisternae & secretory vesicles
+ * - Cell-type specializations (cardiomyocyte striations, hepatocyte dual nuclei,
+ *   pneumocyte lamellar bodies, enterocyte microvilli, podocyte pedicels,
+ *   neuron dendrites + myelinated axon, osteoclast multi-nuclei + ruffled border).
  */
-function createRealisticCellMesh(colorHex = '#38bdf8', scale = 1, isDividing = false) {
+function createRealisticCellMesh(cellId = 'mesenchymal_cells', colorHex = '#38bdf8', scale = 1, isDividing = false) {
   const cell = new THREE.Group();
-  const membrane = new THREE.Mesh(
-    new THREE.SphereGeometry(0.085 * scale, 16, 16),
-    new THREE.MeshPhysicalMaterial({
-      color: colorHex,
-      transparent: true,
-      opacity: 0.42,
-      roughness: 0.12,
-      clearcoat: 0.8,
-      depthWrite: false,
-    })
-  );
+  const baseRadius = 0.115 * scale;
+
+  // 1. Crystal-clear Plasma Membrane
+  const membraneMat = new THREE.MeshPhysicalMaterial({
+    color: colorHex,
+    transparent: true,
+    opacity: 0.22,
+    roughness: 0.08,
+    metalness: 0.05,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.08,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+
+  const isElongated = cellId === 'cell_cardiomyocyte' || cellId === 'cell_myocyte';
+  const membraneGeo = isElongated
+    ? new THREE.CapsuleGeometry(baseRadius * 0.72, baseRadius * 1.35, 10, 20)
+    : new THREE.SphereGeometry(baseRadius, 22, 22);
+  const membrane = new THREE.Mesh(membraneGeo, membraneMat);
+  if (isElongated) membrane.rotation.z = Math.PI / 2;
   cell.add(membrane);
 
-  const nucleus = new THREE.Mesh(
-    new THREE.SphereGeometry(0.036 * scale, 12, 12),
-    new THREE.MeshStandardMaterial({
-      color: '#f8fafc',
-      emissive: colorHex,
-      emissiveIntensity: 0.85,
-      roughness: 0.25,
-    })
+  // Subtle rim wireframe equator for crisp membrane boundary
+  const rimRing = new THREE.Mesh(
+    new THREE.TorusGeometry(baseRadius * (isElongated ? 0.72 : 0.99), 0.0022 * scale, 6, 32),
+    new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.35 })
   );
-  cell.add(nucleus);
+  cell.add(rimRing);
+
+  // 2. Nucleus + Nucleolus + Chromatin
+  const addNucleus = (nx, ny, nz, nrScale = 1) => {
+    const nucGroup = new THREE.Group();
+    nucGroup.position.set(nx, ny, nz);
+    const nr = baseRadius * 0.36 * nrScale;
+
+    const nuclearEnv = new THREE.Mesh(
+      new THREE.SphereGeometry(nr, 16, 16),
+      new THREE.MeshPhysicalMaterial({
+        color: '#818cf8',
+        emissive: '#4f46e5',
+        emissiveIntensity: 0.35,
+        transparent: true,
+        opacity: 0.52,
+        roughness: 0.2,
+        depthWrite: false,
+      })
+    );
+    nucGroup.add(nuclearEnv);
+
+    const nucleolus = new THREE.Mesh(
+      new THREE.SphereGeometry(nr * 0.42, 12, 12),
+      new THREE.MeshStandardMaterial({
+        color: '#f8fafc',
+        emissive: '#c084fc',
+        emissiveIntensity: 0.95,
+      })
+    );
+    nucleolus.position.set(nr * 0.15, nr * 0.1, 0);
+    nucGroup.add(nucleolus);
+
+    // Chromatin loop inside nucleus
+    const chromLoop = new THREE.Mesh(
+      new THREE.TorusGeometry(nr * 0.62, nr * 0.08, 6, 18),
+      new THREE.MeshBasicMaterial({ color: '#e0e7ff', transparent: true, opacity: 0.75 })
+    );
+    chromLoop.rotation.set(0.8, 0.5, 0);
+    nucGroup.add(chromLoop);
+    cell.add(nucGroup);
+  };
+
+  if (cellId === 'cell_hepatocyte') {
+    addNucleus(-baseRadius * 0.24, 0.01 * scale, 0, 0.78);
+    addNucleus(baseRadius * 0.24, -0.01 * scale, 0, 0.78);
+  } else if (cellId === 'osteoclasts') {
+    addNucleus(-baseRadius * 0.28, baseRadius * 0.15, 0.01 * scale, 0.65);
+    addNucleus(baseRadius * 0.28, baseRadius * 0.12, -0.01 * scale, 0.65);
+    addNucleus(0, -baseRadius * 0.18, baseRadius * 0.15, 0.65);
+  } else {
+    addNucleus(0, 0, 0, 1);
+  }
+
+  // 3. Rough Endoplasmic Reticulum (concentric folded cisternae around nucleus)
+  const erMat = new THREE.MeshStandardMaterial({
+    color: '#38bdf8',
+    emissive: '#0284c7',
+    emissiveIntensity: 0.45,
+    roughness: 0.35,
+  });
+  for (let e = 0; e < 3; e++) {
+    const erArc = new THREE.Mesh(
+      new THREE.TorusGeometry(baseRadius * (0.48 + e * 0.09), 0.0055 * scale, 6, 18, Math.PI * 1.15),
+      erMat
+    );
+    erArc.rotation.set(e * 0.55, e * 0.9, e * 0.4);
+    cell.add(erArc);
+  }
+
+  // 4. Mitochondria (bean-shaped capsules with cristae bands)
+  const mitoMat = new THREE.MeshStandardMaterial({
+    color: '#fb923c',
+    emissive: '#ea580c',
+    emissiveIntensity: 0.55,
+    roughness: 0.3,
+  });
+  const mitoCount = cellId === 'cell_cardiomyocyte' || cellId === 'cell_hepatocyte' ? 5 : 3;
+  for (let m = 0; m < mitoCount; m++) {
+    const ang = (m / mitoCount) * Math.PI * 2 + 0.4;
+    const dist = baseRadius * 0.64;
+    const mito = new THREE.Mesh(
+      new THREE.CapsuleGeometry(baseRadius * 0.09, baseRadius * 0.18, 6, 10),
+      mitoMat
+    );
+    mito.position.set(
+      Math.cos(ang) * dist,
+      ((m % 2) - 0.5) * baseRadius * 0.45,
+      Math.sin(ang) * dist
+    );
+    mito.rotation.set(m * 0.8, ang, 0.6);
+    cell.add(mito);
+  }
+
+  // 5. Golgi Apparatus (stacked crescent cisternae)
+  const golgiMat = new THREE.MeshStandardMaterial({
+    color: '#34d399',
+    emissive: '#059669',
+    emissiveIntensity: 0.5,
+  });
+  for (let g = 0; g < 3; g++) {
+    const golgi = new THREE.Mesh(
+      new THREE.TorusGeometry(baseRadius * (0.28 + g * 0.05), 0.005 * scale, 6, 14, Math.PI * 0.7),
+      golgiMat
+    );
+    golgi.position.set(-baseRadius * 0.35, -baseRadius * 0.25, baseRadius * 0.22);
+    golgi.rotation.set(0.4, 0.6, 0.2);
+    cell.add(golgi);
+  }
+
+  // 6. Ribosomes / Cytoplasmic Vesicles
+  const riboMat = new THREE.MeshBasicMaterial({ color: '#fef08a' });
+  const riboGeo = new THREE.SphereGeometry(baseRadius * 0.032, 6, 6);
+  for (let r = 0; r < 6; r++) {
+    const ra = (r / 6) * Math.PI * 2 + 1.1;
+    const ribo = new THREE.Mesh(riboGeo, riboMat);
+    ribo.position.set(
+      Math.cos(ra) * baseRadius * 0.56,
+      Math.sin(ra * 2) * baseRadius * 0.32,
+      Math.sin(ra) * baseRadius * 0.56
+    );
+    cell.add(ribo);
+  }
+
+  // 7. Cell-Type Specializations
+  if (cellId === 'cell_cardiomyocyte' || cellId === 'cell_myocyte') {
+    // Internal striated actin-myosin myofibrils
+    const myofibrilMat = new THREE.MeshStandardMaterial({
+      color: '#fda4af',
+      emissive: '#e11d48',
+      emissiveIntensity: 0.35,
+    });
+    for (let f = -1; f <= 1; f += 2) {
+      const fibril = new THREE.Mesh(
+        new THREE.CylinderGeometry(baseRadius * 0.05, baseRadius * 0.05, baseRadius * 1.9, 8),
+        myofibrilMat
+      );
+      fibril.rotation.z = Math.PI / 2;
+      fibril.position.y = f * baseRadius * 0.28;
+      cell.add(fibril);
+    }
+  } else if (cellId === 'cell_pneumocyte') {
+    // Surfactant lamellar bodies inside cytoplasm
+    const lamMat = new THREE.MeshStandardMaterial({
+      color: '#a855f7',
+      emissive: '#7e22ce',
+      emissiveIntensity: 0.6,
+    });
+    for (let l = 0; l < 4; l++) {
+      const a = (l / 4) * Math.PI * 2;
+      const lam = new THREE.Mesh(new THREE.SphereGeometry(baseRadius * 0.13, 10, 10), lamMat);
+      lam.position.set(Math.cos(a) * baseRadius * 0.58, baseRadius * 0.25, Math.sin(a) * baseRadius * 0.58);
+      cell.add(lam);
+    }
+  } else if (cellId === 'cell_enterocyte') {
+    // Apical microvilli brush border
+    const villiMat = new THREE.MeshStandardMaterial({ color: '#f472b6', emissive: '#db2777', emissiveIntensity: 0.35 });
+    for (let v = -3; v <= 3; v++) {
+      const villus = new THREE.Mesh(
+        new THREE.CylinderGeometry(baseRadius * 0.04, baseRadius * 0.04, baseRadius * 0.38, 6),
+        villiMat
+      );
+      villus.position.set(v * baseRadius * 0.18, baseRadius * 1.05, 0);
+      cell.add(villus);
+    }
+  } else if (cellId === 'cell_podocyte') {
+    // Radiating pedicel foot processes
+    const pedMat = new THREE.MeshStandardMaterial({ color: '#a78bfa', emissive: '#7c3aed', emissiveIntensity: 0.4 });
+    for (let p = 0; p < 6; p++) {
+      const pa = (p / 6) * Math.PI * 2;
+      const ped = new THREE.Mesh(
+        new THREE.CylinderGeometry(baseRadius * 0.04, baseRadius * 0.07, baseRadius * 0.65, 6),
+        pedMat
+      );
+      ped.position.set(Math.cos(pa) * baseRadius * 1.15, -baseRadius * 0.15, Math.sin(pa) * baseRadius * 1.15);
+      ped.rotation.z = Math.cos(pa) * 1.1;
+      ped.rotation.x = Math.sin(pa) * 1.1;
+      cell.add(ped);
+    }
+  } else if (cellId === 'cell_neuron') {
+    // Dendritic arbor + myelinated axon
+    const axonMat = new THREE.MeshStandardMaterial({ color: '#fbbf24', emissive: '#d97706', emissiveIntensity: 0.55 });
+    const axon = new THREE.Mesh(new THREE.CylinderGeometry(baseRadius * 0.06, baseRadius * 0.04, baseRadius * 2.1, 8), axonMat);
+    axon.position.set(baseRadius * 1.45, 0, 0);
+    axon.rotation.z = Math.PI / 2;
+    cell.add(axon);
+    // Myelin sheath segments
+    const myelinMat = new THREE.MeshStandardMaterial({ color: '#22d3ee', emissive: '#0891b2', emissiveIntensity: 0.4 });
+    [0.95, 1.55, 2.15].forEach((mx) => {
+      const seg = new THREE.Mesh(new THREE.CapsuleGeometry(baseRadius * 0.13, baseRadius * 0.25, 6, 10), myelinMat);
+      seg.position.set(baseRadius * mx, 0, 0);
+      seg.rotation.z = Math.PI / 2;
+      cell.add(seg);
+    });
+    // Dendrite branches
+    for (let d = 0; d < 4; d++) {
+      const da = (d / 4) * Math.PI * 2 + 0.4;
+      const den = new THREE.Mesh(new THREE.CylinderGeometry(baseRadius * 0.025, baseRadius * 0.055, baseRadius * 0.85, 6), axonMat);
+      den.position.set(-baseRadius * 0.85, Math.cos(da) * baseRadius * 0.55, Math.sin(da) * baseRadius * 0.55);
+      den.rotation.z = 1.1;
+      den.rotation.y = da;
+      cell.add(den);
+    }
+  } else if (cellId === 'osteoclasts') {
+    // Ruffled proton-pump (H+) resorption border
+    const hMat = new THREE.MeshStandardMaterial({ color: '#c084fc', emissive: '#9333ea', emissiveIntensity: 0.7 });
+    for (let r = -2; r <= 2; r++) {
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(baseRadius * 0.1, baseRadius * 0.28, 8), hMat);
+      cone.position.set(r * baseRadius * 0.25, -baseRadius * 1.02, 0);
+      cone.rotation.x = Math.PI;
+      cell.add(cone);
+    }
+  }
 
   if (isDividing) {
-    const bud = new THREE.Mesh(
-      new THREE.SphereGeometry(0.055 * scale, 12, 12),
-      membrane.material
-    );
-    bud.position.set(0.065 * scale, 0.02 * scale, 0);
+    const bud = new THREE.Mesh(new THREE.SphereGeometry(baseRadius * 0.55, 12, 12), membraneMat);
+    bud.position.set(baseRadius * 0.9, baseRadius * 0.25, 0);
     cell.add(bud);
-    const budNuc = new THREE.Mesh(new THREE.SphereGeometry(0.022 * scale, 10, 10), nucleus.material);
-    budNuc.position.copy(bud.position);
-    cell.add(budNuc);
   }
   return cell;
 }
 
 /**
- * Helper: Creates a CPK-accurate Tetrahedral Phosphate (PO4^3-) or Diatomic O2 molecule
+ * Helper: Creates a CPK-accurate Tetrahedral Phosphate, Diatomic O2, or Ca2+ Crystal
  */
 function createMoleculeCluster(type) {
   const g = new THREE.Group();
   if (type === 'phosphate') {
-    const pMat = new THREE.MeshStandardMaterial({ color: '#fb923c', emissive: '#ea580c', emissiveIntensity: 0.35 });
-    const oMat = new THREE.MeshStandardMaterial({ color: '#ef4444', roughness: 0.3 });
-    const bondMat = new THREE.MeshStandardMaterial({ color: '#94a3b8' });
-    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.034, 12, 12), pMat));
+    const pMat = new THREE.MeshStandardMaterial({ color: '#fb923c', emissive: '#ea580c', emissiveIntensity: 0.45 });
+    const oMat = new THREE.MeshStandardMaterial({ color: '#ef4444', roughness: 0.25 });
+    const bondMat = new THREE.MeshStandardMaterial({ color: '#cbd5e1' });
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.044, 14, 14), pMat));
     const dirs = [
       [1, 1, 1],
       [-1, -1, 1],
@@ -375,34 +595,135 @@ function createMoleculeCluster(type) {
       [1, -1, -1],
     ];
     dirs.forEach(([dx, dy, dz]) => {
-      const v = new THREE.Vector3(dx, dy, dz).normalize().multiplyScalar(0.068);
-      const o = new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 10), oMat);
+      const v = new THREE.Vector3(dx, dy, dz).normalize().multiplyScalar(0.086);
+      const o = new THREE.Mesh(new THREE.SphereGeometry(0.032, 12, 12), oMat);
       o.position.copy(v);
       g.add(o);
-      const bond = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.065, 6), bondMat);
+      const bond = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.084, 8), bondMat);
       bond.position.copy(v.clone().multiplyScalar(0.5));
       bond.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), v.clone().normalize());
       g.add(bond);
     });
   } else if (type === 'oxygen') {
-    const oMat = new THREE.MeshStandardMaterial({ color: '#22d3ee', emissive: '#0891b2', emissiveIntensity: 0.5 });
-    const a1 = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 10), oMat);
-    a1.position.x = -0.026;
-    const a2 = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 10), oMat);
-    a2.position.x = 0.026;
-    g.add(a1, a2);
+    const oMat = new THREE.MeshStandardMaterial({ color: '#22d3ee', emissive: '#0891b2', emissiveIntensity: 0.55 });
+    const bondMat = new THREE.MeshStandardMaterial({ color: '#e2e8f0' });
+    const a1 = new THREE.Mesh(new THREE.SphereGeometry(0.04, 14, 14), oMat);
+    a1.position.x = -0.042;
+    const a2 = new THREE.Mesh(new THREE.SphereGeometry(0.04, 14, 14), oMat);
+    a2.position.x = 0.042;
+    const b1 = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.075, 8), bondMat);
+    b1.rotation.z = Math.PI / 2;
+    b1.position.y = 0.012;
+    const b2 = b1.clone();
+    b2.position.y = -0.012;
+    g.add(a1, a2, b1, b2);
   } else {
-    // Calcium / Ion crystalline lattice node
+    // Ca2+ octahedral crystal core + hydration shell
     const caMat = new THREE.MeshStandardMaterial({
-      color: '#e2e8f0',
+      color: '#f8fafc',
       emissive: '#38bdf8',
-      emissiveIntensity: 0.4,
-      metalness: 0.3,
-      roughness: 0.2,
+      emissiveIntensity: 0.45,
+      metalness: 0.35,
+      roughness: 0.18,
     });
-    g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.042, 0), caMat));
+    g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.056, 0), caMat));
+    const shell = new THREE.Mesh(
+      new THREE.TorusGeometry(0.085, 0.004, 6, 24),
+      new THREE.MeshBasicMaterial({ color: '#38bdf8', transparent: true, opacity: 0.55 })
+    );
+    shell.rotation.x = Math.PI / 3;
+    g.add(shell);
   }
   return g;
+}
+
+/**
+ * Helper: Creates a distinct 3D signaling protein dimer, lipid micelle, or actin-myosin complex.
+ */
+function createSignalingOrMatrixModel(id, colorHex = '#f43f5e') {
+  const g = new THREE.Group();
+  if (id === 'comp_surfactant' || id === 'comp_mucin' || id === 'comp_myelin_ions') {
+    // Phospholipid / Myelin Micelle Ring (hydrophilic heads + hydrophobic tails)
+    const headMat = new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 0.45 });
+    const tailMat = new THREE.MeshStandardMaterial({ color: '#fef08a', roughness: 0.4 });
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), headMat);
+      head.position.set(Math.cos(a) * 0.085, Math.sin(a) * 0.085, 0);
+      g.add(head);
+      const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.055, 6), tailMat);
+      tail.position.set(Math.cos(a) * 0.052, Math.sin(a) * 0.052, 0);
+      tail.rotation.z = a + Math.PI / 2;
+      g.add(tail);
+    }
+    return g;
+  }
+
+  if (id === 'comp_atp_actin') {
+    // Actin double filament + pulsing ATP energy sphere
+    const actMat = new THREE.MeshStandardMaterial({ color: '#f59e0b', emissive: '#d97706', emissiveIntensity: 0.45 });
+    const atpMat = new THREE.MeshStandardMaterial({ color: '#fef08a', emissive: '#eab308', emissiveIntensity: 0.8 });
+    const f1 = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.18, 8), actMat);
+    f1.rotation.z = 0.3;
+    const f2 = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.18, 8), actMat);
+    f2.rotation.z = -0.3;
+    const atp = new THREE.Mesh(new THREE.OctahedronGeometry(0.036, 1), atpMat);
+    g.add(f1, f2, atp);
+    return g;
+  }
+
+  // Growth Factor / Morphogen Protein Dimer (two folded domains + active receptor cleft)
+  const domMat = new THREE.MeshPhysicalMaterial({
+    color: colorHex,
+    emissive: colorHex,
+    emissiveIntensity: 0.45,
+    roughness: 0.25,
+    clearcoat: 0.6,
+  });
+  const cleftMat = new THREE.MeshStandardMaterial({
+    color: '#f8fafc',
+    emissive: '#22d3ee',
+    emissiveIntensity: 0.75,
+  });
+  const left = new THREE.Mesh(new THREE.DodecahedronGeometry(0.048, 1), domMat);
+  left.position.set(-0.042, 0, 0);
+  const right = new THREE.Mesh(new THREE.DodecahedronGeometry(0.048, 1), domMat);
+  right.position.set(0.042, 0, 0);
+  const cleft = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.009, 8, 18), cleftMat);
+  cleft.position.y = 0.035;
+  g.add(left, right, cleft);
+  return g;
+}
+
+/**
+ * Public factory: Builds a single centered 3D model for ANY biology element ID.
+ * Shared 1:1 between the live 3D Bioreactor Chamber and the 3D Element Card Icon Renderer.
+ */
+export function createSingleElement3DModel(id, colorHex = '#38bdf8', opts = {}) {
+  const { scale = 1, isDividing = false } = opts;
+
+  if (id.startsWith('cell_') || id === 'mesenchymal_cells' || id === 'osteoclasts') {
+    return createRealisticCellMesh(id, colorHex, scale, isDividing);
+  }
+  if (
+    id === 'collagen_i' ||
+    id === 'collagen_ii' ||
+    id === 'comp_tendon_ecm' ||
+    id === 'comp_gbm'
+  ) {
+    const colColor = id === 'collagen_ii' ? '#60a5fa' : id === 'comp_gbm' ? '#10b981' : '#f59e0b';
+    const helix = createCollagenHelixGroup(colColor, 0.26 * scale, 0.055 * scale);
+    helix.rotation.z = 0.45;
+    return helix;
+  }
+  if (id === 'phosphate' || id === 'oxygen' || id === 'calcium') {
+    const mol = createMoleculeCluster(id);
+    mol.scale.setScalar(scale * 1.15);
+    return mol;
+  }
+  const model = createSignalingOrMatrixModel(id, colorHex);
+  model.scale.setScalar(scale * 1.15);
+  return model;
 }
 
 /**
@@ -419,65 +740,33 @@ export function buildRealisticElementCluster(elementIds, opts = {}) {
     const baseAngle = (idx / Math.max(1, elementIds.length)) * Math.PI * 2;
 
     if (id.startsWith('cell_') || id === 'mesenchymal_cells') {
-      const count = 8 + Math.floor(progress * 10);
+      const count = 7 + Math.floor(progress * 7);
       for (let i = 0; i < count; i++) {
         const phi = Math.acos(1 - (2 * (i + 0.5)) / count);
         const theta = Math.PI * (1 + Math.sqrt(5)) * i + baseAngle;
-        const c = createRealisticCellMesh(cellColor, 0.85, progress > 0.12 && i % 3 === 0);
+        const c = createRealisticCellMesh(id, cellColor, 0.88, progress > 0.12 && i % 3 === 0);
         c.position.set(
           Math.sin(phi) * Math.cos(theta) * spread * 0.72,
           Math.cos(phi) * spread * 0.85 - 0.08,
           Math.sin(phi) * Math.sin(theta) * spread * 0.72
         );
+        c.rotation.set(i * 0.4, theta, 0);
         group.add(c);
       }
     } else if (
       id === 'collagen_i' ||
       id === 'collagen_ii' ||
       id === 'comp_tendon_ecm' ||
-      id === 'comp_surfactant' ||
-      id === 'comp_gbm' ||
-      id === 'comp_mucin'
+      id === 'comp_gbm'
     ) {
-      const colColor = id === 'collagen_ii' ? '#60a5fa' : '#f59e0b';
+      const colColor = id === 'collagen_ii' ? '#60a5fa' : id === 'comp_gbm' ? '#10b981' : '#f59e0b';
       const helix = createCollagenHelixGroup(colColor, 1.15, 0.22 + (1 - condenseRatio) * 0.14);
       helix.position.y = -0.08;
       group.add(helix);
-    } else if (
-      id.includes('vegf') ||
-      id.includes('egf') ||
-      id.includes('fgf') ||
-      id.includes('wnt') ||
-      id.includes('gdnf') ||
-      id.includes('igf1') ||
-      id.includes('ngf')
-    ) {
-      // Morphogen Dimer Ligands + Signaling Halo
-      const ligMat = new THREE.MeshStandardMaterial({
-        color: '#f43f5e',
-        emissive: '#e11d48',
-        emissiveIntensity: 0.7,
-      });
-      for (let m = 0; m < 6; m++) {
-        const a = (m / 6) * Math.PI * 2 + baseAngle;
-        const dimer = new THREE.Group();
-        const s1 = new THREE.Mesh(new THREE.SphereGeometry(0.032, 10, 10), ligMat);
-        s1.position.x = -0.022;
-        const s2 = new THREE.Mesh(new THREE.SphereGeometry(0.032, 10, 10), ligMat);
-        s2.position.x = 0.022;
-        dimer.add(s1, s2);
-        dimer.position.set(
-          Math.cos(a) * (spread + 0.12),
-          ((m % 3) - 1) * 0.34 - 0.08,
-          Math.sin(a) * (spread + 0.12)
-        );
-        group.add(dimer);
-      }
-    } else if (id === 'phosphate' || id === 'oxygen' || id === 'calcium' || id === 'comp_myelin_ions') {
-      const molType = id === 'phosphate' ? 'phosphate' : id === 'oxygen' ? 'oxygen' : 'calcium';
+    } else if (id === 'phosphate' || id === 'oxygen' || id === 'calcium') {
       for (let m = 0; m < 7; m++) {
         const a = (m / 7) * Math.PI * 2 + baseAngle;
-        const mol = createMoleculeCluster(molType);
+        const mol = createMoleculeCluster(id);
         mol.position.set(
           Math.cos(a) * (spread * 0.85),
           ((m % 5) - 2) * 0.24 - 0.08,
@@ -489,23 +778,22 @@ export function buildRealisticElementCluster(elementIds, opts = {}) {
     } else if (id === 'osteoclasts') {
       for (let k = 0; k < 4; k++) {
         const a = (k / 4) * Math.PI * 2;
-        const ocl = createRealisticCellMesh('#c084fc', 1.25, true);
+        const ocl = createRealisticCellMesh('osteoclasts', '#c084fc', 1.1, false);
         ocl.position.set(Math.cos(a) * 0.28, (k - 1.5) * 0.28 - 0.08, Math.sin(a) * 0.28);
         group.add(ocl);
       }
     } else {
-      // ATP / Actin-Myosin Filaments
-      const actMat = new THREE.MeshStandardMaterial({
-        color: '#fbbf24',
-        emissive: '#d97706',
-        emissiveIntensity: 0.45,
-      });
-      for (let f = 0; f < 4; f++) {
-        const a = (f / 4) * Math.PI * 2;
-        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.85, 8), actMat);
-        rod.position.set(Math.cos(a) * spread * 0.5, -0.08, Math.sin(a) * spread * 0.5);
-        rod.rotation.z = 0.25 * (f % 2 === 0 ? 1 : -1);
-        group.add(rod);
+      // Morphogens, Lipids, Myelin, ATP-Actin
+      for (let m = 0; m < 6; m++) {
+        const a = (m / 6) * Math.PI * 2 + baseAngle;
+        const model = createSignalingOrMatrixModel(id, cellColor);
+        model.position.set(
+          Math.cos(a) * (spread + 0.08),
+          ((m % 3) - 1) * 0.32 - 0.08,
+          Math.sin(a) * (spread + 0.08)
+        );
+        model.rotation.set(m * 0.5, a, 0);
+        group.add(model);
       }
     }
   });
