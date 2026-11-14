@@ -10,6 +10,7 @@ import {
 } from '../../utils/zAnatomyOrganLoader';
 import {
   createChamberComposer,
+  setupChamberStudioLighting,
   buildSophisticatedChamberChassis,
   buildRealisticElementCluster,
   buildVascularSproutTree,
@@ -176,6 +177,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
   const mountRef = useRef(null);
   const tissueGroupRef = useRef(null);
   const effectsUpdaterRef = useRef(null);
+  const loadedOrganRef = useRef({ key: null, glb: null });
   const telemetryRef = useRef({ isActive: false, o2Level: 21, morphogenLevel: 70, liquidColor: '#ef4444', isGrown: false, organKey: 'heart' });
 
   const baseRecipe = INCUBATOR_RECIPES[systemId] || INCUBATOR_RECIPES.cardiovascular_system;
@@ -212,13 +214,12 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
 
   const synthesizeFullOrganChain = useBioStore((s) => s.synthesizeFullOrganChain);
   const fabricateOrganForAnatomy = useAnatomyStore((s) => s.fabricateOrganForAnatomy);
-  const bioprintedTissues = useAnatomyStore((s) => s.bioprintedTissues) || {};
 
   const loadedIds = loadedBySystem[recipe.id] || [];
   const allComponentsLoaded = recipe.components.every((c) => loadedIds.includes(c.id));
   const growth = growthProgressBySystem[recipe.id] || 0;
   const isRunning = Boolean(runningBySystem[recipe.id]);
-  const isGrown = growth >= 100 || Boolean(bioprintedTissues[recipe.anatomyTissueId]);
+  const isGrown = growth >= 100;
   const elapsedSec = elapsedBySystem[recipe.id] || 0;
 
   const isTempOptimal = tempC >= 35.5 && tempC <= 38.5;
@@ -303,13 +304,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
     camera.position.set(0, 0.25, 4.75);
     camera.lookAt(0, -0.05, 0);
 
-    scene.add(new THREE.AmbientLight(0xf1f5f9, 1.15));
-    const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.3);
-    keyLight.position.set(4, 6, 5);
-    scene.add(keyLight);
-    const rimLight = new THREE.PointLight('#22d3ee', 1.7, 10);
-    rimLight.position.set(-2.5, 1.2, 2.5);
-    scene.add(rimLight);
+    const disposeEnv = setupChamberStudioLighting(renderer, scene);
 
     const { chamberGroup, tissueRoot, updateEffects } = buildSophisticatedChamberChassis(
       scene,
@@ -375,7 +370,9 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
       window.removeEventListener('pointerup', onUp);
       tissueGroupRef.current = null;
       effectsUpdaterRef.current = null;
+      loadedOrganRef.current = { key: null, glb: null };
       composer.dispose();
+      disposeEnv();
       disposeHierarchy(scene);
       renderer.dispose();
     };
@@ -388,13 +385,22 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
     if (!tissueRoot) return;
 
     let isCancelled = false;
-    while (tissueRoot.children.length > 0) {
-      const child = tissueRoot.children[0];
+    const zId = recipe.zAnatomyId || recipe.id;
+    const organCacheKey = `${recipe.id}::${recipe.singleOrganKey || zId}`;
+    const prog = isGrown ? 1 : Math.max(0, Math.min(1, growth / 100));
+
+    // Remove only non-GLB transient cluster/vascular children (or previous organ if switching)
+    const shouldShowGlb = isGrown || prog >= 0.45;
+    const existingGlb = loadedOrganRef.current.key === organCacheKey ? loadedOrganRef.current.glb : null;
+
+    Array.from(tissueRoot.children).forEach((child) => {
+      if (shouldShowGlb && child === existingGlb) return;
       tissueRoot.remove(child);
       disposeHierarchy(child);
+    });
+    if (loadedOrganRef.current.key !== organCacheKey) {
+      loadedOrganRef.current = { key: null, glb: null };
     }
-
-    const prog = isGrown ? 1 : Math.max(0, Math.min(1, growth / 100));
 
     // Stage 1 & 2: Realistic 3D biological elements + sprouting capillary network
     if (!isGrown && loadedIds.length > 0 && prog < 0.85) {
@@ -412,22 +418,31 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
     }
 
     // Stage 3 & 4: Emerging Z-Anatomy bio-scaffold -> Solidified Physiological Organ
-    if (isGrown || prog >= 0.45) {
-      const zId = recipe.zAnatomyId || recipe.id;
-      const loadTarget = recipe.singleOrganKey
-        ? loadFocusedSingleOrgan(recipe.singleOrganKey)
-        : loadZAnatomyOrganModel(zId);
-
-      loadTarget.then((glb) => {
-        if (isCancelled || !glb || !tissueGroupRef.current) return;
-        applyMorphogeneticStageToOrgan(glb, {
+    if (shouldShowGlb) {
+      if (existingGlb) {
+        applyMorphogeneticStageToOrgan(existingGlb, {
           progress: prog,
           isMatured: isGrown,
           zAnatomyId: zId,
           scaffoldColor: recipe.cellColor,
         });
-        tissueRoot.add(glb);
-      });
+      } else {
+        const loadTarget = recipe.singleOrganKey
+          ? loadFocusedSingleOrgan(recipe.singleOrganKey)
+          : loadZAnatomyOrganModel(zId);
+
+        loadTarget.then((glb) => {
+          if (isCancelled || !glb || !tissueGroupRef.current) return;
+          loadedOrganRef.current = { key: organCacheKey, glb };
+          applyMorphogeneticStageToOrgan(glb, {
+            progress: prog,
+            isMatured: isGrown,
+            zAnatomyId: zId,
+            scaffoldColor: recipe.cellColor,
+          });
+          tissueRoot.add(glb);
+        });
+      }
     }
 
     return () => {

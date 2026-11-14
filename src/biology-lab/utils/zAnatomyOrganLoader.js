@@ -148,7 +148,24 @@ function shouldIncludeMeshInFocusedOrganView(systemId, meshName = '', boxCenterY
       n.includes('mesocolon') ||
       n.includes('meso-') ||
       n.includes('taenia') ||
-      n.includes('peritone')
+      n.includes('peritone') ||
+      n.includes('pleura') ||
+      n.includes('gingiva') ||
+      n.includes('parotid') ||
+      n.includes('sublingual') ||
+      n.includes('submandibular') ||
+      n.includes('palate') ||
+      n.includes('uvula') ||
+      n.includes('tongue') ||
+      n.includes('nasal') ||
+      n.includes('hypophysis') ||
+      n.includes('pineal') ||
+      n.includes('pharynx') ||
+      n.includes('epiglottis') ||
+      n.includes('prostate') ||
+      n.includes('seminal') ||
+      n.includes('ductus deferens') ||
+      n.includes('ejaculatory')
     ) {
       return false;
     }
@@ -193,7 +210,7 @@ export async function loadZAnatomyOrganModel(systemId) {
       return;
     }
 
-    const meshClone = child.clone();
+    const meshClone = child.clone(false);
     meshClone.position.set(0, 0, 0);
     meshClone.rotation.set(0, 0, 0);
     meshClone.scale.set(1, 1, 1);
@@ -260,7 +277,11 @@ const SINGLE_ORGAN_FILTERS = {
         n.includes('papillary') ||
         n.includes('chordae') ||
         n.includes('interventricular') ||
-        n.includes('pericard')) &&
+        n.includes('pericard') ||
+        n.includes('ascending aorta') ||
+        n.includes('arch of aorta') ||
+        n.includes('pulmonary trunk') ||
+        n.includes('superior vena cava')) &&
       !n.includes('rib') &&
       !n.includes('subclavian') &&
       !n.includes('brachiocephalic'),
@@ -297,23 +318,27 @@ const SINGLE_ORGAN_FILTERS = {
     url: '/models/nervous.glb',
     systemId: 'nervous_system',
     match: (n) =>
-      n.includes('cerebr') ||
-      n.includes('cortex') ||
-      n.includes('gyrus') ||
-      n.includes('sulcus') ||
-      n.includes('lobe') ||
-      n.includes('cerebell') ||
-      n.includes('pons') ||
-      n.includes('medulla') ||
-      n.includes('midbrain') ||
-      n.includes('thalam') ||
-      n.includes('hippocamp') ||
-      n.includes('callosum') ||
-      n.includes('ventricle') ||
-      n.includes('brain') ||
-      n.includes('amygdala') ||
-      n.includes('caudate') ||
-      n.includes('putamen'),
+      (n.includes('cerebr') ||
+        n.includes('cortex') ||
+        n.includes('gyrus') ||
+        n.includes('sulcus') ||
+        n.includes('lobe') ||
+        n.includes('cerebell') ||
+        n.includes('pons') ||
+        n.includes('medulla') ||
+        n.includes('midbrain') ||
+        n.includes('thalam') ||
+        n.includes('hippocamp') ||
+        n.includes('callosum') ||
+        n.includes('ventricle') ||
+        n.includes('brain') ||
+        n.includes('amygdala') ||
+        n.includes('caudate') ||
+        n.includes('putamen')) &&
+      !n.includes('spino') &&
+      !n.includes('spinal') &&
+      !n.includes('falx') &&
+      !n.includes('tentorium'),
   },
 };
 
@@ -344,7 +369,7 @@ export async function loadFocusedSingleOrgan(organKey) {
     const n = rawName.toLowerCase();
     if (!cfg.match(n)) return;
 
-    const meshClone = child.clone();
+    const meshClone = child.clone(false);
     meshClone.position.set(0, 0, 0);
     meshClone.rotation.set(0, 0, 0);
     meshClone.scale.set(1, 1, 1);
@@ -413,77 +438,113 @@ export function applyOrganSubPartMaterials(
     let color = 0x38bdf8;
     let emissive = 0x0c4a6e;
     let roughness = 0.28;
+    let clearcoat = 0.82;
     let transmission = 0.0;
     let opacity = 1.0;
 
     if (systemId === 'cardiovascular_system') {
-      if (n.includes('vein') || n.includes('vena') || n.includes('right atrium') || n.includes('right ventricle')) {
+      if (n.includes('vein') || n.includes('vena') || n.includes('right atrium') || n.includes('right ventricle') || n.includes('pulmonary trunk')) {
         color = 0x2563eb;
-        emissive = 0x1e3a8a;
+        emissive = 0x172554;
+        roughness = 0.26;
       } else if (n.includes('valve') || n.includes('cusp') || n.includes('chordae')) {
         color = 0xfef3c7;
         emissive = 0x78350f;
+        roughness = 0.22;
       } else if (n.includes('coronary')) {
-        color = 0xfbbf24;
-        emissive = 0xb45309;
+        color = 0xf59e0b;
+        emissive = 0x92400e;
+        roughness = 0.24;
       } else {
         color = 0xdc2626;
-        emissive = 0x7f1d1d;
+        emissive = 0x690f12;
+        roughness = 0.25;
       }
     } else if (systemId === 'visceral_system') {
       if (n.includes('trachea') || n.includes('bronch') || n.includes('cartilage')) {
-        color = 0x7dd3fc;
-        emissive = 0x0369a1;
+        color = 0xbae6fd;
+        emissive = 0x075985;
+        roughness = 0.24;
       } else if (n.includes('lung')) {
-        color = 0xf472b6;
-        emissive = 0x831843;
-        transmission = 0.45;
-        opacity = 0.85;
+        color = 0xf48fb1;
+        emissive = 0x6d1b3b;
+        roughness = 0.38;
+        clearcoat = 0.65;
+        transmission = 0.25;
+        opacity = 0.92;
       } else if (n.includes('liver') || n.includes('hepat')) {
-        color = 0x991b1b;
-        emissive = 0x450a0a;
+        color = 0x8b2626;
+        emissive = 0x3b0a0a;
+        roughness = 0.22;
       } else if (n.includes('gallbladder') || n.includes('bile')) {
         color = 0x10b981;
         emissive = 0x064e3b;
+        roughness = 0.2;
+      } else if (n.includes('kidney') || n.includes('renal')) {
+        color = 0x9f1239;
+        emissive = 0x4c0519;
+        roughness = 0.22;
+      } else if (n.includes('pancreas')) {
+        color = 0xfbbf24;
+        emissive = 0x78350f;
+        roughness = 0.35;
+      } else if (n.includes('colon') || n.includes('duoden') || n.includes('jejun') || n.includes('ileum') || n.includes('intestin') || n.includes('appendix')) {
+        color = 0xfda4af;
+        emissive = 0x6b1d2f;
+        roughness = 0.3;
       } else {
         color = 0xfb7185;
-        emissive = 0x881337;
+        emissive = 0x6b1028;
+        roughness = 0.28;
       }
     } else if (systemId === 'nervous_system') {
       if (n.includes('ventricle') || n.includes('choroid')) {
         color = 0x38bdf8;
-        emissive = 0x0284c7;
+        emissive = 0x0369a1;
+        roughness = 0.18;
       } else if (n.includes('nerve') || n.includes('spinal') || n.includes('tract')) {
-        color = 0xfacc15;
-        emissive = 0x854d0e;
+        color = 0xfde047;
+        emissive = 0x713f12;
+        roughness = 0.3;
+      } else if (n.includes('cerebell') || n.includes('pons') || n.includes('medulla')) {
+        color = 0xe7c6b8;
+        emissive = 0x4a251d;
+        roughness = 0.42;
+        clearcoat = 0.5;
       } else {
-        color = 0xf59e0b;
-        emissive = 0x78350f;
+        color = 0xe8bfb4;
+        emissive = 0x431c17;
+        roughness = 0.38;
+        clearcoat = 0.6;
       }
     } else if (systemId === 'muscular_system') {
-      if (n.includes('ligament') || n.includes('tendon') || n.includes('capsule')) {
+      if (n.includes('ligament') || n.includes('tendon') || n.includes('capsule') || n.includes('aponeurosis') || n.includes('fascia') || n.includes('linea')) {
         color = 0xe2e8f0;
         emissive = 0x334155;
+        roughness = 0.32;
       } else {
-        color = 0xe11d48;
-        emissive = 0x881337;
+        color = 0xc81e3a;
+        emissive = 0x4c0519;
+        roughness = 0.34;
+        clearcoat = 0.65;
       }
     } else {
       // skeletal_system
-      color = 0xf8fafc;
+      color = 0xf5efe6;
       emissive = 0x1e293b;
-      roughness = 0.25;
+      roughness = 0.32;
+      clearcoat = 0.55;
     }
 
     child.material = new THREE.MeshPhysicalMaterial({
       color,
       emissive,
-      emissiveIntensity: 0.28,
+      emissiveIntensity: 0.24,
       roughness,
       transmission,
       transparent: opacity < 1.0,
       opacity,
-      clearcoat: 0.85,
+      clearcoat,
       side: THREE.DoubleSide,
       clippingPlanes: clipPlanes,
       clipShadows: true

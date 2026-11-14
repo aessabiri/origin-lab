@@ -3,7 +3,51 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { applyOrganSubPartMaterials } from './zAnatomyOrganLoader';
+
+/**
+ * Configures cinematic PBR tone mapping, studio PMREM environment reflections,
+ * and balanced warm-key + cyan-rim clinical lighting for bioreactor chambers.
+ */
+export function setupChamberStudioLighting(renderer, scene) {
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.12;
+
+  let envRT = null;
+  try {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const env = new RoomEnvironment();
+    envRT = pmrem.fromScene(env, 0.04);
+    scene.environment = envRT.texture;
+    env.dispose();
+    pmrem.dispose();
+  } catch {
+    // Fallback cleanly in headless/mocked WebGL contexts
+  }
+
+  scene.add(new THREE.HemisphereLight(0xf8fafc, 0x0f172a, 0.95));
+
+  const keyLight = new THREE.DirectionalLight(0xfff7ed, 2.1);
+  keyLight.position.set(3.8, 5.5, 4.8);
+  scene.add(keyLight);
+
+  const rimLight = new THREE.PointLight('#22d3ee', 1.85, 11);
+  rimLight.position.set(-2.6, 1.4, -1.8);
+  scene.add(rimLight);
+
+  const fillLight = new THREE.PointLight('#38bdf8', 0.9, 9);
+  fillLight.position.set(2.2, -1.4, 2.4);
+  scene.add(fillLight);
+
+  return () => {
+    if (envRT) {
+      envRT.dispose();
+      envRT = null;
+    }
+    scene.environment = null;
+  };
+}
 
 /**
  * Creates a post-processing EffectComposer with subtle UnrealBloomPass for bioluminescent
@@ -861,9 +905,12 @@ export function applyMorphogeneticStageToOrgan(
   { progress = 1, isMatured = true, zAnatomyId = 'cardiovascular_system', clipPlane = null, scaffoldColor = '#22d3ee' }
 ) {
   if (!glb) return;
+  if (glb.userData.baseScale == null) {
+    glb.userData.baseScale = glb.scale.x || 1;
+  }
 
   if (isMatured || progress >= 0.96) {
-    glb.scale.multiplyScalar(0.88);
+    glb.scale.setScalar(glb.userData.baseScale * 0.88);
     applyOrganSubPartMaterials(glb, zAnatomyId, [], true, clipPlane);
     return;
   }
@@ -871,7 +918,7 @@ export function applyMorphogeneticStageToOrgan(
   // Emerging bio-scaffold phase (45% .. 95%)
   const phaseNorm = Math.max(0, Math.min(1, (progress - 0.42) / 0.54));
   const scaleFactor = 0.62 + phaseNorm * 0.26;
-  glb.scale.multiplyScalar(scaleFactor);
+  glb.scale.setScalar(glb.userData.baseScale * scaleFactor);
 
   const isScaffoldWire = progress < 0.7;
   const mat = new THREE.MeshPhysicalMaterial({

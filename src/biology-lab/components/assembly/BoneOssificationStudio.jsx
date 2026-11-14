@@ -13,6 +13,7 @@ import {
 } from '../../utils/zAnatomyOrganLoader';
 import {
   createChamberComposer,
+  setupChamberStudioLighting,
   buildSophisticatedChamberChassis,
   buildRealisticElementCluster,
   buildVascularSproutTree,
@@ -43,6 +44,7 @@ const disposeHierarchy = (root) => {
 const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   const mountRef = useRef(null);
   const tissueGroupRef = useRef(null);
+  const loadedBoneRef = useRef({ key: null, glb: null });
   const stressAnimRef = useRef({ activeUntil: 0, status: null });
   const telemetryRef = useRef({ isActive: true, o2Level: 21, morphogenLevel: 65, liquidColor: '#0ea5e9' });
 
@@ -124,13 +126,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
     camera.position.set(0, 0.25, 4.75);
     camera.lookAt(0, -0.05, 0);
 
-    scene.add(new THREE.AmbientLight(0xf1f5f9, 1.15));
-    const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.3);
-    keyLight.position.set(4, 6, 5);
-    scene.add(keyLight);
-    const liquidGlow = new THREE.PointLight('#0ea5e9', 1.8, 10);
-    liquidGlow.position.set(0, 0.1, 1.5);
-    scene.add(liquidGlow);
+    const disposeEnv = setupChamberStudioLighting(renderer, scene);
 
     const { chamberGroup, tissueRoot, updateEffects } = buildSophisticatedChamberChassis(
       scene,
@@ -194,7 +190,9 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       tissueGroupRef.current = null;
+      loadedBoneRef.current = { key: null, glb: null };
       composer.dispose();
+      disposeEnv();
       disposeHierarchy(scene);
       renderer.dispose();
     };
@@ -213,10 +211,20 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
     if (!tissueRoot) return;
 
     let isCancelled = false;
-    while (tissueRoot.children.length > 0) {
-      const child = tissueRoot.children[0];
+    const boneKey = massBoneCount >= 206 ? 'skeletal_system' : 'femur';
+    const scaffoldReady =
+      showHyperRealAnatomy ||
+      isCertified ||
+      (sim.pathway === 'endochondral' ? sim.cartilageTemplate >= 45 : sim.condensation >= 50);
+
+    const existingGlb = loadedBoneRef.current.key === boneKey ? loadedBoneRef.current.glb : null;
+    Array.from(tissueRoot.children).forEach((child) => {
+      if (scaffoldReady && child === existingGlb) return;
       tissueRoot.remove(child);
       disposeHierarchy(child);
+    });
+    if (loadedBoneRef.current.key !== boneKey) {
+      loadedBoneRef.current = { key: null, glb: null };
     }
 
     const clipPlane = null;
@@ -249,28 +257,38 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       }
     }
 
-    const scaffoldReady =
-      showHyperRealAnatomy ||
-      isCertified ||
-      (sim.pathway === 'endochondral' ? sim.cartilageTemplate >= 45 : sim.condensation >= 50);
-
     if (scaffoldReady) {
-      const loadTarget =
-        massBoneCount >= 206
-          ? loadZAnatomyOrganModel('skeletal_system')
-          : loadFocusedSingleOrgan('femur');
+      const isMatured = showHyperRealAnatomy || isCertified;
+      const prog = isMatured ? 1 : Math.max(0.45, overallProgress);
+      const scaffoldColor = sim.mineralization > 35 ? '#f59e0b' : '#38bdf8';
 
-      loadTarget.then((glb) => {
-        if (isCancelled || !glb || !tissueGroupRef.current) return;
-        applyMorphogeneticStageToOrgan(glb, {
-          progress: showHyperRealAnatomy || isCertified ? 1 : Math.max(0.45, overallProgress),
-          isMatured: showHyperRealAnatomy || isCertified,
+      if (existingGlb) {
+        applyMorphogeneticStageToOrgan(existingGlb, {
+          progress: prog,
+          isMatured,
           zAnatomyId: 'skeletal_system',
           clipPlane,
-          scaffoldColor: sim.mineralization > 35 ? '#f59e0b' : '#38bdf8',
+          scaffoldColor,
         });
-        tissueRoot.add(glb);
-      });
+      } else {
+        const loadTarget =
+          massBoneCount >= 206
+            ? loadZAnatomyOrganModel('skeletal_system')
+            : loadFocusedSingleOrgan('femur');
+
+        loadTarget.then((glb) => {
+          if (isCancelled || !glb || !tissueGroupRef.current) return;
+          loadedBoneRef.current = { key: boneKey, glb };
+          applyMorphogeneticStageToOrgan(glb, {
+            progress: prog,
+            isMatured,
+            zAnatomyId: 'skeletal_system',
+            clipPlane,
+            scaffoldColor,
+          });
+          tissueRoot.add(glb);
+        });
+      }
     }
 
     return () => {

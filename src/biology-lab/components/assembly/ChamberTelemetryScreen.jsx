@@ -300,8 +300,69 @@ const ChamberTelemetryScreen = ({
           ctx.fillStyle = '#fbbf24';
           ctx.fill();
         });
+      } else if (s.organType === 'intestines') {
+        // Enteric Villi & Lacteal Capillaries
+        const wave = Math.sin(t * 2.2) * 3;
+        for (let v = -2; v <= 2; v++) {
+          const vx = cx + v * 34;
+          ctx.beginPath();
+          ctx.moveTo(vx - 14, cy + 44);
+          ctx.quadraticCurveTo(vx + wave, cy - 52, vx + 14, cy + 44);
+          ctx.fillStyle = 'rgba(244, 114, 182, 0.14)';
+          ctx.fill();
+          ctx.strokeStyle = '#f472b6';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Central lacteal capillary
+          ctx.beginPath();
+          ctx.moveTo(vx, cy + 40);
+          ctx.lineTo(vx + wave * 0.5, cy - 16);
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        }
+      } else if (s.organType === 'kidneys') {
+        // Renal Glomerulus & Bowman's Capsule
+        ctx.beginPath();
+        ctx.arc(cx, cy, 44, 0.35, Math.PI * 2 - 0.35);
+        ctx.strokeStyle = '#a78bfa';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Capillary tuft
+        for (let loop = 0; loop < 5; loop++) {
+          const a = (loop / 5) * Math.PI * 2 + t * 0.4;
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(a) * 14, cy + Math.sin(a) * 14, 12, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(244, 63, 94, 0.78)';
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+        }
+      } else if (s.organType === 'muscular_system') {
+        // Striated Skeletal Muscle Sarcomeres (Z-discs + A/I bands)
+        const contract = Math.sin(t * 3.0) * 3;
+        for (let row = -2; row <= 2; row++) {
+          const ry = cy + row * 22;
+          ctx.strokeStyle = '#f43f5e';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(cx - 72, ry);
+          ctx.lineTo(cx + 72, ry);
+          ctx.stroke();
+          // Z-discs
+          ctx.strokeStyle = '#fda4af';
+          ctx.lineWidth = 1.4;
+          for (let z = -3; z <= 3; z++) {
+            const zx = cx + z * (20 + contract);
+            ctx.beginPath();
+            ctx.moveTo(zx, ry - 6);
+            ctx.lineTo(zx, ry + 6);
+            ctx.stroke();
+          }
+        }
       } else {
-        // Hepatic Lobule / Nephron Hexagonal Tissue
+        // Hepatic Lobule Hexagonal Tissue (Liver / Visceral)
         ctx.strokeStyle = s.accentColor;
         ctx.lineWidth = 1.4;
         ctx.beginPath();
