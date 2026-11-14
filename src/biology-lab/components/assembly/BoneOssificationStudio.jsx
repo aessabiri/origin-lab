@@ -10,8 +10,14 @@ import {
 import {
   loadZAnatomyOrganModel,
   loadFocusedSingleOrgan,
-  applyOrganSubPartMaterials,
 } from '../../utils/zAnatomyOrganLoader';
+import {
+  buildSophisticatedChamberChassis,
+  buildRealisticElementCluster,
+  buildVascularSproutTree,
+  applyMorphogeneticStageToOrgan,
+} from '../../utils/chamberVisualEffects';
+import ChamberTelemetryScreen from './ChamberTelemetryScreen';
 import { useBioStore } from '../../store';
 import { useAnatomyStore } from '../../../anatomy-lab/store';
 import { useStore } from '../../../store';
@@ -37,6 +43,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   const mountRef = useRef(null);
   const tissueGroupRef = useRef(null);
   const stressAnimRef = useRef({ activeUntil: 0, status: null });
+  const telemetryRef = useRef({ isActive: true, o2Level: 21, morphogenLevel: 65, liquidColor: '#0ea5e9' });
 
   const [sim, setSim] = useState(() =>
     createInitialOssificationState('endochondral', { prefilled: true })
@@ -45,6 +52,16 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   const [showHyperRealAnatomy, setShowHyperRealAnatomy] = useState(false);
   const [massBoneCount, setMassBoneCount] = useState(0);
   const [massIncubating, setMassIncubating] = useState(false);
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const [interactions, setInteractions] = useState([
+    {
+      id: 'init-1',
+      time: '00:00',
+      tag: 'HOX BLUEPRINT',
+      text: 'BMP-2/Wnt morphogens priming Mesenchymal Stem Cell condensation.',
+      color: '#38bdf8',
+    },
+  ]);
 
   const synthesizeFullOrganChain = useBioStore((s) => s.synthesizeFullOrganChain);
   const fabricateOrganForAnatomy = useAnatomyStore((s) => s.fabricateOrganForAnatomy);
@@ -53,10 +70,37 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
   const stressEval = useMemo(() => evaluateMechanicalStressTest(sim), [sim]);
   const isCertified = stressEval.status === 'CERTIFIED' && sim.marrowCavity >= 60;
 
-  // Biological simulation tick (250ms)
+  const pushBoneInteraction = (tag, text, color = '#22d3ee', secVal = elapsedSec) => {
+    const timeStr = `${String(Math.floor(secVal / 60)).padStart(2, '0')}:${String(Math.floor(secVal % 60)).padStart(2, '0')}`;
+    setInteractions((prev) => {
+      if (prev[0]?.tag === tag && prev[0]?.text === text) return prev;
+      return [{ id: `${Date.now()}_${Math.random()}`, time: timeStr, tag, text, color }, ...prev].slice(0, 24);
+    });
+  };
+
+  useEffect(() => {
+    telemetryRef.current = {
+      isActive: !isCertified,
+      o2Level: sim.o2Perfusion,
+      morphogenLevel: sim.morphogenBmpWnt,
+      liquidColor: sim.mineralization > 50 ? '#38bdf8' : sim.vascularization > 20 ? '#f43f5e' : '#0ea5e9',
+    };
+  }, [isCertified, sim.o2Perfusion, sim.morphogenBmpWnt, sim.mineralization, sim.vascularization]);
+
+  // Biological simulation tick (250ms, dt=0.07 for ~30-40s full observable ossification)
+  const prevPhaseIdxRef = useRef(1);
   useEffect(() => {
     const timer = setInterval(() => {
-      setSim((prev) => stepOssification(prev, 0.25));
+      setElapsedSec((e) => e + 0.25);
+      setSim((prev) => {
+        const next = stepOssification(prev, 0.07);
+        const nextPhase = getOssificationPhase(next);
+        if (nextPhase.index !== prevPhaseIdxRef.current) {
+          prevPhaseIdxRef.current = nextPhase.index;
+          pushBoneInteraction(`PHASE 0${nextPhase.index}`, nextPhase.detail, '#10b981');
+        }
+        return next;
+      });
     }, 250);
     return () => clearInterval(timer);
   }, []);
@@ -82,8 +126,8 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       return;
     }
 
-    const width = container.clientWidth || 640;
-    const height = container.clientHeight || 400;
+    const width = container.clientWidth || 540;
+    const height = container.clientHeight || 390;
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.innerHTML = '';
@@ -91,76 +135,21 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 100);
-    camera.position.set(0, 0.5, 5.1);
+    camera.position.set(0, 0.45, 5.15);
     camera.lookAt(0, -0.05, 0);
 
-    scene.add(new THREE.AmbientLight(0xf1f5f9, 1.05));
-    const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.4);
+    scene.add(new THREE.AmbientLight(0xf1f5f9, 1.1));
+    const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.3);
     keyLight.position.set(4, 6, 5);
     scene.add(keyLight);
     const liquidGlow = new THREE.PointLight('#0ea5e9', 1.8, 10);
     liquidGlow.position.set(0, 0.1, 1.5);
     scene.add(liquidGlow);
 
-    const chamberGroup = new THREE.Group();
-    chamberGroup.scale.setScalar(0.75);
-    scene.add(chamberGroup);
-
-    // Compact Reactor Vessel Hardware
-    const titaniumMat = new THREE.MeshStandardMaterial({
-      color: '#1e293b',
-      metalness: 0.88,
-      roughness: 0.22,
-    });
-    const chromeMat = new THREE.MeshStandardMaterial({
-      color: '#94a3b8',
-      metalness: 0.92,
-      roughness: 0.16,
-    });
-    const baseCap = new THREE.Mesh(new THREE.CylinderGeometry(1.38, 1.46, 0.2, 48), titaniumMat);
-    baseCap.position.y = -1.42;
-    chamberGroup.add(baseCap);
-    const topCap = new THREE.Mesh(new THREE.CylinderGeometry(1.32, 1.32, 0.18, 48), titaniumMat);
-    topCap.position.y = 1.42;
-    chamberGroup.add(topCap);
-
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.7, 12), chromeMat);
-      rod.position.set(Math.cos(a) * 1.24, 0, Math.sin(a) * 1.24);
-      chamberGroup.add(rod);
-    }
-
-    chamberGroup.add(
-      new THREE.Mesh(
-        new THREE.CylinderGeometry(1.12, 1.12, 2.54, 48, 1, true),
-        new THREE.MeshPhysicalMaterial({
-          color: '#e2e8f0',
-          transparent: true,
-          opacity: 0.14,
-          roughness: 0.06,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        })
-      )
+    const { chamberGroup, tissueRoot, updateEffects } = buildSophisticatedChamberChassis(
+      scene,
+      '#0ea5e9'
     );
-
-    const liquidCyl = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.06, 1.06, 2.15, 48),
-      new THREE.MeshPhysicalMaterial({
-        color: '#0ea5e9',
-        emissive: '#0284c7',
-        emissiveIntensity: 0.12,
-        transparent: true,
-        opacity: 0.18,
-        depthWrite: false,
-      })
-    );
-    liquidCyl.position.y = -0.14;
-    chamberGroup.add(liquidCyl);
-
-    const tissueRoot = new THREE.Group();
-    chamberGroup.add(tissueRoot);
     tissueGroupRef.current = tissueRoot;
 
     let isDragging = false;
@@ -186,7 +175,9 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
     let frameId;
     const animate = () => {
       frameId = requestAnimationFrame(animate);
+      const t = performance.now() * 0.001;
       if (!isDragging) chamberGroup.rotation.y += 0.0035;
+      updateEffects(t, telemetryRef.current);
 
       // Live Mechanical Stress Test Animation on the Bone
       const now = performance.now();
@@ -220,7 +211,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
     };
   }, []);
 
-  // 2. LIGHTWEIGHT TISSUE MESH UPDATER (quantized steps — zero WebGL context flicker!)
+  // 2. MULTI-STAGE OSTEOGENESIS -> FEMUR / SKELETAL Z-ANATOMY UPDATER (quantized 10% steps)
   const qCond = Math.floor(sim.condensation / 10);
   const qCart = Math.floor(sim.cartilageTemplate / 10);
   const qVasc = Math.floor(sim.vascularization / 10);
@@ -243,7 +234,40 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       ? new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0.02)
       : null;
 
-    if (showHyperRealAnatomy) {
+    const overallProgress = Math.min(
+      1,
+      (sim.condensation * 0.15 +
+        sim.cartilageTemplate * 0.18 +
+        sim.vascularization * 0.17 +
+        sim.osteoidCollagen * 0.2 +
+        sim.mineralization * 0.2 +
+        sim.marrowCavity * 0.1) /
+        100
+    );
+
+    const activeElements = Object.entries(sim.elements)
+      .filter(([, val]) => val > 5)
+      .map(([k]) => k);
+
+    if (!showHyperRealAnatomy && !isCertified) {
+      const cluster = buildRealisticElementCluster(activeElements, {
+        progress: overallProgress,
+        cellColor: sim.runx2Active ? '#f59e0b' : '#38bdf8',
+        condenseRatio: sim.condensation / 100,
+      });
+      tissueRoot.add(cluster);
+
+      if (sim.vascularization > 10) {
+        tissueRoot.add(buildVascularSproutTree(sim.vascularization / 100));
+      }
+    }
+
+    const scaffoldReady =
+      showHyperRealAnatomy ||
+      isCertified ||
+      (sim.pathway === 'endochondral' ? sim.cartilageTemplate >= 45 : sim.condensation >= 50);
+
+    if (scaffoldReady) {
       const loadTarget =
         massBoneCount >= 206
           ? loadZAnatomyOrganModel('skeletal_system')
@@ -251,125 +275,15 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
 
       loadTarget.then((glb) => {
         if (isCancelled || !glb || !tissueGroupRef.current) return;
-        glb.scale.multiplyScalar(0.88);
-        applyOrganSubPartMaterials(
-          glb,
-          'skeletal_system',
-          ['skel_cranium', 'skel_spine_ribs', 'skel_upper_limbs', 'skel_lower_limbs'],
-          true,
-          clipPlane
-        );
+        applyMorphogeneticStageToOrgan(glb, {
+          progress: showHyperRealAnatomy || isCertified ? 1 : Math.max(0.45, overallProgress),
+          isMatured: showHyperRealAnatomy || isCertified,
+          zAnatomyId: 'skeletal_system',
+          clipPlane,
+          scaffoldColor: sim.mineralization > 35 ? '#f59e0b' : '#38bdf8',
+        });
         tissueRoot.add(glb);
       });
-    } else {
-      const boneGroup = new THREE.Group();
-      boneGroup.position.y = -0.1;
-      tissueRoot.add(boneGroup);
-
-      // Mesenchymal Stem Cell Cloud condensing toward bone axis
-      const spread = 0.85 - (sim.condensation / 100) * 0.55;
-      const cellGeo = new THREE.SphereGeometry(0.038, 10, 10);
-      const cellMat = new THREE.MeshStandardMaterial({
-        color: sim.runx2Active ? '#f59e0b' : '#38bdf8',
-        emissive: sim.runx2Active ? '#d97706' : '#0284c7',
-        emissiveIntensity: 0.4,
-      });
-      for (let i = 0; i < 20; i++) {
-        const c = new THREE.Mesh(cellGeo, cellMat);
-        const a = (i / 20) * Math.PI * 2;
-        c.position.set(
-          Math.cos(a) * spread * 0.65,
-          ((i % 7) - 3) * 0.22 * (1 - sim.condensation / 200),
-          Math.sin(a) * spread * 0.65
-        );
-        boneGroup.add(c);
-      }
-
-      const hasTemplate =
-        sim.pathway === 'endochondral' ? sim.cartilageTemplate > 10 : sim.condensation > 35;
-
-      if (hasTemplate) {
-        const minRatio = sim.mineralization / 100;
-        const osteoidRatio = sim.osteoidCollagen / 100;
-        const boneColor = new THREE.Color('#7dd3fc')
-          .lerp(new THREE.Color('#f59e0b'), osteoidRatio * 0.65)
-          .lerp(new THREE.Color('#f8fafc'), minRatio);
-
-        const boneMat = new THREE.MeshPhysicalMaterial({
-          color: boneColor,
-          emissive: sim.vegfTriggered && minRatio < 0.3 ? '#7c3aed' : '#000000',
-          emissiveIntensity: sim.vegfTriggered && minRatio < 0.3 ? 0.25 : 0,
-          transparent: minRatio < 0.75,
-          opacity: 0.4 + minRatio * 0.6,
-          roughness: 0.45 - minRatio * 0.2,
-          clearcoat: 0.3 + minRatio * 0.5,
-          clippingPlanes: clipPlane ? [clipPlane] : [],
-          side: THREE.DoubleSide,
-        });
-
-        if (sim.pathway === 'endochondral') {
-          const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.17, 1.35, 28), boneMat);
-          boneGroup.add(shaft);
-          const topEpi = new THREE.Mesh(new THREE.SphereGeometry(0.28, 24, 24), boneMat);
-          topEpi.position.y = 0.72;
-          boneGroup.add(topEpi);
-          const botEpi = new THREE.Mesh(new THREE.SphereGeometry(0.27, 24, 24), boneMat);
-          botEpi.position.y = -0.72;
-          boneGroup.add(botEpi);
-
-          if (!sim.growthPlateFused) {
-            const plateMat = new THREE.MeshBasicMaterial({
-              color: '#38bdf8',
-              transparent: true,
-              opacity: 0.75,
-            });
-            [0.54, -0.54].forEach((yp) => {
-              const plate = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.21, 0.21, 0.045, 24),
-                plateMat
-              );
-              plate.position.y = yp;
-              boneGroup.add(plate);
-            });
-          }
-        } else {
-          const plate = new THREE.Mesh(
-            new THREE.SphereGeometry(0.72, 32, 24, 0, Math.PI * 1.1, 0.3, 1.3),
-            boneMat
-          );
-          boneGroup.add(plate);
-        }
-
-        if (sim.vascularization > 10) {
-          const vesselMat = new THREE.MeshStandardMaterial({
-            color: '#ef4444',
-            emissive: '#dc2626',
-            emissiveIntensity: 0.6,
-          });
-          for (let v = 0; v < 4; v++) {
-            const va = (v / 4) * Math.PI * 2;
-            const vessel = new THREE.Mesh(
-              new THREE.CylinderGeometry(0.018, 0.012, 0.45 + (sim.vascularization / 100) * 0.5, 8),
-              vesselMat
-            );
-            vessel.position.set(Math.cos(va) * 0.12, (v - 1.5) * 0.18, Math.sin(va) * 0.12);
-            vessel.rotation.z = Math.cos(va) * 0.65;
-            boneGroup.add(vessel);
-          }
-        }
-
-        if (sim.marrowCavity > 10) {
-          const marrow = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.09, 0.08, 0.95 * (sim.marrowCavity / 100), 18),
-            new THREE.MeshStandardMaterial({
-              color: '#991b1b',
-              emissive: '#ef4444',
-              emissiveIntensity: 0.4,
-            })
-          );
-          boneGroup.add(marrow);
-        }
-      }
     }
 
     return () => {
@@ -446,8 +360,92 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
         </span>
       </div>
 
-      {/* 3D Bioreactor Viewport */}
-      <div ref={mountRef} className="flex-1 w-full min-h-0 cursor-grab active:cursor-grabbing relative" />
+      {/* 3D Bioreactor Viewport + Live Telemetry Monitor */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+        <div ref={mountRef} className="lg:col-span-8 h-full min-h-[260px] cursor-grab active:cursor-grabbing relative" />
+        <div className="lg:col-span-4 h-full min-h-0 overflow-hidden">
+          <ChamberTelemetryScreen
+            title={massBoneCount >= 206 ? '206-BONE SKELETON' : 'FEMUR OSSIFICATION'}
+            subtitle={phase.code}
+            accentColor="#38bdf8"
+            isRunning={!isCertified}
+            isComplete={isCertified}
+            progress={
+              isCertified
+                ? 100
+                : Math.round(
+                    sim.condensation * 0.15 +
+                      sim.cartilageTemplate * 0.18 +
+                      sim.vascularization * 0.17 +
+                      sim.osteoidCollagen * 0.2 +
+                      sim.mineralization * 0.2 +
+                      sim.marrowCavity * 0.1
+                  )
+            }
+            elapsedSec={elapsedSec}
+            reactionRate={isCertified ? 0 : sim.o2Perfusion >= 14 ? 2.8 : 0.4}
+            o2Level={sim.o2Perfusion}
+            morphogenLevel={sim.morphogenBmpWnt}
+            steps={[
+              {
+                id: 'condense',
+                label: '01 // MSC Condensation',
+                sublabel: 'BMP-2/Wnt chemotaxis & Hox axis patterning',
+                progress: sim.condensation,
+                active: sim.condensation < 100,
+                done: sim.condensation >= 95,
+                color: '#38bdf8',
+              },
+              {
+                id: 'cartilage',
+                label: '02 // SOX9 Hyaline Cartilage',
+                sublabel: 'Chondroblasts secrete Col-II + GAG scaffold',
+                progress: sim.cartilageTemplate,
+                active: sim.sox9Active && sim.cartilageTemplate < 95,
+                done: sim.cartilageTemplate >= 95,
+                color: '#60a5fa',
+              },
+              {
+                id: 'vascular',
+                label: '03 // VEGF-A Angiogenesis',
+                sublabel: 'Periosteal capillaries invade core with O₂',
+                progress: sim.vascularization,
+                active: sim.vegfTriggered && sim.vascularization < 95,
+                done: sim.vascularization >= 95,
+                color: '#f43f5e',
+              },
+              {
+                id: 'osteoid',
+                label: '04 // RUNX2 Osteoid Matrix',
+                sublabel: 'Osteoblasts weave Type-I Collagen triple helices',
+                progress: sim.osteoidCollagen,
+                active: sim.runx2Active && sim.osteoidCollagen < 95,
+                done: sim.osteoidCollagen >= 95,
+                color: '#f59e0b',
+              },
+              {
+                id: 'mineral',
+                label: '05 // Ca₁₀(PO₄)₆(OH)₂ Mineral',
+                sublabel: 'Ca²⁺ + PO₄³⁻ crystallize into hydroxyapatite',
+                progress: sim.mineralization,
+                active: sim.osteoidCollagen >= 35 && sim.mineralization < 95,
+                done: sim.mineralization >= 95,
+                color: '#e2e8f0',
+              },
+              {
+                id: 'marrow',
+                label: '06 // Osteoclast Marrow Cavity',
+                sublabel: 'HCl + Cathepsin K carves hollow medullary canal',
+                progress: sim.marrowCavity,
+                active: sim.osteoclastsActive && sim.marrowCavity < 95,
+                done: sim.marrowCavity >= 60,
+                color: '#c084fc',
+              },
+            ]}
+            interactions={interactions}
+          />
+        </div>
+      </div>
 
       {/* Mechanical Stress Test Result Toast */}
       {stressFeedback && (
