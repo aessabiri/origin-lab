@@ -353,6 +353,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
         <div className="lg:col-span-4 h-full min-h-0 overflow-hidden">
           <ChamberTelemetryScreen
             title={massBoneCount >= 206 ? '206-BONE SKELETON' : 'FEMUR OSSIFICATION'}
+            organType="bone"
             accentColor="#38bdf8"
             isRunning={!isCertified}
             isComplete={isCertified}

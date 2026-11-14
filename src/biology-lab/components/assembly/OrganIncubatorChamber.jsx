@@ -492,7 +492,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
         <div className="lg:col-span-4 h-full min-h-0 overflow-hidden">
           <ChamberTelemetryScreen
             title={`${recipe.outcomeLabel}`}
-            subtitle={recipe.chamberName}
+            organType={recipe.singleOrganKey || recipe.id}
             accentColor={recipe.cellColor}
             isRunning={isRunning}
             isComplete={isGrown}
