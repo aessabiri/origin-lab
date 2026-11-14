@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import BioElementShapeCard from './BioElementShapeCard';
 
 /**
@@ -23,7 +23,7 @@ export const RotaryDial = ({
 
   const clampStep = (raw) => {
     const clamped = Math.max(min, Math.min(max, raw));
-    return Math.round(clamped / step) * step;
+    return Number((Math.round(clamped / step) * step).toFixed(2));
   };
 
   const onPointerDown = (e) => {
@@ -240,10 +240,9 @@ export const BreakerButton = ({
 );
 
 /**
- * Nuclear-Facility-Style 2-Tab Bioreactor Control Console:
- * - Annunciator Alarm Tile Strip
- * - Tab 1: Control Deck (Rotary Potentiometers, Illuminated Breakers, Analog Meters)
- * - Tab 2: Required Elements (Real SVG Shape Cards, all unlocked)
+ * Unified Bioreactor Control Console:
+ * - Annunciator Alarm Tile Strip + Infuse All / Deploy Actions
+ * - Combined Rotary Potentiometers, Element Icon Cards (clickable buttons), and Reactor Breakers
  */
 const ReactorControlPanel = ({
   deckTitle = 'REACTOR CONSOLE',
@@ -255,39 +254,24 @@ const ReactorControlPanel = ({
   rightAction = null,
   children,
 }) => {
-  const [activeTab, setActiveTab] = useState('deck');
-
   return (
-    <div className="bg-gradient-to-b from-[#111827] to-[#080d16] border-t-2 border-slate-600/80 px-3.5 py-2.5 flex flex-col gap-2 shrink-0 shadow-[0_-10px_28px_rgba(0,0,0,0.65)]">
+    <div className="bg-gradient-to-b from-[#111827] to-[#080d16] border-t-2 border-slate-600/80 px-3.5 py-2 flex flex-col gap-2 shrink-0 shadow-[0_-10px_28px_rgba(0,0,0,0.65)]">
       {/* Top Industrial Bezel + Annunciator Alarm Tiles */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/70 pb-2">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-slate-500 border border-slate-300/30" />
-          <span className="text-[8.5px] font-mono font-black text-slate-400 uppercase tracking-widest mr-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/70 pb-1.5">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
+          <span className="text-[8.5px] font-mono font-black text-slate-300 uppercase tracking-widest">
             {deckTitle}
           </span>
-          <button
-            type="button"
-            onClick={() => setActiveTab('deck')}
-            className={`px-2.5 py-1 rounded font-mono text-[9px] font-black uppercase tracking-wider border cursor-pointer transition-all ${
-              activeTab === 'deck'
-                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
-                : 'bg-[#070b14] border-slate-700 text-slate-400 hover:text-white'
-            }`}
-          >
-            🎛️ Control Board
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('elements')}
-            className={`px-2.5 py-1 rounded font-mono text-[9px] font-black uppercase tracking-wider border cursor-pointer transition-all ${
-              activeTab === 'elements'
-                ? 'bg-amber-500/20 border-amber-400 text-amber-200'
-                : 'bg-[#070b14] border-slate-700 text-slate-400 hover:text-white'
-            }`}
-          >
-            ⚛️ Elements ({elements.length})
-          </button>
+          {onPrimeAll && (
+            <button
+              type="button"
+              onClick={onPrimeAll}
+              className="px-2 py-0.5 rounded bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-400/60 text-cyan-200 font-mono text-[8px] font-black uppercase cursor-pointer"
+            >
+              ⚡ Infuse All
+            </button>
+          )}
         </div>
 
         {/* Classic Nuclear Annunciator Lamp Tiles */}
@@ -317,38 +301,24 @@ const ReactorControlPanel = ({
         {rightAction && <div className="flex items-center gap-2">{rightAction}</div>}
       </div>
 
-      {/* Tab 1: Nuclear Facility Control Board */}
-      {activeTab === 'deck' && <div>{children}</div>}
+      {/* Unified Console: Dials/Breakers + Clickable Element Icon Cards */}
+      <div className="flex flex-wrap items-center gap-2.5">
+        {children}
 
-      {/* Tab 2: Visual Shape Cards for All Required Elements */}
-      {activeTab === 'elements' && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[8.5px] font-mono text-slate-400 uppercase">
-              Click any substrate shape to infuse into the bioreactor chamber (All Unlocked)
-            </span>
-            {onPrimeAll && (
-              <button
-                type="button"
-                onClick={onPrimeAll}
-                className="px-2.5 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400 text-cyan-200 font-mono text-[8.5px] font-black uppercase cursor-pointer"
-              >
-                ⚡ Infuse All Substrates
-              </button>
-            )}
-          </div>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+        {elements.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
             {elements.map((el) => (
               <BioElementShapeCard
                 key={el.id}
                 element={el}
                 level={elementLevels[el.id] ?? 0}
                 onInfuse={onInfuseElement}
+                compact
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

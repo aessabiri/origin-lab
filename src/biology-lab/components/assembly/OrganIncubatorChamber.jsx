@@ -669,29 +669,17 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
             />
           </div>
 
-          <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-1.5 min-w-[260px]">
-            {recipe.components.map((comp) => (
-              <BreakerButton
-                key={comp.id}
-                label={comp.symbol}
-                sublabel={comp.name.split(' ')[0]}
-                active={loadedIds.includes(comp.id)}
-                ledColor={comp.color}
-                onClick={() => handleInsertComponent(comp.id)}
-              />
-            ))}
-            <BreakerButton
-              label={isGrown ? 'Matured 100%' : isRunning ? `Growing ${Math.round(growth)}%` : '▶ Start Reactor'}
-              sublabel={allComponentsLoaded ? 'Substrates Ready' : 'Insert Substrates'}
-              active={isRunning || isGrown}
-              disabled={!allComponentsLoaded || isGrown}
-              ledColor="#10b981"
-              onClick={() => {
-                setRunningBySystem((p) => ({ ...p, [recipe.id]: true }));
-                cosmicAudio.playPulse(660);
-              }}
-            />
-          </div>
+          <BreakerButton
+            label={isGrown ? 'Matured 100%' : isRunning ? `Growing ${Math.round(growth)}%` : '▶ Start Reactor'}
+            sublabel={allComponentsLoaded ? 'Substrates Ready' : 'Click Elements'}
+            active={isRunning || isGrown}
+            disabled={!allComponentsLoaded || isGrown}
+            ledColor="#10b981"
+            onClick={() => {
+              setRunningBySystem((p) => ({ ...p, [recipe.id]: true }));
+              cosmicAudio.playPulse(660);
+            }}
+          />
 
           <div className="hidden xl:flex items-center gap-1.5">
             <AnalogMeter label="Growth" value={isGrown ? 100 : growth} accent="#10b981" />

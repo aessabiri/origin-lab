@@ -243,7 +243,7 @@ const ElementShapeSVG = ({ id, color = '#38bdf8' }) => {
 /**
  * Compact visual-first Element Card showing real SVG shape + minimal label + level bar.
  */
-const BioElementShapeCard = ({ element, level = 0, onInfuse }) => {
+const BioElementShapeCard = ({ element, level = 0, onInfuse, compact = false }) => {
   const isLoaded = level > 10;
   const icon3DUrl = useMemo(
     () => renderElement3DIcon(element.id, element.color),
@@ -255,13 +255,15 @@ const BioElementShapeCard = ({ element, level = 0, onInfuse }) => {
       type="button"
       onClick={() => onInfuse && onInfuse(element.id)}
       title={`${element.name} — Click to infuse into chamber`}
-      className={`p-2 rounded-xl border transition-all flex flex-col items-center gap-1 cursor-pointer active:scale-95 ${
+      className={`${
+        compact ? 'px-2 py-1.5 min-w-[78px]' : 'p-2'
+      } rounded-xl border transition-all flex flex-col items-center gap-0.5 cursor-pointer active:scale-95 ${
         isLoaded
-          ? 'bg-[#0b1628] border-cyan-400/70 shadow-[0_0_10px_rgba(34,211,238,0.18)]'
+          ? 'bg-[#0b1628] border-cyan-400/75 shadow-[0_0_12px_rgba(34,211,238,0.22)]'
           : 'bg-[#070b14] border-slate-700/80 hover:border-slate-500'
       }`}
     >
-      <div className="w-full flex items-center justify-between text-[8.5px] font-mono">
+      <div className="w-full flex items-center justify-between text-[8px] font-mono">
         <span className="font-black" style={{ color: element.color }}>
           {element.symbol}
         </span>
@@ -274,17 +276,17 @@ const BioElementShapeCard = ({ element, level = 0, onInfuse }) => {
         <img
           src={icon3DUrl}
           alt={element.name}
-          className="w-12 h-12 object-contain drop-shadow-[0_2px_8px_rgba(34,211,238,0.28)]"
+          className={`${compact ? 'w-9 h-9' : 'w-12 h-12'} object-contain drop-shadow-[0_2px_8px_rgba(34,211,238,0.28)]`}
         />
       ) : (
         <ElementShapeSVG id={element.id} color={element.color} />
       )}
 
-      <div className="text-[9.5px] font-bold text-white truncate w-full text-center">
+      <div className={`${compact ? 'text-[8.5px]' : 'text-[9.5px]'} font-bold text-white truncate w-full text-center`}>
         {element.name.split('(')[0].split('+')[0].trim()}
       </div>
 
-      <div className="w-full h-1 rounded-full bg-slate-800 overflow-hidden">
+      <div className="w-full h-1 rounded-full bg-slate-800 overflow-hidden mt-0.5">
         <div
           className="h-full transition-all duration-200"
           style={{ width: `${Math.min(100, level)}%`, backgroundColor: element.color }}
