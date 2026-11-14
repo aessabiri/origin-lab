@@ -4,8 +4,11 @@ import { useBioStore } from '../../store';
 import { useAnatomyStore } from '../../../anatomy-lab/store';
 import { useStore } from '../../../store';
 import { cosmicAudio } from '../../../utils/cosmicAudioBus';
-import { loadZAnatomyOrganModel, applyOrganSubPartMaterials } from '../../utils/zAnatomyOrganLoader';
-import { create3DOrganForSystem } from '../../utils/organelle3DFactory';
+import {
+  loadZAnatomyOrganModel,
+  loadFocusedSingleOrgan,
+  applyOrganSubPartMaterials,
+} from '../../utils/zAnatomyOrganLoader';
 import ReactorControlPanel, {
   RotaryDial,
   BreakerButton,
@@ -177,9 +180,10 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
     ? {
         ...activeMajorChamber,
         id: `major_${activeMajorChamber.id}`,
+        singleOrganKey: activeMajorChamber.id,
         zAnatomyId: activeMajorChamber.zAnatomySystemId,
       }
-    : { ...baseRecipe, zAnatomyId: baseRecipe.id };
+    : { ...baseRecipe, singleOrganKey: null, zAnatomyId: baseRecipe.id };
 
   const [loadedBySystem, setLoadedBySystem] = useState({});
   const [growthProgressBySystem, setGrowthProgressBySystem] = useState({});
@@ -371,17 +375,14 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
 
     if (isGrown) {
       const zId = recipe.zAnatomyId || recipe.id;
-      const fallback = create3DOrganForSystem(zId);
-      fallback.scale.setScalar(0.88);
-      applyOrganSubPartMaterials(fallback, zId, [], true, null);
-      tissueRoot.add(fallback);
+      const loadTarget = recipe.singleOrganKey
+        ? loadFocusedSingleOrgan(recipe.singleOrganKey)
+        : loadZAnatomyOrganModel(zId);
 
-      loadZAnatomyOrganModel(zId).then((glb) => {
+      loadTarget.then((glb) => {
         if (isCancelled || !glb || !tissueGroupRef.current) return;
-        glb.scale.setScalar(0.88);
+        glb.scale.multiplyScalar(0.88);
         applyOrganSubPartMaterials(glb, zId, [], true, null);
-        tissueRoot.remove(fallback);
-        disposeHierarchy(fallback);
         tissueRoot.add(glb);
       });
     } else if (loadedIds.length > 0) {

@@ -185,6 +185,116 @@ export async function loadZAnatomyOrganModel(systemId) {
   return organGroup;
 }
 
+const SINGLE_ORGAN_FILTERS = {
+  femur: {
+    url: '/models/lumc_skeleton.glb',
+    systemId: 'skeletal_system',
+    match: (n) => n.includes('femur') && !n.includes('left'),
+  },
+  heart: {
+    url: '/models/cardiovascular.glb',
+    systemId: 'cardiovascular_system',
+    match: (n) =>
+      (n.includes('ventricle') ||
+        n.includes('atrium') ||
+        n.includes('auricle') ||
+        n.includes('valve') ||
+        n.includes('cusp') ||
+        n.includes('coronary') ||
+        n.includes('cardiac') ||
+        n.includes('papillary') ||
+        n.includes('chordae') ||
+        n.includes('interventricular') ||
+        n.includes('pericard')) &&
+      !n.includes('rib') &&
+      !n.includes('subclavian') &&
+      !n.includes('brachiocephalic'),
+  },
+  liver: {
+    url: '/models/visceral.glb',
+    systemId: 'visceral_system',
+    match: (n) => n.includes('liver') || n.includes('hepat') || n.includes('gallbladder'),
+  },
+  lungs: {
+    url: '/models/visceral.glb',
+    systemId: 'visceral_system',
+    match: (n) => n.includes('lung') || n.includes('pulmon') || n.includes('trachea') || n.includes('bronch'),
+  },
+  intestines: {
+    url: '/models/visceral.glb',
+    systemId: 'visceral_system',
+    match: (n) =>
+      n.includes('intestin') ||
+      n.includes('colon') ||
+      n.includes('duoden') ||
+      n.includes('jejun') ||
+      n.includes('ileum') ||
+      n.includes('cecum') ||
+      n.includes('stomach') ||
+      n.includes('gastr'),
+  },
+  kidneys: {
+    url: '/models/visceral.glb',
+    systemId: 'visceral_system',
+    match: (n) => n.includes('kidney') || n.includes('renal') || n.includes('ureter'),
+  },
+};
+
+/**
+ * Loads, isolates, centers, and normalizes a single specific organ (e.g. 'femur', 'heart', 'liver', 'lungs', 'intestines', 'kidneys')
+ * from the Z-Anatomy GLB so the bioreactor displays ONLY that organ rather than the whole system.
+ */
+export async function loadFocusedSingleOrgan(organKey) {
+  const cfg = SINGLE_ORGAN_FILTERS[organKey];
+  if (!cfg) return loadZAnatomyOrganModel('cardiovascular_system');
+
+  if (!gltfCache.has(cfg.url)) {
+    const loader = getLoader();
+    const gltf = await new Promise((resolve, reject) => {
+      loader.load(cfg.url, resolve, undefined, reject);
+    });
+    gltfCache.set(cfg.url, gltf.scene);
+  }
+
+  const cachedScene = gltfCache.get(cfg.url);
+  const organGroup = new THREE.Group();
+  const combinedBox = new THREE.Box3();
+
+  cachedScene.traverse((child) => {
+    if (!child.isMesh || !child.geometry) return;
+    const rawName = child.userData?.za_name || child.name || '';
+    const n = rawName.toLowerCase();
+    if (!cfg.match(n)) return;
+
+    const meshClone = child.clone();
+    meshClone.name = rawName;
+    meshClone.userData.subPartId = classifyMeshToOrganSubPart(cfg.systemId, rawName);
+    organGroup.add(meshClone);
+    combinedBox.expandByObject(meshClone);
+  });
+
+  // Fallback to full system if specific mesh names weren't matched
+  if (organGroup.children.length === 0) {
+    return loadZAnatomyOrganModel(cfg.systemId);
+  }
+
+  if (!combinedBox.isEmpty()) {
+    const center = new THREE.Vector3();
+    const size = new THREE.Vector3();
+    combinedBox.getCenter(center);
+    combinedBox.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z, 0.05);
+    const targetScale = 1.95 / maxDim;
+
+    organGroup.children.forEach((m) => {
+      m.position.sub(center);
+    });
+    organGroup.scale.setScalar(targetScale);
+  }
+
+  return organGroup;
+}
+
 /**
  * Applies solid clinical PBR materials to assembled sub-parts and translucent cyan
  * wireframe blueprint materials to un-snapped sub-parts.

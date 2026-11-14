@@ -7,8 +7,11 @@ import {
   getOssificationPhase,
   evaluateMechanicalStressTest,
 } from '../../utils/ossificationEngine';
-import { loadZAnatomyOrganModel, applyOrganSubPartMaterials } from '../../utils/zAnatomyOrganLoader';
-import { create3DOrganForSystem } from '../../utils/organelle3DFactory';
+import {
+  loadZAnatomyOrganModel,
+  loadFocusedSingleOrgan,
+  applyOrganSubPartMaterials,
+} from '../../utils/zAnatomyOrganLoader';
 import { useBioStore } from '../../store';
 import { useAnatomyStore } from '../../../anatomy-lab/store';
 import { useStore } from '../../../store';
@@ -241,20 +244,14 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
       : null;
 
     if (showHyperRealAnatomy) {
-      const fallback = create3DOrganForSystem('skeletal_system');
-      fallback.scale.setScalar(0.85);
-      applyOrganSubPartMaterials(
-        fallback,
-        'skeletal_system',
-        ['skel_cranium', 'skel_spine_ribs', 'skel_upper_limbs', 'skel_lower_limbs'],
-        true,
-        clipPlane
-      );
-      tissueRoot.add(fallback);
+      const loadTarget =
+        massBoneCount >= 206
+          ? loadZAnatomyOrganModel('skeletal_system')
+          : loadFocusedSingleOrgan('femur');
 
-      loadZAnatomyOrganModel('skeletal_system').then((glb) => {
+      loadTarget.then((glb) => {
         if (isCancelled || !glb || !tissueGroupRef.current) return;
-        glb.scale.setScalar(0.85);
+        glb.scale.multiplyScalar(0.88);
         applyOrganSubPartMaterials(
           glb,
           'skeletal_system',
@@ -262,8 +259,6 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
           true,
           clipPlane
         );
-        tissueRoot.remove(fallback);
-        disposeHierarchy(fallback);
         tissueRoot.add(glb);
       });
     } else {
@@ -387,6 +382,7 @@ const BoneOssificationStudio = ({ onOpenAnatomy }) => {
     sim.growthPlateFused,
     sim.crossSectionCut,
     showHyperRealAnatomy,
+    massBoneCount,
     qCond,
     qCart,
     qVasc,
