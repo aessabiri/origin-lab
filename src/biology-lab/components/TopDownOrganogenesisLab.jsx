@@ -39,6 +39,7 @@ import {
 import TopTargetsBar from './assembly/TopTargetsBar';
 import LeftIngredientsDrawer from './assembly/LeftIngredientsDrawer';
 import OrganIncubatorChamber from './assembly/OrganIncubatorChamber';
+import BoneOssificationStudio from './assembly/BoneOssificationStudio';
 
 const getInventoryStockForSub = (subId, inventoryState) => {
   if (subId === 'iron') return inventoryState.elements?.Fe ?? 0;
@@ -940,13 +941,17 @@ const TopDownOrganogenesisLab = ({
         />
       )}
 
-      {/* UNIFIED 12-COL WORKSPACE: Liquid Incubator in Organ tab, or 3-Col Drawer + 9-Col Canvas */}
+      {/* UNIFIED 12-COL WORKSPACE: Bone Ossification Studio / Liquid Incubator in Organ tab, or 3-Col Drawer + 9-Col Canvas */}
       <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
         {activeStage === 'organ' ? (
-          <OrganIncubatorChamber
-            systemId={activeSystem.id}
-            onOpenAnatomy={onOpenAnatomy}
-          />
+          activeSystem.id === 'skeletal_system' ? (
+            <BoneOssificationStudio onOpenAnatomy={onOpenAnatomy} />
+          ) : (
+            <OrganIncubatorChamber
+              systemId={activeSystem.id}
+              onOpenAnatomy={onOpenAnatomy}
+            />
+          )
         ) : (
         <>
           <LeftIngredientsDrawer
