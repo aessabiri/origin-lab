@@ -51,6 +51,16 @@ This roadmap tracks technical milestones from the Big Bang to Human Consciousnes
 
 ---
 
+## 🟢 Phase 5.5: 5-Stop Bio-Assembly, Impostor Shaders & Anatomy Drag-Snap (2026-11-14)
+*Status: Completed ✅*
+- [x] **5-Stop Unified Bio-Assembly (`TopDownOrganogenesisLab`):** Empty-until-dragged 3D canvas across all 5 stops (1. Proteins & DNA → 2. Organelles → 3. Living Cell → 4. Tissue & ECM → 5. Human Organs) with greyed-out-until-built `TopTargetsBar` and draggable `LeftIngredientsDrawer`.
+- [x] **GLSL Molecular Impostor Engine (`molecularImpostorEngine.js`):** Single-draw-call `InstancedBufferGeometry` spheres with Cryo-EM SSS & Goodsell Ink shaders, B-DNA double helix, 7 realistic macromolecules, and chemically distinct CPK 3D sub-ingredient geometries.
+- [x] **Central Dogma Codon Stepper & Goals Tab:** Live DNA → mRNA P-site codon → tRNA anticodon → amino acid folding readout (`computeRibosomeStep`), plus `🧪 Codons` & `🎯 Goals` (`BioGoalsView`) tabs.
+- [x] **Bio → Anatomy Positional Drag-and-Snap (`ANATOMICAL_DROP_ZONES`):** Organs fabricated in Bio Stop 5 appear in the Anatomy tray and snap into the 3D human body only when dropped in their matching anatomical zone.
+- [x] **Sandbox vs Demiurge Survival Toggle & Dead-Code Cleanup:** Optional `useInventory` stock gating (`demiurgeSurvivalMode`) and removal of 6 unmounted legacy Bio UI files (`PetriDish`, `IncubationChamber`, `CellBuilder`, `Cell3DViewport`, `BioLabInventory`, `BioSidebar`).
+
+---
+
 ## 🚀 Phase 6: The Cosmic Demiurge Architecture (Starting Tomorrow)
 *Status: Ready for Development 🚀 (See [DEVELOPMENT_PLAN.md](file:///home/tsylop/protocol/origin-lab/DEVELOPMENT_PLAN.md))*
 - [ ] **Milestone 6.1: Living Background Universe Simulation Clock:**

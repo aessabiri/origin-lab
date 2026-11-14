@@ -158,6 +158,25 @@ export function computeSystemicHomeostasis(state = {}) {
   };
 }
 
+// Anatomical 3D Drop Zones for Positional Drag-and-Snap Validation (rig centered at y=0, feet ~ -0.95, head ~ +0.85)
+export const ANATOMICAL_DROP_ZONES = {
+  organs: {
+    neural: { label: 'Cranium & Spine', x: 0, y: 0.72, radius: 0.42 },
+    endothelial: { label: 'Thorax (Heart & Great Vessels)', x: 0, y: 0.34, radius: 0.38 },
+    visceral: { label: 'Thoracic / Abdominal Cavity', x: 0, y: 0.14, radius: 0.44 },
+    osteoid: { label: 'Axial / Full Body Frame', x: 0, y: 0.0, radius: 1.15 },
+    myofibril: { label: 'Musculoskeletal Frame', x: 0, y: 0.0, radius: 1.15 },
+  },
+  boneRegions: {
+    Skull: { label: 'Cranium (Head)', x: 0, y: 0.78, radius: 0.34 },
+    Spine: { label: 'Vertebral Column', x: 0, y: 0.25, radius: 0.42 },
+    Thorax: { label: 'Ribcage / Sternum', x: 0, y: 0.35, radius: 0.36 },
+    Pelvis: { label: 'Pelvic Girdle', x: 0, y: -0.02, radius: 0.32 },
+    'Upper Limb': { label: 'Upper Limb (Shoulder / Arm / Hand)', x: 0, y: 0.22, radius: 0.55 },
+    'Lower Limb': { label: 'Lower Limb (Thigh / Leg / Foot)', x: 0, y: -0.52, radius: 0.55 },
+  },
+};
+
 export const useAnatomyStore = create(
   persist(
     (set, get) => ({
@@ -188,6 +207,15 @@ export const useAnatomyStore = create(
 
       // Bio Lab -> 3D Anatomy Lab Tissue Bioprinting Bridge
       bioprintedTissues: {
+        osteoid: false,
+        myofibril: false,
+        visceral: false,
+        endothelial: false,
+        neural: false,
+      },
+
+      // Organs & Bone Systems fabricated in Bio Lab waiting in the Anatomy Drag-and-Snap Tray
+      fabricatedOrgans: {
         osteoid: false,
         myofibril: false,
         visceral: false,
@@ -320,6 +348,13 @@ export const useAnatomyStore = create(
           consciousnessScore: 0,
           isAwakened: false,
           bioprintedTissues: {
+            osteoid: false,
+            myofibril: false,
+            visceral: false,
+            endothelial: false,
+            neural: false,
+          },
+          fabricatedOrgans: {
             osteoid: false,
             myofibril: false,
             visceral: false,
@@ -512,6 +547,65 @@ export const useAnatomyStore = create(
             `🧬 Regenerative Repair Complete: ${patho.repairTherapy} restored normoxic homeostasis!`
           );
         return true;
+      },
+
+      // Bio Lab Stop 5 -> Fabricate organ/tissue into Anatomy Drag-and-Snap Tray (does NOT auto-snap)
+      fabricateOrganForAnatomy: (tissueType) => {
+        const state = get();
+        set({
+          fabricatedOrgans: {
+            ...state.fabricatedOrgans,
+            [tissueType]: true,
+          },
+        });
+        return true;
+      },
+
+      // Positional Drag-and-Snap Validation in 3D Anatomy Lab
+      attemptAnatomicalSnap: (partType, partId, worldDropPos, boneRegion = null) => {
+        const state = get();
+        if (!worldDropPos || typeof worldDropPos.x !== 'number' || typeof worldDropPos.y !== 'number') {
+          return { snapped: false, reason: 'Drop directly onto the 3D human silhouette.' };
+        }
+
+        if (partType === 'organ') {
+          const zone = ANATOMICAL_DROP_ZONES.organs[partId];
+          if (!zone) return { snapped: false, reason: `Unknown organ target: ${partId}` };
+
+          const dx = worldDropPos.x - zone.x;
+          const dy = worldDropPos.y - zone.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist > zone.radius) {
+            return {
+              snapped: false,
+              reason: `Wrong position — place ${partId} in the ${zone.label}.`,
+            };
+          }
+
+          state.synthesizeBioTissue(partId);
+          return { snapped: true, reason: `Snapped into ${zone.label}!` };
+        }
+
+        if (partType === 'bone') {
+          const zone =
+            ANATOMICAL_DROP_ZONES.boneRegions[boneRegion] || ANATOMICAL_DROP_ZONES.boneRegions.Spine;
+          const dx = worldDropPos.x - zone.x;
+          const dy = worldDropPos.y - zone.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist > zone.radius) {
+            return {
+              snapped: false,
+              reason: `Wrong position — this bone belongs in the ${zone.label}.`,
+            };
+          }
+
+          state.assembleBone(partId);
+          return { snapped: true, reason: `Bone snapped into ${zone.label}!` };
+        }
+
+        return { snapped: false, reason: 'Unsupported anatomical part.' };
       },
     }),
     {

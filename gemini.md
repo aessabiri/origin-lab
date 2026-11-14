@@ -33,9 +33,10 @@ Your mission is to engineer a scientifically grounded, multi-scale universe and 
    - Quarks, leptons, periodic table nucleosynthesis, nucleotides, DNA/RNA backbones.
 3. **⚗️ Chemistry Lab (`src/chemistry-lab/`):**
    - Thermodynamics, Arrhenius kinetics, multi-phase stratification, prebiotic reactions.
-4. **🧫 Biology Lab & Protein Folding (`src/biology-lab/`):**
-   - 64 codons, 3D Catmull-Rom protein folding, cell organelle builder, and bioreactor trials.
+4. **🧫 Biology Lab & 5-Stop Bio-Assembly (`src/biology-lab/`):**
+   - Modular `components/assembly/` primitives (`TopTargetsBar`, `LeftIngredientsDrawer`) powering 5 unified Empty-Until-Dragged stops (Proteins → Organelles → Living Cell → Tissue & ECM → Organs), with Sandbox vs Demiurge Survival (`useInventory`) stock gating.
+   - `molecularImpostorEngine.js` (Cryo-EM SSS & Goodsell Ink GLSL impostors, CPK 3D sub-ingredients), live Central Dogma codon stepper, `ProteinFolder`, and `BioGoalsView`.
 5. **🦴 3D Anatomy Lab (`src/anatomy-lab/`):**
-   - 206 individual human bones, clinical LUMC scans, 4 layers, closed-chain posture rigging.
+   - 206 individual human bones, clinical LUMC scans, 4 layers, closed-chain posture rigging, and Bio → Anatomy positional drag-and-snap (`ANATOMICAL_DROP_ZONES`, `attemptAnatomicalSnap`).
 6. **🌍 Planetary View (`src/components/PlanetaryView.jsx`):**
    - Seeding Earth's oceans with LUCA, steering cladograms through extinctions to Homo sapiens.

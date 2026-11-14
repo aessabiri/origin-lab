@@ -1,121 +1,141 @@
 import React from 'react';
 import { useBioStore } from '../store';
 
-const BioModeSelector = ({ currentMode, setMode }) => {
+const BioModeSelector = ({ currentMode, setMode, activeStage, onSelectStop }) => {
   const {
-    agents,
-    isRunning,
-    synthesizedProteins,
-    currentCellDesign,
-    morphogenesisConfig,
+    foldedProteins = [],
+    assembledOrganelles = [],
+    differentiatedCells = [],
     engineeredTissues = []
   } = useBioStore();
 
-  const modes = [
+  const stops = [
     {
-      id: 'organogenesis',
-      label: 'Bio-Assembly Line',
+      id: 'organ',
+      num: '5',
+      label: 'Organs',
       icon: '🫀',
       val: `${engineeredTissues.length}/5`,
-      unit: 'ORGANS',
-      desc: '5-Stage Pipeline: Organs ↔ Tissues ↔ Cells ↔ Organelles ↔ Molecules'
+      desc: 'Stop 5: Fabricate Organs for Anatomy Drag-and-Snap'
     },
     {
-      id: 'folding',
-      label: 'Protein & DNA Studio',
-      icon: '🧬',
-      val: synthesizedProteins.length,
-      unit: 'SEQ',
-      desc: '3D Amino Acid Folding & 64-Codon Sequencer'
+      id: 'tissue',
+      num: '4',
+      label: 'Tissues',
+      icon: '🕸️',
+      val: `${engineeredTissues.length}/5`,
+      desc: 'Stop 4: Bioprint Tissue & ECM Scaffolds'
     },
     {
-      id: 'assembly',
-      label: 'LUCA Cell Sandbox',
-      icon: '🦠',
-      val: currentCellDesign.organelles.length,
-      unit: 'PARTS',
-      desc: 'Freeform Protocell & Organelle Chassis'
-    },
-    {
-      id: 'simulation',
-      label: 'Petri Dish Ecosystem',
+      id: 'cell',
+      num: '3',
+      label: 'Cell',
       icon: '🧫',
-      val: agents.length,
-      unit: 'CELLS',
-      desc: 'Live 2D Survival, Feeding & Mitosis'
+      val: `${differentiatedCells.length}/9`,
+      desc: 'Stop 3: Living Cell (Meet in the Middle)'
+    },
+    {
+      id: 'organelle',
+      num: '2',
+      label: 'Organelle',
+      icon: '⚙️',
+      val: `${assembledOrganelles.length}/4`,
+      desc: 'Stop 2: Assemble Sub-Cellular Organelles'
+    },
+    {
+      id: 'molecule',
+      num: '1',
+      label: 'Protein',
+      icon: '🧬',
+      val: `${foldedProteins.length}/8`,
+      desc: 'Stop 1: Gene & Protein Molecular Forge'
     }
   ];
 
   return (
-    <div className="flex flex-col w-72 h-full bg-[#080d18]/95 backdrop-blur-2xl p-4 border-r border-teal-500/20 shadow-2xl z-20 select-none">
-      {/* Central Terminal Status Badge */}
-      <div className="mb-6 px-4 py-3 bg-[#0c1424] border border-teal-500/30 rounded-2xl shadow-inner">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[9px] font-mono font-black text-teal-400 uppercase tracking-widest">
-            Biological Core
-          </span>
-          <div className="flex items-center gap-1.5">
-            <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]' : 'bg-slate-600'}`} />
-            <span className="text-[10px] font-mono text-slate-300 font-bold">
-              {isRunning ? 'ACTIVE' : 'STANDBY'}
-            </span>
-          </div>
-        </div>
-        <p className="text-[10px] font-mono text-slate-400 truncate">
-          LUCA Prototyping & Ecology Studio
-        </p>
+    <div className="flex flex-row md:flex-col w-full md:w-20 md:h-full bg-[#080d18]/95 backdrop-blur-2xl p-2 border-b md:border-b-0 md:border-r border-teal-500/20 shadow-2xl z-20 select-none items-center justify-between md:justify-start gap-1.5 shrink-0">
+      <div className="hidden md:flex flex-col items-center py-1.5 px-1 w-full rounded-xl bg-[#0c1424] border border-teal-500/25">
+        <span className="text-[8px] font-mono font-black text-teal-400 uppercase tracking-wider">
+          5-STOP
+        </span>
+        <span className="text-[7px] font-mono text-slate-400">ASSEMBLY</span>
       </div>
-      
-      {/* Navigation Modes List */}
-      <div className="flex-1 space-y-3">
-        {modes.map((mode) => {
-          const isActive = currentMode === mode.id;
+
+      {/* 5-Stop Assembly Sub-Tabs */}
+      <div className="flex flex-row md:flex-col flex-1 gap-1.5 w-full justify-center md:justify-start">
+        {stops.map((stop) => {
+          const isActive = currentMode === 'organogenesis' && activeStage === stop.id;
           return (
             <button
-              key={mode.id}
-              onClick={() => setMode(mode.id)}
-              className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-200 group relative flex flex-col gap-1.5 ${
-                isActive 
-                  ? 'bg-gradient-to-r from-teal-950/60 to-[#0f1d2e] border-teal-400/50 shadow-[0_4px_20px_rgba(20,184,166,0.25)] scale-[1.02]' 
-                  : 'bg-[#0b1220]/60 border-slate-800/80 hover:border-teal-500/30 hover:bg-[#0f172a]'
+              key={stop.id}
+              onClick={() => onSelectStop && onSelectStop(stop.id)}
+              title={stop.desc}
+              className={`flex-1 md:flex-none md:w-full py-1.5 px-1 rounded-xl border transition-all duration-150 flex flex-col items-center gap-0.5 cursor-pointer relative ${
+                isActive
+                  ? 'bg-gradient-to-b from-cyan-950/80 to-[#0f1d2e] border-cyan-400/70 shadow-[0_0_14px_rgba(34,211,238,0.25)]'
+                  : 'bg-[#0b1220]/60 border-slate-800/80 hover:border-cyan-500/35 hover:bg-[#0f172a]'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl p-2 rounded-xl bg-[#070b14] border border-white/5">
-                    {mode.icon}
-                  </span>
-                  <div>
-                    <h3 className={`font-black text-xs uppercase tracking-wider transition-colors ${isActive ? 'text-teal-200' : 'text-slate-300 group-hover:text-white'}`}>
-                      {mode.label}
-                    </h3>
-                    <span className="text-[9px] text-slate-500 font-mono">
-                      {mode.unit}
-                    </span>
-                  </div>
-                </div>
-
-                <span className={`font-mono font-black text-sm px-2 py-0.5 rounded-lg border ${
-                  isActive 
-                    ? 'bg-teal-500/20 border-teal-400/40 text-teal-300' 
+              <span className="text-base leading-none">{stop.icon}</span>
+              <span
+                className={`text-[8px] font-mono font-bold uppercase tracking-tight leading-none ${
+                  isActive ? 'text-cyan-200' : 'text-slate-400'
+                }`}
+              >
+                {stop.num}. {stop.label}
+              </span>
+              <span
+                className={`text-[7.5px] font-mono font-black px-1 rounded border ${
+                  isActive
+                    ? 'bg-cyan-500/20 border-cyan-400/40 text-cyan-300'
                     : 'bg-slate-900 border-slate-800 text-slate-500'
-                }`}>
-                  {mode.val}
-                </span>
-              </div>
-
-              <p className="text-[9px] text-slate-400 font-sans leading-tight pl-1">
-                {mode.desc}
-              </p>
+                }`}
+              >
+                {stop.val}
+              </span>
             </button>
           );
         })}
-      </div>
 
-      {/* Footer System Telemetry */}
-      <div className="mt-auto pt-4 border-t border-teal-500/15 flex justify-between items-center text-[10px] font-mono text-slate-500">
-        <span>BIO_SYS v0.3</span>
-        <span className="text-teal-400/80">OLED SYNC</span>
+        {/* Direct Codon & Folding Studio Sub-Tab */}
+        <button
+          onClick={() => setMode('folding')}
+          title="3D Codon Sequencer & Protein Folding Studio"
+          className={`flex-1 md:flex-none md:w-full md:mt-auto py-1.5 px-1 rounded-xl border transition-all duration-150 flex flex-col items-center gap-0.5 cursor-pointer ${
+            currentMode === 'folding'
+              ? 'bg-purple-950/70 border-purple-400/70 shadow-[0_0_14px_rgba(168,85,247,0.25)]'
+              : 'bg-[#0b1220]/60 border-slate-800/80 hover:border-purple-400/40'
+          }`}
+        >
+          <span className="text-base leading-none">🧪</span>
+          <span
+            className={`text-[8px] font-mono font-bold uppercase tracking-tight leading-none ${
+              currentMode === 'folding' ? 'text-purple-200' : 'text-slate-400'
+            }`}
+          >
+            Codons
+          </span>
+        </button>
+
+        {/* Bio Goals & Sub-Recipes Sub-Tab */}
+        <button
+          onClick={() => setMode('goals')}
+          title="Bio Lab Guide, Desired Organ Outcomes & Physics/Chemistry Sub-Recipes"
+          className={`flex-1 md:flex-none md:w-full py-1.5 px-1 rounded-xl border transition-all duration-150 flex flex-col items-center gap-0.5 cursor-pointer ${
+            currentMode === 'goals'
+              ? 'bg-emerald-950/70 border-emerald-400/70 shadow-[0_0_14px_rgba(16,185,129,0.25)]'
+              : 'bg-[#0b1220]/60 border-slate-800/80 hover:border-emerald-400/40'
+          }`}
+        >
+          <span className="text-base leading-none">🎯</span>
+          <span
+            className={`text-[8px] font-mono font-bold uppercase tracking-tight leading-none ${
+              currentMode === 'goals' ? 'text-emerald-200' : 'text-slate-400'
+            }`}
+          >
+            Goals
+          </span>
+        </button>
       </div>
     </div>
   );

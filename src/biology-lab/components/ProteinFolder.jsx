@@ -1,7 +1,12 @@
 import React, { useState, useMemo, useRef, useEffect, Suspense, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, PerspectiveCamera, Environment, MeshTransmissionMaterial, PresentationControls, ContactShadows, Stars, Html } from '@react-three/drei';
+import { Float, PerspectiveCamera, Environment, PresentationControls, ContactShadows, Stars } from '@react-three/drei';
 import * as THREE from 'three';
+import {
+  createAtomImpostorMesh,
+  createBondInstancedMesh,
+  updateImpostorUniforms
+} from '../utils/molecularImpostorEngine';
 import { useBioStore } from '../store';
 import { useInventory } from '../../store/inventory';
 import { useStore } from '../../store';
@@ -22,72 +27,7 @@ import {
 
 // --- 3D Protein Model Geometry Components ---
 
-const atomGeometry = new THREE.SphereGeometry(1, 32, 32);
-const bondGeometry = new THREE.CylinderGeometry(0.12, 0.12, 1, 16);
 const disulfideGeometry = new THREE.CylinderGeometry(0.18, 0.18, 1, 16);
-
-const ResidueMesh = React.memo(({ position, color, label, symbol, chargeType, renderMode, size = 1.25 }) => {
-  const displayColor = useMemo(() => {
-    if (renderMode === 'charge') {
-      if (chargeType === 'pos') return '#3b82f6';
-      if (chargeType === 'neg') return '#ef4444';
-      return '#64748b';
-    }
-    return color || '#38bdf8';
-  }, [renderMode, chargeType, color]);
-
-  return (
-    <group position={position}>
-      <mesh geometry={atomGeometry} scale={[size, size, size]}>
-        <meshPhysicalMaterial 
-          color={displayColor}
-          transmission={0.65}
-          roughness={0.18}
-          metalness={0.08}
-          clearcoat={0.9}
-          clearcoatRoughness={0.1}
-          ior={1.25}
-        />
-      </mesh>
-      
-      {/* Internal Luminous Quantum Core */}
-      <mesh geometry={atomGeometry} scale={[size * 0.42, size * 0.42, size * 0.42]}>
-        <meshStandardMaterial 
-          color={displayColor} 
-          emissive={displayColor} 
-          emissiveIntensity={2.8} 
-          toneMapped={false} 
-        />
-      </mesh>
-    </group>
-  );
-});
-
-const PeptideCovalentBond = React.memo(({ start, end, color = "#6366f1" }) => {
-  const midPoint = useMemo(() => new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5), [start, end]);
-  const distance = useMemo(() => start.distanceTo(end), [start, end]);
-  const direction = useMemo(() => new THREE.Vector3().subVectors(end, start).normalize(), [start, end]);
-  
-  const quaternion = useMemo(() => {
-    const q = new THREE.Quaternion();
-    const up = new THREE.Vector3(0, 1, 0);
-    q.setFromUnitVectors(up, direction);
-    return q;
-  }, [direction]);
-
-  return (
-    <mesh position={midPoint} quaternion={quaternion} geometry={bondGeometry} scale={[1, distance, 1]}>
-      <meshStandardMaterial 
-        color={color} 
-        emissive={color} 
-        emissiveIntensity={2.5} 
-        toneMapped={false} 
-        transparent 
-        opacity={0.6} 
-      />
-    </mesh>
-  );
-});
 
 const DisulfideBridge3D = React.memo(({ start, end }) => {
   const midPoint = useMemo(() => new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5), [start, end]);
@@ -116,8 +56,14 @@ const DisulfideBridge3D = React.memo(({ start, end }) => {
 const ContinuousRibbonTube = ({ curve }) => {
   const tubeGeometry = useMemo(() => {
     if (!curve) return null;
-    return new THREE.TubeGeometry(curve, 64, 0.45, 12, false);
+    return new THREE.TubeGeometry(curve, 64, 0.42, 12, false);
   }, [curve]);
+
+  useEffect(() => {
+    return () => {
+      if (tubeGeometry) tubeGeometry.dispose();
+    };
+  }, [tubeGeometry]);
 
   if (!tubeGeometry) return null;
 
@@ -126,27 +72,81 @@ const ContinuousRibbonTube = ({ curve }) => {
       <meshStandardMaterial 
         color="#38bdf8" 
         emissive="#0284c7" 
-        emissiveIntensity={1.2} 
-        roughness={0.2} 
-        metalness={0.8} 
+        emissiveIntensity={0.85} 
+        roughness={0.25} 
+        metalness={0.55} 
         transparent 
-        opacity={0.7} 
+        opacity={0.72} 
       />
     </mesh>
   );
 };
 
-const Protein3DScene = ({ structure, renderMode }) => {
+const Protein3DScene = ({ structure, renderMode, styleMode = 0 }) => {
   const groupRef = useRef();
-  
+
+  const points = useMemo(() => structure.points.map((p) => new THREE.Vector3(p.x, p.y, p.z)), [structure]);
+
+  // Build single-draw-call GPU Ray-Casted Impostor Cloud (backbone + R-group side-chain atoms)
+  const molecularGroup = useMemo(() => {
+    const atoms = [];
+    const bonds = [];
+
+    structure.points.forEach((pt, idx) => {
+      let baseColor = pt.color || '#38bdf8';
+      if (renderMode === 'charge') {
+        baseColor = pt.chargeType === 'pos' ? '#3b82f6' : pt.chargeType === 'neg' ? '#ef4444' : '#64748b';
+      }
+
+      // Alpha-carbon core + amide N + carbonyl O + 3-atom R-group side-chain cluster
+      atoms.push({ x: pt.x, y: pt.y, z: pt.z, r: 1.05, color: baseColor });
+
+      const angle = idx * 2.39996; // Golden angle side-chain orientation
+      const sx = Math.cos(angle) * 0.95;
+      const sy = Math.sin(angle * 0.7) * 0.65;
+      const sz = Math.sin(angle) * 0.95;
+
+      atoms.push({ x: pt.x + sx * 0.55, y: pt.y + sy * 0.55, z: pt.z + sz * 0.55, r: 0.72, color: baseColor });
+      atoms.push({ x: pt.x + sx, y: pt.y + sy, z: pt.z + sz, r: 0.62, color: '#e2e8f0' });
+      atoms.push({ x: pt.x - sx * 0.45, y: pt.y + 0.55, z: pt.z - sz * 0.45, r: 0.52, color: '#ef4444' });
+    });
+
+    (structure.bonds || []).forEach((b) => {
+      const p1 = structure.points[b.from];
+      const p2 = structure.points[b.to];
+      if (p1 && p2) {
+        bonds.push({
+          from: [p1.x, p1.y, p1.z],
+          to: [p2.x, p2.y, p2.z],
+          radius: 0.22,
+          color: p1.color || '#6366f1',
+        });
+      }
+    });
+
+    const grp = new THREE.Group();
+    grp.add(createAtomImpostorMesh(atoms, { styleMode }));
+    const bondMesh = createBondInstancedMesh(bonds);
+    if (bondMesh) grp.add(bondMesh);
+    return grp;
+  }, [structure, renderMode, styleMode]);
+
+  useEffect(() => {
+    return () => {
+      molecularGroup.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+      });
+    };
+  }, [molecularGroup]);
+
   useFrame((state) => {
     if (groupRef.current) {
       groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.12;
       groupRef.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.3) * 0.08;
     }
+    updateImpostorUniforms(molecularGroup, { time: state.clock.getElapsedTime(), styleMode });
   });
-
-  const points = useMemo(() => structure.points.map(p => new THREE.Vector3(p.x, p.y, p.z)), [structure]);
 
   return (
     <group ref={groupRef} scale={0.42}>
@@ -155,28 +155,7 @@ const Protein3DScene = ({ structure, renderMode }) => {
         <ContinuousRibbonTube curve={structure.splineCurve} />
       )}
 
-      {/* Residue Spheres */}
-      {points.map((pos, i) => (
-        <ResidueMesh 
-          key={i} 
-          position={pos} 
-          color={structure.points[i].color} 
-          label={structure.points[i].label}
-          symbol={structure.points[i].symbol}
-          chargeType={structure.points[i].chargeType}
-          renderMode={renderMode}
-        />
-      ))}
-
-      {/* Peptide Bonds */}
-      {structure.bonds.map((bond, i) => (
-        <PeptideCovalentBond 
-          key={`bond-${i}`} 
-          start={points[bond.from]} 
-          end={points[bond.to]} 
-          color={structure.points[bond.from].color}
-        />
-      ))}
+      <primitive object={molecularGroup} />
 
       {/* Disulfide Bridges */}
       {structure.disulfideLinks?.map((bridge, i) => (
@@ -204,6 +183,7 @@ const ProteinFolder = () => {
   
   // Visual & Folding State
   const [renderMode, setRenderMode] = useState('ribbon'); // 'ribbon', 'charge', 'spheres_only'
+  const [styleMode, setStyleMode] = useState(0); // 0 = Cryo-EM SSS, 1 = Goodsell Ink
   const [isFolding, setIsFolding] = useState(false);
   const [foldedStructure, setFoldedStructure] = useState(null);
   const [activeTab, setActiveTab] = useState('library'); // 'library', 'history', 'presets'
@@ -665,6 +645,26 @@ const ProteinFolder = () => {
                 Residues
               </button>
             </div>
+
+            {/* Shader Style Switcher */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-[#0c1220]/80 backdrop-blur-xl border border-cyan-500/30">
+              <button
+                onClick={() => setStyleMode(0)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${
+                  styleMode === 0 ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🔬 Cryo-EM
+              </button>
+              <button
+                onClick={() => setStyleMode(1)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${
+                  styleMode === 1 ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🎨 Goodsell
+              </button>
+            </div>
           </div>
 
           {/* 3D Canvas */}
@@ -683,7 +683,7 @@ const ProteinFolder = () => {
                     azimuth={[-Math.PI / 2, Math.PI / 2]}
                   >
                     <Float speed={2.5} rotationIntensity={0.6} floatIntensity={0.6}>
-                      <Protein3DScene structure={foldedStructure} renderMode={renderMode} />
+                      <Protein3DScene structure={foldedStructure} renderMode={renderMode} styleMode={styleMode} />
                     </Float>
                   </PresentationControls>
 

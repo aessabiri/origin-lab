@@ -45,14 +45,16 @@ const App = () => {
 
   return (
     <div className="w-full h-screen flex flex-col bg-[#030508] text-white overflow-hidden select-none">
-      {/* Persistent Top Cosmic Command Bar */}
-      <CosmicCommandBar
-        isGuideOpen={currentView === 'goals'}
-        onToggleGuide={() => setCurrentView(currentView === 'goals' ? 'universe' : 'goals')}
-        onOpenNotebook={() => setIsCodexVisible(!isCodexVisible)}
-        currentView={currentView}
-        onViewChange={setCurrentView}
-      />
+      {/* Persistent Top Cosmic Command Bar (hidden in Bio Lab for clean spatial canvas) */}
+      {currentView !== 'biology' && (
+        <CosmicCommandBar
+          isGuideOpen={currentView === 'goals'}
+          onToggleGuide={() => setCurrentView(currentView === 'goals' ? 'universe' : 'goals')}
+          onOpenNotebook={() => setIsCodexVisible(!isCodexVisible)}
+          currentView={currentView}
+          onViewChange={setCurrentView}
+        />
+      )}
 
       {/* Main Workspace Container */}
       <div className="flex-1 flex flex-row overflow-hidden relative min-h-0">

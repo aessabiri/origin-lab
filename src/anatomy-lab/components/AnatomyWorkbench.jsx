@@ -30,6 +30,7 @@ const AnatomyWorkbench = () => {
   const vitalSigns = useAnatomyStore(state => state.vitalSigns);
   const consciousnessScore = useAnatomyStore(state => state.consciousnessScore);
   const bioprintedTissues = useAnatomyStore(state => state.bioprintedTissues) || {};
+  const fabricatedOrgans = useAnatomyStore(state => state.fabricatedOrgans) || {};
   const synthesizeBioTissue = useAnatomyStore(state => state.synthesizeBioTissue);
   const selectedStructure = useAnatomyStore(state => state.selectedStructure);
   const xrayMeshKeys = useAnatomyStore(state => state.xrayMeshKeys) || [];
@@ -148,33 +149,52 @@ const AnatomyWorkbench = () => {
       {/* 2b. BIO-LAB TO 3D ANATOMY TISSUE BIOPRINTING BRIDGE */}
       <div className="px-3 py-2 border-b border-slate-800 bg-[#040812] space-y-1.5">
         <div className="flex items-center justify-between text-[8.5px] font-mono uppercase tracking-wider text-teal-400 font-bold">
-          <span>🧬 Bio-Lab 3D Tissue Synthesizer</span>
-          <span className="text-slate-500">Clinical CT + Organ Merge</span>
+          <span>🧬 Bio-Organ Drag & Snap Tray</span>
+          <span className="text-slate-400">Drag onto 3D Body</span>
         </div>
         <div className="grid grid-cols-5 gap-1">
           {[
-            { id: 'osteoid', label: 'Osteoid', icon: '🦴' },
-            { id: 'myofibril', label: 'Myofibril', icon: '💪' },
-            { id: 'visceral', label: 'Organs', icon: '🫁' },
-            { id: 'endothelial', label: 'Vascular', icon: '🫀' },
-            { id: 'neural', label: 'Neural', icon: '🧠' },
+            { id: 'osteoid', label: 'Skeleton', icon: '🦴', hint: 'Drag to Body Frame' },
+            { id: 'myofibril', label: 'Muscles', icon: '💪', hint: 'Drag to Body Frame' },
+            { id: 'visceral', label: 'Organs', icon: '🫁', hint: 'Drag to Thorax/Abdomen' },
+            { id: 'endothelial', label: 'Heart', icon: '🫀', hint: 'Drag to Thorax' },
+            { id: 'neural', label: 'Brain', icon: '🧠', hint: 'Drag to Cranium' },
           ].map((t) => {
-            const active = !!bioprintedTissues[t.id];
+            const snapped = !!bioprintedTissues[t.id];
+            const readyToDrag = !!fabricatedOrgans[t.id] && !snapped;
             const recipe = BIO_TISSUE_RECIPES[t.id];
             return (
-              <button
+              <div
                 key={t.id}
-                onClick={() => synthesizeBioTissue && synthesizeBioTissue(t.id)}
-                title={`${recipe?.name || t.label} — Formula: ${recipe?.formula || ''}`}
-                className={`py-1 px-1 rounded-lg text-[8px] font-mono font-bold border transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                  active
-                    ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200'
-                    : 'border-teal-500/25 bg-teal-500/10 text-teal-300 hover:bg-teal-500/25'
+                draggable={!snapped}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(
+                    'application/json',
+                    JSON.stringify({ kind: 'organ', id: t.id })
+                  );
+                }}
+                onClick={() => !snapped && !readyToDrag && synthesizeBioTissue && synthesizeBioTissue(t.id)}
+                title={
+                  snapped
+                    ? `${t.label}: Snapped into Anatomy`
+                    : readyToDrag
+                    ? `${t.label} ready! ${t.hint}`
+                    : `${recipe?.name || t.label} — Drag onto 3D body or click to synthesize`
+                }
+                className={`py-1.5 px-1 rounded-lg text-[8px] font-mono font-bold border transition-all flex flex-col items-center justify-center gap-0.5 select-none ${
+                  snapped
+                    ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200 cursor-default'
+                    : readyToDrag
+                    ? 'border-cyan-400 bg-cyan-500/25 text-cyan-100 cursor-grab active:cursor-grabbing animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.25)]'
+                    : 'border-teal-500/25 bg-teal-500/10 text-teal-300 hover:bg-teal-500/25 cursor-grab'
                 }`}
               >
                 <span>{t.icon}</span>
                 <span>{t.label}</span>
-              </button>
+                <span className="text-[6.5px] opacity-75">
+                  {snapped ? '✓' : readyToDrag ? '⋮⋮ DRAG' : 'READY'}
+                </span>
+              </div>
             );
           })}
         </div>
@@ -200,14 +220,26 @@ const AnatomyWorkbench = () => {
 
             {(!selectedStructure || selectedStructure.boneId) && (
               <button
+                draggable={!assembledBones.includes(selectedBone.id)}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(
+                    'application/json',
+                    JSON.stringify({
+                      kind: 'bone',
+                      id: selectedBone.id,
+                      region: selectedBone.region,
+                    })
+                  );
+                }}
                 onClick={() => assembleBone(selectedBone.id)}
+                title={`Drag onto ${selectedBone.region} on the 3D body (or click to snap)`}
                 className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider border shrink-0 transition-all ${
                   assembledBones.includes(selectedBone.id)
                     ? 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300'
-                    : 'border-cyan-400 bg-cyan-500/30 text-white hover:bg-cyan-400 hover:text-black shadow-[0_0_10px_rgba(6,182,212,0.3)] animate-pulse'
+                    : 'border-cyan-400 bg-cyan-500/30 text-white hover:bg-cyan-400 hover:text-black shadow-[0_0_10px_rgba(6,182,212,0.3)] cursor-grab active:cursor-grabbing'
                 }`}
               >
-                {assembledBones.includes(selectedBone.id) ? '✓ Assembled' : '+ Snap In'}
+                {assembledBones.includes(selectedBone.id) ? '✓ Assembled' : '⋮⋮ Drag / Snap'}
               </button>
             )}
           </div>

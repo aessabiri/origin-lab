@@ -86,8 +86,10 @@ export const useBioStore = create(
       differentiatedCells: [],  // ['osteoblast', 'cardiomyocyte', 'hepatocyte', 'endothelial_cell', 'motor_neuron']
       engineeredTissues: [],    // ['osteoid', 'myofibril', 'visceral', 'endothelial', 'neural']
       assembledOrganParts: [],  // ['cardio_ventricles', 'cardio_atria', 'cardio_valves', 'cardio_vessels', ...]
+      demiurgeSurvivalMode: false, // false = Sandbox (Free), true = Survival (Checks Physics/Chem & prior-stop stock)
 
       // --- Actions ---
+      setDemiurgeSurvivalMode: (enabled) => set({ demiurgeSurvivalMode: Boolean(enabled) }),
 
       setAgents: (agents) => set({ agents }),
       setFoodItems: (foodItems) => set({ foodItems }),

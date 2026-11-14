@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
+import { useStore } from '../../store.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
@@ -777,13 +778,70 @@ const AnatomyCanvas = () => {
     }
   }, [assembledBones, assembleBone, setSelectedBoneId, setSelectedStructure]);
 
+  const [dropFeedback, setDropFeedback] = useState(null); // { ok: boolean, text: string }
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    const raw = e.dataTransfer.getData('application/json');
+    if (!raw || !containerRef.current || !cameraRef.current) return;
+
+    let payload;
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, cameraRef.current);
+
+    const anatomicalPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const hitPoint = new THREE.Vector3();
+    const intersected = raycaster.ray.intersectPlane(anatomicalPlane, hitPoint);
+
+    if (!intersected) return;
+
+    const result = useAnatomyStore
+      .getState()
+      .attemptAnatomicalSnap(payload.kind, payload.id, { x: hitPoint.x, y: hitPoint.y, z: hitPoint.z }, payload.region);
+
+    setDropFeedback({ ok: result.snapped, text: result.reason });
+    setTimeout(() => setDropFeedback(null), 2600);
+    useStore.getState().showMessage(result.snapped ? `✓ ${result.reason}` : `⚠️ ${result.reason}`);
+  }, []);
+
   return (
     <div
       className="w-full h-full relative overflow-hidden bg-[#06080e]"
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
       <div ref={containerRef} className="w-full h-full cursor-pointer" />
+
+      {dropFeedback && (
+        <div
+          className={`absolute top-5 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-xl border font-mono text-xs font-bold shadow-2xl backdrop-blur-md pointer-events-none ${
+            dropFeedback.ok
+              ? 'bg-emerald-950/90 border-emerald-400 text-emerald-200'
+              : 'bg-rose-950/90 border-rose-400 text-rose-200'
+          }`}
+        >
+          {dropFeedback.ok ? '✓ ' : '⚠️ '}
+          {dropFeedback.text}
+        </div>
+      )}
 
       {/* Instant Skeleton Loader */}
       {isLoading && (
