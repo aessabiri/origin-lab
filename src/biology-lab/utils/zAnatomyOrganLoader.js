@@ -121,8 +121,25 @@ function shouldIncludeMeshInFocusedOrganView(systemId, meshName = '', boxCenterY
   }
 
   if (systemId === 'nervous_system') {
-    // Focus on Brain, Cerebellum, Brainstem, Cranial nerves & Cervical Spinal Cord (Y >= 1.38m)
-    return boxCenterY >= 1.38;
+    const isBrainName =
+      n.includes('cerebr') ||
+      n.includes('cortex') ||
+      n.includes('gyrus') ||
+      n.includes('sulcus') ||
+      n.includes('lobe') ||
+      n.includes('cerebell') ||
+      n.includes('pons') ||
+      n.includes('medulla') ||
+      n.includes('midbrain') ||
+      n.includes('thalam') ||
+      n.includes('hippocamp') ||
+      n.includes('callosum') ||
+      n.includes('ventricle') ||
+      n.includes('brain') ||
+      n.includes('amygdala') ||
+      n.includes('caudate') ||
+      n.includes('putamen');
+    return isBrainName || boxCenterY >= 1.38;
   }
 
   return true;
@@ -145,6 +162,7 @@ export async function loadZAnatomyOrganModel(systemId) {
   }
 
   const cachedScene = gltfCache.get(url);
+  cachedScene.updateMatrixWorld(true);
   const organGroup = new THREE.Group();
   const combinedBox = new THREE.Box3();
 
@@ -154,14 +172,19 @@ export async function loadZAnatomyOrganModel(systemId) {
     if (!child.geometry.boundingBox) {
       child.geometry.computeBoundingBox();
     }
+    const worldBox = child.geometry.boundingBox.clone().applyMatrix4(child.matrixWorld);
     const center = new THREE.Vector3();
-    child.geometry.boundingBox.getCenter(center);
+    worldBox.getCenter(center);
 
     if (!shouldIncludeMeshInFocusedOrganView(systemId, rawName, center.y)) {
       return;
     }
 
     const meshClone = child.clone();
+    meshClone.position.set(0, 0, 0);
+    meshClone.rotation.set(0, 0, 0);
+    meshClone.scale.set(1, 1, 1);
+    meshClone.applyMatrix4(child.matrixWorld);
     meshClone.name = rawName;
     meshClone.userData.subPartId = classifyMeshToOrganSubPart(systemId, rawName);
     organGroup.add(meshClone);
@@ -238,6 +261,28 @@ const SINGLE_ORGAN_FILTERS = {
     systemId: 'visceral_system',
     match: (n) => n.includes('kidney') || n.includes('renal') || n.includes('ureter'),
   },
+  brain: {
+    url: '/models/nervous.glb',
+    systemId: 'nervous_system',
+    match: (n) =>
+      n.includes('cerebr') ||
+      n.includes('cortex') ||
+      n.includes('gyrus') ||
+      n.includes('sulcus') ||
+      n.includes('lobe') ||
+      n.includes('cerebell') ||
+      n.includes('pons') ||
+      n.includes('medulla') ||
+      n.includes('midbrain') ||
+      n.includes('thalam') ||
+      n.includes('hippocamp') ||
+      n.includes('callosum') ||
+      n.includes('ventricle') ||
+      n.includes('brain') ||
+      n.includes('amygdala') ||
+      n.includes('caudate') ||
+      n.includes('putamen'),
+  },
 };
 
 /**
@@ -257,6 +302,7 @@ export async function loadFocusedSingleOrgan(organKey) {
   }
 
   const cachedScene = gltfCache.get(cfg.url);
+  cachedScene.updateMatrixWorld(true);
   const organGroup = new THREE.Group();
   const combinedBox = new THREE.Box3();
 
@@ -267,6 +313,10 @@ export async function loadFocusedSingleOrgan(organKey) {
     if (!cfg.match(n)) return;
 
     const meshClone = child.clone();
+    meshClone.position.set(0, 0, 0);
+    meshClone.rotation.set(0, 0, 0);
+    meshClone.scale.set(1, 1, 1);
+    meshClone.applyMatrix4(child.matrixWorld);
     meshClone.name = rawName;
     meshClone.userData.subPartId = classifyMeshToOrganSubPart(cfg.systemId, rawName);
     organGroup.add(meshClone);

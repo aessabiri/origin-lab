@@ -140,6 +140,7 @@ export const INCUBATOR_RECIPES = {
   },
   nervous_system: {
     id: 'nervous_system',
+    singleOrganKey: 'brain',
     anatomyTissueId: 'neural',
     chamberName: 'NEUROTROPHIC BIOREACTOR',
     liquidColor: '#f59e0b',
@@ -183,7 +184,7 @@ const OrganIncubatorChamber = ({ systemId = 'cardiovascular_system', onOpenAnato
         singleOrganKey: activeMajorChamber.id,
         zAnatomyId: activeMajorChamber.zAnatomySystemId,
       }
-    : { ...baseRecipe, singleOrganKey: null, zAnatomyId: baseRecipe.id };
+    : { ...baseRecipe, singleOrganKey: baseRecipe.singleOrganKey || null, zAnatomyId: baseRecipe.id };
 
   const [loadedBySystem, setLoadedBySystem] = useState({});
   const [growthProgressBySystem, setGrowthProgressBySystem] = useState({});
