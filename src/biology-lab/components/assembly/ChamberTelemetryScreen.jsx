@@ -361,8 +361,41 @@ const ChamberTelemetryScreen = ({
             ctx.stroke();
           }
         }
+      } else if (s.organType === 'skin' || s.organType === 'visceral_system') {
+        // Stratified Epidermis, Dermal Papillae, Hair Follicle & Capillary Loops
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = -72; x <= 72; x += 6) {
+          const y = cy - 28 + Math.sin(x * 0.14 + t * 1.2) * 5;
+          if (x === -72) ctx.moveTo(cx + x, y);
+          else ctx.lineTo(cx + x, y);
+        }
+        ctx.stroke();
+
+        // Dermal capillary loops
+        for (let l = -2; l <= 2; l++) {
+          const lx = cx + l * 28;
+          ctx.beginPath();
+          ctx.arc(lx, cy + 4, 8, Math.PI, 0);
+          ctx.strokeStyle = l % 2 === 0 ? '#ef4444' : '#38bdf8';
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+        }
+
+        // Central hair follicle shaft & bulb
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + 36);
+        ctx.lineTo(cx + 8, cy - 48);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy + 38, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fill();
       } else {
-        // Hepatic Lobule Hexagonal Tissue (Liver / Visceral)
+        // Hepatic Lobule Hexagonal Tissue (Liver)
         ctx.strokeStyle = s.accentColor;
         ctx.lineWidth = 1.4;
         ctx.beginPath();

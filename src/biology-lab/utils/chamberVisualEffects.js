@@ -911,6 +911,14 @@ export function applyMorphogeneticStageToOrgan(
 
   if (isMatured || progress >= 0.96) {
     glb.scale.setScalar(glb.userData.baseScale * 0.88);
+    if (glb.userData.isProceduralSkin) {
+      glb.traverse((child) => {
+        if (child.isMesh && child.userData.origMaterial) {
+          child.material = child.userData.origMaterial;
+        }
+      });
+      return;
+    }
     applyOrganSubPartMaterials(glb, zAnatomyId, [], true, clipPlane);
     return;
   }
@@ -935,6 +943,9 @@ export function applyMorphogeneticStageToOrgan(
 
   glb.traverse((child) => {
     if (child.isMesh) {
+      if (glb.userData.isProceduralSkin && !child.userData.origMaterial) {
+        child.userData.origMaterial = child.material;
+      }
       child.material = mat;
     }
   });

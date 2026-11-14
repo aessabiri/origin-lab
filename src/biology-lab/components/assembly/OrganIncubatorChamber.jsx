@@ -122,16 +122,17 @@ export const INCUBATOR_RECIPES = {
   },
   visceral_system: {
     id: 'visceral_system',
+    singleOrganKey: 'skin',
     anatomyTissueId: 'visceral',
-    chamberName: 'VISCERAL & DERMAL BIOREACTOR',
+    chamberName: 'INTEGUMENTARY SKIN & DERMAL BIOREACTOR',
     liquidColor: '#10b981',
     cellColor: '#34d399',
     components: [
-      { id: 'cell_hepatocyte', symbol: 'HEP', name: 'Epithelial & Hepatic', color: '#34d399' },
-      { id: 'comp_egf_hgf', symbol: 'EGF', name: 'EGF + HGF', color: '#22d3ee' },
-      { id: 'comp_surfactant', symbol: 'Col4', name: 'Collagen IV + Lipid', color: '#a855f7' },
+      { id: 'cell_hepatocyte', symbol: 'KER', name: 'Keratinocytes & Epithelial', color: '#f59e0b' },
+      { id: 'comp_egf_hgf', symbol: 'EGF', name: 'EGF + Melanin', color: '#22d3ee' },
+      { id: 'comp_surfactant', symbol: 'COL4', name: 'Collagen I/IV + Adipose', color: '#a855f7' },
     ],
-    outcomeLabel: 'Visceral Organs & Dermal Tissue',
+    outcomeLabel: 'Stratified Skin & Dermal Tissue',
   },
   muscular_system: {
     id: 'muscular_system',
