@@ -1,12 +1,18 @@
 import React, { useMemo } from 'react';
 import { renderElement3DIcon } from '../../utils/elementIconRenderer';
+import { ORGANELLE_IMAGE_ICONS } from '../../utils/organelleIconAssets';
 
 /**
- * Renders a cached 256x256 WebGL 3D snapshot icon for any biology element or organelle,
- * falling back gracefully to an emoji/symbol when WebGL is unavailable (e.g. JSDOM tests).
+ * Renders a high-definition organelle cutaway illustration (when available) or a
+ * cached 256x256 WebGL 3D snapshot icon for any biology element, falling back
+ * gracefully to an emoji/symbol when WebGL is unavailable (e.g. JSDOM tests).
  */
 const Bio3DIcon = ({ id, color = '#38bdf8', fallback = '🧬', alt = '', className = 'w-5 h-5' }) => {
-  const iconUrl = useMemo(() => renderElement3DIcon(id, color), [id, color]);
+  const staticOrganelleImg = ORGANELLE_IMAGE_ICONS[id];
+  const iconUrl = useMemo(
+    () => (staticOrganelleImg ? staticOrganelleImg : renderElement3DIcon(id, color)),
+    [staticOrganelleImg, id, color]
+  );
 
   if (!iconUrl) {
     return <span className="leading-none">{fallback}</span>;

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { renderElement3DIcon } from '../../utils/elementIconRenderer';
+import { ORGANELLE_IMAGE_ICONS } from '../../utils/organelleIconAssets';
 
 /**
  * Renders a shaded, scientifically realistic SVG specimen illustration for each
@@ -261,9 +262,10 @@ const ElementShapeSVG = ({ id, color = '#38bdf8' }) => {
 const BioElementShapeCard = ({ element, level = 0, onInfuse, compact = false }) => {
   const isLoaded = level > 10;
   const iconId = element.iconId || element.id;
+  const staticOrganelleImg = ORGANELLE_IMAGE_ICONS[iconId];
   const icon3DUrl = useMemo(
-    () => renderElement3DIcon(iconId, element.color),
-    [iconId, element.color]
+    () => (staticOrganelleImg ? staticOrganelleImg : renderElement3DIcon(iconId, element.color)),
+    [staticOrganelleImg, iconId, element.color]
   );
 
   return (
