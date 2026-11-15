@@ -379,29 +379,13 @@ const StageBioreactorStudio = ({
         if (item.id === 'nucleus') {
           orgMesh = createHDNucleus(partsList);
           orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.15);
-          if (shouldShowCryo) {
-            [
-              [0.68, 0.1, 0.12],
-              [-0.68, -0.1, 0.12],
-              [0, 0.68, 0.1],
-            ].forEach(([px, py, pz]) => {
-              const npc = cryo.clone();
-              npc.scale.setScalar(0.32);
-              npc.position.set(px, py, pz);
-              npc.lookAt(px * 2, py * 2, pz * 2);
-              orgMesh.add(npc);
-            });
-          }
         } else if (item.id === 'mitochondrion') {
           orgMesh = createHDMitochondrion(partsList);
           orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.65);
           if (shouldShowCryo) {
-            [-0.22, 0, 0.22].forEach((px, idx) => {
-              const atp = cryo.clone();
-              atp.scale.setScalar(0.28);
-              atp.position.set(px, idx % 2 === 0 ? 0.1 : -0.1, 0.08);
-              orgMesh.add(atp);
-            });
+            cryo.scale.setScalar(0.16);
+            cryo.position.set(0, 0, 0);
+            orgMesh.add(cryo);
           }
         } else if (item.id === 'ribosome') {
           if (shouldShowCryo) {
@@ -417,7 +401,8 @@ const StageBioreactorStudio = ({
           orgMesh = createHDPlasmaMembrane(partsList);
           orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.35);
           if (shouldShowCryo) {
-            cryo.scale.setScalar(0.55);
+            cryo.scale.setScalar(0.42);
+            cryo.position.set(0, 0, 0);
             orgMesh.add(cryo);
           }
         }
