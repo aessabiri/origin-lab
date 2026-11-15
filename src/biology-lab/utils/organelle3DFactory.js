@@ -137,126 +137,154 @@ export function createBDNADoubleHelix({
   return group;
 }
 
+function seededRand(seed) {
+  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
+
 /**
- * High-Definition Cell Nucleus (Supports part-by-part assembly):
- *  - nuc_envelope: Double Nuclear Lipid Envelope
- *  - nuc_pores: 14 Octagonal Nuclear Pore Complexes
- *  - nuc_dna: Helical B-DNA Chromatin Genome
- *  - nuc_nucleolus: Dense rRNA Nucleolus Core
+ * High-Definition 3D Cutaway Cell Nucleus (Cryo-EM / Medical-Illustration Style)
+ *  - nuc_envelope: Cutaway Double Nuclear Lipid Envelope
+ *  - nuc_pores: 28 Octagonal Nuclear Pore Complexes (Instanced)
+ *  - nuc_dna: Tangled 3D Chromatin Fibers + B-DNA Double Helix
+ *  - nuc_nucleolus: Golden Nucleoplasm & Dense rRNA Nucleolus Core
  */
 export function createHDNucleus(assembledParts = null) {
   const hasPart = (id) => !assembledParts || assembledParts.includes(id);
   const group = new THREE.Group();
+  const dummy = new THREE.Object3D();
 
-  // Part 1: Translucent Cutaway Nuclear Envelope + Golden Nucleoplasm
-  const envGeo = new THREE.SphereGeometry(0.68, 40, 40);
-  const envMat = partMaterial(hasPart('nuc_envelope'), {
-    color: 0xb45309,
-    emissive: 0x451a03,
-    emissiveIntensity: 0.35,
-    transparent: true,
-    opacity: 0.32,
-    depthWrite: false,
-    roughness: 0.18,
-    clearcoat: 1.0,
-    side: THREE.DoubleSide
-  });
-  group.add(new THREE.Mesh(envGeo, envMat));
+  // Part 1: Cutaway Outer Nuclear Envelope (3/4 shell revealing interior)
+  const envBack = new THREE.Mesh(
+    new THREE.SphereGeometry(0.68, 36, 36, Math.PI * 0.35, Math.PI * 1.45, 0, Math.PI),
+    partMaterial(hasPart('nuc_envelope'), {
+      color: 0x9a3412,
+      emissive: 0x451a03,
+      emissiveIntensity: 0.32,
+      roughness: 0.38,
+      clearcoat: 0.5,
+      side: THREE.DoubleSide
+    })
+  );
+  group.add(envBack);
 
-  // Part 2: Golden Nucleoplasm & Dense Dark Nucleolus Core
+  const envGhost = new THREE.Mesh(
+    new THREE.SphereGeometry(0.695, 32, 32),
+    partMaterial(hasPart('nuc_envelope'), {
+      color: 0xbae6fd,
+      emissive: 0x0c4a6e,
+      emissiveIntensity: 0.2,
+      transparent: true,
+      opacity: 0.16,
+      depthWrite: false,
+      roughness: 0.15,
+      side: THREE.DoubleSide
+    })
+  );
+  group.add(envGhost);
+
+  // Part 2: Golden Nucleoplasm & Textured Dark Nucleolus Core
   const nucleoplasm = new THREE.Mesh(
-    new THREE.SphereGeometry(0.36, 24, 24),
+    new THREE.SphereGeometry(0.38, 24, 24),
     partMaterial(hasPart('nuc_nucleolus'), {
       color: 0xfbbf24,
       emissive: 0xd97706,
       emissiveIntensity: 0.45,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.42,
+      depthWrite: false,
       roughness: 0.35
     })
   );
   group.add(nucleoplasm);
 
   const nucleolus = new THREE.Mesh(
-    new THREE.SphereGeometry(0.18, 24, 24),
+    new THREE.IcosahedronGeometry(0.16, 2),
     partMaterial(hasPart('nuc_nucleolus'), {
       color: 0x451a03,
       emissive: 0x78350f,
-      emissiveIntensity: 0.55,
-      roughness: 0.45
+      emissiveIntensity: 0.4,
+      roughness: 0.65
     })
   );
-  nucleolus.position.set(0.05, 0.04, 0.04);
+  nucleolus.position.set(0.04, 0.03, 0.05);
   group.add(nucleolus);
 
-  // Part 3: Intertwined Red/Blue Chromatin & B-DNA Double Helix
+  // Part 3: Dense Tangled 3D Chromatin Network + B-DNA Helix
   if (hasPart('nuc_dna')) {
-    const dna = createBDNADoubleHelix({ basePairs: 16, radius: 0.16, height: 0.85, turns: 1.8 });
+    const dna = createBDNADoubleHelix({ basePairs: 14, radius: 0.12, height: 0.72, turns: 1.8 });
     dna.rotation.z = Math.PI / 5;
     group.add(dna);
 
-    const chromatinRedMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, emissive: 0x450a0a, emissiveIntensity: 0.35, roughness: 0.4 });
-    const chromatinBlueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, emissive: 0x1e3a8a, emissiveIntensity: 0.35, roughness: 0.4 });
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2;
-      const loop = new THREE.Mesh(
-        new THREE.TorusGeometry(0.24, 0.022, 8, 20),
-        i % 2 === 0 ? chromatinRedMat : chromatinBlueMat
-      );
-      loop.rotation.set(a, a * 0.7, 0.4);
-      loop.position.set(Math.cos(a) * 0.12, Math.sin(a) * 0.12, 0);
-      group.add(loop);
+    const redMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, emissive: 0x450a0a, emissiveIntensity: 0.35, roughness: 0.45 });
+    const blueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, emissive: 0x1e3a8a, emissiveIntensity: 0.35, roughness: 0.45 });
+
+    for (let f = 0; f < 10; f++) {
+      const pts = [];
+      for (let p = 0; p < 9; p++) {
+        const a = f * 0.7 + p * 0.85;
+        const r = 0.22 + seededRand(f * 31 + p) * 0.34;
+        const y = (seededRand(f * 17 + p * 3) - 0.5) * 0.72;
+        pts.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r));
+      }
+      const curve = new THREE.CatmullRomCurve3(pts, false);
+      group.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 28, 0.02, 7, false), f % 2 === 0 ? redMat : blueMat));
     }
   }
 
-  // Part 4: 18 Octagonal Nuclear Pore Complexes (Blue-Grey)
-  const npcGeo = new THREE.TorusGeometry(0.078, 0.024, 8, 8);
+  // Part 4: 28 Instanced Octagonal Nuclear Pore Complexes (NPCs)
+  const npcGeo = new THREE.TorusGeometry(0.072, 0.022, 8, 8);
   const npcMat = partMaterial(hasPart('nuc_pores'), {
     color: 0x94a3b8,
     emissive: 0x334155,
-    emissiveIntensity: 0.45,
+    emissiveIntensity: 0.4,
     metalness: 0.35,
     roughness: 0.3
   });
 
-  const numPores = 18;
+  const numPores = 28;
+  const npcInstanced = new THREE.InstancedMesh(npcGeo, npcMat, numPores);
+  const upVec = new THREE.Vector3(0, 0, 1);
   for (let i = 0; i < numPores; i++) {
     const phi = Math.acos(1 - (2 * (i + 0.5)) / numPores);
     const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-    const pos = new THREE.Vector3(
+    const dir = new THREE.Vector3(
       Math.sin(phi) * Math.cos(theta),
       Math.sin(phi) * Math.sin(theta),
       Math.cos(phi)
-    ).multiplyScalar(0.68);
-
-    const pore = new THREE.Mesh(npcGeo, npcMat);
-    pore.position.copy(pos);
-    pore.lookAt(pos.clone().multiplyScalar(2));
-    group.add(pore);
+    );
+    dummy.position.copy(dir).multiplyScalar(0.685);
+    dummy.quaternion.setFromUnitVectors(upVec, dir);
+    dummy.scale.setScalar(1);
+    dummy.updateMatrix();
+    npcInstanced.setMatrixAt(i, dummy.matrix);
   }
+  npcInstanced.instanceMatrix.needsUpdate = true;
+  group.add(npcInstanced);
 
   return group;
 }
 
 /**
- * High-Definition Mitochondrion (Supports part-by-part assembly):
- *  - mito_outer: Outer Porin Phospholipid Capsule
- *  - mito_cristae: Folded Inner Cristae Baffles
- *  - mito_atp: F0F1 ATP Synthase Rotor Array
- *  - mito_dna: Circular Mitochondrial DNA Ring
+ * High-Definition 3D Cutaway Mitochondrion (Cryo-EM / Medical-Illustration Style)
+ *  - mito_outer: Translucent Outer Porin Capsule + 72 Instanced Porin Complexes
+ *  - mito_cristae: Continuous Sinuous Folded Terracotta Cristae Ribbon + Matrix
+ *  - mito_atp: 48 Instanced F0F1 ATP Synthase Rotor Complexes
+ *  - mito_dna: Circular Mitochondrial DNA Ring + Matrix Granules
  */
 export function createHDMitochondrion(assembledParts = null) {
   const hasPart = (id) => !assembledParts || assembledParts.includes(id);
   const group = new THREE.Group();
+  const dummy = new THREE.Object3D();
 
-  // Part 1: Translucent Outer Mitochondrial Membrane + Blue Porin Complexes
-  const outerGeo = new THREE.CapsuleGeometry(0.29, 0.54, 16, 32);
+  // Part 1: Translucent Outer Membrane + Cutaway Rim + Instanced Porin Complexes
+  const outerGeo = new THREE.CapsuleGeometry(0.3, 0.58, 16, 32);
   const outerMat = partMaterial(hasPart('mito_outer'), {
-    color: 0xa5f3fc,
+    color: 0xcffafe,
     emissive: 0x155e75,
-    emissiveIntensity: 0.28,
+    emissiveIntensity: 0.22,
     transparent: true,
-    opacity: 0.28,
+    opacity: 0.24,
     depthWrite: false,
     roughness: 0.15,
     clearcoat: 1.0,
@@ -266,168 +294,243 @@ export function createHDMitochondrion(assembledParts = null) {
   outerMesh.rotation.z = Math.PI / 2;
   group.add(outerMesh);
 
-  // Embedded Outer Membrane Porin Spikes
+  // 72 Instanced Blue Outer-Membrane Porin Complexes
+  const porinCount = 72;
   const porinMat = partMaterial(hasPart('mito_outer'), {
     color: 0x3b82f6,
     emissive: 0x1d4ed8,
     emissiveIntensity: 0.45,
     roughness: 0.3
   });
-  const porinGeo = new THREE.CapsuleGeometry(0.016, 0.04, 6, 8);
-  for (let p = 0; p < 12; p++) {
-    const a = (p / 12) * Math.PI * 2;
-    const x = ((p % 5) - 2) * 0.14;
-    const porin = new THREE.Mesh(porinGeo, porinMat);
-    porin.position.set(x, Math.cos(a) * 0.28, Math.sin(a) * 0.28);
-    porin.lookAt(x, Math.cos(a) * 0.6, Math.sin(a) * 0.6);
-    porin.rotateX(Math.PI / 2);
-    group.add(porin);
+  const porinInst = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.013, 0.036, 5, 8), porinMat, porinCount);
+  const yAxis = new THREE.Vector3(0, 1, 0);
+  for (let i = 0; i < porinCount; i++) {
+    const t = (i / porinCount) * 2 - 1;
+    const x = t * 0.44;
+    const envR = Math.abs(x) > 0.26 ? Math.sqrt(Math.max(0.01, 0.3 * 0.3 - (Math.abs(x) - 0.26) ** 2)) : 0.3;
+    const a = i * 2.39996;
+    const dir = new THREE.Vector3(0, Math.cos(a), Math.sin(a));
+    dummy.position.set(x, dir.y * envR, dir.z * envR);
+    dummy.quaternion.setFromUnitVectors(yAxis, dir);
+    dummy.scale.setScalar(0.8 + seededRand(i) * 0.5);
+    dummy.updateMatrix();
+    porinInst.setMatrixAt(i, dummy.matrix);
   }
+  porinInst.instanceMatrix.needsUpdate = true;
+  group.add(porinInst);
 
   // Golden Inner Matrix Core
   const matrixMesh = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.12, 0.4, 12, 20),
+    new THREE.CapsuleGeometry(0.14, 0.42, 12, 20),
     partMaterial(hasPart('mito_cristae'), {
       color: 0xfbbf24,
       emissive: 0xd97706,
-      emissiveIntensity: 0.45,
+      emissiveIntensity: 0.48,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.55,
+      depthWrite: false,
       roughness: 0.35
     })
   );
   matrixMesh.rotation.z = Math.PI / 2;
   group.add(matrixMesh);
 
-  // Part 2: Deep Terracotta Folded Inner Cristae Lamellae Baffles
+  // Part 2: Continuous Sinuous Folded Inner Cristae Ribbon (2 orthogonal serpentine loops)
   const cristaMat = partMaterial(hasPart('mito_cristae'), {
-    color: 0xb45309,
+    color: 0x9a3412,
     emissive: 0x7c2d12,
-    emissiveIntensity: 0.55,
-    roughness: 0.32
+    emissiveIntensity: 0.42,
+    roughness: 0.38
   });
 
-  // Part 3: ATP Synthase Rotor Studs
+  const numFolds = 18;
+  const ptsXY = [];
+  const ptsXZ = [];
+  for (let i = 0; i < numFolds * 4; i++) {
+    const theta = (i / (numFolds * 4)) * Math.PI * 2;
+    const fold = Math.sin(theta * numFolds) * 0.065;
+    const rOuter = 0.22 + fold;
+    const xScale = 0.48;
+    const yScale = 0.23;
+    ptsXY.push(new THREE.Vector3(Math.cos(theta) * (xScale + fold * 0.5), Math.sin(theta) * (yScale + fold), Math.sin(theta * 3) * 0.03));
+    ptsXZ.push(new THREE.Vector3(Math.cos(theta) * (xScale + fold * 0.5), Math.cos(theta * 3) * 0.03, Math.sin(theta) * rOuter));
+  }
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ptsXY, true), 160, 0.024, 8, true), cristaMat));
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ptsXZ, true), 160, 0.022, 8, true), cristaMat));
+
+  for (let b = -2; b <= 2; b++) {
+    const baffle = new THREE.Mesh(new THREE.TorusGeometry(0.18 - Math.abs(b) * 0.02, 0.015, 8, 20, Math.PI * 1.4), cristaMat);
+    baffle.rotation.y = Math.PI / 2;
+    baffle.rotation.z = b * 0.4;
+    baffle.position.x = b * 0.14;
+    group.add(baffle);
+  }
+
+  // Part 3: 48 Instanced F0F1 ATP Synthase Rotor Complexes lining the cristae
+  const atpCount = 48;
   const atpMat = partMaterial(hasPart('mito_atp'), {
     color: 0xfef08a,
     emissive: 0xfacc15,
-    emissiveIntensity: 1.2
+    emissiveIntensity: 1.15
   });
-  const atpGeo = new THREE.SphereGeometry(0.024, 10, 10);
-
-  for (let i = -3; i <= 3; i++) {
-    const x = i * 0.095;
-    const radiusAtX = 0.22 * (1 - Math.abs(i) * 0.08);
-    const crista = new THREE.Mesh(
-      new THREE.CylinderGeometry(radiusAtX, radiusAtX, 0.024, 20),
-      cristaMat
-    );
-    crista.rotation.z = Math.PI / 2;
-    crista.position.set(x, (i % 2 === 0 ? 1 : -1) * 0.025, 0);
-    group.add(crista);
-
-    const stud = new THREE.Mesh(atpGeo, atpMat);
-    stud.position.set(x, radiusAtX * 0.78, 0);
-    group.add(stud);
+  const atpInst = new THREE.InstancedMesh(new THREE.SphereGeometry(0.018, 8, 8), atpMat, atpCount);
+  for (let i = 0; i < atpCount; i++) {
+    const theta = (i / atpCount) * Math.PI * 2;
+    const r = 0.16 + (i % 2) * 0.05;
+    dummy.position.set(Math.cos(theta) * 0.38, Math.sin(theta) * r, Math.cos(theta * 2) * 0.1);
+    dummy.rotation.set(0, 0, 0);
+    dummy.scale.setScalar(1);
+    dummy.updateMatrix();
+    atpInst.setMatrixAt(i, dummy.matrix);
   }
+  atpInst.instanceMatrix.needsUpdate = true;
+  group.add(atpInst);
 
-  // Part 4: Circular Mitochondrial DNA Plasmid Ring
+  // Part 4: Circular Mitochondrial DNA Plasmid Ring + Matrix Granules
   const mtDna = new THREE.Mesh(
-    new THREE.TorusGeometry(0.09, 0.015, 12, 32),
+    new THREE.TorusGeometry(0.095, 0.013, 12, 32),
     partMaterial(hasPart('mito_dna'), {
       color: 0x38bdf8,
       emissive: 0x0284c7,
       emissiveIntensity: 0.9
     })
   );
-  mtDna.position.set(0, 0, 0.08);
+  mtDna.position.set(0, 0, 0.05);
   group.add(mtDna);
+
+  const granCount = 24;
+  const granInst = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.014, 6, 6),
+    partMaterial(hasPart('mito_dna'), { color: 0x451a03, roughness: 0.6 }),
+    granCount
+  );
+  for (let i = 0; i < granCount; i++) {
+    dummy.position.set(
+      (seededRand(i * 3 + 1) - 0.5) * 0.55,
+      (seededRand(i * 3 + 2) - 0.5) * 0.18,
+      (seededRand(i * 3 + 3) - 0.5) * 0.18
+    );
+    dummy.scale.setScalar(0.6 + seededRand(i * 7) * 0.9);
+    dummy.updateMatrix();
+    granInst.setMatrixAt(i, dummy.matrix);
+  }
+  granInst.instanceMatrix.needsUpdate = true;
+  group.add(granInst);
 
   return group;
 }
 
 /**
- * High-Definition 80S Ribosome (Supports part-by-part assembly):
- *  - ribo_40s: 40S Small Subunit
- *  - ribo_60s: 60S Large Subunit
- *  - ribo_er: Rough ER Membrane & Threaded mRNA
+ * High-Definition 80S Ribosome (Cryo-EM Molecular-Surface Style via InstancedMesh)
+ *  - ribo_40s: 40S Small Subunit (packed rRNA + crimson protein clusters)
+ *  - ribo_60s: 60S Large Subunit (packed rRNA + crimson protein clusters)
+ *  - ribo_er: Glowing Cyan mRNA & tRNA Strands + Nascent Polypeptide
  */
 export function createHD80SRibosome(nascentCount = 7, assembledParts = null) {
   const hasPart = (id) => !assembledParts || assembledParts.includes(id);
   const group = new THREE.Group();
+  const dummy = new THREE.Object3D();
 
-  // Beige rRNA core + Crimson ribosomal protein clusters
-  const large60S = new THREE.Mesh(
-    new THREE.SphereGeometry(0.26, 24, 24),
-    partMaterial(hasPart('ribo_60s'), {
-      color: 0xd6b88d,
-      emissive: 0x78350f,
-      emissiveIntensity: 0.22,
-      roughness: 0.48
-    })
-  );
-  large60S.scale.set(1.25, 0.88, 1.05);
-  large60S.position.set(0, 0.14, 0);
-  group.add(large60S);
+  const rnaMat60 = partMaterial(hasPart('ribo_60s'), { color: 0xd6b88d, emissive: 0x78350f, emissiveIntensity: 0.2, roughness: 0.55 });
+  const protMat60 = partMaterial(hasPart('ribo_60s'), { color: 0x991b1b, emissive: 0x450a0a, emissiveIntensity: 0.35, roughness: 0.38 });
+  const rnaMat40 = partMaterial(hasPart('ribo_40s'), { color: 0xd6b88d, emissive: 0x78350f, emissiveIntensity: 0.2, roughness: 0.55 });
+  const protMat40 = partMaterial(hasPart('ribo_40s'), { color: 0x991b1b, emissive: 0x450a0a, emissiveIntensity: 0.35, roughness: 0.38 });
 
-  const small40S = new THREE.Mesh(
-    new THREE.SphereGeometry(0.2, 24, 24),
-    partMaterial(hasPart('ribo_40s'), {
-      color: 0xd6b88d,
-      emissive: 0x78350f,
-      emissiveIntensity: 0.22,
-      roughness: 0.48
-    })
-  );
-  small40S.scale.set(1.28, 0.68, 0.95);
-  small40S.position.set(0, -0.15, 0.02);
-  group.add(small40S);
+  const sphereGeo = new THREE.SphereGeometry(0.052, 10, 10);
 
-  const protMat60 = partMaterial(hasPart('ribo_60s'), {
-    color: 0x991b1b,
-    emissive: 0x450a0a,
-    emissiveIntensity: 0.35,
-    roughness: 0.35
-  });
-  const protMat40 = partMaterial(hasPart('ribo_40s'), {
-    color: 0x991b1b,
-    emissive: 0x450a0a,
-    emissiveIntensity: 0.35,
-    roughness: 0.35
-  });
-  const clusterGeo = new THREE.DodecahedronGeometry(0.055, 0);
-  for (let i = 0; i < 10; i++) {
-    const a = (i / 10) * Math.PI * 2;
-    const c60 = new THREE.Mesh(clusterGeo, protMat60);
-    c60.position.set(Math.cos(a) * 0.26, 0.14 + Math.sin(i * 1.7) * 0.12, Math.sin(a) * 0.22);
-    group.add(c60);
-
-    const c40 = new THREE.Mesh(clusterGeo, protMat40);
-    c40.scale.setScalar(0.82);
-    c40.position.set(Math.cos(a + 0.3) * 0.22, -0.15 + Math.cos(i * 1.4) * 0.08, Math.sin(a + 0.3) * 0.18);
-    group.add(c40);
+  // Pack 60S Large Subunit (top dome with central protuberance)
+  const rna60Count = 95;
+  const rna60Inst = new THREE.InstancedMesh(sphereGeo, rnaMat60, rna60Count);
+  for (let i = 0; i < rna60Count; i++) {
+    const phi = Math.acos(1 - (2 * (i + 0.5)) / rna60Count);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    const rad = 0.16 + seededRand(i * 11) * 0.11;
+    dummy.position.set(
+      Math.sin(phi) * Math.cos(theta) * rad * 1.25,
+      0.16 + Math.abs(Math.cos(phi)) * rad * 0.85,
+      Math.sin(phi) * Math.sin(theta) * rad * 1.05
+    );
+    dummy.scale.setScalar(0.85 + seededRand(i * 5) * 0.65);
+    dummy.updateMatrix();
+    rna60Inst.setMatrixAt(i, dummy.matrix);
   }
+  rna60Inst.instanceMatrix.needsUpdate = true;
+  group.add(rna60Inst);
+
+  const prot60Count = 55;
+  const prot60Inst = new THREE.InstancedMesh(sphereGeo, protMat60, prot60Count);
+  for (let i = 0; i < prot60Count; i++) {
+    const phi = Math.acos(1 - (2 * (i + 0.5)) / prot60Count);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i + 0.6;
+    const rad = 0.24 + seededRand(i * 19) * 0.06;
+    dummy.position.set(
+      Math.sin(phi) * Math.cos(theta) * rad * 1.22,
+      0.17 + Math.abs(Math.cos(phi)) * rad * 0.82,
+      Math.sin(phi) * Math.sin(theta) * rad * 1.05
+    );
+    dummy.scale.setScalar(0.7 + seededRand(i * 13) * 0.6);
+    dummy.updateMatrix();
+    prot60Inst.setMatrixAt(i, dummy.matrix);
+  }
+  prot60Inst.instanceMatrix.needsUpdate = true;
+  group.add(prot60Inst);
+
+  // Pack 40S Small Subunit (bottom body/head separated by mRNA cleft)
+  const rna40Count = 70;
+  const rna40Inst = new THREE.InstancedMesh(sphereGeo, rnaMat40, rna40Count);
+  for (let i = 0; i < rna40Count; i++) {
+    const phi = Math.acos(1 - (2 * (i + 0.5)) / rna40Count);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    const rad = 0.13 + seededRand(i * 23) * 0.09;
+    dummy.position.set(
+      Math.sin(phi) * Math.cos(theta) * rad * 1.3,
+      -0.16 - Math.abs(Math.cos(phi)) * rad * 0.72,
+      Math.sin(phi) * Math.sin(theta) * rad * 0.95
+    );
+    dummy.scale.setScalar(0.8 + seededRand(i * 7) * 0.55);
+    dummy.updateMatrix();
+    rna40Inst.setMatrixAt(i, dummy.matrix);
+  }
+  rna40Inst.instanceMatrix.needsUpdate = true;
+  group.add(rna40Inst);
+
+  const prot40Count = 40;
+  const prot40Inst = new THREE.InstancedMesh(sphereGeo, protMat40, prot40Count);
+  for (let i = 0; i < prot40Count; i++) {
+    const phi = Math.acos(1 - (2 * (i + 0.5)) / prot40Count);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i + 0.4;
+    const rad = 0.19 + seededRand(i * 29) * 0.05;
+    dummy.position.set(
+      Math.sin(phi) * Math.cos(theta) * rad * 1.28,
+      -0.17 - Math.abs(Math.cos(phi)) * rad * 0.7,
+      Math.sin(phi) * Math.sin(theta) * rad * 0.95
+    );
+    dummy.scale.setScalar(0.65 + seededRand(i * 17) * 0.55);
+    dummy.updateMatrix();
+    prot40Inst.setMatrixAt(i, dummy.matrix);
+  }
+  prot40Inst.instanceMatrix.needsUpdate = true;
+  group.add(prot40Inst);
 
   // Glowing Cyan mRNA & tRNA strands threading the inter-subunit cleft
-  const mrnaPoints = [
-    new THREE.Vector3(-0.52, -0.01, 0.08),
-    new THREE.Vector3(-0.2, -0.01, 0.04),
+  const cleftMat = partMaterial(hasPart('ribo_er'), { color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.9 });
+  const mrnaCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.52, -0.01, 0.1),
+    new THREE.Vector3(-0.2, 0.0, 0.04),
     new THREE.Vector3(0, -0.01, 0.02),
-    new THREE.Vector3(0.22, -0.01, 0.05),
-    new THREE.Vector3(0.52, -0.03, 0.1)
-  ];
-  const mrnaCurve = new THREE.CatmullRomCurve3(mrnaPoints);
-  const mrnaTube = new THREE.Mesh(
-    new THREE.TubeGeometry(mrnaCurve, 32, 0.022, 8, false),
-    partMaterial(hasPart('ribo_er'), {
-      color: 0x38bdf8,
-      emissive: 0x0284c7,
-      emissiveIntensity: 0.85
-    })
-  );
-  group.add(mrnaTube);
+    new THREE.Vector3(0.22, 0.0, 0.05),
+    new THREE.Vector3(0.52, -0.03, 0.12)
+  ]);
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(mrnaCurve, 32, 0.02, 8, false), cleftMat));
 
-  const beadGeo = new THREE.SphereGeometry(0.036, 12, 12);
+  const trnaCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.08, 0.12, 0.14),
+    new THREE.Vector3(0.0, 0.01, 0.18),
+    new THREE.Vector3(0.08, -0.1, 0.12)
+  ]);
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(trnaCurve, 20, 0.016, 8, false), cleftMat));
+
+  const beadGeo = new THREE.SphereGeometry(0.032, 10, 10);
   for (let i = 0; i < nascentCount; i++) {
     const bead = new THREE.Mesh(
       beadGeo,
@@ -437,11 +540,7 @@ export function createHD80SRibosome(nascentCount = 7, assembledParts = null) {
         emissiveIntensity: 0.75
       })
     );
-    bead.position.set(
-      Math.sin(i * 0.75) * 0.11,
-      0.32 + i * 0.06,
-      Math.cos(i * 0.75) * 0.11
-    );
+    bead.position.set(Math.sin(i * 0.75) * 0.1, 0.36 + i * 0.055, Math.cos(i * 0.75) * 0.1);
     group.add(bead);
   }
 
@@ -449,57 +548,104 @@ export function createHD80SRibosome(nascentCount = 7, assembledParts = null) {
 }
 
 /**
- * High-Definition Excitable Plasma Membrane & Cytoskeleton (Part-by-part assembly)
+ * High-Definition Excitable Plasma Membrane & Cytoskeleton (Curved Cutaway Bilayer via InstancedMesh)
  */
 export function createHDPlasmaMembrane(assembledParts = null) {
   const hasPart = (id) => !assembledParts || assembledParts.includes(id);
   const group = new THREE.Group();
+  const dummy = new THREE.Object3D();
 
-  // Dual-leaflet Phospholipid Bilayer (Indigo heads + Tan hydrophobic tails)
-  const headGeo = new THREE.SphereGeometry(0.055, 12, 12);
-  const tailGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.22, 6);
+  // Curved Dual-Leaflet Phospholipid Bilayer (160 Indigo Heads + 320 Tan Fatty-Acid Tails)
+  const lipidPositions = [];
+  const rows = 9;
+  const cols = 9;
+  for (let ix = -4; ix <= 4; ix++) {
+    for (let iz = -4; iz <= 4; iz++) {
+      const x = ix * 0.12;
+      const z = iz * 0.12;
+      const r2 = x * x + z * z;
+      if (r2 > 0.32 || r2 < 0.025) continue; // Circular cutaway patch with central pore
+      const curveDrop = r2 * 0.35;
+      lipidPositions.push({ x, z, curveDrop });
+    }
+  }
+
+  const count = lipidPositions.length;
   const headMat = partMaterial(hasPart('mem_bilayer'), {
     color: 0x4f46e5,
     emissive: 0x312e81,
-    emissiveIntensity: 0.35,
-    clearcoat: 1.0
+    emissiveIntensity: 0.38,
+    clearcoat: 1.0,
+    roughness: 0.25
   });
   const tailMat = partMaterial(hasPart('mem_bilayer'), {
     color: 0xd6b88d,
     emissive: 0x78350f,
-    emissiveIntensity: 0.22
+    emissiveIntensity: 0.22,
+    roughness: 0.5
   });
 
-  for (let x = -3; x <= 3; x++) {
-    for (let z = -2; z <= 2; z++) {
-      if (Math.abs(x) <= 1 && Math.abs(z) <= 1) continue; // Leave center for Ion Channel pore
-      const px = x * 0.16;
-      const pz = z * 0.16;
-      const topHead = new THREE.Mesh(headGeo, headMat);
-      topHead.position.set(px, 0.24, pz);
-      const botHead = new THREE.Mesh(headGeo, headMat);
-      botHead.position.set(px, -0.24, pz);
-      const tail = new THREE.Mesh(tailGeo, tailMat);
-      tail.position.set(px, 0, pz);
-      group.add(topHead, botHead, tail);
-    }
-  }
+  const headInst = new THREE.InstancedMesh(new THREE.SphereGeometry(0.036, 10, 10), headMat, count * 2);
+  const tailInst = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.009, 0.009, 0.16, 6), tailMat, count * 4);
 
-  // Central Tetrameric Crimson Transmembrane Ion Channel Pore
+  lipidPositions.forEach((p, idx) => {
+    // Top & bottom headgroups
+    dummy.position.set(p.x, 0.22 - p.curveDrop, p.z);
+    dummy.rotation.set(0, 0, 0);
+    dummy.scale.setScalar(1);
+    dummy.updateMatrix();
+    headInst.setMatrixAt(idx * 2, dummy.matrix);
+
+    dummy.position.set(p.x, -0.22 + p.curveDrop, p.z);
+    dummy.updateMatrix();
+    headInst.setMatrixAt(idx * 2 + 1, dummy.matrix);
+
+    // Dual hydrophobic tails per leaflet
+    for (let t = 0; t < 2; t++) {
+      const dx = (t === 0 ? -0.014 : 0.014);
+      dummy.position.set(p.x + dx, 0.1 - p.curveDrop * 0.6, p.z);
+      dummy.rotation.set(0, 0, (t === 0 ? 0.06 : -0.06));
+      dummy.updateMatrix();
+      tailInst.setMatrixAt(idx * 4 + t, dummy.matrix);
+
+      dummy.position.set(p.x + dx, -0.1 + p.curveDrop * 0.6, p.z);
+      dummy.updateMatrix();
+      tailInst.setMatrixAt(idx * 4 + 2 + t, dummy.matrix);
+    }
+  });
+  headInst.instanceMatrix.needsUpdate = true;
+  tailInst.instanceMatrix.needsUpdate = true;
+  group.add(headInst, tailInst);
+
+  // Crimson Transmembrane Ion Channel Complexes + Pale-Cyan Glycoprotein Chains
   const channelMat = partMaterial(hasPart('mem_channels'), {
     color: 0x991b1b,
     emissive: 0x450a0a,
     emissiveIntensity: 0.45,
     clearcoat: 1.0
   });
-  for (let c = 0; c < 4; c++) {
-    const a = (c / 4) * Math.PI * 2 + Math.PI / 4;
-    const barrel = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.075, 0.42, 12, 16),
-      channelMat
-    );
-    barrel.position.set(Math.cos(a) * 0.11, 0, Math.sin(a) * 0.11);
+  for (let c = 0; c < 6; c++) {
+    const a = (c / 6) * Math.PI * 2;
+    const barrel = new THREE.Mesh(new THREE.CapsuleGeometry(0.055, 0.36, 10, 14), channelMat);
+    barrel.position.set(Math.cos(a) * 0.1, 0, Math.sin(a) * 0.1);
     group.add(barrel);
+  }
+
+  const glycoMat = partMaterial(hasPart('mem_channels'), {
+    color: 0x7dd3fc,
+    emissive: 0x0284c7,
+    emissiveIntensity: 0.45
+  });
+  for (let g = 0; g < 8; g++) {
+    const a = (g / 8) * Math.PI * 2;
+    const gx = Math.cos(a) * 0.28;
+    const gz = Math.sin(a) * 0.28;
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(gx, 0.2, gz),
+      new THREE.Vector3(gx * 1.15, 0.32, gz * 0.9),
+      new THREE.Vector3(gx * 0.95, 0.44, gz * 1.1)
+    ]);
+    group.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 12, 0.01, 6, false), glycoMat));
   }
 
   // Underlying Actin-Spectrin Cytoskeleton Cortex Filaments
@@ -508,13 +654,13 @@ export function createHDPlasmaMembrane(assembledParts = null) {
     emissive: 0x9f1239,
     emissiveIntensity: 0.5
   });
-  [-0.25, 0.25].forEach((offset) => {
-    const rod1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.3, 8), actinMat);
+  [-0.22, 0.22].forEach((offset) => {
+    const rod1 = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 1.1, 8), actinMat);
     rod1.rotation.z = Math.PI / 2;
-    rod1.position.set(0, -0.36, offset);
-    const rod2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 8), actinMat);
+    rod1.position.set(0, -0.34, offset);
+    const rod2 = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.95, 8), actinMat);
     rod2.rotation.x = Math.PI / 2;
-    rod2.position.set(offset, -0.36, 0);
+    rod2.position.set(offset, -0.34, 0);
     group.add(rod1, rod2);
   });
 
