@@ -186,6 +186,7 @@ const StageBioreactorStudio = ({
         const refLevel = p.refLevel || (p.blockId ? 1 : 2);
         return {
           id: p.id,
+          iconId: refId,
           refId,
           refLevel,
           symbol: PART_SYMBOL_MAP[refId] || refId.slice(0, 4).toUpperCase(),

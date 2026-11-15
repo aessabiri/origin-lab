@@ -41,6 +41,7 @@ import LeftIngredientsDrawer from './assembly/LeftIngredientsDrawer';
 import OrganIncubatorChamber from './assembly/OrganIncubatorChamber';
 import BoneOssificationStudio from './assembly/BoneOssificationStudio';
 import StageBioreactorStudio from './assembly/StageBioreactorStudio';
+import Bio3DIcon from './assembly/Bio3DIcon';
 import ProteinSynthesisStudio from './assembly/ProteinSynthesisStudio';
 
 const getInventoryStockForSub = (subId, inventoryState) => {
@@ -986,7 +987,13 @@ const TopDownOrganogenesisLab = ({
                       : 'bg-[#080d18] border-white/10 text-slate-400 hover:text-white hover:border-white/25'
                   }`}
                 >
-                  <span>{entry.icon}</span>
+                  <Bio3DIcon
+                    id={entry.id}
+                    color={entry.color}
+                    fallback={entry.icon}
+                    alt={entry.name}
+                    className="w-5 h-5"
+                  />
                   <span>{entry.name.split(' (')[0].replace(' Tissue', '')}</span>
                   {isDone && <span className="text-emerald-400 font-black">✓</span>}
                 </button>
