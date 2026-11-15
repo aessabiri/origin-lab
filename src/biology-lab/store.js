@@ -4,6 +4,7 @@ import { useInventory } from '../store/inventory.js';
 import { useProgressionStore } from '../store/progressionStore.js';
 import { usePlanetaryStore } from '../store/planetaryStore.js';
 import {
+  LEVEL_1_MACROMOLECULES,
   LEVEL_2_ORGANELLES,
   TIER_1_ORGAN_SYSTEMS,
   TIER_2_TISSUE_SCAFFOLDS,
@@ -383,12 +384,13 @@ export const useBioStore = create(
       }),
 
       foldTopDownProtein: (proteinId) => set((state) => {
-        const meta = TIER_4_FOLDED_PROTEINS[proteinId];
+        const meta = TIER_4_FOLDED_PROTEINS[proteinId] || LEVEL_1_MACROMOLECULES[proteinId];
         if (!meta) return state;
         const currentGenes = state.transcribedGenes || [];
-        const nextGenes = currentGenes.includes(meta.geneId)
-          ? currentGenes
-          : [...currentGenes, meta.geneId];
+        const nextGenes =
+          meta.geneId && !currentGenes.includes(meta.geneId)
+            ? [...currentGenes, meta.geneId]
+            : currentGenes;
         const currentProteins = state.foldedProteins || [];
         const nextProteins = currentProteins.includes(proteinId)
           ? currentProteins

@@ -291,21 +291,31 @@ const ProteinSynthesisStudio = ({
 
     const proteinSpec = TIER_4_FOLDED_PROTEINS[molecule.id];
     if (!proteinSpec) {
-      setSynthesisState({
-        molId: molecule.id,
-        isProtein: false,
-        phase:
-          molecule.id === 'bdna_chromatin'
-            ? 'DNA Polymerization (No Codons)'
-            : 'Lipid Self-Assembly (No Codons)',
-      });
-      setFoldByMol((p) => ({ ...p, [molecule.id]: 40 }));
-      timerRef.current = setTimeout(() => {
-        setFoldByMol((p) => ({ ...p, [molecule.id]: 100 }));
-        setRegrowingByMol((p) => ({ ...p, [molecule.id]: false }));
-        setSynthesisState(null);
-        onComplete?.(molecule.id, null);
-      }, 650);
+      let step = 0;
+      const phases = [25, 55, 82, 100];
+      const advanceNonProtein = () => {
+        const pct = phases[step];
+        setSynthesisState({
+          molId: molecule.id,
+          isProtein: false,
+          phase:
+            molecule.id === 'bdna_chromatin'
+              ? 'DNA Polymerization (No Codons)'
+              : 'Lipid Self-Assembly (No Codons)',
+        });
+        setFoldByMol((p) => ({ ...p, [molecule.id]: pct }));
+        cosmicAudio.playPulse(480 + step * 70);
+        step += 1;
+        if (step >= phases.length) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          setRegrowingByMol((p) => ({ ...p, [molecule.id]: false }));
+          setSynthesisState(null);
+          onComplete?.(molecule.id, null);
+        }
+      };
+      advanceNonProtein();
+      timerRef.current = setInterval(advanceNonProtein, 260);
       return;
     }
 
