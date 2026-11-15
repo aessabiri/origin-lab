@@ -18,6 +18,7 @@ import {
   createHD80SRibosome,
   createHDPlasmaMembrane,
 } from '../../utils/organelle3DFactory';
+import { loadOrganelleCryoGlb } from '../../utils/organelleGlbLoader';
 import ChamberTelemetryScreen from './ChamberTelemetryScreen';
 import Bio3DIcon from './Bio3DIcon';
 import ReactorControlPanel, {
@@ -347,6 +348,7 @@ const StageBioreactorStudio = ({
       group.add(cluster);
     }
 
+    let cancelled = false;
     if (prog > 0.05 || isBuilt) {
       if (mode === 'organelle') {
         const partsList = isBuilt ? null : loadedIds;
@@ -365,6 +367,32 @@ const StageBioreactorStudio = ({
           orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.35);
         }
         group.add(orgMesh);
+
+        // Overlay real experimental RCSB PDB Cryo-EM .glb mesh when the structural part is built
+        const shouldShowCryo =
+          isBuilt ||
+          (item.id === 'ribosome' && (loadedIds.includes('ribo_60s') || loadedIds.includes('ribo_40s'))) ||
+          (item.id === 'mitochondrion' && loadedIds.includes('mito_atp')) ||
+          (item.id === 'nucleus' && loadedIds.includes('nuc_pores')) ||
+          (item.id === 'plasma_membrane' && loadedIds.includes('mem_channels'));
+
+        if (shouldShowCryo) {
+          loadOrganelleCryoGlb(item.id).then((cryo) => {
+            if (cancelled || !cryo) return;
+            if (item.id === 'ribosome') {
+              cryo.scale.setScalar(0.55);
+            } else if (item.id === 'mitochondrion') {
+              cryo.scale.setScalar(0.18);
+              cryo.position.set(0.1, 0.08, 0.1);
+            } else if (item.id === 'nucleus') {
+              cryo.scale.setScalar(0.24);
+              cryo.position.set(0, 0, 0.68);
+            } else {
+              cryo.scale.setScalar(0.38);
+            }
+            orgMesh.add(cryo);
+          });
+        }
       } else if (mode === 'cell') {
         const cellMesh = createSingleElement3DModel(item.id, item.color || '#38bdf8', {
           scale: 2.6,
@@ -383,6 +411,9 @@ const StageBioreactorStudio = ({
         }
       }
     }
+    return () => {
+      cancelled = true;
+    };
   }, [mode, item, loadedIds, growth, isBuilt, isRunning, components]);
 
   const handleInfuseComponent = (compId) => {
