@@ -18,7 +18,10 @@ import {
   createHD80SRibosome,
   createHDPlasmaMembrane,
 } from '../../utils/organelle3DFactory';
-import { loadOrganelleCryoGlb } from '../../utils/organelleGlbLoader';
+import {
+  getCachedOrganelleCryoGlb,
+  preloadAllOrganelleCryoGlbs,
+} from '../../utils/organelleGlbLoader';
 import ChamberTelemetryScreen from './ChamberTelemetryScreen';
 import Bio3DIcon from './Bio3DIcon';
 import ReactorControlPanel, {
@@ -168,6 +171,18 @@ const StageBioreactorStudio = ({
   const [runningByItem, setRunningByItem] = useState({});
   const [elapsedByItem, setElapsedByItem] = useState({});
   const [regrowingByItem, setRegrowingByItem] = useState({});
+  const [cryoReadyTick, setCryoReadyTick] = useState(0);
+
+  useEffect(() => {
+    if (mode !== 'organelle') return;
+    let active = true;
+    preloadAllOrganelleCryoGlbs().then(() => {
+      if (active) setCryoReadyTick((t) => t + 1);
+    });
+    return () => {
+      active = false;
+    };
+  }, [mode]);
 
   const [morphogenDial, setMorphogenDial] = useState(68);
   const [o2Dial, setO2Dial] = useState(21);
@@ -348,51 +363,65 @@ const StageBioreactorStudio = ({
       group.add(cluster);
     }
 
-    let cancelled = false;
     if (prog > 0.05 || isBuilt) {
       if (mode === 'organelle') {
         const partsList = isBuilt ? null : loadedIds;
+        const cryo = getCachedOrganelleCryoGlb(item.id);
+        const shouldShowCryo =
+          Boolean(cryo) &&
+          (isBuilt ||
+            (item.id === 'ribosome' && (loadedIds.includes('ribo_60s') || loadedIds.includes('ribo_40s'))) ||
+            (item.id === 'mitochondrion' && loadedIds.includes('mito_atp')) ||
+            (item.id === 'nucleus' && loadedIds.includes('nuc_pores')) ||
+            (item.id === 'plasma_membrane' && loadedIds.includes('mem_channels')));
+
         let orgMesh;
         if (item.id === 'nucleus') {
           orgMesh = createHDNucleus(partsList);
           orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.15);
+          if (shouldShowCryo) {
+            [
+              [0.68, 0.1, 0.12],
+              [-0.68, -0.1, 0.12],
+              [0, 0.68, 0.1],
+            ].forEach(([px, py, pz]) => {
+              const npc = cryo.clone();
+              npc.scale.setScalar(0.32);
+              npc.position.set(px, py, pz);
+              npc.lookAt(px * 2, py * 2, pz * 2);
+              orgMesh.add(npc);
+            });
+          }
         } else if (item.id === 'mitochondrion') {
           orgMesh = createHDMitochondrion(partsList);
           orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.65);
+          if (shouldShowCryo) {
+            [-0.22, 0, 0.22].forEach((px, idx) => {
+              const atp = cryo.clone();
+              atp.scale.setScalar(0.28);
+              atp.position.set(px, idx % 2 === 0 ? 0.1 : -0.1, 0.08);
+              orgMesh.add(atp);
+            });
+          }
         } else if (item.id === 'ribosome') {
-          orgMesh = createHD80SRibosome(7, partsList);
-          orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.6);
+          if (shouldShowCryo) {
+            orgMesh = new THREE.Group();
+            cryo.scale.setScalar(0.85);
+            orgMesh.add(cryo);
+            orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.45);
+          } else {
+            orgMesh = createHD80SRibosome(7, partsList);
+            orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.6);
+          }
         } else {
           orgMesh = createHDPlasmaMembrane(partsList);
           orgMesh.scale.setScalar((0.5 + prog * 0.65) * 1.35);
+          if (shouldShowCryo) {
+            cryo.scale.setScalar(0.55);
+            orgMesh.add(cryo);
+          }
         }
         group.add(orgMesh);
-
-        // Overlay real experimental RCSB PDB Cryo-EM .glb mesh when the structural part is built
-        const shouldShowCryo =
-          isBuilt ||
-          (item.id === 'ribosome' && (loadedIds.includes('ribo_60s') || loadedIds.includes('ribo_40s'))) ||
-          (item.id === 'mitochondrion' && loadedIds.includes('mito_atp')) ||
-          (item.id === 'nucleus' && loadedIds.includes('nuc_pores')) ||
-          (item.id === 'plasma_membrane' && loadedIds.includes('mem_channels'));
-
-        if (shouldShowCryo) {
-          loadOrganelleCryoGlb(item.id).then((cryo) => {
-            if (cancelled || !cryo) return;
-            if (item.id === 'ribosome') {
-              cryo.scale.setScalar(0.55);
-            } else if (item.id === 'mitochondrion') {
-              cryo.scale.setScalar(0.18);
-              cryo.position.set(0.1, 0.08, 0.1);
-            } else if (item.id === 'nucleus') {
-              cryo.scale.setScalar(0.24);
-              cryo.position.set(0, 0, 0.68);
-            } else {
-              cryo.scale.setScalar(0.38);
-            }
-            orgMesh.add(cryo);
-          });
-        }
       } else if (mode === 'cell') {
         const cellMesh = createSingleElement3DModel(item.id, item.color || '#38bdf8', {
           scale: 2.6,
@@ -411,10 +440,7 @@ const StageBioreactorStudio = ({
         }
       }
     }
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, item, loadedIds, growth, isBuilt, isRunning, components]);
+  }, [mode, item, loadedIds, growth, isBuilt, isRunning, components, cryoReadyTick]);
 
   const handleInfuseComponent = (compId) => {
     const comp = components.find((c) => c.id === compId);

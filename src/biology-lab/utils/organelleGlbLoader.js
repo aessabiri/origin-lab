@@ -23,6 +23,29 @@ function getLoader() {
   return loader;
 }
 
+function cloneWithSafeMaterials(templateRoot) {
+  const clone = templateRoot.clone();
+  clone.traverse((obj) => {
+    if (obj.isMesh) {
+      obj.userData.isCachedGeometry = true;
+      if (obj.material) {
+        obj.material = Array.isArray(obj.material)
+          ? obj.material.map((m) => m.clone())
+          : obj.material.clone();
+      }
+    }
+  });
+  return clone;
+}
+
+/**
+ * Synchronous getter for preloaded Cryo-EM .glb meshes (avoids async flicker during growth ticks).
+ */
+export function getCachedOrganelleCryoGlb(organelleId) {
+  const cached = cryoCache.get(organelleId);
+  return cached ? cloneWithSafeMaterials(cached) : null;
+}
+
 /**
  * Loads and caches real experimental Cryo-EM .glb meshes derived from RCSB PDB
  * (4UG0 80S Ribosome, 6J5I ATP Synthase, 7R5K Nuclear Pore, 6AGF NaV1.4).
@@ -32,10 +55,10 @@ export function loadOrganelleCryoGlb(organelleId) {
   if (!path || typeof window === 'undefined') return Promise.resolve(null);
 
   if (cryoCache.has(organelleId)) {
-    return Promise.resolve(cryoCache.get(organelleId).clone());
+    return Promise.resolve(cloneWithSafeMaterials(cryoCache.get(organelleId)));
   }
   if (pendingLoads.has(organelleId)) {
-    return pendingLoads.get(organelleId).then((scene) => (scene ? scene.clone() : null));
+    return pendingLoads.get(organelleId).then((scene) => (scene ? cloneWithSafeMaterials(scene) : null));
   }
 
   const promise = new Promise((resolve) => {
@@ -45,16 +68,17 @@ export function loadOrganelleCryoGlb(organelleId) {
         const root = gltf.scene;
         root.traverse((obj) => {
           if (obj.isMesh) {
+            obj.userData.isCachedGeometry = true;
             obj.material = new THREE.MeshStandardMaterial({
               vertexColors: true,
-              roughness: 0.42,
-              metalness: 0.1,
+              roughness: 0.4,
+              metalness: 0.12,
             });
           }
         });
         cryoCache.set(organelleId, root);
         pendingLoads.delete(organelleId);
-        resolve(root.clone());
+        resolve(cloneWithSafeMaterials(root));
       },
       undefined,
       () => {
@@ -66,4 +90,11 @@ export function loadOrganelleCryoGlb(organelleId) {
 
   pendingLoads.set(organelleId, promise);
   return promise;
+}
+
+/**
+ * Preloads all 4 Cryo-EM organelle .glb meshes into cache.
+ */
+export function preloadAllOrganelleCryoGlbs() {
+  return Promise.all(Object.keys(CRYO_GLB_PATHS).map((id) => loadOrganelleCryoGlb(id)));
 }
