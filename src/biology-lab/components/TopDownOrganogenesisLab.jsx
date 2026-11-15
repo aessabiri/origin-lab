@@ -41,6 +41,7 @@ import LeftIngredientsDrawer from './assembly/LeftIngredientsDrawer';
 import OrganIncubatorChamber from './assembly/OrganIncubatorChamber';
 import BoneOssificationStudio from './assembly/BoneOssificationStudio';
 import StageBioreactorStudio from './assembly/StageBioreactorStudio';
+import ProteinSynthesisStudio from './assembly/ProteinSynthesisStudio';
 
 const getInventoryStockForSub = (subId, inventoryState) => {
   if (subId === 'iron') return inventoryState.elements?.Fe ?? 0;
@@ -387,7 +388,8 @@ const TopDownOrganogenesisLab = ({
       activeStage === 'organ' ||
       activeStage === 'organelle' ||
       activeStage === 'cell' ||
-      activeStage === 'tissue'
+      activeStage === 'tissue' ||
+      activeStage === 'molecule'
     )
       return;
     const container = mountRef.current;
@@ -935,24 +937,33 @@ const TopDownOrganogenesisLab = ({
             );
           })}
         </div>
-      ) : activeStage === 'organelle' || activeStage === 'cell' || activeStage === 'tissue' ? (
+      ) : activeStage === 'molecule' ||
+        activeStage === 'organelle' ||
+        activeStage === 'cell' ||
+        activeStage === 'tissue' ? (
         <div className="bg-[#0b1220] rounded-2xl px-3 py-2 border border-white/10 shrink-0 flex items-center justify-between gap-2 overflow-x-auto">
           <div className="flex items-center gap-1.5 overflow-x-auto">
             {Object.values(
-              activeStage === 'organelle'
+              activeStage === 'molecule'
+                ? LEVEL_1_MACROMOLECULES
+                : activeStage === 'organelle'
                 ? LEVEL_2_ORGANELLES
                 : activeStage === 'cell'
                 ? LEVEL_3_CELLS
                 : LEVEL_4_TISSUES
             ).map((entry) => {
               const isSelected =
-                activeStage === 'organelle'
+                activeStage === 'molecule'
+                  ? selectedMoleculeId === entry.id
+                  : activeStage === 'organelle'
                   ? activeOrganelle.id === entry.id
                   : activeStage === 'cell'
                   ? activeCell.id === entry.id
                   : activeTissue.id === entry.id;
               const isDone =
-                activeStage === 'organelle'
+                activeStage === 'molecule'
+                  ? foldedProteins.includes(entry.id)
+                  : activeStage === 'organelle'
                   ? assembledOrganelles.includes(entry.id)
                   : activeStage === 'cell'
                   ? differentiatedCells.includes(entry.id)
@@ -961,7 +972,9 @@ const TopDownOrganogenesisLab = ({
                 <button
                   key={entry.id}
                   onClick={() =>
-                    activeStage === 'organelle'
+                    activeStage === 'molecule'
+                      ? setSelectedMoleculeId(entry.id)
+                      : activeStage === 'organelle'
                       ? setSelectedOrganelleId(entry.id)
                       : activeStage === 'cell'
                       ? setSelectedCellId(entry.id)
@@ -1016,6 +1029,23 @@ const TopDownOrganogenesisLab = ({
               onOpenAnatomy={onOpenAnatomy}
             />
           )
+        ) : activeStage === 'molecule' ? (
+          <ProteinSynthesisStudio
+            molecule={LEVEL_1_MACROMOLECULES[selectedMoleculeId] || LEVEL_1_MACROMOLECULES.hemoglobin}
+            isBuilt={foldedProteins.includes(selectedMoleculeId)}
+            demiurgeSurvivalMode={demiurgeSurvivalMode}
+            onComplete={(molId, geneId) => {
+              if (geneId) transcribeAndTranslateGene(geneId);
+              foldTopDownProtein(molId);
+              cosmicAudio.playSynthesisChord();
+              useStore
+                .getState()
+                .showMessage(
+                  `🧬 Folded ${LEVEL_1_MACROMOLECULES[molId]?.name || molId}! Now available in Stop 2 (Organelles).`
+                );
+            }}
+            onNextStage={() => setActiveStage('organelle')}
+          />
         ) : activeStage === 'organelle' ? (
           <StageBioreactorStudio
             mode="organelle"

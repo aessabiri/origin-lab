@@ -52,6 +52,10 @@ class CosmicAudioBus {
     }
   }
 
+  playPulse(freq = 528) {
+    this.playChime(freq, 0.14, 'sine');
+  }
+
   playSynthesisChord() {
     this.playChime(440, 0.28, 'triangle');
     setTimeout(() => this.playChime(659.25, 0.32, 'sine'), 70);
