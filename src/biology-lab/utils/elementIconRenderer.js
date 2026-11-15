@@ -15,21 +15,27 @@ function ensureOffscreenRig() {
       alpha: true,
       preserveDrawingBuffer: true,
     });
-    sharedRenderer.setSize(128, 128);
+    sharedRenderer.setSize(256, 256);
     sharedRenderer.setPixelRatio(1);
+    sharedRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+    sharedRenderer.toneMappingExposure = 1.18;
 
     sharedScene = new THREE.Scene();
-    sharedCamera = new THREE.PerspectiveCamera(34, 1, 0.1, 20);
-    sharedCamera.position.set(0.18, 0.16, 0.62);
+    sharedCamera = new THREE.PerspectiveCamera(32, 1, 0.1, 20);
+    sharedCamera.position.set(0.2, 0.18, 0.6);
     sharedCamera.lookAt(0, 0, 0);
 
-    sharedScene.add(new THREE.AmbientLight(0xffffff, 1.35));
-    const key = new THREE.DirectionalLight(0x7dd3fc, 2.2);
-    key.position.set(2, 3, 2.5);
+    sharedScene.add(new THREE.AmbientLight(0xffffff, 1.15));
+    const key = new THREE.DirectionalLight(0xe0f2fe, 2.4);
+    key.position.set(2.2, 3.0, 2.8);
     sharedScene.add(key);
 
-    const rim = new THREE.PointLight('#fb923c', 1.4, 8);
-    rim.position.set(-1.5, -1, 1.5);
+    const fill = new THREE.DirectionalLight(0x38bdf8, 1.1);
+    fill.position.set(-2.0, 1.2, 1.8);
+    sharedScene.add(fill);
+
+    const rim = new THREE.PointLight('#fb923c', 1.6, 8);
+    rim.position.set(-1.6, -1.2, 1.4);
     sharedScene.add(rim);
     return true;
   } catch {

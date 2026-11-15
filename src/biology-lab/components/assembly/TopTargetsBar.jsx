@@ -1,4 +1,5 @@
 import React from 'react';
+import Bio3DIcon from './Bio3DIcon';
 
 /**
  * Shared Top Targets Bar for all 5 Bio-Assembly stops.
@@ -44,7 +45,13 @@ const TopTargetsBar = ({
                   : 'bg-[#080d18] border-white/5 text-slate-500 opacity-40 grayscale cursor-pointer hover:opacity-65'
               }`}
             >
-              <span>{item.icon}</span>
+              <Bio3DIcon
+                id={item.iconId || item.id}
+                color={item.color}
+                fallback={item.icon}
+                alt={item.name}
+                className="w-4 h-4"
+              />
               <span>{item.shortName || item.name.split(' ')[0]}</span>
               {isBuilt && <span className="text-emerald-400">✓</span>}
             </button>

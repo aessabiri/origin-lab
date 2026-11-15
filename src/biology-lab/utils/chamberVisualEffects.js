@@ -5,6 +5,13 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { applyOrganSubPartMaterials } from './zAnatomyOrganLoader';
+import {
+  createBDNADoubleHelix,
+  createHDNucleus,
+  createHDMitochondrion,
+  createHD80SRibosome,
+  createHDPlasmaMembrane,
+} from './organelle3DFactory';
 
 /**
  * Recursively disposes uncached geometries and materials under a Three.js object.
@@ -779,73 +786,34 @@ export function createSingleElement3DModel(id, colorHex = '#38bdf8', opts = {}) 
     return createRealisticCellMesh(CELL_LINEAGE_TO_MESH_ID[id] || id, colorHex, scale, isDividing);
   }
   if (id === 'bdna_chromatin') {
-    const dna = new THREE.Group();
-    const s1Mat = new THREE.MeshStandardMaterial({ color: '#38bdf8', emissive: '#0284c7', emissiveIntensity: 0.45 });
-    const s2Mat = new THREE.MeshStandardMaterial({ color: '#a855f7', emissive: '#7e22ce', emissiveIntensity: 0.45 });
-    const rungMat = new THREE.MeshStandardMaterial({ color: '#f8fafc', emissive: '#22d3ee', emissiveIntensity: 0.3 });
-    for (let i = 0; i < 8; i++) {
-      const t = (i / 7 - 0.5) * 0.22 * scale;
-      const a = i * 0.85;
-      const r = 0.045 * scale;
-      const b1 = new THREE.Mesh(new THREE.SphereGeometry(0.015 * scale, 8, 8), s1Mat);
-      b1.position.set(Math.cos(a) * r, t, Math.sin(a) * r);
-      const b2 = new THREE.Mesh(new THREE.SphereGeometry(0.015 * scale, 8, 8), s2Mat);
-      b2.position.set(-Math.cos(a) * r, t, -Math.sin(a) * r);
-      const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.005 * scale, 0.005 * scale, r * 2, 6), rungMat);
-      rung.position.y = t;
-      rung.rotation.z = Math.PI / 2;
-      rung.rotation.y = -a;
-      dna.add(b1, b2, rung);
-    }
+    const dna = createBDNADoubleHelix({ basePairs: 14, radius: 0.22, height: 1.4, turns: 1.8 });
+    dna.scale.setScalar(0.14 * scale);
+    dna.rotation.z = 0.25;
     return dna;
   }
   if (id === 'mitochondrion') {
-    const mito = new THREE.Group();
-    const outer = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.055 * scale, 0.11 * scale, 8, 14),
-      new THREE.MeshPhysicalMaterial({
-        color: '#fb923c',
-        emissive: '#ea580c',
-        emissiveIntensity: 0.45,
-        roughness: 0.25,
-        clearcoat: 0.7,
-      })
-    );
-    outer.rotation.z = 0.75;
-    mito.add(outer);
+    const mito = createHDMitochondrion();
+    mito.scale.setScalar(0.2 * scale);
+    mito.rotation.set(0.28, -0.3, 0.45);
     return mito;
   }
   if (id === 'nucleus') {
-    const nuc = new THREE.Group();
-    const env = new THREE.Mesh(
-      new THREE.SphereGeometry(0.085 * scale, 18, 16),
-      new THREE.MeshPhysicalMaterial({
-        color: '#818cf8',
-        emissive: '#4f46e5',
-        emissiveIntensity: 0.35,
-        roughness: 0.2,
-        transparent: true,
-        opacity: 0.78,
-      })
-    );
-    const core = new THREE.Mesh(
-      new THREE.SphereGeometry(0.036 * scale, 12, 12),
-      new THREE.MeshStandardMaterial({ color: '#f8fafc', emissive: '#38bdf8', emissiveIntensity: 0.8 })
-    );
-    nuc.add(env, core);
+    const nuc = createHDNucleus();
+    nuc.scale.setScalar(0.18 * scale);
     return nuc;
   }
   if (id === 'ribosome') {
-    const ribo = new THREE.Group();
-    const mat = new THREE.MeshStandardMaterial({ color: '#38bdf8', emissive: '#0284c7', emissiveIntensity: 0.45, roughness: 0.3 });
-    const large = new THREE.Mesh(new THREE.SphereGeometry(0.068 * scale, 14, 12), mat);
-    large.position.y = -0.025 * scale;
-    const small = new THREE.Mesh(new THREE.SphereGeometry(0.048 * scale, 14, 12), mat);
-    small.position.y = 0.045 * scale;
-    ribo.add(large, small);
+    const ribo = createHD80SRibosome(8);
+    ribo.scale.setScalar(0.22 * scale);
     return ribo;
   }
-  if (id === 'plasma_membrane' || id === 'phospholipid_bilayer') {
+  if (id === 'plasma_membrane') {
+    const mem = createHDPlasmaMembrane();
+    mem.scale.setScalar(0.18 * scale);
+    mem.rotation.set(0.42, -0.25, 0.1);
+    return mem;
+  }
+  if (id === 'phospholipid_bilayer') {
     const mem = new THREE.Mesh(
       new THREE.TorusGeometry(0.078 * scale, 0.026 * scale, 12, 24),
       new THREE.MeshPhysicalMaterial({

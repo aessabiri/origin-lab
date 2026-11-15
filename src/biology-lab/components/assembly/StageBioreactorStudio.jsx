@@ -19,6 +19,7 @@ import {
   createHDPlasmaMembrane,
 } from '../../utils/organelle3DFactory';
 import ChamberTelemetryScreen from './ChamberTelemetryScreen';
+import Bio3DIcon from './Bio3DIcon';
 import ReactorControlPanel, {
   RotaryDial,
   BreakerButton,
@@ -453,7 +454,16 @@ const StageBioreactorStudio = ({
                 ? `STOP 3 // ${item.germLayer || 'LINEAGE'} • ${item.morphogenSignal || ''}`
                 : `STOP 4 // ${item.formula || 'BIOPRINTED SCAFFOLD'}`}
             </div>
-            <div className="text-xs font-black text-white">{item.icon} {item.name}</div>
+            <div className="text-xs font-black text-white flex items-center gap-1.5">
+              <Bio3DIcon
+                id={item.iconId || item.id}
+                color={item.color}
+                fallback={item.icon}
+                alt={item.name}
+                className="w-4 h-4"
+              />
+              <span>{item.name}</span>
+            </div>
           </div>
           <div className="absolute bottom-3 left-3 max-w-md px-2.5 py-1 rounded-lg bg-black/60 border border-white/10 text-[9.5px] text-slate-300 pointer-events-none">
             {mode === 'organelle'

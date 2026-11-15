@@ -1,4 +1,5 @@
 import React from 'react';
+import Bio3DIcon from './Bio3DIcon';
 
 /**
  * Shared Left Ingredients Drawer for all 5 Bio-Assembly stops.
@@ -67,7 +68,13 @@ const LeftIngredientsDrawer = ({
                   className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 border border-white/10"
                   style={{ backgroundColor: `${item.color || '#38bdf8'}22` }}
                 >
-                  {item.icon}
+                  <Bio3DIcon
+                    id={item.iconId || item.id}
+                    color={item.color}
+                    fallback={item.icon}
+                    alt={item.name}
+                    className="w-6 h-6"
+                  />
                 </span>
                 <div className="min-w-0">
                   <div className="text-[10.5px] font-bold text-white truncate">
