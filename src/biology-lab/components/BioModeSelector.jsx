@@ -1,5 +1,6 @@
 import React from 'react';
 import { useBioStore } from '../store';
+import Bio3DIcon from './assembly/Bio3DIcon';
 
 const BioModeSelector = ({ currentMode, setMode, activeStage, onSelectStop }) => {
   const {
@@ -76,7 +77,11 @@ const BioModeSelector = ({ currentMode, setMode, activeStage, onSelectStop }) =>
                   : 'bg-[#0b1220]/60 border-slate-800/80 hover:border-cyan-500/35 hover:bg-[#0f172a]'
               }`}
             >
-              <span className="text-base leading-none">{stop.icon}</span>
+              {stop.id === 'organelle' ? (
+                <Bio3DIcon id="mitochondrion" fallback={stop.icon} alt={stop.label} className="w-5 h-5" />
+              ) : (
+                <span className="text-base leading-none">{stop.icon}</span>
+              )}
               <span
                 className={`text-[8px] font-mono font-bold uppercase tracking-tight leading-none ${
                   isActive ? 'text-cyan-200' : 'text-slate-400'

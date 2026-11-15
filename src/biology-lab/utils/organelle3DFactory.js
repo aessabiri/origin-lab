@@ -153,12 +153,11 @@ export function createHDNucleus(assembledParts = null) {
   const envMat = partMaterial(hasPart('nuc_envelope'), {
     color: 0xb45309,
     emissive: 0x451a03,
-    emissiveIntensity: 0.28,
-    transmission: 0.68,
+    emissiveIntensity: 0.35,
     transparent: true,
-    opacity: 0.48,
+    opacity: 0.32,
+    depthWrite: false,
     roughness: 0.18,
-    ior: 1.38,
     clearcoat: 1.0,
     side: THREE.DoubleSide
   });
@@ -255,10 +254,10 @@ export function createHDMitochondrion(assembledParts = null) {
   const outerMat = partMaterial(hasPart('mito_outer'), {
     color: 0xa5f3fc,
     emissive: 0x155e75,
-    emissiveIntensity: 0.18,
-    transmission: 0.78,
+    emissiveIntensity: 0.28,
     transparent: true,
-    opacity: 0.4,
+    opacity: 0.28,
+    depthWrite: false,
     roughness: 0.15,
     clearcoat: 1.0,
     side: THREE.DoubleSide
